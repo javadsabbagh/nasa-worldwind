@@ -22,7 +22,7 @@
                memoryMaximumSize="512m">
             <classpath>
                 <pathelement location="${worldwind.classes.dir}"/>
-                <pathelement location="jogl.jar"/>
+                <pathelement location="jogl-all.jar"/>
                 <pathelement location="gluegen-rt.jar"/>
                 <pathelement location="gdal.jar"/>
                 <pathelement location="osmparser.jar"/>
@@ -44,7 +44,7 @@
                 <pathelement location="${worldwind.src.dir}"/>
                 <pathelement location="${worldwind.classes.dir}"/>
                 <pathelement location="${worldwind.test.classes.dir}"/>
-                <pathelement location="jogl.jar"/>
+                <pathelement location="jogl-all.jar"/>
                 <pathelement location="gluegen-rt.jar"/>
                 <pathelement location="gdal.jar"/>
                 <pathelement location="build/lib/junit-4.5.jar"/>
