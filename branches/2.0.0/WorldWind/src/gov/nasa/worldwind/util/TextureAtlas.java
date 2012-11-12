@@ -6,8 +6,7 @@
 
 package gov.nasa.worldwind.util;
 
-import com.sun.opengl.impl.packrect.*;
-import com.sun.opengl.util.texture.*;
+import com.jogamp.opengl.util.packrect.*;
 import gov.nasa.worldwind.exception.WWRuntimeException;
 import gov.nasa.worldwind.render.DrawContext;
 
@@ -58,6 +57,16 @@ public class TextureAtlas
         /**
          * {@inheritDoc}
          * <p/>
+         * Returns <code>true</code>. The texture atlas can always attempt to expand or compact.
+         */
+        public boolean canCompact()
+        {
+            return true;
+        }
+
+        /**
+         * {@inheritDoc}
+         * <p/>
          * Returns <code>false</code>, indicating that the rectangle packer should just expand. When configured to do
          * so, texture atlas evicts old elements in <code>additionFailed</code> if this texture atlas is full and the
          * addition would otherwise fail.
@@ -76,10 +85,12 @@ public class TextureAtlas
          *
          * @throws WWRuntimeException if this backing store cannot fit the rectangle in its layout.
          */
-        public void additionFailed(Rect cause, int attemptNumber)
+        public boolean additionFailed(Rect cause, int attemptNumber)
         {
             if (!isEvictOldElements() || !removeLeastRecentlyUsedEntry())
                 throw new WWRuntimeException(Logging.getMessage("TextureAtlas.AtlasIsFull"));
+            else
+                return true;
         }
 
         /**
@@ -96,8 +107,8 @@ public class TextureAtlas
         /**
          * {@inheritDoc}
          * <p/>
-         * Calls {@link TextureAtlas#moveEntry(java.awt.image.BufferedImage, com.sun.opengl.impl.packrect.Rect,
-         * java.awt.image.BufferedImage, com.sun.opengl.impl.packrect.Rect)}, casting the specified backing stores to
+         * Calls {@link TextureAtlas#moveEntry(java.awt.image.BufferedImage, com.jogamp.opengl.util.packrect.Rect,
+         * java.awt.image.BufferedImage, com.jogamp.opengl.util.packrect.Rect)}, casting the specified backing stores to
          * BufferedImages.
          */
         public void move(Object oldBackingStore, Rect oldLocation, Object newBackingStore, Rect newLocation)
@@ -941,7 +952,7 @@ public class TextureAtlas
      * @param oldBackingImage the backing image corresponding to the previous layout.
      * @param newBackingImage the backing image corresponding to the new layout.
      */
-    @SuppressWarnings( {"UnusedParameters"})
+    @SuppressWarnings({"UnusedParameters"})
     protected void beginMoveEntries(BufferedImage oldBackingImage, BufferedImage newBackingImage)
     {
         if (this.g != null) // This should never happen, but we check anyway.
@@ -960,7 +971,7 @@ public class TextureAtlas
      * @param oldBackingImage the backing image corresponding to the previous layout.
      * @param newBackingImage the backing image corresponding to the new layout.
      */
-    @SuppressWarnings( {"UnusedParameters"})
+    @SuppressWarnings({"UnusedParameters"})
     protected void endMoveEntries(BufferedImage oldBackingImage, BufferedImage newBackingImage)
     {
         if (this.g != null) // This should never happen, but we check anyway.
