@@ -151,7 +151,7 @@ public class WorldWindowGLAutoDrawable extends WorldWindowImpl implements WorldW
         }
 
         if (this.drawable != null)
-            this.drawable.repaint(); // Queue a JOGL repaint request.
+            this.drawable.display(); // Queue a JOGL display request.
     }
 
     public GLContext getContext()
@@ -202,7 +202,13 @@ public class WorldWindowGLAutoDrawable extends WorldWindowImpl implements WorldW
 //        this.drawable.setGL(new DebugGL(this.drawable.getGL())); // uncomment to use the debug drawable
     }
 
-    @SuppressWarnings( {"UnusedParameters"})
+    @Override
+    public void dispose(GLAutoDrawable glAutoDrawable)
+    {
+        // TODO: implement disposal
+    }
+
+    @SuppressWarnings({"UnusedParameters"})
     protected void reinitialize(GLAutoDrawable glAutoDrawable)
     {
         // Clear the gpu resource cache if the window is reinitializing, most likely with a new gl hardware context.
@@ -271,7 +277,7 @@ public class WorldWindowGLAutoDrawable extends WorldWindowImpl implements WorldW
                     {
                         public void actionPerformed(ActionEvent actionEvent)
                         {
-                            drawable.repaint();
+                            drawable.display();
                             redrawTimer = null;
                         }
                     });
@@ -413,21 +419,11 @@ public class WorldWindowGLAutoDrawable extends WorldWindowImpl implements WorldW
         ((Component) glAutoDrawable).setMinimumSize(new Dimension(0, 0));
     }
 
-    /**
-     * See {@link GLEventListener#displayChanged(GLAutoDrawable, boolean, boolean)}.
-     *
-     * @param glAutoDrawable the drawable
-     */
-    public void displayChanged(GLAutoDrawable glAutoDrawable, boolean b, boolean b1)
-    {
-        Logging.logger().finest("WorldWindowGLCanvas.DisplayEventListenersDisplayChangedMethodCalled");
-    }
-
     @Override
     public void redraw()
     {
         if (this.drawable != null)
-            this.drawable.repaint();
+            this.drawable.display();
     }
 
     public void redrawNow()
