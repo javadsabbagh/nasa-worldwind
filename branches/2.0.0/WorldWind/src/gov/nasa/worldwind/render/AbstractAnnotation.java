@@ -5,7 +5,7 @@
  */
 package gov.nasa.worldwind.render;
 
-import com.sun.opengl.util.j2d.TextRenderer;
+import com.jogamp.opengl.util.awt.TextRenderer;
 import gov.nasa.worldwind.WorldWindow;
 import gov.nasa.worldwind.avlist.*;
 import gov.nasa.worldwind.geom.*;
@@ -72,15 +72,15 @@ import java.awt.*;
  * AnnotationAttributes geoFeature = new AnnotationAttributes();
  * geoFeature.setFrameShape(AVKey.SHAPE_ELLIPSE);
  * geoFeature.setInsets(new Insets(12, 12, 12, 12));
- * <p/>
+ *
  * AnnotationAttributes waterBody = new AnnotationAttributes();
  * waterBody.setTextColor(Color.BLUE);
  * waterBoby.setDefaults(geoFeature);
- * <p/>
+ *
  * AnnotationAttributes mountain = new AnnotationAttributes();
  * mountain.setTextColor(Color.GREEN);
  * mountain.setDefaults(geoFeature);
- * <p/>
+ *
  * layer.addAnnotation(new GlobeAnnotation("Spirit Lake", Position.fromDegrees(46.26, -122.15), waterBody);
  * layer.addAnnotation(new GlobeAnnotation("Mt St-Helens", Position.fromDegrees(46.20, -122.19), mountain);
  * </pre>

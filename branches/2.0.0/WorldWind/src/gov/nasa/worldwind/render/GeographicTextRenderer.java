@@ -5,7 +5,7 @@
  */
 package gov.nasa.worldwind.render;
 
-import com.sun.opengl.util.j2d.TextRenderer;
+import com.jogamp.opengl.util.awt.TextRenderer;
 import gov.nasa.worldwind.View;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.exception.WWRuntimeException;
@@ -517,7 +517,7 @@ public class GeographicTextRenderer
         return bounds;
     }
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     protected double[] computeDistanceScaleAndOpacity(DrawContext dc, OrderedText ot)
     {
         if (!this.isDistanceScaling)
@@ -742,13 +742,13 @@ public class GeographicTextRenderer
      *
      * @return the final draw point for the given rectangle lower left corner or <code>null</code>.
      */
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     protected Point.Float computeDrawPoint(DrawContext dc, Rectangle2D rect, Vec4 screenPoint)
     {
         return new Point.Float((float) (screenPoint.x - rect.getWidth() / 2d), (float) (screenPoint.y));
     }
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     protected void setDepthFunc(DrawContext dc, OrderedText uText, Vec4 screenPoint)
     {
         GL gl = dc.getGL();

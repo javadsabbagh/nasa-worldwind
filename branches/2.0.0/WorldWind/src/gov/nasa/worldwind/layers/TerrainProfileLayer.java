@@ -5,7 +5,7 @@
  */
 package gov.nasa.worldwind.layers;
 
-import com.sun.opengl.util.j2d.TextRenderer;
+import com.jogamp.opengl.util.awt.TextRenderer;
 import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.event.*;
@@ -126,7 +126,7 @@ public class TerrainProfileLayer extends AbstractLayer implements PositionListen
      *
      * @return true if the profile graph is minimized.
      */
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public boolean getIsMinimized()
     {
         return this.isMinimized;
@@ -150,7 +150,7 @@ public class TerrainProfileLayer extends AbstractLayer implements PositionListen
      *
      * @return true if the profile graph is maximized.
      */
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public boolean getIsMaximized()
     {
         return this.isMaximized;
@@ -251,7 +251,7 @@ public class TerrainProfileLayer extends AbstractLayer implements PositionListen
      *
      * @return the graphic-to-viewport scale factor.
      */
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public double getToViewportScale()
     {
         return toViewportScale;
@@ -265,7 +265,7 @@ public class TerrainProfileLayer extends AbstractLayer implements PositionListen
      *
      * @param toViewportScale the graphic to viewport scale factor.
      */
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public void setToViewportScale(double toViewportScale)
     {
         this.toViewportScale = toViewportScale;
@@ -299,7 +299,7 @@ public class TerrainProfileLayer extends AbstractLayer implements PositionListen
      *
      * @return the screen location of the graph center if set (can be null).
      */
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public Point getLocationCenter()
     {
         return this.locationCenter;
@@ -321,7 +321,7 @@ public class TerrainProfileLayer extends AbstractLayer implements PositionListen
      *
      * @return the location offset. Will be null if no offset has been specified.
      */
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public Vec4 getLocationOffset()
     {
         return locationOffset;
@@ -347,7 +347,7 @@ public class TerrainProfileLayer extends AbstractLayer implements PositionListen
      *
      * @return the layer's resize behavior.
      */
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public String getResizeBehavior()
     {
         return resizeBehavior;
@@ -364,7 +364,7 @@ public class TerrainProfileLayer extends AbstractLayer implements PositionListen
      *
      * @param resizeBehavior the desired resize behavior
      */
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public void setResizeBehavior(String resizeBehavior)
     {
         this.resizeBehavior = resizeBehavior;
@@ -386,7 +386,7 @@ public class TerrainProfileLayer extends AbstractLayer implements PositionListen
         this.borderWidth = borderWidth;
     }
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public String getUnit()
     {
         return this.unit;
@@ -518,7 +518,7 @@ public class TerrainProfileLayer extends AbstractLayer implements PositionListen
      *
      * @return the profile start position lat/lon.
      */
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public LatLon getStartLatLon()
     {
         return this.startLatLon;
@@ -545,7 +545,7 @@ public class TerrainProfileLayer extends AbstractLayer implements PositionListen
      *
      * @return the profile end position lat/lon.
      */
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public LatLon getEndLatLon()
     {
         return this.endLatLon;
@@ -572,7 +572,7 @@ public class TerrainProfileLayer extends AbstractLayer implements PositionListen
      *
      * @return the number of elevation samples in the profile.
      */
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public int getSamples()
     {
         return this.samples;
@@ -583,7 +583,7 @@ public class TerrainProfileLayer extends AbstractLayer implements PositionListen
      *
      * @param number the number of elevation samples in the profile.
      */
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public void setSamples(int number)
     {
         this.samples = Math.abs(number);
@@ -614,7 +614,7 @@ public class TerrainProfileLayer extends AbstractLayer implements PositionListen
      *
      * @return the object position the graph follows.
      */
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public Position getObjectPosition()
     {
         return this.objectPosition;
@@ -636,7 +636,7 @@ public class TerrainProfileLayer extends AbstractLayer implements PositionListen
      *
      * @return the object heading the graph follows.
      */
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public Angle getObjectHeading()
     {
         return this.objectHeading;
@@ -658,7 +658,7 @@ public class TerrainProfileLayer extends AbstractLayer implements PositionListen
      *
      * @return the path positions that the profile follows.
      */
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public List<? extends LatLon> getPathPositions()
     {
         return this.pathPositions;
@@ -680,7 +680,7 @@ public class TerrainProfileLayer extends AbstractLayer implements PositionListen
         this.pathPositions = positions;
     }
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public int getPathType()
     {
         return this.pathType;
@@ -703,7 +703,7 @@ public class TerrainProfileLayer extends AbstractLayer implements PositionListen
      *
      * @return the <code>Polyline</code> used to render the profile line on the ground.
      */
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public Polyline getProfileLine()
     {
         return this.selectionShape;
@@ -714,7 +714,7 @@ public class TerrainProfileLayer extends AbstractLayer implements PositionListen
      *
      * @return the <code>Polyline</code> used to render the picked position on the terrain.
      */
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public Polyline getPickedLine()
     {
         return this.selectionShape;
@@ -725,7 +725,7 @@ public class TerrainProfileLayer extends AbstractLayer implements PositionListen
      *
      * @return true is the profile line is displayed over the ground.
      */
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public boolean isShowProfileLine()
     {
         return this.showProfileLine;
@@ -746,7 +746,7 @@ public class TerrainProfileLayer extends AbstractLayer implements PositionListen
      *
      * @return true if the picked line is displayed over the ground.
      */
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public boolean isShowPickedLine()
     {
         return this.showPickedLine;
@@ -757,7 +757,7 @@ public class TerrainProfileLayer extends AbstractLayer implements PositionListen
      *
      * @param state if the picked line should be displayed over the ground.
      */
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public void setShowPickedLine(boolean state)
     {
         this.showPickedLine = state;

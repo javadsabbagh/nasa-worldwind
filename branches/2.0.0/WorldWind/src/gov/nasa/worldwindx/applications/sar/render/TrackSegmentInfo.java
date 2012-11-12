@@ -4,12 +4,12 @@ All Rights Reserved.
 */
 package gov.nasa.worldwindx.applications.sar.render;
 
-import com.sun.opengl.util.j2d.TextRenderer;
-import gov.nasa.worldwindx.applications.sar.*;
+import com.jogamp.opengl.util.awt.TextRenderer;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.util.*;
+import gov.nasa.worldwindx.applications.sar.*;
 
 import javax.media.opengl.GL;
 import java.awt.*;

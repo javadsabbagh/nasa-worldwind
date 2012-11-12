@@ -5,7 +5,7 @@
  */
 package gov.nasa.worldwind.layers.mercator;
 
-import com.sun.opengl.util.j2d.TextRenderer;
+import com.jogamp.opengl.util.awt.TextRenderer;
 import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.globes.Globe;
@@ -42,7 +42,7 @@ public abstract class MercatorTiledImageLayer extends AbstractLayer
     private boolean levelZeroLoaded = false;
     private boolean retainLevelZeroTiles = false;
     private String tileCountName;
-    @SuppressWarnings( {"FieldCanBeLocal"})
+    @SuppressWarnings({"FieldCanBeLocal"})
     private double splitScale = 0.9; // TODO: Make configurable
     private boolean useMipMaps = false;
     private ArrayList<String> supportedImageFormats = new ArrayList<String>();

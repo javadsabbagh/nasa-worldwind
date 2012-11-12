@@ -6,7 +6,7 @@
 
 package gov.nasa.worldwind.render;
 
-import com.sun.opengl.util.j2d.TextRenderer;
+import com.jogamp.opengl.util.awt.TextRenderer;
 import gov.nasa.worldwind.Movable;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.geom.*;
@@ -16,7 +16,7 @@ import gov.nasa.worldwind.util.*;
 import javax.media.opengl.GL;
 import java.awt.*;
 import java.awt.geom.*;
-import java.util.*;
+import java.util.Arrays;
 
 /**
  * Renders a string of text on the surface of the globe. The text will appear draped over terrain. Surface text is drawn

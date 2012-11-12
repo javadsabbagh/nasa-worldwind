@@ -6,7 +6,7 @@ All Rights Reserved.
 */
 package gov.nasa.worldwindx.examples;
 
-import com.sun.opengl.util.j2d.TextRenderer;
+import com.jogamp.opengl.util.awt.TextRenderer;
 import gov.nasa.worldwind.Configuration;
 import gov.nasa.worldwind.event.*;
 import gov.nasa.worldwind.geom.*;
@@ -305,7 +305,7 @@ public class Shapes
                 positions5.add(Position.fromDegrees(38.0 + i * 0.0001, 30.0 + i * 0.0001, 1000.0 + i * 5.0));
             }
 
-            @SuppressWarnings( {"UnnecessaryLocalVariable"})
+            @SuppressWarnings({"UnnecessaryLocalVariable"})
             Info[] infos = new Info[]
                 {
                     new Info("Short Path", new Polyline(positions)),

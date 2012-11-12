@@ -6,11 +6,11 @@
 
 package gov.nasa.worldwind.util.tree;
 
-import com.sun.opengl.util.j2d.TextRenderer;
+import com.jogamp.opengl.util.awt.TextRenderer;
 import com.sun.opengl.util.texture.TextureCoords;
 import gov.nasa.worldwind.WWObjectImpl;
-import gov.nasa.worldwind.avlist.*;
-import gov.nasa.worldwind.event.*;
+import gov.nasa.worldwind.avlist.AVKey;
+import gov.nasa.worldwind.event.SelectEvent;
 import gov.nasa.worldwind.pick.*;
 import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.util.*;
@@ -1697,7 +1697,7 @@ public class BasicTreeLayout extends WWObjectImpl implements TreeLayout, Scrolla
      * @param text Text to get bounds of.
      * @param font Font applied to the text.
      *
-     * @return A rectangle that describes the node bounds. See com.sun.opengl.util.j2d.TextRenderer.getBounds for
+     * @return A rectangle that describes the node bounds. See com.jogamp.opengl.util.awt.TextRenderer.getBounds for
      *         information on how this rectangle should be interpreted.
      */
     protected Rectangle2D getTextBounds(DrawContext dc, String text, Font font)
@@ -1724,7 +1724,7 @@ public class BasicTreeLayout extends WWObjectImpl implements TreeLayout, Scrolla
      * @param text Text to find bounds of.
      * @param font Font applied to the text.
      *
-     * @return A rectangle that describes the node bounds. See com.sun.opengl.util.j2d.TextRenderer.getBounds for
+     * @return A rectangle that describes the node bounds. See com.jogamp.opengl.util.awt.TextRenderer.getBounds for
      *         information on how this rectangle should be interpreted.
      */
     protected Rectangle2D getMultilineTextBounds(DrawContext dc, String text, Font font)
