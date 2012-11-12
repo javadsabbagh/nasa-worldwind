@@ -6,7 +6,7 @@
 
 package gov.nasa.worldwind.render;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
 import gov.nasa.worldwind.Exportable;
 import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.render.airspaces.Geometry;
@@ -256,10 +256,10 @@ public class Ellipsoid extends RigidShape
         int seamVerticesIndex = itb.getVertexCount();
         gb.fixSphereSeam(itb, (float) Math.PI);
 
-        FloatBuffer normalBuffer = BufferUtil.newFloatBuffer(3 * itb.getVertexCount());
+        FloatBuffer normalBuffer = Buffers.newDirectFloatBuffer(3 * itb.getVertexCount());
         gb.makeEllipsoidNormals(itb, normalBuffer);
 
-        FloatBuffer textureCoordBuffer = BufferUtil.newFloatBuffer(2 * itb.getVertexCount());
+        FloatBuffer textureCoordBuffer = Buffers.newDirectFloatBuffer(2 * itb.getVertexCount());
         gb.makeUnitSphereTextureCoordinates(itb, textureCoordBuffer, seamVerticesIndex);
 
         dest.setElementData(GL.GL_TRIANGLES, itb.getIndexCount(), itb.getIndices());
@@ -396,7 +396,7 @@ public class Ellipsoid extends RigidShape
         GeometryBuilder.IndexedTriangleBuffer itb =
             gb.tessellateEllipsoidBuffer((float) a, (float) b, (float) c, subdivisions);
 
-        FloatBuffer normalBuffer = BufferUtil.newFloatBuffer(3 * itb.getVertexCount());
+        FloatBuffer normalBuffer = Buffers.newDirectFloatBuffer(3 * itb.getVertexCount());
         gb.makeIndexedTriangleBufferNormals(itb, normalBuffer);
 
         dest.setElementData(GL.GL_TRIANGLES, itb.getIndexCount(), itb.getIndices());

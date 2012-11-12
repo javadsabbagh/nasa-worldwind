@@ -6,7 +6,7 @@
 
 package gov.nasa.worldwind.render;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
 import gov.nasa.worldwind.WorldWind;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.cache.*;
@@ -1590,7 +1590,7 @@ public class Path extends AbstractShape
         float[] color = (pathData.tessellatedColors != null ? new float[4] : null);
 
         if (path == null || path.capacity() < elemsPerPoint * numPoints)
-            path = BufferUtil.newFloatBuffer(elemsPerPoint * numPoints);
+            path = Buffers.newDirectFloatBuffer(elemsPerPoint * numPoints);
 
         path.clear();
 
@@ -1641,7 +1641,7 @@ public class Path extends AbstractShape
         float[] color = (pathData.tessellatedColors != null ? new float[4] : null);
 
         if (path == null || path.capacity() < elemsPerPoint * numPoints)
-            path = BufferUtil.newFloatBuffer(elemsPerPoint * numPoints);
+            path = Buffers.newDirectFloatBuffer(elemsPerPoint * numPoints);
 
         path.clear();
 
@@ -1824,12 +1824,12 @@ public class Path extends AbstractShape
         }
 
         if (pathData.polePositions == null || pathData.polePositions.capacity() < this.numPositions * 2)
-            pathData.polePositions = BufferUtil.newIntBuffer(this.numPositions * 2);
+            pathData.polePositions = Buffers.newDirectIntBuffer(this.numPositions * 2);
         else
             pathData.polePositions.clear();
 
         if (pathData.positionPoints == null || pathData.positionPoints.capacity() < this.numPositions)
-            pathData.positionPoints = BufferUtil.newIntBuffer(this.numPositions);
+            pathData.positionPoints = Buffers.newDirectIntBuffer(this.numPositions);
         else
             pathData.positionPoints.clear();
 

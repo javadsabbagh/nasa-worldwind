@@ -1,6 +1,6 @@
 package performance.VBORenderer;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
 
 import javax.media.opengl.*;
 import javax.media.opengl.glu.GLU;
@@ -182,7 +182,7 @@ class VBORenderer implements ActionListener, ChangeListener, GLEventListener
                     MESH_HEIGHTSCALE,
                     glDisplay.getMeshResolution(),
                     VBOsupported,
-                    BufferUtil.SIZEOF_FLOAT);
+                    Buffers.SIZEOF_FLOAT);
             }
             else
             {
@@ -190,7 +190,7 @@ class VBORenderer implements ActionListener, ChangeListener, GLEventListener
                     (double) MESH_HEIGHTSCALE,
                     (double) glDisplay.getMeshResolution(),
                     VBOsupported,
-                    BufferUtil.SIZEOF_DOUBLE);
+                    Buffers.SIZEOF_DOUBLE);
             }
         }
         catch (IOException e)
@@ -311,7 +311,7 @@ class VBORenderer implements ActionListener, ChangeListener, GLEventListener
                 gl.glRotatef(yRotation, 0.0f, 1.0f, 0.0f);                    // Rotate The Camera
 
                 // Render the mesh
-                mesh.render(gl, GL.GL_FLOAT, BufferUtil.SIZEOF_FLOAT, mesh.vertices, mesh.texCoords);
+                mesh.render(gl, GL.GL_FLOAT, Buffers.SIZEOF_FLOAT, mesh.vertices, mesh.texCoords);
             }
             else                            // double version
             {
@@ -321,7 +321,7 @@ class VBORenderer implements ActionListener, ChangeListener, GLEventListener
                 gl.glRotated((double) yRotation, 0.0d, 1.0d, 0.0d);            // Rotate The Camera
 
                 // Render the mesh
-                mesh.render(gl, GL.GL_DOUBLE, BufferUtil.SIZEOF_DOUBLE, mesh.verticesDbl, mesh.texCoordsDbl);
+                mesh.render(gl, GL.GL_DOUBLE, Buffers.SIZEOF_DOUBLE, mesh.verticesDbl, mesh.texCoordsDbl);
             }
         }
         gl.glFinish(); // cause OpenGL to wait until it renders everything
@@ -420,8 +420,8 @@ class VBORenderer implements ActionListener, ChangeListener, GLEventListener
             else                                          // GL_TRIANGLES
                 vertexCount = (int) (texture.getWidth() * texture.getHeight() * 6 / (flResolution * flResolution));
 
-            vertices = BufferUtil.newFloatBuffer(vertexCount * 3);                      // Allocate Vertex Data
-            texCoords = BufferUtil.newFloatBuffer(vertexCount * 2);                     // Allocate Tex Coord Data
+            vertices = Buffers.newDirectFloatBuffer(vertexCount * 3);                      // Allocate Vertex Data
+            texCoords = Buffers.newDirectFloatBuffer(vertexCount * 2);                     // Allocate Tex Coord Data
 
             for (int nZ = 0; nZ <= texture.getHeight(); nZ += (int) flResolution)
             {
@@ -500,8 +500,9 @@ class VBORenderer implements ActionListener, ChangeListener, GLEventListener
             else                                          // GL_TRIANGLES
                 vertexCount = (int) (texture.getWidth() * texture.getHeight() * 6 / (dblResolution * dblResolution));
 
-            verticesDbl = BufferUtil.newDoubleBuffer(vertexCount * 3);                      // Allocate Vertex Data
-            texCoordsDbl = BufferUtil.newDoubleBuffer(vertexCount * 2);                     // Allocate Tex Coord Data
+            verticesDbl = Buffers.newDirectDoubleBuffer(vertexCount * 3);                      // Allocate Vertex Data
+            texCoordsDbl = Buffers.newDirectDoubleBuffer(
+                vertexCount * 2);                     // Allocate Tex Coord Data
             for (int nZ = 0; nZ <= texture.getHeight(); nZ += (int) dblResolution)
             {
                 for (int nX = 0; nX <= texture.getWidth(); nX += (int) dblResolution)
@@ -583,7 +584,7 @@ class VBORenderer implements ActionListener, ChangeListener, GLEventListener
             int sideSize = verticesAlongLength - 1;
 
             int numIndices = 2 * sideSize * sideSize + 4 * sideSize - 2;
-            indices = BufferUtil.newIntBuffer(numIndices);
+            indices = Buffers.newDirectIntBuffer(numIndices);
             int k = 0;
             for (int i = 0; i < sideSize; i++)
             {
@@ -745,7 +746,7 @@ class VBORenderer implements ActionListener, ChangeListener, GLEventListener
                 // Generate And Bind The Index Buffer
                 gl.glGenBuffersARB(1, VBOIndices, 0);                                       // Get A Valid Name
                 gl.glBindBufferARB(GL.GL_ELEMENT_ARRAY_BUFFER_ARB, VBOIndices[0]);          // Bind The Buffer
-                gl.glBufferDataARB(GL.GL_ELEMENT_ARRAY_BUFFER_ARB, indexCount * BufferUtil.SIZEOF_INT,
+                gl.glBufferDataARB(GL.GL_ELEMENT_ARRAY_BUFFER_ARB, indexCount * Buffers.SIZEOF_INT,
                     mesh.indices, glDisplay.getBufferDataUsage());
             }
         }
@@ -757,14 +758,14 @@ class VBORenderer implements ActionListener, ChangeListener, GLEventListener
             gl.glGenBuffersARB(1, VBOVertices, 0);                              // Get A Valid Name
             gl.glBindBufferARB(GL.GL_ARRAY_BUFFER_ARB, VBOVertices[0]);         // Bind The Buffer
             // Load The Data
-            gl.glBufferDataARB(GL.GL_ARRAY_BUFFER_ARB, vertexCount * 3 * BufferUtil.SIZEOF_FLOAT, vertices,
+            gl.glBufferDataARB(GL.GL_ARRAY_BUFFER_ARB, vertexCount * 3 * Buffers.SIZEOF_FLOAT, vertices,
                 glDisplay.getBufferDataUsage());
 
             // Generate And Bind The Texture Coordinate Buffer
             gl.glGenBuffersARB(1, VBOTexCoords, 0);                             // Get A Valid Name
             gl.glBindBufferARB(GL.GL_ARRAY_BUFFER_ARB, VBOTexCoords[0]);        // Bind The Buffer
             // Load The Data
-            gl.glBufferDataARB(GL.GL_ARRAY_BUFFER_ARB, vertexCount * 2 * BufferUtil.SIZEOF_FLOAT, texCoords,
+            gl.glBufferDataARB(GL.GL_ARRAY_BUFFER_ARB, vertexCount * 2 * Buffers.SIZEOF_FLOAT, texCoords,
                 glDisplay.getBufferDataUsage());
 
             // Our Copy Of The Data Is No Longer Necessary, It Is Safe In The Graphics Card

@@ -5,8 +5,7 @@
  */
 package gov.nasa.worldwind.util.webview;
 
-import com.sun.opengl.util.BufferUtil;
-import com.sun.opengl.util.texture.*;
+import com.jogamp.common.nio.Buffers;
 import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.util.Logging;
 
@@ -27,7 +26,7 @@ public class WebViewTexture extends BasicWWTexture
     {
         // Create a new unique object to use as the cache key.
         super(new Object(), useMipMaps); // Do not generate mipmaps for the texture.
-        
+
         this.frameSize = frameSize;
         this.flipVertically = flipVertically;
     }
@@ -79,7 +78,7 @@ public class WebViewTexture extends BasicWWTexture
                 false, // mipmap
                 false, // dataIsCompressed
                 this.flipVertically,
-                BufferUtil.newByteBuffer(4 * this.frameSize.width * this.frameSize.height), // buffer
+                Buffers.newDirectByteBuffer(4 * this.frameSize.width * this.frameSize.height), // buffer
                 null); // flusher
             t = TextureIO.newTexture(td);
 

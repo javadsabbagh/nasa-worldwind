@@ -5,15 +5,14 @@
  */
 package gov.nasa.worldwind.render;
 
-import com.sun.opengl.util.*;
-import com.sun.opengl.util.texture.*;
-import gov.nasa.worldwind.*;
-import gov.nasa.worldwind.terrain.*;
+import com.jogamp.common.nio.Buffers;
+import gov.nasa.worldwind.Disposable;
+import gov.nasa.worldwind.terrain.SectorGeometry;
 import gov.nasa.worldwind.util.*;
 
 import javax.media.opengl.*;
-import java.nio.*;
-import java.util.*;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.logging.Level;
 
 /**
@@ -26,12 +25,12 @@ public abstract class SurfaceTileRenderer implements Disposable
 
     protected Texture alphaTexture;
     protected Texture outlineTexture;
-    
+
     private boolean showImageTileOutlines = false;
 
     /**
-     * Free internal resources held by this surface tile renderer.
-     * A GL context must be current when this method is called.
+     * Free internal resources held by this surface tile renderer. A GL context must be current when this method is
+     * called.
      *
      * @throws javax.media.opengl.GLException - If an OpenGL context is not current when this method is called.
      */
@@ -39,7 +38,7 @@ public abstract class SurfaceTileRenderer implements Disposable
     {
         if (GLContext.getCurrent() == null)
             return;
-        
+
         if (this.alphaTexture != null)
             this.alphaTexture.dispose();
         this.alphaTexture = null;
@@ -87,7 +86,7 @@ public abstract class SurfaceTileRenderer implements Disposable
     abstract protected void computeTextureTransform(DrawContext dc, SurfaceTile tile, Transform t);
 
     abstract protected Iterable<SurfaceTile> getIntersectingTiles(DrawContext dc, SectorGeometry sg,
-                                                                  Iterable<? extends SurfaceTile> tiles);
+        Iterable<? extends SurfaceTile> tiles);
 
     public void renderTiles(DrawContext dc, Iterable<? extends SurfaceTile> tiles)
     {
@@ -282,7 +281,7 @@ public abstract class SurfaceTileRenderer implements Disposable
 
     protected void initAlphaTexture(int size)
     {
-        ByteBuffer textureBytes = BufferUtil.newByteBuffer(size * size);
+        ByteBuffer textureBytes = Buffers.newDirectByteBuffer(size * size);
         fillByteBuffer(textureBytes, (byte) 0xff);
 
         TextureData textureData = new TextureData(GL.GL_ALPHA, size, size, 0, GL.GL_ALPHA,
@@ -299,7 +298,7 @@ public abstract class SurfaceTileRenderer implements Disposable
 
     protected void initOutlineTexture(int size)
     {
-        ByteBuffer textureBytes = BufferUtil.newByteBuffer(size * size);
+        ByteBuffer textureBytes = Buffers.newDirectByteBuffer(size * size);
         for (int row = 0; row < size; row++)
         {
             for (int col = 0; col < size; col++)

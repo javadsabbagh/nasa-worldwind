@@ -6,7 +6,7 @@
 
 package gov.nasa.worldwind.ogc.collada.impl;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
 import gov.nasa.worldwind.cache.GpuResourceCache;
 import gov.nasa.worldwind.geom.Box;
 import gov.nasa.worldwind.geom.*;
@@ -617,7 +617,7 @@ public class ColladaMeshShape extends AbstractGeneralShape
 
             if (!dc.isPickingMode() && this.mustApplyLighting(dc, null) && this.normalBuffer != null)
             {
-                gl.glNormalPointer(GL.GL_FLOAT, 0, this.normalBufferPosition * BufferUtil.SIZEOF_FLOAT);
+                gl.glNormalPointer(GL.GL_FLOAT, 0, this.normalBufferPosition * Buffers.SIZEOF_FLOAT);
             }
 
             gl.glDrawArrays(this.elementType, geometry.offset,
@@ -785,7 +785,7 @@ public class ColladaMeshShape extends AbstractGeneralShape
         if (this.coordBuffer != null && this.coordBuffer.capacity() >= size)
             this.coordBuffer.clear();
         else
-            this.coordBuffer = BufferUtil.newFloatBuffer(size);
+            this.coordBuffer = Buffers.newDirectFloatBuffer(size);
 
         for (Geometry geometry : this.geometries)
         {
@@ -846,7 +846,7 @@ public class ColladaMeshShape extends AbstractGeneralShape
         int[] vboIds = this.getVboIds(dc);
         if (vboIds == null)
         {
-            int size = this.coordBuffer.limit() * BufferUtil.SIZEOF_FLOAT;
+            int size = this.coordBuffer.limit() * Buffers.SIZEOF_FLOAT;
 
             vboIds = new int[1];
             gl.glGenBuffers(vboIds.length, vboIds, 0);
@@ -858,7 +858,7 @@ public class ColladaMeshShape extends AbstractGeneralShape
         {
             FloatBuffer vb = this.coordBuffer;
             gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vboIds[0]);
-            gl.glBufferData(GL.GL_ARRAY_BUFFER, vb.limit() * BufferUtil.SIZEOF_FLOAT, vb.rewind(), GL.GL_STATIC_DRAW);
+            gl.glBufferData(GL.GL_ARRAY_BUFFER, vb.limit() * Buffers.SIZEOF_FLOAT, vb.rewind(), GL.GL_STATIC_DRAW);
         }
         finally
         {

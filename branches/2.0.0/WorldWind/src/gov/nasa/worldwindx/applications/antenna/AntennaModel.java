@@ -6,7 +6,7 @@
 
 package gov.nasa.worldwindx.applications.antenna;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
 import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.globes.Globe;
@@ -405,8 +405,8 @@ public class AntennaModel extends AbstractShape
         shapeData.setReferencePoint(rp);
 
         int nVertices = (this.nThetaIntervals + 1) * (this.nPhiIntervals + 1);
-        shapeData.vertices = BufferUtil.newFloatBuffer(3 * nVertices);
-        shapeData.texCoords = BufferUtil.newFloatBuffer(2 * nVertices);
+        shapeData.vertices = Buffers.newDirectFloatBuffer(3 * nVertices);
+        shapeData.texCoords = Buffers.newDirectFloatBuffer(2 * nVertices);
 
         double rScale = 1 / (this.getMaxR() - this.getMinR()); // to keep texture coords in [0,1]. see comment below
 
@@ -478,7 +478,7 @@ public class AntennaModel extends AbstractShape
 
         for (int j = 0; j < this.nThetaIntervals; j++)
         {
-            shapeData.indices[j] = BufferUtil.newIntBuffer(2 * this.nPhiIntervals + 2);
+            shapeData.indices[j] = Buffers.newDirectIntBuffer(2 * this.nPhiIntervals + 2);
 
             for (int i = 0; i <= this.nPhiIntervals; i++)
             {
@@ -509,7 +509,7 @@ public class AntennaModel extends AbstractShape
 
         Vec4 vecA, vecB, vecC, vecD, vecX1, vecX2;
 
-        shapeData.normals = BufferUtil.newFloatBuffer(shapeData.vertices.limit());
+        shapeData.normals = Buffers.newDirectFloatBuffer(shapeData.vertices.limit());
 
         for (int j = 0; j <= this.nThetaIntervals; j++)
         {

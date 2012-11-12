@@ -4,7 +4,7 @@ All Rights Reserved.
 */
 package gov.nasa.worldwindx.examples.analytics;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
 import gov.nasa.worldwind.WorldWind;
 import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.layers.Layer;
@@ -1206,11 +1206,11 @@ public class AnalyticSurface implements Renderable, PreRenderable
             this.gridHeight = gridHeight;
             this.interiorIndexBuffer = WWMath.computeIndicesForGridInterior(gridWidth, gridHeight);
             this.outlineIndexBuffer = WWMath.computeIndicesForGridOutline(gridWidth, gridHeight);
-            this.cartesianVertexBuffer = BufferUtil.newFloatBuffer(3 * numVertices);
-            this.cartesianNormalBuffer = BufferUtil.newFloatBuffer(3 * numVertices);
-            this.geographicVertexBuffer = BufferUtil.newFloatBuffer(3 * numVertices);
-            this.colorBuffer = BufferUtil.newByteBuffer(4 * numVertices);
-            this.shadowColorBuffer = BufferUtil.newByteBuffer(4 * numVertices);
+            this.cartesianVertexBuffer = Buffers.newDirectFloatBuffer(3 * numVertices);
+            this.cartesianNormalBuffer = Buffers.newDirectFloatBuffer(3 * numVertices);
+            this.geographicVertexBuffer = Buffers.newDirectFloatBuffer(3 * numVertices);
+            this.colorBuffer = Buffers.newDirectByteBuffer(4 * numVertices);
+            this.shadowColorBuffer = Buffers.newDirectByteBuffer(4 * numVertices);
         }
 
         public int getGridWidth()

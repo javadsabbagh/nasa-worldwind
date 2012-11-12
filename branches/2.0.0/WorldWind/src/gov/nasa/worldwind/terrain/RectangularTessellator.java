@@ -5,7 +5,7 @@
  */
 package gov.nasa.worldwind.terrain;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
 import com.sun.opengl.util.j2d.TextRenderer;
 import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.avlist.AVKey;
@@ -339,7 +339,7 @@ public class RectangularTessellator extends WWObjectImpl implements Tessellator
             this.globeStateKey = dc.getGlobe().getStateKey(dc);
         }
 
-        @SuppressWarnings( {"EqualsWhichDoesntCheckParameterClass"})
+        @SuppressWarnings({"EqualsWhichDoesntCheckParameterClass"})
         public boolean equals(Object o)
         {
             if (this == o)
@@ -620,7 +620,7 @@ public class RectangularTessellator extends WWObjectImpl implements Tessellator
         //Re-use the RenderInfo vertices buffer. If it has not been set or the density has changed, create a new buffer
         if (tile.ri == null || tile.ri.vertices == null || density != tile.ri.density)
         {
-            verts = BufferUtil.newFloatBuffer(numVertices * 3);
+            verts = Buffers.newDirectFloatBuffer(numVertices * 3);
         }
         else
         {
@@ -1169,8 +1169,8 @@ public class RectangularTessellator extends WWObjectImpl implements Tessellator
         else
         {
             //Otherwise create new buffers
-            colorsOdd = BufferUtil.newByteBuffer(verticesSize);
-            colorsEven = BufferUtil.newByteBuffer(verticesSize);
+            colorsOdd = Buffers.newDirectByteBuffer(verticesSize);
+            colorsEven = Buffers.newDirectByteBuffer(verticesSize);
 
             oddRowColorList.put(density, colorsOdd);
             evenRowColorList.put(density, colorsEven);
@@ -1828,7 +1828,7 @@ public class RectangularTessellator extends WWObjectImpl implements Tessellator
             density = 1;
 
         int coordCount = (density + 3) * (density + 3);
-        DoubleBuffer p = BufferUtil.newDoubleBuffer(2 * coordCount);
+        DoubleBuffer p = Buffers.newDirectDoubleBuffer(2 * coordCount);
 
         double deltaLat = rt.sector.getDeltaLatRadians() / density;
         double deltaLon = rt.sector.getDeltaLonRadians() / density;
@@ -1912,7 +1912,7 @@ public class RectangularTessellator extends WWObjectImpl implements Tessellator
         final float one = 0.999999f;
 
         int coordCount = (density + 3) * (density + 3);
-        FloatBuffer p = BufferUtil.newFloatBuffer(2 * coordCount);
+        FloatBuffer p = Buffers.newDirectFloatBuffer(2 * coordCount);
         double delta = 1d / density;
         int k = 2 * (density + 3);
         for (int j = 0; j < density; j++)
@@ -1987,7 +1987,7 @@ public class RectangularTessellator extends WWObjectImpl implements Tessellator
         int sideSize = density + 2;
 
         int indexCount = 2 * sideSize * sideSize + 4 * sideSize - 2;
-        java.nio.IntBuffer buffer = BufferUtil.newIntBuffer(indexCount);
+        java.nio.IntBuffer buffer = Buffers.newDirectIntBuffer(indexCount);
         int k = 0;
         for (int i = 0; i < sideSize; i++)
         {
@@ -2365,7 +2365,7 @@ public class RectangularTessellator extends WWObjectImpl implements Tessellator
 //        double centerY = referenceCenter.y;
 //        double centerZ = referenceCenter.z;
 //        // Create normal buffer
-//        java.nio.DoubleBuffer normals = BufferUtil.newDoubleBuffer(numVertices * 3);
+//        java.nio.DoubleBuffer normals = Buffers.newDirectDoubleBuffer(numVertices * 3);
 //        // Create per vertex normal lists
 //        ArrayList<ArrayList<Vec4>> normalLists = new ArrayList<ArrayList<Vec4>>(numVertices);
 //        for (int i = 0; i < numVertices; i++)

@@ -5,7 +5,7 @@
  */
 package gov.nasa.worldwind.util;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
 import gov.nasa.worldwind.geom.*;
 
 import javax.media.opengl.GL;
@@ -155,8 +155,8 @@ public class GeometryBuilder
             throw new IllegalArgumentException(message);
         }
 
-        IntBuffer indexBuffer = BufferUtil.newIntBuffer(ICOSAHEDRON_INDEX_COUNT);
-        FloatBuffer vertexBuffer = BufferUtil.newFloatBuffer(3 * ICOSAHEDRON_VERTEX_COUNT);
+        IntBuffer indexBuffer = Buffers.newDirectIntBuffer(ICOSAHEDRON_INDEX_COUNT);
+        FloatBuffer vertexBuffer = Buffers.newDirectFloatBuffer(3 * ICOSAHEDRON_VERTEX_COUNT);
         indexBuffer.put(icosahedronIndexArray, 0, ICOSAHEDRON_INDEX_COUNT);
         vertexBuffer.put(icosahedronVertexArray, 0, 3 * ICOSAHEDRON_VERTEX_COUNT);
 
@@ -296,8 +296,8 @@ public class GeometryBuilder
             throw new IllegalArgumentException(message);
         }
 
-        IntBuffer indexBuffer = BufferUtil.newIntBuffer(BOX_INDEX_COUNT);
-        FloatBuffer vertexBuffer = BufferUtil.newFloatBuffer(3 * BOX_VERTEX_COUNT);
+        IntBuffer indexBuffer = Buffers.newDirectIntBuffer(BOX_INDEX_COUNT);
+        FloatBuffer vertexBuffer = Buffers.newDirectFloatBuffer(3 * BOX_VERTEX_COUNT);
         indexBuffer.put(boxIndexArray, 0, BOX_INDEX_COUNT);
         vertexBuffer.put(boxVertexArray, 0, 3 * BOX_VERTEX_COUNT);
 
@@ -355,8 +355,8 @@ public class GeometryBuilder
             throw new IllegalArgumentException(message);
         }
 
-        IntBuffer indexBuffer = BufferUtil.newIntBuffer(BOX_INDEX_COUNT / 6);
-        FloatBuffer vertexBuffer = BufferUtil.newFloatBuffer(3 * BOX_VERTEX_COUNT / 6);
+        IntBuffer indexBuffer = Buffers.newDirectIntBuffer(BOX_INDEX_COUNT / 6);
+        FloatBuffer vertexBuffer = Buffers.newDirectFloatBuffer(3 * BOX_VERTEX_COUNT / 6);
 
         // fill subset of index buffer
         int[] subArray = new int[BOX_INDEX_COUNT / 6];
@@ -498,8 +498,8 @@ public class GeometryBuilder
             throw new IllegalArgumentException(message);
         }
 
-        IntBuffer indexBuffer = BufferUtil.newIntBuffer(PYRAMID_INDEX_COUNT);
-        FloatBuffer vertexBuffer = BufferUtil.newFloatBuffer(3 * PYRAMID_VERTEX_COUNT);
+        IntBuffer indexBuffer = Buffers.newDirectIntBuffer(PYRAMID_INDEX_COUNT);
+        FloatBuffer vertexBuffer = Buffers.newDirectFloatBuffer(3 * PYRAMID_VERTEX_COUNT);
         indexBuffer.put(pyramidIndexArray, 0, PYRAMID_INDEX_COUNT);
         vertexBuffer.put(pyramidVertexArray, 0, 3 * PYRAMID_VERTEX_COUNT);
 
@@ -564,8 +564,8 @@ public class GeometryBuilder
             faceVertexCount = 4;
         }
 
-        IntBuffer indexBuffer = BufferUtil.newIntBuffer(faceIndexCount);
-        FloatBuffer vertexBuffer = BufferUtil.newFloatBuffer(3 * faceVertexCount);
+        IntBuffer indexBuffer = Buffers.newDirectIntBuffer(faceIndexCount);
+        FloatBuffer vertexBuffer = Buffers.newDirectFloatBuffer(3 * faceVertexCount);
 
         // fill subset of index buffer
         int[] subArray = new int[faceIndexCount];
@@ -694,8 +694,8 @@ public class GeometryBuilder
         int cylinderIndexCount = 12 * slices;
         int cylinderVertexCount = 4 * slices + 4;
 
-        IntBuffer indexBuffer = BufferUtil.newIntBuffer(cylinderIndexCount);
-        FloatBuffer vertexBuffer = BufferUtil.newFloatBuffer(3 * cylinderVertexCount);
+        IntBuffer indexBuffer = Buffers.newDirectIntBuffer(cylinderIndexCount);
+        FloatBuffer vertexBuffer = Buffers.newDirectFloatBuffer(3 * cylinderVertexCount);
 
         // VERTICES
 
@@ -859,8 +859,8 @@ public class GeometryBuilder
             cylinderVertexCount = 2 * slices + 2;
         }
 
-        IntBuffer indexBuffer = BufferUtil.newIntBuffer(cylinderIndexCount);
-        FloatBuffer vertexBuffer = BufferUtil.newFloatBuffer(3 * cylinderVertexCount);
+        IntBuffer indexBuffer = Buffers.newDirectIntBuffer(cylinderIndexCount);
+        FloatBuffer vertexBuffer = Buffers.newDirectFloatBuffer(3 * cylinderVertexCount);
 
         // VERTICES
 
@@ -1031,8 +1031,8 @@ public class GeometryBuilder
         int wedgeIndexCount = 12 * slices + 12;
         int wedgeVertexCount = 4 * (slices + 1) + 2 + 8;
 
-        IntBuffer indexBuffer = BufferUtil.newIntBuffer(wedgeIndexCount);
-        FloatBuffer vertexBuffer = BufferUtil.newFloatBuffer(3 * wedgeVertexCount);
+        IntBuffer indexBuffer = Buffers.newDirectIntBuffer(wedgeIndexCount);
+        FloatBuffer vertexBuffer = Buffers.newDirectFloatBuffer(3 * wedgeVertexCount);
 
         // VERTICES
 
@@ -1236,8 +1236,8 @@ public class GeometryBuilder
             wedgeVertexCount = 2 * slices + 2;
         }
 
-        IntBuffer indexBuffer = BufferUtil.newIntBuffer(wedgeIndexCount);
-        FloatBuffer vertexBuffer = BufferUtil.newFloatBuffer(3 * wedgeVertexCount);
+        IntBuffer indexBuffer = Buffers.newDirectIntBuffer(wedgeIndexCount);
+        FloatBuffer vertexBuffer = Buffers.newDirectFloatBuffer(3 * wedgeVertexCount);
 
         // VERTICES
 
@@ -1428,8 +1428,8 @@ public class GeometryBuilder
         int coneIndexCount = 12 * slices;
         int coneVertexCount = 4 * slices + 4;
 
-        IntBuffer indexBuffer = BufferUtil.newIntBuffer(coneIndexCount);
-        FloatBuffer vertexBuffer = BufferUtil.newFloatBuffer(3 * coneVertexCount);
+        IntBuffer indexBuffer = Buffers.newDirectIntBuffer(coneIndexCount);
+        FloatBuffer vertexBuffer = Buffers.newDirectFloatBuffer(3 * coneVertexCount);
 
         // VERTICES
 
@@ -1574,8 +1574,8 @@ public class GeometryBuilder
             coneVertexCount = 2 * slices + 2;
         }
 
-        IntBuffer indexBuffer = BufferUtil.newIntBuffer(coneIndexCount);
-        FloatBuffer vertexBuffer = BufferUtil.newFloatBuffer(3 * coneVertexCount);
+        IntBuffer indexBuffer = Buffers.newDirectIntBuffer(coneIndexCount);
+        FloatBuffer vertexBuffer = Buffers.newDirectFloatBuffer(3 * coneVertexCount);
 
         // VERTICES
 
@@ -1721,7 +1721,7 @@ public class GeometryBuilder
         return stacks * 2 * (slices + 1) + 2 * (stacks - 1);
     }
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public int getCylinderOutlineIndexCount(int slices, int stacks)
     {
         return slices * 4;
@@ -1968,7 +1968,7 @@ public class GeometryBuilder
         return stacks * 2 * (slices + 1) + 2 * (stacks - 1);
     }
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public int getPartialCylinderOutlineIndexCount(int slices, int stacks)
     {
         return slices * 4;
@@ -2039,7 +2039,7 @@ public class GeometryBuilder
         }
     }
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public void makePartialCylinderNormals(float radius, float height, int slices, int stacks,
         float start, float sweep, float[] dest)
     {
@@ -2318,7 +2318,7 @@ public class GeometryBuilder
         }
     }
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public void makeDiskVertexNormals(float innerRadius, float outerRadius, int slices, int loops,
         float[] srcVerts, float[] dest)
     {
@@ -2667,7 +2667,7 @@ public class GeometryBuilder
         }
     }
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public void makePartialDiskVertexNormals(float innerRadius, float outerRadius, int slices, int loops,
         float start, float sweep, float[] srcVerts, float[] dest)
     {
@@ -2909,7 +2909,7 @@ public class GeometryBuilder
         return stacks * 2 * (pillars + 1) + 2 * (stacks - 1);
     }
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public int getRadialWallOutlineIndexCount(int pillars, int stacks)
     {
         return pillars * 4;
@@ -2983,7 +2983,7 @@ public class GeometryBuilder
         }
     }
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public void makeRadialWallNormals(float innerRadius, float outerRadius, float height, float angle,
         int pillars, int stacks, float[] dest)
     {
@@ -3161,7 +3161,7 @@ public class GeometryBuilder
         return stacks * 2 * (slices + 1) + 2 * (stacks - 1);
     }
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public int getLongCylinderOutlineIndexCount(int arcSlices, int lengthSlices, int stacks)
     {
         return (arcSlices + lengthSlices) * 2 * 4;
@@ -3597,7 +3597,7 @@ public class GeometryBuilder
         }
     }
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     public void makeLongDiskVertexNormals(float innerRadius, float outerRadius, float length,
         int arcSlices, int lengthSlices, int loops,
         float[] srcVerts, float[] dest)
@@ -6373,7 +6373,7 @@ public class GeometryBuilder
         if (slices <= 1)
         {
             // The buffer contains one coordinate pair.
-            FloatBuffer buffer = BufferUtil.newFloatBuffer(2);
+            FloatBuffer buffer = Buffers.newDirectFloatBuffer(2);
             buffer.put(x + majorRadius);
             buffer.put(y);
             buffer.rewind();
@@ -6384,7 +6384,7 @@ public class GeometryBuilder
         float angle = 0;
 
         // The buffer contains one coordinate pair per slice.
-        FloatBuffer buffer = BufferUtil.newFloatBuffer(2 * slices);
+        FloatBuffer buffer = Buffers.newDirectFloatBuffer(2 * slices);
 
         // Add each vertex on the circumference of the ellipse, starting at zero and ending one step before 360.
         for (int i = 0; i < slices; i++, angle += step)
@@ -6474,7 +6474,7 @@ public class GeometryBuilder
         if (slices <= 1)
         {
             // The buffer contains one coordinate pair.
-            FloatBuffer buffer = BufferUtil.newFloatBuffer(2);
+            FloatBuffer buffer = Buffers.newDirectFloatBuffer(2);
             buffer.put(x + majorRadius);
             buffer.put(y);
             buffer.rewind();
@@ -6537,7 +6537,7 @@ public class GeometryBuilder
         float angle = startAngle + leaderAngle / 2f;
 
         // The buffer contains one coordinate pair per slice, and three coordinate pairs for the leader.
-        FloatBuffer buffer = BufferUtil.newFloatBuffer(2 * slices + 6);
+        FloatBuffer buffer = Buffers.newDirectFloatBuffer(2 * slices + 6);
         // Start in the leader right corner to ensure the vertices can be drawn as a triangle fan.
         buffer.put(x + (float) Math.cos(startAngle + leaderAngle / 2f) * majorRadius);
         buffer.put(y + (float) Math.sin(startAngle + leaderAngle / 2f) * minorRadius);
@@ -6597,7 +6597,7 @@ public class GeometryBuilder
         }
 
         // The buffer contains eight coordinate pairs: two pairs for each corner.
-        FloatBuffer buffer = BufferUtil.newFloatBuffer(8);
+        FloatBuffer buffer = Buffers.newDirectFloatBuffer(8);
         // Lower left corner.
         buffer.put(x);
         buffer.put(y);
@@ -6686,7 +6686,7 @@ public class GeometryBuilder
         float piOver2 = (float) Math.PI / 2f;
 
         // The buffer contains four coordinate pairs for each corner, and two coordinate pairs per corner vertex.
-        FloatBuffer buffer = BufferUtil.newFloatBuffer(16 + 8 * (cornerSlices - 1));
+        FloatBuffer buffer = Buffers.newDirectFloatBuffer(16 + 8 * (cornerSlices - 1));
         // Lower left corner.
         buffer.put(x);
         buffer.put(y + cornerRadius);
@@ -6750,7 +6750,7 @@ public class GeometryBuilder
      * @throws IllegalArgumentException if any of <code>width</code>, <code>height</code>, or <code>leaderWidth</code>
      *                                  are less than zero.
      */
-    @SuppressWarnings( {"SuspiciousNameCombination"})
+    @SuppressWarnings({"SuspiciousNameCombination"})
     public FloatBuffer makeRectangleWithLeader(float x, float y, float width, float height, float leaderX,
         float leaderY, float leaderWidth)
     {
@@ -6792,7 +6792,7 @@ public class GeometryBuilder
                 leaderWidth = width;
 
             // The buffer contains seven xy coordinate pairs: two pairs for each corner and three pairs for the leader.
-            FloatBuffer buffer = BufferUtil.newFloatBuffer(14);
+            FloatBuffer buffer = Buffers.newDirectFloatBuffer(14);
             // Start in the leader right corner to ensure the vertices can be drawn as a triangle fan.
             buffer.put(x + width / 2f + leaderWidth / 2f);
             buffer.put(y);
@@ -6825,7 +6825,7 @@ public class GeometryBuilder
                 leaderWidth = width;
 
             // The buffer contains seven xy coordinate pairs: two pairs for each corner and three pairs for the leader.
-            FloatBuffer buffer = BufferUtil.newFloatBuffer(14);
+            FloatBuffer buffer = Buffers.newDirectFloatBuffer(14);
             // Start in the leader left corner to ensure the vertices can be drawn as a triangle fan.
             buffer.put(x + width / 2f - leaderWidth / 2f);
             buffer.put(y + height);
@@ -6861,7 +6861,7 @@ public class GeometryBuilder
             }
 
             // The buffer contains seven xy coordinate pairs: two pairs for each corner and three pairs for the leader.
-            FloatBuffer buffer = BufferUtil.newFloatBuffer(14);
+            FloatBuffer buffer = Buffers.newDirectFloatBuffer(14);
             // Start in the leader bottom corner to ensure the vertices can be drawn as a triangle fan.
             buffer.put(x);
             buffer.put(y + height / 2f - leaderWidth / 2f);
@@ -6897,7 +6897,7 @@ public class GeometryBuilder
             }
 
             // The buffer contains seven xy coordinate pairs: two pairs for each corner and three pairs for the leader.
-            FloatBuffer buffer = BufferUtil.newFloatBuffer(14);
+            FloatBuffer buffer = Buffers.newDirectFloatBuffer(14);
             // Start in the leader top corner to ensure the vertices can be drawn as a triangle fan.
             buffer.put(x + width);
             buffer.put(y + height / 2f + leaderWidth / 2f);
@@ -7040,7 +7040,7 @@ public class GeometryBuilder
 
             // The buffer contains two coordinate pairs for each corner, three coordinate pairs for the leader, and two
             // coordinate pairs per corner vertex.
-            FloatBuffer buffer = BufferUtil.newFloatBuffer(22 + 8 * (cornerSlices - 1));
+            FloatBuffer buffer = Buffers.newDirectFloatBuffer(22 + 8 * (cornerSlices - 1));
             // Start in the leader right corner to ensure the vertices can be drawn as a triangle fan.
             buffer.put(x + width / 2f + leaderWidth / 2f);
             buffer.put(y);
@@ -7092,7 +7092,7 @@ public class GeometryBuilder
 
             // The buffer contains two coordinate pairs for each corner, three coordinate pairs for the leader, and two
             // coordinate pairs per corner vertex.
-            FloatBuffer buffer = BufferUtil.newFloatBuffer(22 + 8 * (cornerSlices - 1));
+            FloatBuffer buffer = Buffers.newDirectFloatBuffer(22 + 8 * (cornerSlices - 1));
             // Start in the leader left corner to ensure the vertices can be drawn as a triangle fan.
             buffer.put(x + width / 2f - leaderWidth / 2f);
             buffer.put(y + height);
@@ -7144,7 +7144,7 @@ public class GeometryBuilder
 
             // The buffer contains two coordinate pairs for each corner, three coordinate pairs for the leader, and two
             // coordinate pairs per corner vertex.
-            FloatBuffer buffer = BufferUtil.newFloatBuffer(22 + 8 * (cornerSlices - 1));
+            FloatBuffer buffer = Buffers.newDirectFloatBuffer(22 + 8 * (cornerSlices - 1));
             // Start in the leader bottom corner to ensure the vertices can be drawn as a triangle fan.
             buffer.put(x);
             buffer.put(y + height / 2f - leaderWidth / 2f);
@@ -7196,7 +7196,7 @@ public class GeometryBuilder
 
             // The buffer contains two coordinate pairs for each corner, three coordinate pairs for the leader, and two
             // coordinate pairs per corner vertex.
-            FloatBuffer buffer = BufferUtil.newFloatBuffer(22 + 8 * (cornerSlices - 1));
+            FloatBuffer buffer = Buffers.newDirectFloatBuffer(22 + 8 * (cornerSlices - 1));
             // Start in the leader top corner to ensure the vertices can be drawn as a triangle fan.
             buffer.put(x + width);
             buffer.put(y + height / 2f + leaderWidth / 2f);
@@ -7368,7 +7368,7 @@ public class GeometryBuilder
     {
         IntBuffer copy;
 
-        copy = BufferUtil.newIntBuffer(newLength);
+        copy = Buffers.newDirectIntBuffer(newLength);
         original.rewind();
         copy.put(original);
 
@@ -7379,7 +7379,7 @@ public class GeometryBuilder
     {
         FloatBuffer copy;
 
-        copy = BufferUtil.newFloatBuffer(newLength);
+        copy = Buffers.newDirectFloatBuffer(newLength);
         original.rewind();
         copy.put(original);
 

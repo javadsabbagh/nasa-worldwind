@@ -6,7 +6,7 @@
 
 package gov.nasa.worldwind.render;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.util.Logging;
 
@@ -429,7 +429,7 @@ public class FrameFactory
             buffer.clear();
 
         if (buffer == null || buffer.capacity() < numCoords)
-            buffer = BufferUtil.newDoubleBuffer(numCoords);
+            buffer = Buffers.newDirectDoubleBuffer(numCoords);
 
         return buffer;
     }

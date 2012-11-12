@@ -6,7 +6,7 @@
 
 package gov.nasa.worldwindx.applications.antenna;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
 import com.sun.opengl.util.j2d.TextRenderer;
 import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.geom.*;
@@ -503,7 +503,7 @@ public class AntennaAxes extends AbstractShape
         shapeData.setReferencePoint(rp);
 
         int nVertices = (this.nHeightIntervals + 1) * (this.nThetaIntervals + 1);
-        shapeData.vertices = BufferUtil.newFloatBuffer(3 * nVertices);
+        shapeData.vertices = Buffers.newDirectFloatBuffer(3 * nVertices);
 
         double xMax = -Double.MAX_VALUE;
         double yMax = -Double.MAX_VALUE;
@@ -557,7 +557,7 @@ public class AntennaAxes extends AbstractShape
 
         for (int j = 0; j < this.nHeightIntervals; j++)
         {
-            shapeData.indices[j] = BufferUtil.newIntBuffer(2 * this.nThetaIntervals + 2);
+            shapeData.indices[j] = Buffers.newDirectIntBuffer(2 * this.nThetaIntervals + 2);
 
             for (int i = 0; i <= this.nThetaIntervals; i++)
             {
@@ -572,7 +572,7 @@ public class AntennaAxes extends AbstractShape
     {
         ShapeData shapeData = this.getCurrent();
 
-        shapeData.normals = BufferUtil.newFloatBuffer(shapeData.vertices.limit());
+        shapeData.normals = Buffers.newDirectFloatBuffer(shapeData.vertices.limit());
 
         for (int i = 0; i < shapeData.vertices.limit(); i += 3)
         {
@@ -634,8 +634,8 @@ public class AntennaAxes extends AbstractShape
         }
 
         // Fill buffers for a closed triangle fan.
-        shapeData.coneVertices = BufferUtil.newFloatBuffer(3 * (outerVerts.length + 1));
-        shapeData.coneNormals = BufferUtil.newFloatBuffer(shapeData.coneVertices.capacity());
+        shapeData.coneVertices = Buffers.newDirectFloatBuffer(3 * (outerVerts.length + 1));
+        shapeData.coneNormals = Buffers.newDirectFloatBuffer(shapeData.coneVertices.capacity());
 
         shapeData.coneVertices.put((float) v0.x).put((float) v0.y).put((float) v0.z);
         shapeData.coneNormals.put(0f).put(1f).put(0f);
@@ -649,7 +649,7 @@ public class AntennaAxes extends AbstractShape
             shapeData.coneNormals.put((float) normal.x).put((float) normal.y).put((float) normal.z);
         }
 
-        shapeData.coneIndices = BufferUtil.newIntBuffer(outerVerts.length + 2);
+        shapeData.coneIndices = Buffers.newDirectIntBuffer(outerVerts.length + 2);
         for (int i = 0; i < shapeData.coneIndices.capacity() - 1; i++)
         {
             shapeData.coneIndices.put(i);

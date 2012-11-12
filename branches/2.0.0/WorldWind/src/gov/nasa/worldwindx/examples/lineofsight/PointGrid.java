@@ -7,7 +7,7 @@ All Rights Reserved.
 
 package gov.nasa.worldwindx.examples.lineofsight;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
 import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.geom.Box;
 import gov.nasa.worldwind.geom.*;
@@ -725,7 +725,7 @@ public class PointGrid extends WWObjectImpl implements OrderedRenderable, Highli
         int numCoords = 3 * this.numPositions;
 
         if (coords == null || coords.capacity() < numCoords || coords.capacity() > 1.5 * numCoords)
-            coords = BufferUtil.newFloatBuffer(numCoords);
+            coords = Buffers.newDirectFloatBuffer(numCoords);
         coords.rewind();
 
         Iterator<? extends Position> posIter = this.positions.iterator();

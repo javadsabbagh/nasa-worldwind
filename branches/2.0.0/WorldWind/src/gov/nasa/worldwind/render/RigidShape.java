@@ -6,7 +6,7 @@
 
 package gov.nasa.worldwind.render;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
 import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.cache.*;
@@ -867,7 +867,7 @@ public abstract class RigidShape extends AbstractShape
                     // TODO: should only do this when offsets have changed, e.g. during editing!
                     int bufferSize = mesh.getBuffer(Geometry.TEXTURE).limit();
                     FloatBuffer texCoords = (FloatBuffer) mesh.getBuffer(Geometry.TEXTURE);
-                    FloatBuffer offsetCoords = BufferUtil.newFloatBuffer(bufferSize);
+                    FloatBuffer offsetCoords = Buffers.newDirectFloatBuffer(bufferSize);
 
                     for (int j = 0; j < bufferSize; j += 2)
                     {
@@ -1010,7 +1010,7 @@ public abstract class RigidShape extends AbstractShape
     protected FloatBuffer computeTransformedVertices(FloatBuffer vertices, int numVertices, Matrix matrix)
     {
         int size = numVertices * 3;
-        FloatBuffer newVertices = BufferUtil.newFloatBuffer(size);
+        FloatBuffer newVertices = Buffers.newDirectFloatBuffer(size);
 
         // transform all vertices by the render matrix
         for (int i = 0; i < numVertices; i++)
@@ -1420,8 +1420,8 @@ public abstract class RigidShape extends AbstractShape
             int size = 0;
             for (int face = 0; face < getFaceCount(); face++)
             {
-                size += meshes.get(face).getBuffer(Geometry.VERTEX).limit() * BufferUtil.SIZEOF_FLOAT;
-                size += meshes.get(face).getBuffer(Geometry.ELEMENT).limit() * BufferUtil.SIZEOF_FLOAT;
+                size += meshes.get(face).getBuffer(Geometry.VERTEX).limit() * Buffers.SIZEOF_FLOAT;
+                size += meshes.get(face).getBuffer(Geometry.ELEMENT).limit() * Buffers.SIZEOF_FLOAT;
             }
 
             vboIds = new int[2 * getFaceCount()];
@@ -1440,7 +1440,7 @@ public abstract class RigidShape extends AbstractShape
                 {
                     IntBuffer ib = (IntBuffer) meshes.get(face).getBuffer(Geometry.ELEMENT);
                     gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, vboIds[2 * face + 1]);
-                    gl.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER, ib.limit() * BufferUtil.SIZEOF_FLOAT, ib.rewind(),
+                    gl.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER, ib.limit() * Buffers.SIZEOF_FLOAT, ib.rewind(),
                         GL.GL_DYNAMIC_DRAW);
                 }
 
@@ -1458,7 +1458,7 @@ public abstract class RigidShape extends AbstractShape
             {
                 FloatBuffer vb = (FloatBuffer) meshes.get(face).getBuffer(Geometry.VERTEX);
                 gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vboIds[2 * face]);
-                gl.glBufferData(GL.GL_ARRAY_BUFFER, vb.limit() * BufferUtil.SIZEOF_FLOAT, vb.rewind(),
+                gl.glBufferData(GL.GL_ARRAY_BUFFER, vb.limit() * Buffers.SIZEOF_FLOAT, vb.rewind(),
                     GL.GL_STATIC_DRAW);
             }
         }

@@ -6,8 +6,7 @@
 
 package gov.nasa.worldwind.render;
 
-import com.sun.opengl.util.BufferUtil;
-import com.sun.opengl.util.texture.*;
+import com.jogamp.common.nio.Buffers;
 import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.util.Logging;
 
@@ -56,9 +55,9 @@ public class FBOTexture extends FramebufferTexture
         try
         {
             gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, fbo[0]);
-            
+
             TextureData td = new TextureData(GL.GL_RGBA, this.width, this.height, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE,
-                false, false, true, BufferUtil.newByteBuffer(this.width * this.height * 4), null);
+                false, false, true, Buffers.newDirectByteBuffer(this.width * this.height * 4), null);
             Texture t = TextureIO.newTexture(td);
             t.bind();
 

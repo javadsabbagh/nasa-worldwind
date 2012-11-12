@@ -4,7 +4,7 @@ All Rights Reserved.
 */
 package gov.nasa.worldwindx.applications.sar.segmentplane;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
 import com.sun.opengl.util.j2d.TextRenderer;
 import gov.nasa.worldwind.View;
 import gov.nasa.worldwind.avlist.*;
@@ -617,7 +617,7 @@ public class SegmentPlaneRenderer
         }
     }
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     protected void drawPlaneOutline(DrawContext dc, SegmentPlane segmentPlane, RenderInfo renderInfo,
         java.awt.Point pickPoint, Layer layer)
     {
@@ -689,7 +689,7 @@ public class SegmentPlaneRenderer
             renderInfo.planeGridIndices);
     }
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     protected void resolvePlaneBackgroundPick(DrawContext dc, SegmentPlane segmentPlane, RenderInfo renderInfo,
         java.awt.Point pickPoint, Layer layer)
     {
@@ -774,7 +774,7 @@ public class SegmentPlaneRenderer
     //********************  Border Rendering  **********************//
     //**************************************************************//
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     protected void drawPlaneBorder(DrawContext dc, SegmentPlane segmentPlane, RenderInfo renderInfo,
         java.awt.Point pickPoint, Layer layer)
     {
@@ -877,7 +877,7 @@ public class SegmentPlaneRenderer
         this.drawSegmentAltimeterLabel(dc, segmentPlane, renderInfo, pickPoint, layer);
     }
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     protected void drawSegmentAltimeterGeometry(DrawContext dc, SegmentPlane segmentPlane,
         RenderInfo renderInfo, java.awt.Point pickPoint, Layer layer)
     {
@@ -934,7 +934,7 @@ public class SegmentPlaneRenderer
         }
     }
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     protected void drawSegmentAltimeterLabel(DrawContext dc, SegmentPlane segmentPlane,
         RenderInfo renderInfo, java.awt.Point pickPoint, Layer layer)
     {
@@ -1079,7 +1079,7 @@ public class SegmentPlaneRenderer
         this.drawLabel(dc, segmentPlane, position, values, controlPoint.getKey());
     }
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     protected void resolveControlPointPick(DrawContext dc, SegmentPlane segmentPlane, RenderInfo renderInfo,
         java.awt.Point pickPoint, Layer layer)
     {
@@ -1122,7 +1122,7 @@ public class SegmentPlaneRenderer
     //********************  Axis Label Rendering  ******************//
     //**************************************************************//
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     protected void drawAxisLabels(DrawContext dc, SegmentPlane segmentPlane, RenderInfo renderInfo,
         java.awt.Point pickPoint, Layer layer)
     {
@@ -1510,32 +1510,32 @@ public class SegmentPlaneRenderer
         if (renderInfo.planeFillIndices == null
             || renderInfo.planeFillIndices.capacity() < renderInfo.planeFillIndexCount)
         {
-            renderInfo.planeFillIndices = BufferUtil.newIntBuffer(renderInfo.planeFillIndexCount);
+            renderInfo.planeFillIndices = Buffers.newDirectIntBuffer(renderInfo.planeFillIndexCount);
         }
 
         renderInfo.planeOutlineIndexCount = getPlaneOutlineIndexCount(uStacks, vStacks, mask);
         if (renderInfo.planeOutlineIndices == null
             || renderInfo.planeOutlineIndices.capacity() < renderInfo.planeOutlineIndexCount)
         {
-            renderInfo.planeOutlineIndices = BufferUtil.newIntBuffer(renderInfo.planeOutlineIndexCount);
+            renderInfo.planeOutlineIndices = Buffers.newDirectIntBuffer(renderInfo.planeOutlineIndexCount);
         }
 
         renderInfo.planeGridIndexCount = getPlaneGridIndexCount(uStacks, vStacks);
         if (renderInfo.planeGridIndices == null
             || renderInfo.planeGridIndices.capacity() < renderInfo.planeGridIndexCount)
         {
-            renderInfo.planeGridIndices = BufferUtil.newIntBuffer(renderInfo.planeGridIndexCount);
+            renderInfo.planeGridIndices = Buffers.newDirectIntBuffer(renderInfo.planeGridIndexCount);
         }
 
         int vertexCount = getPlaneVertexCount(uStacks, vStacks);
         int coordCount = 3 * vertexCount;
         if (renderInfo.planeVertices == null || renderInfo.planeVertices.capacity() < coordCount)
         {
-            renderInfo.planeVertices = BufferUtil.newDoubleBuffer(coordCount);
+            renderInfo.planeVertices = Buffers.newDirectDoubleBuffer(coordCount);
         }
         if (renderInfo.planeNormals == null || renderInfo.planeNormals.capacity() < coordCount)
         {
-            renderInfo.planeNormals = BufferUtil.newDoubleBuffer(coordCount);
+            renderInfo.planeNormals = Buffers.newDirectDoubleBuffer(coordCount);
         }
 
         computePlaneFillIndices(uStacks, vStacks, renderInfo.planeFillIndices);
@@ -1721,7 +1721,7 @@ public class SegmentPlaneRenderer
         }
     }
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     protected void computePlaneNormals(Globe globe, SegmentPlane segmentPlane, int indexCount, int vertexCount,
         IntBuffer indices, DoubleBuffer vertices, DoubleBuffer buffer)
     {
@@ -1754,7 +1754,7 @@ public class SegmentPlaneRenderer
 
     // TODO: investigate necessary changes to create a general-use cylinder with caps, a height, and a radius.
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     protected void createBorderGeometry(Globe globe, SegmentPlane segmentPlane, RenderInfo renderInfo)
     {
         int slices = 16;
@@ -1767,14 +1767,14 @@ public class SegmentPlaneRenderer
         if (renderInfo.borderCylinderIndices == null
             || renderInfo.borderCylinderIndices.capacity() < renderInfo.borderCylinderIndexCount)
         {
-            renderInfo.borderCylinderIndices = BufferUtil.newIntBuffer(renderInfo.borderCylinderIndexCount);
+            renderInfo.borderCylinderIndices = Buffers.newDirectIntBuffer(renderInfo.borderCylinderIndexCount);
         }
 
         renderInfo.borderCapIndexCount = gb.getDiskIndexCount(slices, loops);
         if (renderInfo.borderCapIndices == null
             || renderInfo.borderCapIndices.capacity() < renderInfo.borderCapIndexCount)
         {
-            renderInfo.borderCapIndices = BufferUtil.newIntBuffer(renderInfo.borderCapIndexCount);
+            renderInfo.borderCapIndices = Buffers.newDirectIntBuffer(renderInfo.borderCapIndexCount);
         }
 
         int cylinderVertexCount = gb.getCylinderVertexCount(slices, stacks);
@@ -1782,12 +1782,12 @@ public class SegmentPlaneRenderer
         if (renderInfo.borderCylinderVertices == null
             || renderInfo.borderCylinderVertices.capacity() < cylinderCoordCount)
         {
-            renderInfo.borderCylinderVertices = BufferUtil.newFloatBuffer(cylinderCoordCount);
+            renderInfo.borderCylinderVertices = Buffers.newDirectFloatBuffer(cylinderCoordCount);
         }
         if (renderInfo.borderCylinderNormals == null
             || renderInfo.borderCylinderNormals.capacity() < cylinderCoordCount)
         {
-            renderInfo.borderCylinderNormals = BufferUtil.newFloatBuffer(cylinderCoordCount);
+            renderInfo.borderCylinderNormals = Buffers.newDirectFloatBuffer(cylinderCoordCount);
         }
 
         int capVertexCount = gb.getDiskVertexCount(slices, loops);
@@ -1795,12 +1795,12 @@ public class SegmentPlaneRenderer
         if (renderInfo.borderCapVertices == null
             || renderInfo.borderCapVertices.capacity() < capCoordCount)
         {
-            renderInfo.borderCapVertices = BufferUtil.newFloatBuffer(capCoordCount);
+            renderInfo.borderCapVertices = Buffers.newDirectFloatBuffer(capCoordCount);
         }
         if (renderInfo.borderCapNormals == null
             || renderInfo.borderCapNormals.capacity() < capCoordCount)
         {
-            renderInfo.borderCapNormals = BufferUtil.newFloatBuffer(capCoordCount);
+            renderInfo.borderCapNormals = Buffers.newDirectFloatBuffer(capCoordCount);
         }
 
         int[] indices = new int[renderInfo.borderCylinderIndexCount];
@@ -1838,7 +1838,7 @@ public class SegmentPlaneRenderer
     //********************  Control Point Construction  ************//
     //**************************************************************//
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     protected void createControlPointGeometry(Globe globe, SegmentPlane segmentPlane, RenderInfo renderInfo)
     {
         if (renderInfo.markerShapeMap == null)

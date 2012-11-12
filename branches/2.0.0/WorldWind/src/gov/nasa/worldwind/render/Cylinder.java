@@ -6,7 +6,7 @@
 
 package gov.nasa.worldwind.render;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
 import gov.nasa.worldwind.Exportable;
 import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.render.airspaces.Geometry;
@@ -313,10 +313,10 @@ public class Cylinder extends RigidShape
         GeometryBuilder.IndexedTriangleBuffer itb =
             gb.tessellateCylinderBuffer(radius, subdivisions);
 
-        FloatBuffer normalBuffer = BufferUtil.newFloatBuffer(3 * itb.getVertexCount());
+        FloatBuffer normalBuffer = Buffers.newDirectFloatBuffer(3 * itb.getVertexCount());
         gb.makeIndexedTriangleBufferNormals(itb, normalBuffer);
 
-        FloatBuffer textureCoordBuffer = BufferUtil.newFloatBuffer(2 * itb.getVertexCount());
+        FloatBuffer textureCoordBuffer = Buffers.newDirectFloatBuffer(2 * itb.getVertexCount());
         gb.makeUnitCylinderTextureCoordinates(textureCoordBuffer, subdivisions);
 
         dest.setElementData(GL.GL_TRIANGLES, itb.getIndexCount(), itb.getIndices());
@@ -347,13 +347,13 @@ public class Cylinder extends RigidShape
             GeometryBuilder.IndexedTriangleBuffer itb =
                 gb.tessellateCylinderBuffer(face, radius, subdivisions);
 
-            FloatBuffer normalBuffer = BufferUtil.newFloatBuffer(3 * itb.getVertexCount());
+            FloatBuffer normalBuffer = Buffers.newDirectFloatBuffer(3 * itb.getVertexCount());
             if (face == 0 || face == 1)   // Cylinder top or bottom
                 gb.makeIndexedTriangleBufferNormals(itb, normalBuffer);
             else    // round Cylinder core
                 gb.makeCylinderNormals(itb, normalBuffer);
 
-            FloatBuffer textureCoordBuffer = BufferUtil.newFloatBuffer(2 * itb.getVertexCount());
+            FloatBuffer textureCoordBuffer = Buffers.newDirectFloatBuffer(2 * itb.getVertexCount());
             gb.makeUnitCylinderTextureCoordinates(face, textureCoordBuffer, subdivisions);
 
             dest = new Geometry();

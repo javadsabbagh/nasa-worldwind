@@ -5,7 +5,7 @@
  */
 package gov.nasa.worldwind.util;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
 import gov.nasa.worldwind.View;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.geom.*;
@@ -1209,7 +1209,7 @@ public class WWMath
         }
 
         int numIndices = (height - 1) * (2 * width) + (2 * (height - 2));
-        IntBuffer buffer = BufferUtil.newIntBuffer(numIndices);
+        IntBuffer buffer = Buffers.newDirectIntBuffer(numIndices);
 
         int pos;
         for (int y = 0; y < height - 1; y++)
@@ -1265,7 +1265,7 @@ public class WWMath
         }
 
         int numIndices = 2 * (width + height - 2);
-        IntBuffer buffer = BufferUtil.newIntBuffer(numIndices);
+        IntBuffer buffer = Buffers.newDirectIntBuffer(numIndices);
 
         for (int x = 0; x < width; x++)
         {
@@ -1332,7 +1332,7 @@ public class WWMath
         // If the normal buffer is null, create a new one with the capacity to store the same number of vertices as
         // the vertex buffer. Otherwise, initialize the normal buffer by setting all normal coordinate to zero.
         if (normals == null)
-            normals = BufferUtil.newFloatBuffer(3 * numVertices);
+            normals = Buffers.newDirectFloatBuffer(3 * numVertices);
         else
         {
             for (int i = 0; i < numVertices; i++)

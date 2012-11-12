@@ -6,7 +6,7 @@
 
 package gov.nasa.worldwind.render;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
 import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.cache.GpuResourceCache;
@@ -502,7 +502,7 @@ public class Polygon extends AbstractShape
         int size = 2 * (texCoordCount + (closeIt ? 1 : 0));
         if (this.textureCoordsBuffer == null || this.textureCoordsBuffer.capacity() < size)
         {
-            this.textureCoordsBuffer = BufferUtil.newFloatBuffer(size);
+            this.textureCoordsBuffer = Buffers.newDirectFloatBuffer(size);
         }
         else
         {
@@ -961,7 +961,7 @@ public class Polygon extends AbstractShape
         if (shapeData.coordBuffer != null && shapeData.coordBuffer.capacity() >= size)
             shapeData.coordBuffer.clear();
         else
-            shapeData.coordBuffer = BufferUtil.newFloatBuffer(size);
+            shapeData.coordBuffer = Buffers.newDirectFloatBuffer(size);
 
         // Capture the position position at which normals buffer starts (in case there are normals)
         shapeData.normalBufferPosition = this.numPositions * 3;
@@ -1213,7 +1213,7 @@ public class Polygon extends AbstractShape
         int size = this.countTriangleVertices(cb.getPrims(), cb.getPrimTypes());
 
         if (shapeData.interiorIndicesBuffer == null || shapeData.interiorIndicesBuffer.capacity() < size)
-            shapeData.interiorIndicesBuffer = BufferUtil.newIntBuffer(size);
+            shapeData.interiorIndicesBuffer = Buffers.newDirectIntBuffer(size);
         else
             shapeData.interiorIndicesBuffer.clear();
 

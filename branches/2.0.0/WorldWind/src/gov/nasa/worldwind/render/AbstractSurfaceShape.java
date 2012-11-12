@@ -5,7 +5,7 @@
  */
 package gov.nasa.worldwind.render;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
 import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.exception.WWRuntimeException;
@@ -952,7 +952,7 @@ public abstract class AbstractSurfaceShape extends AbstractSurfaceObject impleme
         for (List<LatLon> drawLocations : this.getActiveGeometry())
         {
             if (vertexBuffer == null || vertexBuffer.capacity() < 2 * drawLocations.size())
-                vertexBuffer = BufferUtil.newFloatBuffer(2 * drawLocations.size());
+                vertexBuffer = Buffers.newDirectFloatBuffer(2 * drawLocations.size());
             vertexBuffer.clear();
 
             for (LatLon ll : drawLocations)

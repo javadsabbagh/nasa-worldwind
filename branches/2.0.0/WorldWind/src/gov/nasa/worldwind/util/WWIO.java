@@ -10,7 +10,7 @@
  */
 package gov.nasa.worldwind.util;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
 import gov.nasa.worldwind.Configuration;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.exception.WWRuntimeException;
@@ -258,7 +258,7 @@ public class WWIO
         }
     }
 
-    @SuppressWarnings( {"ResultOfMethodCallIgnored"})
+    @SuppressWarnings({"ResultOfMethodCallIgnored"})
     public static boolean saveBuffer(ByteBuffer buffer, File file, boolean forceFilesystemWrite) throws IOException
     {
         if (buffer == null)
@@ -293,7 +293,7 @@ public class WWIO
                 return false;
             }
 
-            for (buffer.rewind(); buffer.hasRemaining();)
+            for (buffer.rewind(); buffer.hasRemaining(); )
             {
                 numBytesWritten += channel.write(buffer);
             }
@@ -337,7 +337,7 @@ public class WWIO
         return saveBuffer(buffer, file, true);
     }
 
-    @SuppressWarnings( {"ResultOfMethodCallIgnored"})
+    @SuppressWarnings({"ResultOfMethodCallIgnored"})
     public static boolean saveBufferToStream(ByteBuffer buffer, OutputStream fos)
         throws IOException
     {
@@ -360,7 +360,7 @@ public class WWIO
         {
             channel = Channels.newChannel(fos);
 
-            for (buffer.rewind(); buffer.hasRemaining();)
+            for (buffer.rewind(); buffer.hasRemaining(); )
             {
                 channel.write(buffer);
             }
@@ -597,7 +597,7 @@ public class WWIO
             FileChannel fc = is.getChannel();
             int size = (int) fc.size();
             ByteBuffer buffer = allocateDirect ? ByteBuffer.allocateDirect(size) : ByteBuffer.allocate(size);
-            for (int count = 0; count >= 0 && buffer.hasRemaining();)
+            for (int count = 0; count >= 0 && buffer.hasRemaining(); )
             {
                 count = fc.read(buffer);
             }
@@ -800,7 +800,7 @@ public class WWIO
                 bytesRead += count;
             }
         }
-        ByteBuffer buffer = BufferUtil.newByteBuffer(bytes.length); // to get a jogl-compatible buffer
+        ByteBuffer buffer = Buffers.newDirectByteBuffer(bytes.length); // to get a jogl-compatible buffer
         return buffer.put(bytes);
     }
 
@@ -1765,7 +1765,7 @@ public class WWIO
         }
     }
 
-    @SuppressWarnings( {"ResultOfMethodCallIgnored"})
+    @SuppressWarnings({"ResultOfMethodCallIgnored"})
     public static void deleteDirectory(File file) throws IOException
     {
         if (file == null)

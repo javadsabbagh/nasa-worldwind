@@ -5,7 +5,7 @@
  */
 package gov.nasa.worldwind.render;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
 import com.sun.opengl.util.texture.TextureCoords;
 import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.cache.GpuResourceCache;
@@ -498,7 +498,7 @@ public class DrawContextImpl extends WWObjectImpl implements DrawContext
 
         // Read the framebuffer color at the specified point in OpenGL screen coordinates as a 24-bit RGB value.
         if (this.pixelColors == null || this.pixelColors.capacity() < 3)
-            this.pixelColors = BufferUtil.newByteBuffer(3);
+            this.pixelColors = Buffers.newDirectByteBuffer(3);
         this.pixelColors.clear();
         this.getGL().glReadPixels(x, y, 1, 1, GL.GL_RGB, GL.GL_UNSIGNED_BYTE, this.pixelColors);
 
@@ -536,7 +536,7 @@ public class DrawContextImpl extends WWObjectImpl implements DrawContext
         // Allocate a native byte buffer to hold the framebuffer RGB colors.
         int numPixels = r.width * r.height;
         if (this.pixelColors == null || this.pixelColors.capacity() < 3 * numPixels)
-            this.pixelColors = BufferUtil.newByteBuffer(3 * numPixels);
+            this.pixelColors = Buffers.newDirectByteBuffer(3 * numPixels);
         this.pixelColors.clear();
 
         GL gl = this.getGL();
@@ -763,7 +763,7 @@ public class DrawContextImpl extends WWObjectImpl implements DrawContext
         if (declutterableArray.size() == 0)
             return;
 
-         // Prepare the declutterable list for the filter and remove eliminated ordered renderables from the renderable
+        // Prepare the declutterable list for the filter and remove eliminated ordered renderables from the renderable
         // list. The clutter filter will add those it wants displayed back to the list, or it will add some other
         // representation.
         List<Declutterable> declutterables = new ArrayList<Declutterable>(declutterableArray.size());

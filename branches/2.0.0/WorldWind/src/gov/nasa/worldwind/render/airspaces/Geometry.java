@@ -5,7 +5,7 @@
  */
 package gov.nasa.worldwind.render.airspaces;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
 import gov.nasa.worldwind.avlist.AVListImpl;
 import gov.nasa.worldwind.cache.Cacheable;
 import gov.nasa.worldwind.globes.Globe;
@@ -153,7 +153,7 @@ public class Geometry extends AVListImpl implements Cacheable
             || this.buffer[type].capacity() < numCoords
             || !(this.buffer[type] instanceof IntBuffer))
         {
-            this.buffer[type] = BufferUtil.newIntBuffer(numCoords);
+            this.buffer[type] = Buffers.newDirectIntBuffer(numCoords);
         }
 
         this.bufferCopy(src, srcPos, (IntBuffer) this.buffer[type], 0, numCoords);
@@ -171,7 +171,7 @@ public class Geometry extends AVListImpl implements Cacheable
             || this.buffer[type].capacity() < numCoords
             || !(this.buffer[type] instanceof FloatBuffer))
         {
-            this.buffer[type] = BufferUtil.newFloatBuffer(numCoords);
+            this.buffer[type] = Buffers.newDirectFloatBuffer(numCoords);
         }
 
         this.bufferCopy(src, srcPos, (FloatBuffer) this.buffer[type], 0, numCoords);

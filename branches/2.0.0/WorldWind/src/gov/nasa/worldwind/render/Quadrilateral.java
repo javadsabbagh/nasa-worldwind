@@ -5,14 +5,14 @@
  */
 package gov.nasa.worldwind.render;
 
-import com.sun.opengl.util.BufferUtil;
+import com.jogamp.common.nio.Buffers;
 import gov.nasa.worldwind.Movable;
 import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.util.Logging;
 
 import javax.media.opengl.GL;
 import java.awt.*;
-import java.nio.*;
+import java.nio.DoubleBuffer;
 
 /**
  * @author tag
@@ -139,7 +139,7 @@ public class Quadrilateral implements Renderable, Movable // TODO: rename this c
 
     private void intializeGeometry(DrawContext dc)
     {
-        DoubleBuffer verts = BufferUtil.newDoubleBuffer(12);
+        DoubleBuffer verts = Buffers.newDirectDoubleBuffer(12);
 
         Vec4[] p = new Vec4[4];
 
@@ -170,7 +170,7 @@ public class Quadrilateral implements Renderable, Movable // TODO: rename this c
 
     protected void initializeTextureCoordinates()
     {
-        this.textureCoordinates = BufferUtil.newDoubleBuffer(8);
+        this.textureCoordinates = Buffers.newDirectDoubleBuffer(8);
 
         this.textureCoordinates.put(0).put(0); // sw
         this.textureCoordinates.put(1).put(0); // se
