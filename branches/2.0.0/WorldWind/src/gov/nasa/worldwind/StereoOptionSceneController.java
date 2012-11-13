@@ -48,7 +48,7 @@ public class StereoOptionSceneController extends BasicSceneController implements
     /** Indicates whether left and right eye positions are swapped. */
     protected boolean swapEyes = false;
     /** Indicates the GL drawable capabilities. Non-null only after this scene controller draws once. */
-    protected GLCapabilities capabilities;
+    protected GLCapabilitiesImmutable capabilities;
     /** Indicates whether hardware device stereo is available. Valid only after this scene controller draws once. */
     protected boolean hardwareStereo = false;
     /**
