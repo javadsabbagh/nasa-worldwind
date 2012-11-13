@@ -64,7 +64,7 @@ public class WorldWindowGLCanvas extends GLCanvas implements WorldWindow, Proper
      */
     protected static GLCapabilities getCaps()
     {
-        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2));
+        GLCapabilities caps = new GLCapabilities(Configuration.getMaxCompatibleGLProfile());
 
         caps.setAlphaBits(8);
         caps.setRedBits(8);

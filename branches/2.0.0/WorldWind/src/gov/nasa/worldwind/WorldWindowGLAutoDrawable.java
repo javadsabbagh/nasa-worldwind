@@ -159,6 +159,11 @@ public class WorldWindowGLAutoDrawable extends WorldWindowImpl implements WorldW
         return this.drawable.getContext();
     }
 
+    protected boolean isGLContextCompatible(GLContext context)
+    {
+        return context != null && context.isGL2();
+    }
+
     protected String[] getRequiredOglFunctions()
     {
         return new String[] {"glActiveTexture", "glClientActiveTexture"};
@@ -176,6 +181,13 @@ public class WorldWindowGLAutoDrawable extends WorldWindowImpl implements WorldW
      */
     public void init(GLAutoDrawable glAutoDrawable)
     {
+        if (!this.isGLContextCompatible(glAutoDrawable.getContext()))
+        {
+            String msg = Logging.getMessage("WorldWindowGLAutoDrawable.IncompatibleGLContext",
+                glAutoDrawable.getContext());
+            this.callRenderingExceptionListeners(new WWAbsentRequirementException(msg));
+        }
+
         for (String funcName : this.getRequiredOglFunctions())
         {
             if (!glAutoDrawable.getGL().isFunctionAvailable(funcName))

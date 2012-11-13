@@ -15,6 +15,7 @@ import gov.nasa.worldwind.geom.Angle;
 import gov.nasa.worldwind.util.*;
 import org.w3c.dom.*;
 
+import javax.media.opengl.GLProfile;
 import javax.xml.xpath.*;
 import java.io.*;
 import java.util.*;
@@ -641,6 +642,21 @@ public class Configuration // Singleton
         {
         }
         return ver;
+    }
+
+    /**
+     * Returns the highest OpenGL profile available on the current graphics device that is compatible with World Wind.
+     * The returned profile favors hardware acceleration over software acceleration. With JOGL version 2.0-rc11, this
+     * returns the highest available profile from the following list:
+     * <p/>
+     * <ul> <li>OpenGL compatibility profile 4.x</li> <li>OpenGL compatibility profile 3.x</li> <li>OpenGL profile 1.x
+     * up to 3.0</li> </ul>
+     *
+     * @return the highest compatible OpenGL profile.
+     */
+    public static GLProfile getMaxCompatibleGLProfile()
+    {
+        return GLProfile.getMaxFixedFunc(true); // Favor a hardware rasterizer.
     }
 
     /**
