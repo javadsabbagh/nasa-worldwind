@@ -6,11 +6,11 @@
 
 package gov.nasa.worldwind.render;
 
-import com.sun.opengl.util.texture.*;
+import com.jogamp.opengl.util.texture.*;
 import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL;
 import java.util.List;
 
 /**
@@ -117,7 +117,7 @@ public class FramebufferTexture implements WWTexture
             t = this.initializeTexture(dc);
 
         if (t != null)
-            t.bind();
+            t.bind(dc.getGL());
 
         return t != null;
     }
@@ -156,12 +156,12 @@ public class FramebufferTexture implements WWTexture
         if (!this.generateTexture(dc, this.width, this.height))
             return null;
 
-        TextureData td = new TextureData(GL.GL_RGBA, this.width, this.height, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE,
-            false, false, false, null, null);
-        Texture t = TextureIO.newTexture(td);
-        t.bind(); // must do this after generating texture because another texture is bound then
+        GL gl = dc.getGL();
 
-        GL gl = GLContext.getCurrent().getGL();
+        TextureData td = new TextureData(gl.getGLProfile(), GL.GL_RGBA, this.width, this.height, 0, GL.GL_RGBA,
+            GL.GL_UNSIGNED_BYTE, false, false, false, null, null);
+        Texture t = TextureIO.newTexture(td);
+        t.bind(gl); // must do this after generating texture because another texture is bound then
 
         gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
         gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);

@@ -6,13 +6,14 @@
 
 package gov.nasa.worldwind.render;
 
-import com.sun.opengl.util.texture.*;
-import gov.nasa.worldwind.WorldWind;
+import com.jogamp.opengl.util.texture.*;
+import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
+import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.avlist.*;
 import gov.nasa.worldwind.cache.FileStore;
 import gov.nasa.worldwind.util.Logging;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL;
 import java.awt.image.*;
 import java.beans.*;
 import java.net.URL;
@@ -324,7 +325,7 @@ public class LazilyLoadedTexture extends AVListImpl implements WWTexture
 
         if (texture != null)
         {
-            texture.bind();
+            texture.bind(dc.getGL());
             return true;
         }
         else
@@ -351,7 +352,7 @@ public class LazilyLoadedTexture extends AVListImpl implements WWTexture
 
         if (texture.getMustFlipVertically())
         {
-            GL gl = GLContext.getCurrent().getGL();
+            GL gl = dc.getGL();
             gl.glMatrixMode(GL.GL_TEXTURE);
             gl.glLoadIdentity();
             gl.glScaled(1, -1, 1);
@@ -422,7 +423,8 @@ public class LazilyLoadedTexture extends AVListImpl implements WWTexture
 
         try
         {
-            TextureData td = TextureIO.newTextureData((BufferedImage) this.getImageSource(), this.isUseMipMaps());
+            TextureData td = AWTTextureIO.newTextureData(Configuration.getMaxCompatibleGLProfile(),
+                (BufferedImage) this.getImageSource(), this.isUseMipMaps());
             if (td == null)
                 return null;
 
@@ -628,7 +630,8 @@ public class LazilyLoadedTexture extends AVListImpl implements WWTexture
     {
         try
         {
-            return TextureIO.newTextureData(fileUrl, this.isUseMipMaps(), null);
+            return TextureIO.newTextureData(Configuration.getMaxCompatibleGLProfile(), fileUrl, this.isUseMipMaps(),
+                null);
         }
         catch (Exception e)
         {

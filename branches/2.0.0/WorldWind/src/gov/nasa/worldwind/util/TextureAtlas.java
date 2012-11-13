@@ -7,6 +7,8 @@
 package gov.nasa.worldwind.util;
 
 import com.jogamp.opengl.util.packrect.*;
+import com.jogamp.opengl.util.texture.*;
+import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
 import gov.nasa.worldwind.exception.WWRuntimeException;
 import gov.nasa.worldwind.render.DrawContext;
 
@@ -786,7 +788,7 @@ public class TextureAtlas
         Texture texture = this.syncTexture(dc);
         if (texture != null)
         {
-            texture.bind();
+            texture.bind(dc.getGL());
             return true;
         }
         else
@@ -1219,8 +1221,9 @@ public class TextureAtlas
             // system.
             BufferedImage backingImage = (BufferedImage) this.rectPacker.getBackingStore();
             BufferedImage subImage = backingImage.getSubimage(rect.x, rect.y, rect.width, rect.height);
-            TextureData subTextureData = TextureIO.newTextureData(subImage, false); // No need for sub-image mip-maps.
-            texture.updateSubImage(subTextureData, 0, rect.x, rect.y);
+            GL gl = dc.getGL();
+            TextureData subTextureData = AWTTextureIO.newTextureData(gl.getGLProfile(), subImage, false);
+            texture.updateSubImage(gl, subTextureData, 0, rect.x, rect.y);
         }
         else
         {
@@ -1229,7 +1232,8 @@ public class TextureAtlas
             // respecify the texture parameters, because Texture.updateImage overwrites the texture parameters with
             // default values.
             BufferedImage backingImage = (BufferedImage) this.rectPacker.getBackingStore();
-            texture.updateImage(TextureIO.newTextureData(backingImage, this.isUseMipMaps()));
+            GL gl = dc.getGL();
+            texture.updateImage(gl, AWTTextureIO.newTextureData(gl.getGLProfile(), backingImage, this.isUseMipMaps()));
             this.setTextureParameters(dc);
         }
 

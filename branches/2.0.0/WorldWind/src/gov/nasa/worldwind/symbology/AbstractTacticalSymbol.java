@@ -7,7 +7,8 @@
 package gov.nasa.worldwind.symbology;
 
 import com.jogamp.opengl.util.awt.TextRenderer;
-import com.sun.opengl.util.texture.*;
+import com.jogamp.opengl.util.texture.*;
+import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
 import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.avlist.*;
 import gov.nasa.worldwind.geom.*;
@@ -148,7 +149,8 @@ public abstract class AbstractTacticalSymbol extends WWObjectImpl implements Tac
                     return null;
                 }
 
-                return TextureIO.newTextureData(image, this.isUseMipMaps());
+                return AWTTextureIO.newTextureData(Configuration.getMaxCompatibleGLProfile(), image,
+                    this.isUseMipMaps());
             }
             catch (Exception e)
             {

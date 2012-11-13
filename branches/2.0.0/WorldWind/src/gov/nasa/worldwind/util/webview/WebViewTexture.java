@@ -6,6 +6,7 @@
 package gov.nasa.worldwind.util.webview;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.opengl.util.texture.*;
 import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.util.Logging;
 
@@ -65,10 +66,13 @@ public class WebViewTexture extends BasicWWTexture
             return null;
 
         Texture t;
+        GL gl = dc.getGL();
+
         try
         {
             // Allocate a texture with the proper dimensions and texture internal format, but with no data.
             TextureData td = new TextureData(
+                gl.getGLProfile(), // GL profile
                 GL.GL_RGBA, // texture internal format
                 this.frameSize.width, // texture image with
                 this.frameSize.height, // texture image height
@@ -83,11 +87,10 @@ public class WebViewTexture extends BasicWWTexture
             t = TextureIO.newTexture(td);
 
             dc.getTextureCache().put(imageSource, t);
-            t.bind();
+            t.bind(gl);
 
             // Configure the texture to use nearest-neighbor filtering. This ensures that the texels are aligned exactly
             // with screen pixels, and eliminates blurry artifacts from linear filtering.
-            GL gl = dc.getGL();
             gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
             gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
             gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_BORDER);

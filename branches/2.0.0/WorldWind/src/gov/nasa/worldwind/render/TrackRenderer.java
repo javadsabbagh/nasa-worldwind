@@ -5,19 +5,18 @@
  */
 package gov.nasa.worldwind.render;
 
-import gov.nasa.worldwind.avlist.*;
-import gov.nasa.worldwind.geom.*;
-import gov.nasa.worldwind.pick.*;
-import gov.nasa.worldwind.tracks.*;
-import gov.nasa.worldwind.util.*;
-import gov.nasa.worldwind.terrain.*;
-import gov.nasa.worldwind.layers.Layer;
 import gov.nasa.worldwind.Disposable;
+import gov.nasa.worldwind.avlist.AVKey;
+import gov.nasa.worldwind.geom.*;
+import gov.nasa.worldwind.layers.Layer;
+import gov.nasa.worldwind.pick.*;
+import gov.nasa.worldwind.terrain.SectorGeometryList;
+import gov.nasa.worldwind.tracks.TrackPoint;
+import gov.nasa.worldwind.util.Logging;
 
 import javax.media.opengl.*;
-import javax.media.opengl.glu.GLUquadric;
-import javax.media.opengl.glu.GLU;
-import java.util.*;
+import javax.media.opengl.glu.*;
+import java.util.Iterator;
 
 /**
  * @author tag
@@ -373,7 +372,7 @@ public class TrackRenderer implements Disposable
                 this.isInitialized = false;
 
                 GLContext glc = GLContext.getCurrent();
-                if (glc == null)
+                if (glc == null || glc.getGL() == null)
                     return;
 
                 glc.getGL().glDeleteLists(this.glListId, 1);

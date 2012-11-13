@@ -5,7 +5,7 @@
  */
 package gov.nasa.worldwind.layers;
 
-import com.sun.opengl.util.texture.*;
+import com.jogamp.opengl.util.texture.*;
 import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.exception.WWRuntimeException;
@@ -22,8 +22,8 @@ import java.util.ArrayList;
 /**
  * Displays a world map overlay with a current-position crosshair in a screen corner.
  * <p/>
- * A {@link gov.nasa.worldwindx.examples.ClickAndGoSelectListener} can be used in conjunction with this layer to move the
- * view to a selected location when that location is clicked within the layer's map. Specify
+ * A {@link gov.nasa.worldwindx.examples.ClickAndGoSelectListener} can be used in conjunction with this layer to move
+ * the view to a selected location when that location is clicked within the layer's map. Specify
  * <code>WorldMapLayer.class</code> when constructing the <code>ClickAndGoSelectListener</code>.
  * <p/>
  * Note: This layer may not be shared among multiple {@link WorldWindow}s.
@@ -393,7 +393,7 @@ public class WorldMapLayer extends AbstractLayer
                 // Draw world map icon
                 gl.glColor4d(1d, 1d, 1d, this.getOpacity());
                 gl.glEnable(GL.GL_TEXTURE_2D);
-                iconTexture.bind();
+                iconTexture.bind(gl);
 
                 TextureCoords texCoords = iconTexture.getImageTexCoords();
                 dc.drawUnitQuad(texCoords);
@@ -577,6 +577,8 @@ public class WorldMapLayer extends AbstractLayer
         if (iconTexture != null)
             return;
 
+        GL gl = dc.getGL();
+
         try
         {
             InputStream iconStream = this.getClass().getResourceAsStream("/" + this.getIconFilePath());
@@ -590,7 +592,7 @@ public class WorldMapLayer extends AbstractLayer
             }
 
             iconTexture = TextureIO.newTexture(iconStream, false, null);
-            iconTexture.bind();
+            iconTexture.bind(gl);
             this.iconWidth = iconTexture.getWidth();
             this.iconHeight = iconTexture.getHeight();
             dc.getTextureCache().put(this.getIconFilePath(), iconTexture);
@@ -602,7 +604,6 @@ public class WorldMapLayer extends AbstractLayer
             throw new WWRuntimeException(msg, e);
         }
 
-        GL gl = dc.getGL();
         gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);//_MIPMAP_LINEAR);
         gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
         gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE);

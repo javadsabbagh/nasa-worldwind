@@ -5,7 +5,7 @@
  */
 package gov.nasa.worldwind.render;
 
-import com.sun.opengl.util.texture.*;
+import com.jogamp.opengl.util.texture.*;
 import gov.nasa.worldwind.avlist.*;
 import gov.nasa.worldwind.cache.Cacheable;
 import gov.nasa.worldwind.geom.*;
@@ -598,6 +598,7 @@ public class SurfaceObjectTileBuilder
         GL gl = dc.getGL();
 
         TextureData td = new TextureData(
+            gl.getGLProfile(),    // GL profile
             internalFormat,       // internal format
             width, height,        // dimension
             0,                    // border
@@ -625,7 +626,7 @@ public class SurfaceObjectTileBuilder
         };
 
         t = TextureIO.newTexture(td);
-        t.bind();
+        t.bind(gl);
 
         gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, this.isUseLinearFilter() ?
             (this.isUseMipmaps() ? GL.GL_LINEAR_MIPMAP_LINEAR : GL.GL_LINEAR) : GL.GL_NEAREST);

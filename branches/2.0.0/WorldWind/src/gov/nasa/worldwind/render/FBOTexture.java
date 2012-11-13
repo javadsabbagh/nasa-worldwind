@@ -7,10 +7,11 @@
 package gov.nasa.worldwind.render;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.opengl.util.texture.*;
 import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.util.Logging;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL;
 import java.util.List;
 
 /**
@@ -44,7 +45,7 @@ public class FBOTexture extends FramebufferTexture
         this.width = Math.min(maxSize, sourceTexture.getWidth(dc));
         this.height = Math.min(maxSize, sourceTexture.getHeight(dc));
 
-        GL gl = GLContext.getCurrent().getGL();
+        GL gl = dc.getGL();
 
         int[] previousFbo = new int[1];
         gl.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING_EXT, previousFbo, 0);
@@ -56,10 +57,11 @@ public class FBOTexture extends FramebufferTexture
         {
             gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, fbo[0]);
 
-            TextureData td = new TextureData(GL.GL_RGBA, this.width, this.height, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE,
-                false, false, true, Buffers.newDirectByteBuffer(this.width * this.height * 4), null);
+            TextureData td = new TextureData(gl.getGLProfile(), GL.GL_RGBA, this.width, this.height, 0, GL.GL_RGBA,
+                GL.GL_UNSIGNED_BYTE, false, false, true, Buffers.newDirectByteBuffer(this.width * this.height * 4),
+                null);
             Texture t = TextureIO.newTexture(td);
-            t.bind();
+            t.bind(gl);
 
             gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
             gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
@@ -67,7 +69,7 @@ public class FBOTexture extends FramebufferTexture
             gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE);
 
             gl.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT, GL.GL_TEXTURE_2D,
-                t.getTextureObject(), 0);
+                t.getTextureObject(gl), 0);
 
             int status = gl.glCheckFramebufferStatusEXT(GL.GL_FRAMEBUFFER_EXT);
             if (status == GL.GL_FRAMEBUFFER_COMPLETE_EXT)

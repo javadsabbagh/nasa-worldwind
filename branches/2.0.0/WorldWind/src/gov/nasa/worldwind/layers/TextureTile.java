@@ -5,7 +5,7 @@
  */
 package gov.nasa.worldwind.layers;
 
-import com.sun.opengl.util.texture.*;
+import com.jogamp.opengl.util.texture.*;
 import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.cache.*;
@@ -162,7 +162,7 @@ public class TextureTile extends Tile implements SurfaceTile
     {
         return this.updateTime.get();
     }
-    
+
     public boolean isTextureExpired()
     {
         return this.isTextureExpired(this.getLevel().getExpiryTime());
@@ -357,7 +357,7 @@ public class TextureTile extends Tile implements SurfaceTile
         }
 
         this.setTexture(dc.getTextureCache(), t);
-        t.bind();
+        t.bind(dc.getGL());
 
         this.setTextureParameters(dc, t);
 
@@ -452,7 +452,7 @@ public class TextureTile extends Tile implements SurfaceTile
         }
 
         if (t != null)
-            t.bind();
+            t.bind(dc.getGL());
 
         return t != null;
     }
@@ -476,7 +476,7 @@ public class TextureTile extends Tile implements SurfaceTile
         {
             if (t.getMustFlipVertically())
             {
-                GL gl = GLContext.getCurrent().getGL();
+                GL gl = dc.getGL();
                 if (!textureIdentityActive)
                 {
                     gl.glMatrixMode(GL.GL_TEXTURE);

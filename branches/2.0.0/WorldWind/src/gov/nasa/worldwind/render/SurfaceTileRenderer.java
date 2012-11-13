@@ -6,6 +6,7 @@
 package gov.nasa.worldwind.render;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.opengl.util.texture.*;
 import gov.nasa.worldwind.Disposable;
 import gov.nasa.worldwind.terrain.SectorGeometry;
 import gov.nasa.worldwind.util.*;
@@ -36,14 +37,17 @@ public abstract class SurfaceTileRenderer implements Disposable
      */
     public void dispose()
     {
-        if (GLContext.getCurrent() == null)
+        GLContext context = GLContext.getCurrent();
+        if (context == null || context.getGL() == null)
             return;
 
+        GL gl = context.getGL();
+
         if (this.alphaTexture != null)
-            this.alphaTexture.dispose();
+            this.alphaTexture.destroy(gl);
         this.alphaTexture = null;
         if (this.outlineTexture != null)
-            this.outlineTexture.dispose();
+            this.outlineTexture.destroy(gl);
         this.outlineTexture = null;
     }
 
@@ -119,12 +123,12 @@ public abstract class SurfaceTileRenderer implements Disposable
             this.alphaTexture = dc.getTextureCache().getTexture(this);
             if (this.alphaTexture == null)
             {
-                this.initAlphaTexture(DEFAULT_ALPHA_TEXTURE_SIZE); // TODO: choose size to match incoming tile sizes?
+                this.initAlphaTexture(dc, DEFAULT_ALPHA_TEXTURE_SIZE); // TODO: choose size to match incoming tile size?
                 dc.getTextureCache().put(this, this.alphaTexture);
             }
 
             if (showOutlines && this.outlineTexture == null)
-                this.initOutlineTexture(128);
+                this.initOutlineTexture(dc, 128);
 
             gl.glEnable(GL.GL_DEPTH_TEST);
             gl.glDepthFunc(GL.GL_LEQUAL);
@@ -204,7 +208,7 @@ public abstract class SurfaceTileRenderer implements Disposable
                         if (showOutlines)
                         {
                             gl.glActiveTexture(GL.GL_TEXTURE1);
-                            this.outlineTexture.bind();
+                            this.outlineTexture.bind(gl);
 
                             // Apply the same texture transform to the outline texture. The outline textures uses a
                             // different texture unit than the tile, so the transform made above does not carry over.
@@ -216,7 +220,7 @@ public abstract class SurfaceTileRenderer implements Disposable
 
                         // Prepare the alpha texture to be used as a mask where texture coords are outside [0,1]
                         gl.glActiveTexture(alphaTextureUnit);
-                        this.alphaTexture.bind();
+                        this.alphaTexture.bind(gl);
 
                         // Apply the same texture transform to the alpha texture. The alpha texture uses a
                         // different texture unit than the tile, so the transform made above does not carry over.
@@ -279,24 +283,26 @@ public abstract class SurfaceTileRenderer implements Disposable
         }
     }
 
-    protected void initAlphaTexture(int size)
+    protected void initAlphaTexture(DrawContext dc, int size)
     {
         ByteBuffer textureBytes = Buffers.newDirectByteBuffer(size * size);
         fillByteBuffer(textureBytes, (byte) 0xff);
 
-        TextureData textureData = new TextureData(GL.GL_ALPHA, size, size, 0, GL.GL_ALPHA,
+        GL gl = dc.getGL();
+
+        TextureData textureData = new TextureData(gl.getGLProfile(), GL.GL_ALPHA, size, size, 0, GL.GL_ALPHA,
             GL.GL_UNSIGNED_BYTE, false, false, false, textureBytes.rewind(), null);
         this.alphaTexture = TextureIO.newTexture(textureData);
 
-        this.alphaTexture.bind();
-        this.alphaTexture.setTexParameteri(GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
-        this.alphaTexture.setTexParameteri(GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
-        this.alphaTexture.setTexParameteri(GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_BORDER);
-        this.alphaTexture.setTexParameteri(GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_BORDER);
+        this.alphaTexture.bind(gl);
+        this.alphaTexture.setTexParameteri(gl, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+        this.alphaTexture.setTexParameteri(gl, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
+        this.alphaTexture.setTexParameteri(gl, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_BORDER);
+        this.alphaTexture.setTexParameteri(gl, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_BORDER);
         // Assume the default border color of (0, 0, 0, 0).
     }
 
-    protected void initOutlineTexture(int size)
+    protected void initOutlineTexture(DrawContext dc, int size)
     {
         ByteBuffer textureBytes = Buffers.newDirectByteBuffer(size * size);
         for (int row = 0; row < size; row++)
@@ -312,14 +318,16 @@ public abstract class SurfaceTileRenderer implements Disposable
             }
         }
 
-        TextureData textureData = new TextureData(GL.GL_LUMINANCE, size, size, 0, GL.GL_LUMINANCE,
+        GL gl = dc.getGL();
+
+        TextureData textureData = new TextureData(gl.getGLProfile(), GL.GL_LUMINANCE, size, size, 0, GL.GL_LUMINANCE,
             GL.GL_UNSIGNED_BYTE, false, false, false, textureBytes.rewind(), null);
         this.outlineTexture = TextureIO.newTexture(textureData);
 
-        this.outlineTexture.bind();
-        this.outlineTexture.setTexParameteri(GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
-        this.outlineTexture.setTexParameteri(GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
-        this.outlineTexture.setTexParameteri(GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE);
-        this.outlineTexture.setTexParameteri(GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE);
+        this.outlineTexture.bind(gl);
+        this.outlineTexture.setTexParameteri(gl, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+        this.outlineTexture.setTexParameteri(gl, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
+        this.outlineTexture.setTexParameteri(gl, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE);
+        this.outlineTexture.setTexParameteri(gl, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE);
     }
 }

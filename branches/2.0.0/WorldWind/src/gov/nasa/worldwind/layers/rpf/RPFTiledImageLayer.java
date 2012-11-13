@@ -5,8 +5,8 @@
  */
 package gov.nasa.worldwind.layers.rpf;
 
-import com.sun.opengl.util.texture.*;
-import gov.nasa.worldwind.WorldWind;
+import com.jogamp.opengl.util.texture.*;
+import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.avlist.*;
 import gov.nasa.worldwind.cache.FileStore;
 import gov.nasa.worldwind.formats.dds.DDSCompressor;
@@ -677,7 +677,7 @@ public class RPFTiledImageLayer extends TiledImageLayer
     {
         try
         {
-            return TextureIO.newTextureData(url, useMipMaps, null);
+            return TextureIO.newTextureData(Configuration.getMaxCompatibleGLProfile(), url, useMipMaps, null);
         }
         catch (Exception e)
         {

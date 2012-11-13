@@ -7,7 +7,7 @@
 package gov.nasa.worldwind.util.tree;
 
 import com.jogamp.opengl.util.awt.TextRenderer;
-import com.sun.opengl.util.texture.*;
+import com.jogamp.opengl.util.texture.*;
 import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.event.SelectEvent;
@@ -806,7 +806,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
         // If we don't have a texture, or if we need a different size of texture, allocate a new one
         if (texture == null || this.textureDimension != dim)
         {
-            texture = this.createTileTexture(dim, dim);
+            texture = this.createTileTexture(dc, dim, dim);
             dc.getTextureCache().put(this.textureCacheKey, texture);
             this.textureDimension = dim;
 
@@ -963,9 +963,12 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
      *
      * @return a new texture with the specified width and height.
      */
-    protected Texture createTileTexture(int width, int height)
+    protected Texture createTileTexture(DrawContext dc, int width, int height)
     {
+        GL gl = dc.getGL();
+
         TextureData td = new TextureData(
+            gl.getGLProfile(),    // GL profile
             GL.GL_RGBA8,          // internal format
             width, height,        // dimension
             0,                    // border
@@ -993,7 +996,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
         };
 
         Texture t = TextureIO.newTexture(td);
-        t.bind();
+        t.bind(gl);
 
         return t;
     }
@@ -1526,7 +1529,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
             if (texture == null)
                 return;
 
-            texture.bind();
+            texture.bind(gl);
 
             for (ContentTile tile : tiles)
             {

@@ -7,7 +7,7 @@ All Rights Reserved.
 package gov.nasa.worldwindx.examples.util;
 
 import com.jogamp.opengl.util.awt.TextRenderer;
-import com.sun.opengl.util.texture.*;
+import com.jogamp.opengl.util.texture.*;
 import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.event.*;
 import gov.nasa.worldwind.exception.WWRuntimeException;
@@ -312,7 +312,7 @@ public class StatusLayer extends AbstractLayer implements PositionListener, Rend
                 {
                     //draw background image
                     if (iconTexture == null)
-                        initBGTexture();
+                        initBGTexture(dc);
 
                     double width = this.getScaledBGWidth();
                     double height = this.getScaledBGHeight();
@@ -327,7 +327,7 @@ public class StatusLayer extends AbstractLayer implements PositionListener, Rend
                         if (iconTexture != null)
                         {
                             gl.glEnable(GL.GL_TEXTURE_2D);
-                            iconTexture.bind();
+                            iconTexture.bind(gl);
                             gl.glColor4d(1d, 1d, 1d, this.getOpacity());
                             gl.glEnable(GL.GL_BLEND);
                             gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
@@ -448,7 +448,7 @@ public class StatusLayer extends AbstractLayer implements PositionListener, Rend
         previousPos = newPos;
     }
 
-    private void initBGTexture()
+    private void initBGTexture(DrawContext dc)
     {
         try
         {
@@ -463,7 +463,7 @@ public class StatusLayer extends AbstractLayer implements PositionListener, Rend
             }
 
             iconTexture = TextureIO.newTexture(iconStream, false, null);
-            iconTexture.bind();
+            iconTexture.bind(dc.getGL());
             this.bgWidth = iconTexture.getWidth();
             this.bgHeight = iconTexture.getHeight();
         }

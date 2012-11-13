@@ -5,7 +5,7 @@
  */
 package gov.nasa.worldwind.util;
 
-import com.sun.opengl.util.texture.Texture;
+import com.jogamp.opengl.util.texture.Texture;
 import gov.nasa.worldwind.render.DrawContext;
 
 import javax.media.opengl.GL;
@@ -33,8 +33,8 @@ import javax.media.opengl.GL;
  * texture's lower left corner.<br/> OGLRenderToTextureSupport rttSupport = new OGLRenderToTextureSupport();<br/>
  * rttSupport.beginRendering(dc, 0, 0, texture.getWidth(), texture.getHeight());<br/> try<br/> {<br/> // Bind the
  * texture as the destination for color pixel writes.<br/> rttSupport.setColorTarget(dc, texture);<br/> // Clear the
- * texture contents with transparent black.<br/> rttSupport.clear(dc, new Color(0, 0, 0, 0));<br/> // Invoke
- * desired GL rendering commands.<br/> }<br/> finally<br/> {<br/> rttSupport.endRendering(dc);<br/> }<br/> </code>
+ * texture contents with transparent black.<br/> rttSupport.clear(dc, new Color(0, 0, 0, 0));<br/> // Invoke desired GL
+ * rendering commands.<br/> }<br/> finally<br/> {<br/> rttSupport.endRendering(dc);<br/> }<br/> </code>
  *
  * @author dcollins
  * @version $Id$
@@ -349,8 +349,8 @@ public class OGLRenderToTextureSupport
             //    changing the textures' defining parameters.
             // 2. Enables specification of a destination (x, y) offset in texels. This offset corresponds to the
             //    viewport (x, y) specified by the caller in beginRendering().
-            texture.enable();
-            texture.bind();
+            texture.enable(gl);
+            texture.bind(gl);
             gl.glCopyTexSubImage2D(
                 texture.getTarget(), // target
                 0,                   // level
@@ -359,7 +359,7 @@ public class OGLRenderToTextureSupport
         }
         finally
         {
-            texture.disable();
+            texture.disable(gl);
         }
     }
 
@@ -369,13 +369,13 @@ public class OGLRenderToTextureSupport
 
         try
         {
-            texture.enable();
-            texture.bind();
+            texture.enable(gl);
+            texture.bind(gl);
             gl.glGenerateMipmapEXT(texture.getTarget());
         }
         finally
         {
-            texture.disable();
+            texture.disable(gl);
         }
     }
 
@@ -424,7 +424,7 @@ public class OGLRenderToTextureSupport
         if (texture != null)
         {
             gl.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT, GL.GL_TEXTURE_2D,
-                texture.getTextureObject(), 0);
+                texture.getTextureObject(gl), 0);
             this.checkFramebufferStatus(dc);
         }
         // If the texture is null, detach color attachment 0 from the framebuffer.
