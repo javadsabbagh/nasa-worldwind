@@ -373,7 +373,7 @@ public class OGLRenderToTextureSupport
         {
             texture.enable(gl);
             texture.bind(gl);
-            gl.glGenerateMipmapEXT(texture.getTarget());
+            gl.glGenerateMipmap(texture.getTarget());
         }
         finally
         {
@@ -394,8 +394,8 @@ public class OGLRenderToTextureSupport
         int[] framebuffers = new int[1];
 
         GL gl = dc.getGL();
-        gl.glGenFramebuffersEXT(1, framebuffers, 0);
-        gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, framebuffers[0]);
+        gl.glGenFramebuffers(1, framebuffers, 0);
+        gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, framebuffers[0]);
 
         this.framebufferObject = framebuffers[0];
         if (this.framebufferObject == 0)
@@ -412,8 +412,8 @@ public class OGLRenderToTextureSupport
         int[] framebuffers = new int[] {this.framebufferObject};
 
         GL gl = dc.getGL();
-        gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0);
-        gl.glDeleteFramebuffersEXT(1, framebuffers, 0);
+        gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0);
+        gl.glDeleteFramebuffers(1, framebuffers, 0);
 
         this.framebufferObject = 0;
     }
@@ -425,28 +425,28 @@ public class OGLRenderToTextureSupport
         // Attach the texture as color attachment 0 to the framebuffer.
         if (texture != null)
         {
-            gl.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT, GL.GL_TEXTURE_2D,
+            gl.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0, GL.GL_TEXTURE_2D,
                 texture.getTextureObject(gl), 0);
             this.checkFramebufferStatus(dc);
         }
         // If the texture is null, detach color attachment 0 from the framebuffer.
         else
         {
-            gl.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT, GL.GL_TEXTURE_2D, 0, 0);
+            gl.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0, GL.GL_TEXTURE_2D, 0, 0);
         }
     }
 
     protected void checkFramebufferStatus(DrawContext dc)
     {
-        int status = dc.getGL().glCheckFramebufferStatusEXT(GL.GL_FRAMEBUFFER_EXT);
+        int status = dc.getGL().glCheckFramebufferStatus(GL.GL_FRAMEBUFFER);
 
         switch (status)
         {
             // Framebuffer is configured correctly and supported on this hardware.
-            case GL.GL_FRAMEBUFFER_COMPLETE_EXT:
+            case GL.GL_FRAMEBUFFER_COMPLETE:
                 break;
             // Framebuffer is configured correctly, but not supported on this hardware.
-            case GL.GL_FRAMEBUFFER_UNSUPPORTED_EXT:
+            case GL.GL_FRAMEBUFFER_UNSUPPORTED:
                 throw new IllegalStateException(getFramebufferStatusString(status));
                 // Framebuffer is configured incorrectly. This should never happen, but we check anyway.
             default:
@@ -458,29 +458,27 @@ public class OGLRenderToTextureSupport
     {
         switch (status)
         {
-            case GL.GL_FRAMEBUFFER_COMPLETE_EXT:
+            case GL.GL_FRAMEBUFFER_COMPLETE:
                 return Logging.getMessage("OGL.FramebufferComplete");
-            case GL.GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:
+            case GL.GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
                 return Logging.getMessage("OGL.FramebufferIncompleteAttachment");
-            case GL.GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:
+            case GL.GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
                 return Logging.getMessage("OGL.FramebufferIncompleteDimensions");
-            case GL.GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:
+            case GL2.GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
                 return Logging.getMessage("OGL.FramebufferIncompleteDrawBuffer");
-            case GL.GL_FRAMEBUFFER_INCOMPLETE_DUPLICATE_ATTACHMENT_EXT:
-                return Logging.getMessage("OGL.FramebufferIncompleteDuplicateAttachment");
-            case GL.GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:
+            case GL.GL_FRAMEBUFFER_INCOMPLETE_FORMATS:
                 return Logging.getMessage("OGL.FramebufferIncompleteFormats");
-            case GL.GL_FRAMEBUFFER_INCOMPLETE_LAYER_COUNT_EXT:
+            case GL2.GL_FRAMEBUFFER_INCOMPLETE_LAYER_COUNT_EXT:
                 return Logging.getMessage("OGL.FramebufferIncompleteLayerCount");
-            case GL.GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS_EXT:
+            case GL2.GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS_EXT:
                 return Logging.getMessage("OGL.FramebufferIncompleteLayerTargets");
-            case GL.GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:
+            case GL.GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
                 return Logging.getMessage("OGL.FramebufferIncompleteMissingAttachment");
-            case GL.GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE_EXT:
+            case GL2.GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
                 return Logging.getMessage("OGL.FramebufferIncompleteMultisample");
-            case GL.GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:
+            case GL2.GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
                 return Logging.getMessage("OGL.FramebufferIncompleteReadBuffer");
-            case GL.GL_FRAMEBUFFER_UNSUPPORTED_EXT:
+            case GL.GL_FRAMEBUFFER_UNSUPPORTED:
                 return Logging.getMessage("OGL.FramebufferUnsupported");
             default:
                 return null;

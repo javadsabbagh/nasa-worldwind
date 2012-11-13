@@ -48,14 +48,14 @@ public class FBOTexture extends FramebufferTexture
         GL gl = dc.getGL();
 
         int[] previousFbo = new int[1];
-        gl.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING_EXT, previousFbo, 0);
+        gl.glGetIntegerv(GL.GL_FRAMEBUFFER_BINDING, previousFbo, 0);
 
         int[] fbo = new int[1];
-        gl.glGenFramebuffersEXT(1, fbo, 0);
+        gl.glGenFramebuffers(1, fbo, 0);
 
         try
         {
-            gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, fbo[0]);
+            gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, fbo[0]);
 
             TextureData td = new TextureData(gl.getGLProfile(), GL.GL_RGBA, this.width, this.height, 0, GL.GL_RGBA,
                 GL.GL_UNSIGNED_BYTE, false, false, true, Buffers.newDirectByteBuffer(this.width * this.height * 4),
@@ -68,11 +68,11 @@ public class FBOTexture extends FramebufferTexture
             gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE);
             gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE);
 
-            gl.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT, GL.GL_TEXTURE_2D,
+            gl.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0, GL.GL_TEXTURE_2D,
                 t.getTextureObject(gl), 0);
 
-            int status = gl.glCheckFramebufferStatusEXT(GL.GL_FRAMEBUFFER_EXT);
-            if (status == GL.GL_FRAMEBUFFER_COMPLETE_EXT)
+            int status = gl.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER);
+            if (status == GL.GL_FRAMEBUFFER_COMPLETE)
             {
                 this.generateTexture(dc, this.width, this.height);
             }
@@ -88,8 +88,8 @@ public class FBOTexture extends FramebufferTexture
         }
         finally
         {
-            gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, previousFbo[0]);
-            gl.glDeleteFramebuffersEXT(1, fbo, 0);
+            gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, previousFbo[0]);
+            gl.glDeleteFramebuffers(1, fbo, 0);
         }
     }
 }
