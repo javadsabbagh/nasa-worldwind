@@ -347,7 +347,7 @@ class VBORenderer implements ActionListener, ChangeListener, GLEventListener
             {
                 public void run()
                 {
-                    drawable.repaint();
+                    drawable.display();
                 }
             }
         );
