@@ -12,7 +12,7 @@ import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.render.DrawContext;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.*;
 import java.util.*;
 
 /**
@@ -232,7 +232,7 @@ public class PartialCappedCylinder extends CappedCylinder
         this.setExpiryTime(this.nextExpiryTime(dc, terrainConformant));
         this.clearElevationMap();
 
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
         OGLStackHandler ogsh = new OGLStackHandler();
         try
         {
@@ -262,7 +262,7 @@ public class PartialCappedCylinder extends CappedCylinder
             {
                 if (this.isEnableCaps())
                 {
-                    ogsh.pushAttrib(gl, GL.GL_POLYGON_BIT);
+                    ogsh.pushAttrib(gl, GL2.GL_POLYGON_BIT);
                     gl.glEnable(GL.GL_CULL_FACE);
                     gl.glFrontFace(GL.GL_CCW);
                 }

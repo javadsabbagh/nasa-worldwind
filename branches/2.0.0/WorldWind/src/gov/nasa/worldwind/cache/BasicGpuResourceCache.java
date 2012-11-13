@@ -85,7 +85,7 @@ public class BasicGpuResourceCache implements GpuResourceCache
             return;
 
         CacheEntry entry = (CacheEntry) clientObject;
-        GL gl = context.getGL();
+        GL2 gl = context.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         if (entry.resourceType == TEXTURE)
         {

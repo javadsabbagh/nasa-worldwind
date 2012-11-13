@@ -14,7 +14,7 @@ import gov.nasa.worldwind.pick.PickSupport;
 import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.*;
 import java.awt.*;
 import java.io.*;
 import java.util.ArrayList;
@@ -341,7 +341,7 @@ public class WorldMapLayer extends AbstractLayer
         if (this.getIconFilePath() == null)
             return;
 
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
         OGLStackHandler ogsh = new OGLStackHandler();
 
         try
@@ -417,11 +417,11 @@ public class WorldMapLayer extends AbstractLayer
                     int y = (int) (height * (groundPos.getLatitude().degrees + 90) / 180);
                     int w = 10; // cross branch length
                     // Draw
-                    gl.glBegin(GL.GL_LINE_STRIP);
+                    gl.glBegin(GL2.GL_LINE_STRIP);
                     gl.glVertex3d(x - w, y, 0);
                     gl.glVertex3d(x + w + 1, y, 0);
                     gl.glEnd();
-                    gl.glBegin(GL.GL_LINE_STRIP);
+                    gl.glBegin(GL2.GL_LINE_STRIP);
                     gl.glVertex3d(x, y - w, 0);
                     gl.glVertex3d(x, y + w + 1, 0);
                     gl.glEnd();
@@ -433,7 +433,7 @@ public class WorldMapLayer extends AbstractLayer
                     this.footPrintPositions = this.computeViewFootPrint(dc, 32);
                     if (this.footPrintPositions != null)
                     {
-                        gl.glBegin(GL.GL_LINE_STRIP);
+                        gl.glBegin(GL2.GL_LINE_STRIP);
                         LatLon p1 = this.footPrintPositions.get(0);
                         for (LatLon p2 : this.footPrintPositions)
                         {
@@ -445,7 +445,7 @@ public class WorldMapLayer extends AbstractLayer
                                 int y1 = (int) (height * (p1.getLatitude().degrees + 90) / 180);
                                 gl.glVertex3d(x < width / 2 ? width : 0, (y1 + y) / 2, 0);
                                 gl.glEnd();
-                                gl.glBegin(GL.GL_LINE_STRIP);
+                                gl.glBegin(GL2.GL_LINE_STRIP);
                                 gl.glVertex3d(x < width / 2 ? 0 : width, (y1 + y) / 2, 0);
                             }
                             gl.glVertex3d(x, y, 0);
@@ -455,7 +455,7 @@ public class WorldMapLayer extends AbstractLayer
                     }
                 }
                 // Draw 1px border around and inside the map
-                gl.glBegin(GL.GL_LINE_STRIP);
+                gl.glBegin(GL2.GL_LINE_STRIP);
                 gl.glVertex3d(0, 0, 0);
                 gl.glVertex3d(width, 0, 0);
                 gl.glVertex3d(width, height - 1, 0);

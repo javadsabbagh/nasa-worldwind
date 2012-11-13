@@ -20,7 +20,7 @@ import gov.nasa.worldwind.pick.*;
 import gov.nasa.worldwind.terrain.Terrain;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.*;
 import javax.xml.stream.*;
 import java.awt.*;
 import java.io.IOException;
@@ -1256,7 +1256,7 @@ public class Path extends AbstractShape
 
     protected void doDrawOutlineVBO(DrawContext dc, int[] vboIds, PathData pathData)
     {
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
         try
         {
             int stride = pathData.hasExtrusionPoints ? 2 * pathData.vertexStride : pathData.vertexStride;
@@ -1272,14 +1272,14 @@ public class Path extends AbstractShape
             if (useVertexColors)
             {
                 // Convert stride and offset from number of elements to number of bytes.
-                gl.glEnableClientState(GL.GL_COLOR_ARRAY);
+                gl.glEnableClientState(GL2.GL_COLOR_ARRAY);
                 gl.glColorPointer(4, GL.GL_FLOAT, 4 * stride, 4 * pathData.colorOffset);
             }
 
             gl.glDrawArrays(GL.GL_LINE_STRIP, 0, count);
 
             if (useVertexColors)
-                gl.glDisableClientState(GL.GL_COLOR_ARRAY);
+                gl.glDisableClientState(GL2.GL_COLOR_ARRAY);
 
             if (pathData.hasExtrusionPoints && this.isDrawVerticals())
                 this.drawVerticalOutlineVBO(dc, vboIds, pathData);
@@ -1296,7 +1296,7 @@ public class Path extends AbstractShape
 
     protected void doDrawOutlineVA(DrawContext dc, PathData pathData)
     {
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
         int stride = pathData.hasExtrusionPoints ? 2 * pathData.vertexStride : pathData.vertexStride;
         int count = pathData.hasExtrusionPoints ? pathData.vertexCount / 2 : pathData.vertexCount;
         boolean useVertexColors = !dc.isPickingMode() && pathData.tessellatedColors != null;
@@ -1310,7 +1310,7 @@ public class Path extends AbstractShape
         {
             // Convert stride from number of elements to number of bytes, and position the vertex buffer at the first
             // color.
-            gl.glEnableClientState(GL.GL_COLOR_ARRAY);
+            gl.glEnableClientState(GL2.GL_COLOR_ARRAY);
             gl.glColorPointer(4, GL.GL_FLOAT, 4 * stride, pathData.renderedPath.position(pathData.colorOffset));
             pathData.renderedPath.rewind();
         }
@@ -1318,7 +1318,7 @@ public class Path extends AbstractShape
         gl.glDrawArrays(GL.GL_LINE_STRIP, 0, count);
 
         if (useVertexColors)
-            gl.glDisableClientState(GL.GL_COLOR_ARRAY);
+            gl.glDisableClientState(GL2.GL_COLOR_ARRAY);
 
         if (pathData.hasExtrusionPoints && this.isDrawVerticals())
             this.drawVerticalOutlineVA(dc, pathData);
@@ -1333,7 +1333,7 @@ public class Path extends AbstractShape
         if (polePositions == null || polePositions.limit() < 1)
             return;
 
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         // Convert stride from number of elements to number of bytes.
         gl.glVertexPointer(3, GL.GL_FLOAT, 4 * pathData.vertexStride, 0);
@@ -1355,9 +1355,11 @@ public class Path extends AbstractShape
         if (polePositions == null || polePositions.limit() < 1)
             return;
 
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+
         // Convert stride from number of elements to number of bytes.
-        dc.getGL().glVertexPointer(3, GL.GL_FLOAT, 4 * pathData.vertexStride, pathData.renderedPath.rewind());
-        dc.getGL().glDrawElements(GL.GL_LINES, polePositions.limit(), GL.GL_UNSIGNED_INT, polePositions.rewind());
+        gl.glVertexPointer(3, GL.GL_FLOAT, 4 * pathData.vertexStride, pathData.renderedPath.rewind());
+        gl.glDrawElements(GL.GL_LINES, polePositions.limit(), GL.GL_UNSIGNED_INT, polePositions.rewind());
     }
 
     /**
@@ -1376,14 +1378,14 @@ public class Path extends AbstractShape
         if (posPoints == null || posPoints.limit() < 1)
             return;
 
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         // Convert stride from number of elements to number of bytes.
         gl.glVertexPointer(3, GL.GL_FLOAT, 4 * pathData.vertexStride, pathData.renderedPath.rewind());
 
         if (dc.isPickingMode())
         {
-            gl.glEnableClientState(GL.GL_COLOR_ARRAY);
+            gl.glEnableClientState(GL2.GL_COLOR_ARRAY);
             gl.glColorPointer(3, GL.GL_UNSIGNED_BYTE, 0, pickPositionColors);
         }
         else if (pathData.tessellatedColors != null)
@@ -1391,7 +1393,7 @@ public class Path extends AbstractShape
             // Apply this path's per-position colors if we're in normal rendering mode (not picking) and this path's
             // positionColors is non-null. Convert stride from number of elements to number of bytes, and position the
             // vertex buffer at the first color.
-            gl.glEnableClientState(GL.GL_COLOR_ARRAY);
+            gl.glEnableClientState(GL2.GL_COLOR_ARRAY);
             gl.glColorPointer(4, GL.GL_FLOAT, 4 * pathData.vertexStride,
                 pathData.renderedPath.position(pathData.colorOffset));
         }
@@ -1401,10 +1403,10 @@ public class Path extends AbstractShape
 
         // Restore gl state
         gl.glPointSize(1f);
-        gl.glDisable(GL.GL_POINT_SMOOTH);
+        gl.glDisable(GL2.GL_POINT_SMOOTH);
 
         if (dc.isPickingMode() || pathData.tessellatedColors != null)
-            gl.glDisableClientState(GL.GL_COLOR_ARRAY);
+            gl.glDisableClientState(GL2.GL_COLOR_ARRAY);
     }
 
     /**
@@ -1429,14 +1431,14 @@ public class Path extends AbstractShape
         if (posPoints == null || posPoints.limit() < 1)
             return;
 
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         // Convert stride from number of elements to number of bytes.
         gl.glVertexPointer(3, GL.GL_FLOAT, 4 * pathData.vertexStride, 0);
 
         if (dc.isPickingMode())
         {
-            gl.glEnableClientState(GL.GL_COLOR_ARRAY);
+            gl.glEnableClientState(GL2.GL_COLOR_ARRAY);
             gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
             gl.glColorPointer(3, GL.GL_UNSIGNED_BYTE, 0, pickPositionColors);
         }
@@ -1444,7 +1446,7 @@ public class Path extends AbstractShape
         {
             // Apply this path's per-position colors if we're in normal rendering mode (not picking) and this path's
             // positionColors is non-null. Convert the stride and offset from number of elements to number of bytes.
-            gl.glEnableClientState(GL.GL_COLOR_ARRAY);
+            gl.glEnableClientState(GL2.GL_COLOR_ARRAY);
             gl.glColorPointer(4, GL.GL_FLOAT, 4 * pathData.vertexStride, 4 * pathData.colorOffset);
         }
 
@@ -1454,16 +1456,16 @@ public class Path extends AbstractShape
 
         // Restore the previous GL point state.
         gl.glPointSize(1f);
-        gl.glDisable(GL.GL_POINT_SMOOTH);
+        gl.glDisable(GL2.GL_POINT_SMOOTH);
 
         // Restore the previous GL color array state.
         if (dc.isPickingMode() || pathData.tessellatedColors != null)
-            gl.glDisableClientState(GL.GL_COLOR_ARRAY);
+            gl.glDisableClientState(GL2.GL_COLOR_ARRAY);
     }
 
     protected void prepareToDrawPoints(DrawContext dc)
     {
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         if (dc.isPickingMode())
         {
@@ -1493,8 +1495,8 @@ public class Path extends AbstractShape
         // not enabled during picking but the alpha test is, this has the effect of producing a rounded point in the
         // pick buffer that has a sharp transition between the Path's pick color and the other fragment colors. Without
         // this state enabled, position points display as squares in the pick buffer.
-        gl.glEnable(GL.GL_POINT_SMOOTH);
-        gl.glHint(GL.GL_POINT_SMOOTH_HINT, GL.GL_NICEST);
+        gl.glEnable(GL2.GL_POINT_SMOOTH);
+        gl.glHint(GL2.GL_POINT_SMOOTH_HINT, GL2.GL_NICEST);
     }
 
     /**
@@ -1520,7 +1522,7 @@ public class Path extends AbstractShape
 
     protected void doDrawInteriorVBO(DrawContext dc, int[] vboIds, PathData pathData)
     {
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         // Convert stride from number of elements to number of bytes.
         gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vboIds[0]);
@@ -1532,9 +1534,11 @@ public class Path extends AbstractShape
 
     protected void doDrawInteriorVA(DrawContext dc, PathData pathData)
     {
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+
         // Convert stride from number of elements to number of bytes.
-        dc.getGL().glVertexPointer(3, GL.GL_FLOAT, 4 * pathData.vertexStride, pathData.renderedPath.rewind());
-        dc.getGL().glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, pathData.vertexCount);
+        gl.glVertexPointer(3, GL.GL_FLOAT, 4 * pathData.vertexStride, pathData.renderedPath.rewind());
+        gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, pathData.vertexCount);
     }
 
     /**

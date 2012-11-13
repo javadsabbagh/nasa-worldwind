@@ -15,7 +15,7 @@ import gov.nasa.worldwind.pick.PickSupport;
 import gov.nasa.worldwind.util.*;
 import gov.nasa.worldwind.util.measure.LengthMeasurer;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.*;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
@@ -658,9 +658,9 @@ public class Polyline extends AVListImpl implements Renderable, OrderedRenderabl
 
     protected void drawOrderedRenderable(DrawContext dc)
     {
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
-        int attrBits = GL.GL_HINT_BIT | GL.GL_CURRENT_BIT | GL.GL_LINE_BIT;
+        int attrBits = GL2.GL_HINT_BIT | GL2.GL_CURRENT_BIT | GL2.GL_LINE_BIT;
         if (!dc.isPickingMode())
         {
             if (this.color.getAlpha() != 255)
@@ -681,7 +681,7 @@ public class Polyline extends AVListImpl implements Renderable, OrderedRenderabl
                     gl.glEnable(GL.GL_BLEND);
                     gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
                 }
-                dc.getGL().glColor4ub((byte) this.color.getRed(), (byte) this.color.getGreen(),
+                gl.glColor4ub((byte) this.color.getRed(), (byte) this.color.getGreen(),
                     (byte) this.color.getBlue(), (byte) this.color.getAlpha());
             }
             else
@@ -696,22 +696,22 @@ public class Polyline extends AVListImpl implements Renderable, OrderedRenderabl
 
             if (this.stippleFactor > 0)
             {
-                gl.glEnable(GL.GL_LINE_STIPPLE);
+                gl.glEnable(GL2.GL_LINE_STIPPLE);
                 gl.glLineStipple(this.stippleFactor, this.stipplePattern);
             }
             else
             {
-                gl.glDisable(GL.GL_LINE_STIPPLE);
+                gl.glDisable(GL2.GL_LINE_STIPPLE);
             }
 
-            int hintAttr = GL.GL_LINE_SMOOTH_HINT;
+            int hintAttr = GL2.GL_LINE_SMOOTH_HINT;
             if (this.filled)
-                hintAttr = GL.GL_POLYGON_SMOOTH_HINT;
+                hintAttr = GL2.GL_POLYGON_SMOOTH_HINT;
             gl.glHint(hintAttr, this.antiAliasHint);
 
-            int primType = GL.GL_LINE_STRIP;
+            int primType = GL2.GL_LINE_STRIP;
             if (this.filled)
-                primType = GL.GL_POLYGON;
+                primType = GL2.GL_POLYGON;
 
             if (dc.isPickingMode())
                 gl.glLineWidth((float) this.lineWidth + 8);
@@ -752,7 +752,7 @@ public class Polyline extends AVListImpl implements Renderable, OrderedRenderabl
                         gl.glEnable(GL.GL_BLEND);
                         gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
                     }
-                    dc.getGL().glColor4ub((byte) this.highlightColor.getRed(), (byte) this.highlightColor.getGreen(),
+                    gl.glColor4ub((byte) this.highlightColor.getRed(), (byte) this.highlightColor.getGreen(),
                         (byte) this.highlightColor.getBlue(), (byte) this.highlightColor.getAlpha());
 
                     gl.glLineWidth((float) this.lineWidth + 2);
@@ -921,7 +921,7 @@ public class Polyline extends AVListImpl implements Renderable, OrderedRenderabl
         Angle segmentAzimuth = null;
         Angle segmentDistance = null;
 
-        for (double s = 0, p = 0; s < 1;)
+        for (double s = 0, p = 0; s < 1; )
         {
             if (this.followTerrain)
                 p += this.terrainConformance * dc.getView().computePixelSizeAtDistance(
@@ -968,7 +968,7 @@ public class Polyline extends AVListImpl implements Renderable, OrderedRenderabl
         return span;
     }
 
-    @SuppressWarnings( {"UnusedDeclaration"})
+    @SuppressWarnings({"UnusedDeclaration"})
     protected ArrayList<Vec4> clipAndAdd(DrawContext dc, Vec4 ptA, Vec4 ptB, ArrayList<Vec4> span)
     {
         // Line clipping appears to be useful only for long lines with few segments. It's costly otherwise.

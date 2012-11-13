@@ -8,7 +8,7 @@ package gov.nasa.worldwind.util;
 import com.jogamp.opengl.util.texture.Texture;
 import gov.nasa.worldwind.render.DrawContext;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.*;
 
 /**
  * OGLRenderToTextureSupport encapsulates the pattern of rendering GL commands to a destination texture. Currently only
@@ -221,18 +221,18 @@ public class OGLRenderToTextureSupport
             throw new IllegalArgumentException(message);
         }
 
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         this.drawRegion = new java.awt.Rectangle(x, y, width, height);
 
         // Note: there is no attribute bit for framebuffer objects. The default framebuffer object state (object ID 0
         // is bound as the current fbo) is restored in endRendering().
         this.stackHandler.pushAttrib(gl,
-            GL.GL_COLOR_BUFFER_BIT  // For clear color.
-                | GL.GL_DEPTH_BUFFER_BIT // For depth test and depth mask.
-                | GL.GL_SCISSOR_BIT      // For scissor test and scissor box.
-                | GL.GL_TRANSFORM_BIT    // For matrix mode.
-                | GL.GL_VIEWPORT_BIT);   // For viewport state.
+            GL2.GL_COLOR_BUFFER_BIT  // For clear color.
+                | GL2.GL_DEPTH_BUFFER_BIT // For depth test and depth mask.
+                | GL2.GL_SCISSOR_BIT      // For scissor test and scissor box.
+                | GL2.GL_TRANSFORM_BIT    // For matrix mode.
+                | GL2.GL_VIEWPORT_BIT);   // For viewport state.
 
         this.stackHandler.pushTextureIdentity(gl);
         this.stackHandler.pushProjectionIdentity(gl);
@@ -276,6 +276,8 @@ public class OGLRenderToTextureSupport
             throw new IllegalArgumentException(message);
         }
 
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+
         this.flush(dc);
 
         if (this.useFramebufferObject(dc))
@@ -288,7 +290,7 @@ public class OGLRenderToTextureSupport
             this.endFramebufferObjectRendering(dc);
         }
 
-        this.stackHandler.pop(dc.getGL());
+        this.stackHandler.pop(gl);
         this.drawRegion = null;
         this.colorTarget = null;
     }

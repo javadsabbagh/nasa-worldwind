@@ -8,7 +8,7 @@ import gov.nasa.worldwind.geom.Position;
 import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.*;
 
 /**
  * @author dcollins
@@ -170,7 +170,7 @@ public class ProgressAnnotation extends ScreenAnnotation
 
     protected void drawCallout(DrawContext dc, int mode, java.awt.Rectangle bounds, boolean useTexCoords)
     {
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         OGLStackHandler stackHandler = new OGLStackHandler();
         stackHandler.pushModelview(gl);

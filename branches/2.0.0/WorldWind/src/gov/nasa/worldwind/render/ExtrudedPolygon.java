@@ -18,7 +18,7 @@ import gov.nasa.worldwind.ogc.kml.impl.KMLExportUtil;
 import gov.nasa.worldwind.terrain.Terrain;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.*;
 import javax.media.opengl.glu.GLU;
 import javax.xml.stream.*;
 import java.io.*;
@@ -1267,7 +1267,8 @@ public class ExtrudedPolygon extends AbstractShape
         {
             // Push an identity texture matrix. This prevents drawSides() from leaking GL texture matrix state. The
             // texture matrix stack is popped from OGLStackHandler.pop() within {@link #endRendering}.
-            ogsh.pushTextureIdentity(dc.getGL());
+            GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+            ogsh.pushTextureIdentity(gl);
         }
 
         return ogsh;
@@ -1317,7 +1318,7 @@ public class ExtrudedPolygon extends AbstractShape
     {
         this.prepareToDrawOutline(dc, this.getActiveCapAttributes(), defaultAttributes);
 
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         for (ExtrudedBoundaryInfo boundary : shapeData)
         {
@@ -1344,7 +1345,7 @@ public class ExtrudedPolygon extends AbstractShape
     {
         this.prepareToDrawOutline(dc, this.getActiveSideAttributes(), defaultSideAttributes);
 
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         for (ExtrudedBoundaryInfo boundary : shapeData)
         {
@@ -1387,7 +1388,7 @@ public class ExtrudedPolygon extends AbstractShape
     {
         super.prepareToDrawInterior(dc, this.getActiveCapAttributes(), defaultAttributes);
 
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         if (!dc.isPickingMode() && this.mustApplyLighting(dc, this.getActiveCapAttributes()))
             gl.glNormalPointer(GL.GL_FLOAT, 0, shapeData.capNormalBuffer.rewind());
@@ -1400,12 +1401,12 @@ public class ExtrudedPolygon extends AbstractShape
 
             gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, this.capTextureCoords.rewind());
             dc.getGL().glEnable(GL.GL_TEXTURE_2D);
-            gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+            gl.glEnableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
         }
         else
         {
             dc.getGL().glDisable(GL.GL_TEXTURE_2D);
-            gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+            gl.glDisableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
         }
 
         gl.glVertexPointer(3, GL.GL_FLOAT, 0, shapeData.capVertexBuffer.rewind());
@@ -1427,7 +1428,7 @@ public class ExtrudedPolygon extends AbstractShape
     {
         super.prepareToDrawInterior(dc, this.getActiveSideAttributes(), defaultSideAttributes);
 
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         for (ExtrudedBoundaryInfo boundary : shapeData)
         {
@@ -1437,13 +1438,13 @@ public class ExtrudedPolygon extends AbstractShape
             if (!dc.isPickingMode() && boundary.sideTextureCoords != null)
             {
                 gl.glEnable(GL.GL_TEXTURE_2D);
-                gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+                gl.glEnableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
                 gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, boundary.sideTextureCoords.rewind());
             }
             else
             {
                 gl.glDisable(GL.GL_TEXTURE_2D);
-                gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+                gl.glDisableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
             }
 
             gl.glVertexPointer(3, GL.GL_FLOAT, 0, boundary.sideVertexBuffer.rewind());
@@ -2093,22 +2094,20 @@ public class ExtrudedPolygon extends AbstractShape
      */
     protected void tessellatePolygon(ShapeData shapeData, Vec4 normal)
     {
-        GLU glu = new GLU();
-
         GLUTessellatorSupport glts = new GLUTessellatorSupport();
         shapeData.cb = new GLUTessellatorSupport.CollectIndexListsCallback();
 
-        glts.beginTessellation(glu, shapeData.cb, normal);
+        glts.beginTessellation(shapeData.cb, normal);
         try
         {
             double[] coords = new double[3];
 
-            glu.gluTessBeginPolygon(glts.getGLUtessellator(), null);
+            GLU.gluTessBeginPolygon(glts.getGLUtessellator(), null);
 
             int k = 0;
             for (ExtrudedBoundaryInfo boundary : shapeData)
             {
-                glu.gluTessBeginContour(glts.getGLUtessellator());
+                GLU.gluTessBeginContour(glts.getGLUtessellator());
                 FloatBuffer vBuf = boundary.capVertexBuffer;
                 for (int i = 0; i < boundary.locations.size(); i++)
                 {
@@ -2116,19 +2115,19 @@ public class ExtrudedPolygon extends AbstractShape
                     coords[1] = vBuf.get(i * 3 + 1);
                     coords[2] = vBuf.get(i * 3 + 2);
 
-                    glu.gluTessVertex(glts.getGLUtessellator(), coords, 0, k++);
+                    GLU.gluTessVertex(glts.getGLUtessellator(), coords, 0, k++);
                 }
-                glu.gluTessEndContour(glts.getGLUtessellator());
+                GLU.gluTessEndContour(glts.getGLUtessellator());
             }
 
-            glu.gluTessEndPolygon(glts.getGLUtessellator());
+            GLU.gluTessEndPolygon(glts.getGLUtessellator());
         }
         finally
         {
             // Free any heap memory used for tessellation immediately. If tessellation has consumed all available
             // heap memory, we must free memory used by tessellation immediately or subsequent operations such as
             // message logging will fail.
-            glts.endTessellation(glu);
+            glts.endTessellation();
         }
     }
 

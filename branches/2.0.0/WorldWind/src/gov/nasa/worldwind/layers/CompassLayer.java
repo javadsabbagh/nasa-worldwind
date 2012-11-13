@@ -15,7 +15,7 @@ import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.util.*;
 import gov.nasa.worldwind.view.orbit.OrbitView;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.*;
 import java.awt.*;
 import java.io.*;
 
@@ -296,7 +296,7 @@ public class CompassLayer extends AbstractLayer
         if (this.getIconFilePath() == null)
             return;
 
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
         OGLStackHandler ogsh = new OGLStackHandler();
 
         try

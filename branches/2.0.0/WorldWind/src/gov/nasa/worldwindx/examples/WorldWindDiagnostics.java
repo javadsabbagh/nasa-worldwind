@@ -81,7 +81,7 @@ public class WorldWindDiagnostics
                 sb.append(prop.getKey() + " = " + prop.getValue() + "\n");
             }
 
-            javax.media.opengl.GL gl = GLContext.getCurrent().getGL();
+            GL gl = glAutoDrawable.getGL();
 
             sb.append("\nOpenGL Values\n");
             String oglVersion = gl.glGetString(GL.GL_VERSION);

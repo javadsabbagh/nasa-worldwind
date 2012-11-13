@@ -14,7 +14,7 @@ import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.terrain.Terrain;
 import gov.nasa.worldwind.util.Logging;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.*;
 import javax.xml.stream.*;
 import java.awt.*;
 import java.awt.image.*;
@@ -32,9 +32,9 @@ import java.util.List;
  */
 public class AntennaModel extends AbstractShape
 {
-    public static final int DISPLAY_MODE_FILL = GL.GL_FILL;
-    public static final int DISPLAY_MODE_LINE = GL.GL_LINE;
-    public static final int DISPLAY_MODE_POINT = GL.GL_POINT;
+    public static final int DISPLAY_MODE_FILL = GL2.GL_FILL;
+    public static final int DISPLAY_MODE_LINE = GL2.GL_LINE;
+    public static final int DISPLAY_MODE_POINT = GL2.GL_POINT;
 
     protected int nThetaIntervals;
     protected int nPhiIntervals;
@@ -347,17 +347,17 @@ public class AntennaModel extends AbstractShape
     public void drawModel(DrawContext dc, int displayMode, boolean showTexture)
     {
         ShapeData shapeData = this.getCurrent();
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         if (this.texture == null)
             this.makeTexture();
 
-        gl.glPolygonMode(GL.GL_FRONT_AND_BACK, displayMode);
+        gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, displayMode);
 
         if (!dc.isPickingMode() && showTexture)
         {
             gl.glEnable(GL.GL_TEXTURE_2D);
-            gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+            gl.glEnableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
             gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, shapeData.texCoords.rewind());
             this.texture.bind(dc);
         }
@@ -391,7 +391,7 @@ public class AntennaModel extends AbstractShape
         gl.glPopMatrix();
 
         if (!dc.isPickingMode())
-            gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+            gl.glDisableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
     }
 
     private void makeVertices(DrawContext dc)

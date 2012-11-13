@@ -9,7 +9,7 @@ import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.geom.Position;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 
 /**
  * @author dcollins
@@ -103,7 +103,7 @@ public class AnnotationNullLayout extends AbstractAnnotationLayout
             throw new IllegalArgumentException(message);
         }
 
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
         OGLStackHandler stackHandler = new OGLStackHandler();
 
         for (Annotation annotation : annotations)

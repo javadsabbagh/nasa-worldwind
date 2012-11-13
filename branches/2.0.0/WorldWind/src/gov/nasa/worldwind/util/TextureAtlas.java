@@ -1185,7 +1185,7 @@ public class TextureAtlas
     protected Texture makeTextureWithBackingImage(DrawContext dc)
     {
         BufferedImage backingImage = (BufferedImage) this.rectPacker.getBackingStore();
-        Texture texture = TextureIO.newTexture(backingImage, this.isUseMipMaps());
+        Texture texture = AWTTextureIO.newTexture(dc.getGL().getGLProfile(), backingImage, this.isUseMipMaps());
 
         this.setTexture(dc, texture);
         this.setTextureParameters(dc);

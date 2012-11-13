@@ -13,7 +13,7 @@ import gov.nasa.worldwind.avlist.*;
 import gov.nasa.worldwind.cache.FileStore;
 import gov.nasa.worldwind.util.Logging;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.*;
 import java.awt.image.*;
 import java.beans.*;
 import java.net.URL;
@@ -352,8 +352,8 @@ public class LazilyLoadedTexture extends AVListImpl implements WWTexture
 
         if (texture.getMustFlipVertically())
         {
-            GL gl = dc.getGL();
-            gl.glMatrixMode(GL.GL_TEXTURE);
+            GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+            gl.glMatrixMode(GL2.GL_TEXTURE);
             gl.glLoadIdentity();
             gl.glScaled(1, -1, 1);
             gl.glTranslated(0, -1, 0);

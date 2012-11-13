@@ -11,7 +11,7 @@ import gov.nasa.worldwind.geom.Position;
 import gov.nasa.worldwind.pick.*;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.*;
 import java.awt.*;
 import java.awt.geom.*;
 import java.util.*;
@@ -496,6 +496,8 @@ public class MultiLineTextRenderer
     protected void drawLineWithUniqueColors(String text, int x, int y,
         DrawContext dc, PickSupport pickSupport, Object refObject, Position refPosition)
     {
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+
         //float spaceWidth = this.textRenderer.getCharWidth(' ');
         float drawX;
         String source = text.trim();
@@ -518,7 +520,7 @@ public class MultiLineTextRenderer
             po.setValue(AVKey.TEXT, word.trim());
             pickSupport.addPickableObject(po);
             // Draw word rectangle
-            dc.getGL().glColor3ub((byte) color.getRed(), (byte) color.getGreen(), (byte) color.getBlue());
+            gl.glColor3ub((byte) color.getRed(), (byte) color.getGreen(), (byte) color.getBlue());
             drawFilledRectangle(dc, drawX + wordBounds.getX(), y - wordBounds.getHeight() - wordBounds.getY(),
                 wordBounds.getWidth(), wordBounds.getHeight());
             // Move forward in source string
@@ -1198,6 +1200,8 @@ public class MultiLineTextRenderer
     protected void pickWord(String word, String hyperlink, double drawX, double drawY, Rectangle2D wordBounds,
         DrawContext dc, PickSupport pickSupport, Object refObject, Position refPosition)
     {
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+
         // Add pickable object
         Color color = dc.getUniquePickColor();
         int colorCode = color.getRGB();
@@ -1207,7 +1211,7 @@ public class MultiLineTextRenderer
             po.setValue(AVKey.URL, hyperlink);
         pickSupport.addPickableObject(po);
         // Draw word rectangle
-        dc.getGL().glColor3ub((byte) color.getRed(), (byte) color.getGreen(), (byte) color.getBlue());
+        gl.glColor3ub((byte) color.getRed(), (byte) color.getGreen(), (byte) color.getBlue());
         drawFilledRectangle(dc, drawX, drawY - wordBounds.getHeight() / 4,  // TODO: handle font descent properly
             wordBounds.getWidth(), wordBounds.getHeight());
     }
@@ -1215,8 +1219,8 @@ public class MultiLineTextRenderer
     // Draw a filled rectangle
     protected void drawFilledRectangle(DrawContext dc, double x, double y, double width, double height)
     {
-        GL gl = dc.getGL();
-        gl.glBegin(GL.GL_POLYGON);
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        gl.glBegin(GL2.GL_POLYGON);
         gl.glVertex3d(x, y, 0);
         gl.glVertex3d(x + width - 1, y, 0);
         gl.glVertex3d(x + width - 1, y + height - 1, 0);

@@ -17,7 +17,7 @@ import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.util.*;
 import gov.nasa.worldwindx.examples.util.PowerOfTwoPaddedImage;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.*;
 import javax.swing.*;
 import javax.swing.Box;
 import javax.swing.border.*;
@@ -375,7 +375,7 @@ public class Annotations extends ApplicationTemplate
 
                 protected void applyScreenTransform(DrawContext dc, int x, int y, int width, int height, double scale)
                 {
-                    GL gl = dc.getGL();
+                    GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
                     gl.glTranslated(x, y, 0);
                     gl.glScaled(scale, scale, 1);
                 }
@@ -403,11 +403,11 @@ public class Annotations extends ApplicationTemplate
                     Color borderColor = this.getAttributes().getBorderColor();
                     this.applyColor(dc, borderColor, opacity, false);
                     // Draw 3x3 shape from its bottom left corner
-                    GL gl = dc.getGL();
+                    GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
                     gl.glDisable(GL.GL_LINE_SMOOTH);
-                    gl.glDisable(GL.GL_LINE_STIPPLE);
+                    gl.glDisable(GL2.GL_LINE_STIPPLE);
                     gl.glLineWidth(1);
-                    dc.getGL().glTranslated(-1, -1, 0);
+                    gl.glTranslated(-1, -1, 0);
                     FrameFactory.drawShape(dc, AVKey.SHAPE_RECTANGLE, 3, 3, GL.GL_LINE_STRIP, 0);
                 }
             }
@@ -453,14 +453,15 @@ public class Annotations extends ApplicationTemplate
                     // set during drawing.
                     this.applyColor(dc, Color.BLACK, 0.5 * opacity, true);
                     // Translate to draw area bottom left corner, 3 pixels outside
-                    dc.getGL().glTranslated(insetBounds.x - 3, insetBounds.y - 3, 0);
+                    GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+                    gl.glTranslated(insetBounds.x - 3, insetBounds.y - 3, 0);
                     FrameFactory.drawShape(dc, AVKey.SHAPE_RECTANGLE, insetBounds.width + 6,
                         insetBounds.height + 6, GL.GL_LINE_STRIP, 4);
 
                     // Draw another frame in the free space if any
                     if (freeBounds.height > 0)
                     {
-                        dc.getGL().glTranslated(+3, +3, 0);
+                        gl.glTranslated(+3, +3, 0);
                         FrameFactory.drawShape(dc, AVKey.SHAPE_ELLIPSE, freeBounds.width,
                             freeBounds.height, GL.GL_TRIANGLE_FAN, 0);
                     }

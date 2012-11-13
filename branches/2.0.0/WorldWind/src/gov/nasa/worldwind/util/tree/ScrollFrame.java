@@ -15,7 +15,7 @@ import gov.nasa.worldwind.pick.PickSupport;
 import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.*;
 import javax.media.opengl.glu.GLU;
 import java.awt.*;
 import java.awt.event.*;
@@ -1515,11 +1515,11 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
      */
     protected void drawContentTiles(DrawContext dc)
     {
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         try
         {
-            gl.glPolygonMode(GL.GL_FRONT, GL.GL_FILL);
+            gl.glPolygonMode(GL2.GL_FRONT, GL2.GL_FILL);
             gl.glEnable(GL.GL_TEXTURE_2D);
 
             // Set up blending with pre-multiplied colors
@@ -1597,7 +1597,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
      */
     protected void drawFrame(DrawContext dc)
     {
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         OGLStackHandler oglStack = new OGLStackHandler();
         try
@@ -1690,7 +1690,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
 
                 // Do not draw the outline on the edges with scroll bars because the scrollbar draws its own border. On
                 // some devices the scroll bar border draws next to the frame border, resulting in a double width border.
-                gl.glBegin(GL.GL_LINE_STRIP);
+                gl.glBegin(GL2.GL_LINE_STRIP);
                 try
                 {
                     if (!drawVerticalScrollbar)
@@ -1759,7 +1759,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
      */
     protected void drawTitleBar(DrawContext dc)
     {
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         FrameAttributes attributes = this.getActiveAttributes();
 
@@ -1775,7 +1775,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
             if (!this.isDrawMinimized())
             {
                 // Draw a line to separate the title bar from the frame
-                gl.glBegin(GL.GL_LINES);
+                gl.glBegin(GL2.GL_LINES);
                 try
                 {
                     gl.glVertex2f(0, 0);
@@ -1810,7 +1810,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
     {
         // This method is never called during picked, so picking mode is not handled here
 
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
         FrameAttributes attributes = this.getActiveAttributes();
 
         int iconSpace = attributes.getIconSpace();
@@ -1863,7 +1863,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
     {
         // This method is never called during picked, so picking mode is not handled here
 
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
         FrameAttributes attributes = this.getActiveAttributes();
 
         String frameTitle = this.getFrameTitle();
@@ -1994,7 +1994,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
      */
     protected void drawMinimizeButton(DrawContext dc)
     {
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         OGLStackHandler oglStack = new OGLStackHandler();
         try
@@ -2015,7 +2015,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
 
                 OGLUtil.applyColor(gl, attributes.getForegroundColor(), false);
 
-                gl.glBegin(GL.GL_LINE_LOOP);
+                gl.glBegin(GL2.GL_LINE_LOOP);
                 try
                 {
                     gl.glVertex2f(0f, 0f);
@@ -2028,7 +2028,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
                     gl.glEnd();
                 }
 
-                gl.glBegin(GL.GL_LINES);
+                gl.glBegin(GL2.GL_LINES);
                 try
                 {
                     // Draw a horizontal line. If the frame is maximized, this will be a minus sign. If the tree is
@@ -2068,17 +2068,17 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
 
     protected void beginDrawing(DrawContext dc)
     {
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
         GLU glu = dc.getGLU();
 
-        this.BEogsh.pushAttrib(gl, GL.GL_DEPTH_BUFFER_BIT
-            | GL.GL_COLOR_BUFFER_BIT
-            | GL.GL_ENABLE_BIT
-            | GL.GL_CURRENT_BIT
-            | GL.GL_POLYGON_BIT     // For polygon mode
-            | GL.GL_LINE_BIT        // For line width
-            | GL.GL_TRANSFORM_BIT
-            | GL.GL_SCISSOR_BIT);
+        this.BEogsh.pushAttrib(gl, GL2.GL_DEPTH_BUFFER_BIT
+            | GL2.GL_COLOR_BUFFER_BIT
+            | GL2.GL_ENABLE_BIT
+            | GL2.GL_CURRENT_BIT
+            | GL2.GL_POLYGON_BIT     // For polygon mode
+            | GL2.GL_LINE_BIT        // For line width
+            | GL2.GL_TRANSFORM_BIT
+            | GL2.GL_SCISSOR_BIT);
 
         gl.glEnable(GL.GL_BLEND);
         gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
@@ -2108,7 +2108,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
             this.pickSupport.resolvePick(dc, dc.getPickPoint(), dc.getCurrentLayer());
         }
 
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
         this.BEogsh.pop(gl);
     }
 

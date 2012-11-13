@@ -57,7 +57,6 @@ public class GeometryBuilder
     protected static final int LEADER_LOCATION_LEFT = 8;
 
     private int orientation = OUTSIDE;
-    private final GLU glu = new GLU();
 
     public GeometryBuilder()
     {
@@ -3988,11 +3987,11 @@ public class GeometryBuilder
 
         cb = new TessellatorCallback(this, count, vertices);
         glts = new GLUTessellatorSupport();
-        glts.beginTessellation(this.glu, cb, normal);
+        glts.beginTessellation(cb, normal);
         try
         {
-            this.glu.gluTessBeginPolygon(glts.getGLUtessellator(), null);
-            this.glu.gluTessBeginContour(glts.getGLUtessellator());
+            GLU.gluTessBeginPolygon(glts.getGLUtessellator(), null);
+            GLU.gluTessBeginContour(glts.getGLUtessellator());
             for (i = 0; i < count; i++)
             {
                 srcIndex = 3 * (pos + i);
@@ -4000,14 +3999,14 @@ public class GeometryBuilder
                 dvertices[destIndex] = vertices[srcIndex];
                 dvertices[destIndex + 1] = vertices[srcIndex + 1];
                 dvertices[destIndex + 2] = vertices[srcIndex + 2];
-                this.glu.gluTessVertex(glts.getGLUtessellator(), dvertices, destIndex, pos + i);
+                GLU.gluTessVertex(glts.getGLUtessellator(), dvertices, destIndex, pos + i);
             }
-            this.glu.gluTessEndContour(glts.getGLUtessellator());
-            this.glu.gluTessEndPolygon(glts.getGLUtessellator());
+            GLU.gluTessEndContour(glts.getGLUtessellator());
+            GLU.gluTessEndPolygon(glts.getGLUtessellator());
         }
         finally
         {
-            glts.endTessellation(this.glu);
+            glts.endTessellation();
         }
 
         return new IndexedTriangleArray(

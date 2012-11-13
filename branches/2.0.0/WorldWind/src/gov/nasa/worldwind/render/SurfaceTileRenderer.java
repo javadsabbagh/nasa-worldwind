@@ -108,15 +108,15 @@ public abstract class SurfaceTileRenderer implements Disposable
             throw new IllegalStateException(message);
         }
 
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
         int alphaTextureUnit = GL.GL_TEXTURE1;
         boolean showOutlines = this.showImageTileOutlines && dc.getGLRuntimeCapabilities().getNumTextureUnits() > 2;
 
-        gl.glPushAttrib(GL.GL_COLOR_BUFFER_BIT // for alpha func
-            | GL.GL_ENABLE_BIT
-            | GL.GL_CURRENT_BIT
-            | GL.GL_DEPTH_BUFFER_BIT // for depth func
-            | GL.GL_TRANSFORM_BIT);
+        gl.glPushAttrib(GL2.GL_COLOR_BUFFER_BIT // for alpha func
+            | GL2.GL_ENABLE_BIT
+            | GL2.GL_CURRENT_BIT
+            | GL2.GL_DEPTH_BUFFER_BIT // for depth func
+            | GL2.GL_TRANSFORM_BIT);
 
         try
         {
@@ -133,22 +133,22 @@ public abstract class SurfaceTileRenderer implements Disposable
             gl.glEnable(GL.GL_DEPTH_TEST);
             gl.glDepthFunc(GL.GL_LEQUAL);
 
-            gl.glEnable(GL.GL_ALPHA_TEST);
-            gl.glAlphaFunc(GL.GL_GREATER, 0.01f);
+            gl.glEnable(GL2.GL_ALPHA_TEST);
+            gl.glAlphaFunc(GL2.GL_GREATER, 0.01f);
 
             gl.glActiveTexture(GL.GL_TEXTURE0);
             gl.glEnable(GL.GL_TEXTURE_2D);
-            gl.glMatrixMode(GL.GL_TEXTURE);
+            gl.glMatrixMode(GL2.GL_TEXTURE);
             gl.glPushMatrix();
             if (!dc.isPickingMode())
             {
-                gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE);
+                gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_MODULATE);
             }
             else
             {
-                gl.glTexEnvf(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_COMBINE);
-                gl.glTexEnvf(GL.GL_TEXTURE_ENV, GL.GL_SRC0_RGB, GL.GL_PREVIOUS);
-                gl.glTexEnvf(GL.GL_TEXTURE_ENV, GL.GL_COMBINE_RGB, GL.GL_REPLACE);
+                gl.glTexEnvf(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_COMBINE);
+                gl.glTexEnvf(GL2.GL_TEXTURE_ENV, GL2.GL_SRC0_RGB, GL2.GL_PREVIOUS);
+                gl.glTexEnvf(GL2.GL_TEXTURE_ENV, GL2.GL_COMBINE_RGB, GL2.GL_REPLACE);
             }
 
             int numTexUnitsUsed = 2;
@@ -158,16 +158,16 @@ public abstract class SurfaceTileRenderer implements Disposable
                 alphaTextureUnit = GL.GL_TEXTURE2;
                 gl.glActiveTexture(GL.GL_TEXTURE1);
                 gl.glEnable(GL.GL_TEXTURE_2D);
-                gl.glMatrixMode(GL.GL_TEXTURE);
+                gl.glMatrixMode(GL2.GL_TEXTURE);
                 gl.glPushMatrix();
-                gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_ADD);
+                gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_ADD);
             }
 
             gl.glActiveTexture(alphaTextureUnit);
             gl.glEnable(GL.GL_TEXTURE_2D);
-            gl.glMatrixMode(GL.GL_TEXTURE);
+            gl.glMatrixMode(GL2.GL_TEXTURE);
             gl.glPushMatrix();
-            gl.glTexEnvi(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_MODULATE);
+            gl.glTexEnvi(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, GL2.GL_MODULATE);
 
             dc.getSurfaceGeometry().beginRendering(dc);
 
@@ -196,7 +196,7 @@ public abstract class SurfaceTileRenderer implements Disposable
 
                     if (tile.bind(dc))
                     {
-                        gl.glMatrixMode(GL.GL_TEXTURE);
+                        gl.glMatrixMode(GL2.GL_TEXTURE);
                         gl.glLoadIdentity();
                         tile.applyInternalTransform(dc, true);
 
@@ -212,7 +212,7 @@ public abstract class SurfaceTileRenderer implements Disposable
 
                             // Apply the same texture transform to the outline texture. The outline textures uses a
                             // different texture unit than the tile, so the transform made above does not carry over.
-                            gl.glMatrixMode(GL.GL_TEXTURE);
+                            gl.glMatrixMode(GL2.GL_TEXTURE);
                             gl.glLoadIdentity();
                             gl.glScaled(transform.HScale, transform.VScale, 1d);
                             gl.glTranslated(transform.HShift, transform.VShift, 0d);
@@ -224,7 +224,7 @@ public abstract class SurfaceTileRenderer implements Disposable
 
                         // Apply the same texture transform to the alpha texture. The alpha texture uses a
                         // different texture unit than the tile, so the transform made above does not carry over.
-                        gl.glMatrixMode(GL.GL_TEXTURE);
+                        gl.glMatrixMode(GL2.GL_TEXTURE);
                         gl.glLoadIdentity();
                         gl.glScaled(transform.HScale, transform.VScale, 1d);
                         gl.glTranslated(transform.HShift, transform.VShift, 0d);
@@ -247,28 +247,28 @@ public abstract class SurfaceTileRenderer implements Disposable
             dc.getSurfaceGeometry().endRendering(dc);
 
             gl.glActiveTexture(alphaTextureUnit);
-            gl.glMatrixMode(GL.GL_TEXTURE);
+            gl.glMatrixMode(GL2.GL_TEXTURE);
             gl.glPopMatrix();
             gl.glDisable(GL.GL_TEXTURE_2D);
 
             if (showOutlines)
             {
                 gl.glActiveTexture(GL.GL_TEXTURE1);
-                gl.glMatrixMode(GL.GL_TEXTURE);
+                gl.glMatrixMode(GL2.GL_TEXTURE);
                 gl.glPopMatrix();
                 gl.glDisable(GL.GL_TEXTURE_2D);
             }
 
             gl.glActiveTexture(GL.GL_TEXTURE0);
-            gl.glMatrixMode(GL.GL_TEXTURE);
+            gl.glMatrixMode(GL2.GL_TEXTURE);
             gl.glPopMatrix();
             gl.glDisable(GL.GL_TEXTURE_2D);
 
-            gl.glTexEnvf(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, OGLUtil.DEFAULT_TEX_ENV_MODE);
+            gl.glTexEnvf(GL2.GL_TEXTURE_ENV, GL2.GL_TEXTURE_ENV_MODE, OGLUtil.DEFAULT_TEX_ENV_MODE);
             if (dc.isPickingMode())
             {
-                gl.glTexEnvf(GL.GL_TEXTURE_ENV, GL.GL_SRC0_RGB, OGLUtil.DEFAULT_SRC0_RGB);
-                gl.glTexEnvf(GL.GL_TEXTURE_ENV, GL.GL_COMBINE_RGB, OGLUtil.DEFAULT_COMBINE_RGB);
+                gl.glTexEnvf(GL2.GL_TEXTURE_ENV, GL2.GL_SRC0_RGB, OGLUtil.DEFAULT_SRC0_RGB);
+                gl.glTexEnvf(GL2.GL_TEXTURE_ENV, GL2.GL_COMBINE_RGB, OGLUtil.DEFAULT_COMBINE_RGB);
             }
 
             gl.glPopAttrib();
@@ -297,8 +297,8 @@ public abstract class SurfaceTileRenderer implements Disposable
         this.alphaTexture.bind(gl);
         this.alphaTexture.setTexParameteri(gl, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
         this.alphaTexture.setTexParameteri(gl, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
-        this.alphaTexture.setTexParameteri(gl, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_BORDER);
-        this.alphaTexture.setTexParameteri(gl, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_BORDER);
+        this.alphaTexture.setTexParameteri(gl, GL.GL_TEXTURE_WRAP_S, GL2.GL_CLAMP_TO_BORDER);
+        this.alphaTexture.setTexParameteri(gl, GL.GL_TEXTURE_WRAP_T, GL2.GL_CLAMP_TO_BORDER);
         // Assume the default border color of (0, 0, 0, 0).
     }
 

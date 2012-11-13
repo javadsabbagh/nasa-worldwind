@@ -8,7 +8,7 @@ import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.geom.Position;
 import gov.nasa.worldwind.render.*;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.*;
 
 /**
  * @author dcollins
@@ -252,7 +252,7 @@ public class ImageAnnotation extends ScreenAnnotation
     protected void transformBackgroundImageCoordsToAnnotationCoords(DrawContext dc, int width, int height,
         WWTexture texture)
     {
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         // Scale background image coordinates to fit the Annotation's dimensions.
         java.awt.Dimension size = this.getImageSize(dc);

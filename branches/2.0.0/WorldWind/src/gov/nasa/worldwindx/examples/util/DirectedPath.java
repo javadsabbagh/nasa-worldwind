@@ -14,7 +14,7 @@ import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.terrain.Terrain;
 import gov.nasa.worldwind.util.Logging;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.*;
 import java.nio.*;
 import java.util.List;
 
@@ -398,7 +398,7 @@ public class DirectedPath extends Path
      */
     protected void drawDirectionArrows(DrawContext dc, PathData pathData)
     {
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
         boolean projectionOffsetPushed = false; // keep track for error recovery
 
         try

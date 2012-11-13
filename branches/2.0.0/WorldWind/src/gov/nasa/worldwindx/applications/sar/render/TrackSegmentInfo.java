@@ -11,7 +11,7 @@ import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.util.*;
 import gov.nasa.worldwindx.applications.sar.*;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.*;
 import java.awt.*;
 
 /**
@@ -237,11 +237,11 @@ public class TrackSegmentInfo implements Renderable
 
         protected void drawText(DrawContext dc, String text, int x, int y, Font font, Color color)
         {
-            GL gl = dc.getGL();
+            GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
             Rectangle viewport = dc.getView().getViewport();
 
             OGLStackHandler stackHandler = new OGLStackHandler();
-            stackHandler.pushAttrib(gl, GL.GL_CURRENT_BIT); // For current color.
+            stackHandler.pushAttrib(gl, GL2.GL_CURRENT_BIT); // For current color.
             try
             {
                 MultiLineTextRenderer tr = this.getTextRendererFor(dc, font);

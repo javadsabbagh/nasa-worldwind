@@ -15,7 +15,7 @@ import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.terrain.Terrain;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.*;
 import javax.xml.stream.*;
 import java.awt.*;
 import java.io.IOException;
@@ -31,8 +31,8 @@ import java.nio.*;
  */
 public class AntennaAxes extends AbstractShape
 {
-    public static final int DISPLAY_MODE_FILL = GL.GL_FILL;
-    public static final int DISPLAY_MODE_LINE = GL.GL_LINE;
+    public static final int DISPLAY_MODE_FILL = GL2.GL_FILL;
+    public static final int DISPLAY_MODE_LINE = GL2.GL_LINE;
 
     protected int nHeightIntervals = 10;
     protected int nThetaIntervals = 20;
@@ -326,9 +326,9 @@ public class AntennaAxes extends AbstractShape
     public void drawAxes(DrawContext dc)
     {
         ShapeData shapeData = this.getCurrent();
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
-        gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL);
+        gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_FILL);
 
         gl.glPushMatrix();
 
@@ -355,7 +355,7 @@ public class AntennaAxes extends AbstractShape
         this.drawCylinder(dc, shapeData);
 
         // Draw the X axis
-        gl.glMatrixMode(GL.GL_MODELVIEW);
+        gl.glMatrixMode(GL2.GL_MODELVIEW);
         gl.glPushMatrix();
         gl.glRotated(90d, 0, 0, -1);
         this.drawCylinder(dc, shapeData);
@@ -410,7 +410,7 @@ public class AntennaAxes extends AbstractShape
 
     protected void drawLabels(DrawContext dc)
     {
-        javax.media.opengl.GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         // Compute the positioning transform.
         Matrix lat = Matrix.fromAxisAngle(Angle.POS90.subtract(this.position.getLatitude()), Vec4.UNIT_X);
@@ -463,7 +463,7 @@ public class AntennaAxes extends AbstractShape
                 : Color.BLACK);
 
             // Do not depth buffer the labels.
-            osh.pushAttrib(gl, GL.GL_DEPTH_BUFFER_BIT);
+            osh.pushAttrib(gl, GL2.GL_DEPTH_BUFFER_BIT);
             gl.glDisable(GL.GL_DEPTH_TEST);
             gl.glDepthMask(false);
 

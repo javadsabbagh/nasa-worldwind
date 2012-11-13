@@ -13,7 +13,7 @@ import gov.nasa.worldwind.render.airspaces.Geometry;
 import gov.nasa.worldwind.terrain.Terrain;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.*;
 import javax.xml.stream.*;
 import java.io.IOException;
 import java.nio.*;
@@ -397,7 +397,7 @@ public class Cylinder extends RigidShape
             throw new IllegalArgumentException(message);
         }
 
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         int size, glType, stride;
         Buffer vertexBuffer, normalBuffer;
@@ -415,7 +415,7 @@ public class Cylinder extends RigidShape
                 normalBuffer = mesh.getBuffer(Geometry.NORMAL);
                 if (normalBuffer == null)
                 {
-                    gl.glDisableClientState(GL.GL_NORMAL_ARRAY);
+                    gl.glDisableClientState(GL2.GL_NORMAL_ARRAY);
                 }
                 else
                 {
@@ -455,7 +455,7 @@ public class Cylinder extends RigidShape
         }
 
         // turn off normals rescaling, which was turned on because shape had to be scaled
-        gl.glDisable(GL.GL_RESCALE_NORMAL);
+        gl.glDisable(GL2.GL_RESCALE_NORMAL);
 
         // disable back face culling
         // gl.glDisable(GL.GL_CULL_FACE);
@@ -468,7 +468,7 @@ public class Cylinder extends RigidShape
             {
                 // re-enable normals if we temporarily turned them off earlier
                 if (normalBuffer == null)
-                    gl.glEnableClientState(GL.GL_NORMAL_ARRAY);
+                    gl.glEnableClientState(GL2.GL_NORMAL_ARRAY);
             }
             // this.logGeometryStatistics(dc, geom);
         }

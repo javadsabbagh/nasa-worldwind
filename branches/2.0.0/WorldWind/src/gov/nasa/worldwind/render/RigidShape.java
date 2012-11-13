@@ -17,7 +17,7 @@ import gov.nasa.worldwind.render.airspaces.Geometry;
 import gov.nasa.worldwind.terrain.Terrain;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.*;
 import java.nio.*;
 import java.util.*;
 
@@ -810,7 +810,8 @@ public abstract class RigidShape extends AbstractShape
         {
             // Push an identity texture matrix. This prevents drawGeometry() from leaking GL texture matrix state. The
             // texture matrix stack is popped from OGLStackHandler.pop().
-            ogsh.pushTextureIdentity(dc.getGL());
+            GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+            ogsh.pushTextureIdentity(gl);
         }
 
         return ogsh;
@@ -839,7 +840,7 @@ public abstract class RigidShape extends AbstractShape
     @Override
     protected void doDrawInterior(DrawContext dc)
     {
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         // render extent if specified
         if (this.renderExtent)
@@ -898,7 +899,7 @@ public abstract class RigidShape extends AbstractShape
                     gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, mesh.getBuffer(Geometry.TEXTURE).rewind());
                 }
                 gl.glEnable(GL.GL_TEXTURE_2D);
-                gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+                gl.glEnableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
 
                 gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT);
                 gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT);
@@ -906,7 +907,7 @@ public abstract class RigidShape extends AbstractShape
             else
             {
                 gl.glDisable(GL.GL_TEXTURE_2D);
-                gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
+                gl.glDisableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
             }
 
             drawGeometry(dc, this.getCurrentShapeData(), i);
@@ -1247,13 +1248,13 @@ public abstract class RigidShape extends AbstractShape
         Matrix matrix = dc.getView().getModelviewMatrix();
         matrix = matrix.multiply(computeRenderMatrix(dc));
 
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         // Were applying a scale transform on the modelview matrix, so the normal vectors must be re-normalized
         // before lighting is computed.
-        gl.glEnable(GL.GL_NORMALIZE);
+        gl.glEnable(GL2.GL_NORMALIZE);
 
-        gl.glMatrixMode(GL.GL_MODELVIEW);
+        gl.glMatrixMode(GL2.GL_MODELVIEW);
 
         double[] matrixArray = new double[16];
         matrix.toArray(matrixArray, 0, false);

@@ -10,7 +10,7 @@ import gov.nasa.worldwind.avlist.AVListImpl;
 import gov.nasa.worldwind.cache.Cacheable;
 import gov.nasa.worldwind.globes.Globe;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.*;
 import java.nio.*;
 import java.util.Arrays;
 
@@ -284,19 +284,19 @@ public class Geometry extends AVListImpl implements Cacheable
         long size = 0L;
         switch (glType)
         {
-            case GL.GL_BYTE:
+            case GL2.GL_BYTE:
                 size = 1L;
                 break;
-            case GL.GL_SHORT:
-            case GL.GL_UNSIGNED_SHORT:
+            case GL2.GL_SHORT:
+            case GL2.GL_UNSIGNED_SHORT:
                 size = 2L;
                 break;
-            case GL.GL_INT:
-            case GL.GL_UNSIGNED_INT:
-            case GL.GL_FLOAT:
+            case GL2.GL_INT:
+            case GL2.GL_UNSIGNED_INT:
+            case GL2.GL_FLOAT:
                 size = 4L;
                 break;
-            case GL.GL_DOUBLE:
+            case GL2.GL_DOUBLE:
                 size = 8L;
                 break;
         }

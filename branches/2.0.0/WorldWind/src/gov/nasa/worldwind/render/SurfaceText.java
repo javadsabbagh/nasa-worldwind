@@ -13,7 +13,7 @@ import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.*;
 import java.awt.*;
 import java.awt.geom.*;
 import java.util.Arrays;
@@ -322,11 +322,11 @@ public class SurfaceText extends AbstractSurfaceObject implements GeographicText
     /** {@inheritDoc} */
     protected void drawGeographic(DrawContext dc, SurfaceTileDrawContext sdc)
     {
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
         OGLStackHandler ogsh = new OGLStackHandler();
         ogsh.pushAttrib(gl,
-            GL.GL_CURRENT_BIT       // For current color (used by JOGL TextRenderer).
-                | GL.GL_TRANSFORM_BIT); // For matrix mode.
+            GL2.GL_CURRENT_BIT       // For current color (used by JOGL TextRenderer).
+                | GL2.GL_TRANSFORM_BIT); // For matrix mode.
         ogsh.pushModelview(gl);
         try
         {
@@ -406,7 +406,7 @@ public class SurfaceText extends AbstractSurfaceObject implements GeographicText
         Vec4 point = new Vec4(this.location.getLongitude().degrees, this.location.getLatitude().degrees, 1);
         point = point.transformBy4(sdc.getModelviewMatrix());
 
-        GL gl = dc.getGL();
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         // Translate to location point
         gl.glTranslated(point.x(), point.y(), point.z());

@@ -9,7 +9,7 @@ import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.util.Logging;
 
-import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 
 /**
  * @author dcollins
@@ -221,7 +221,7 @@ public abstract class DialogAnnotation extends GlobeAnnotation implements java.a
         protected void transformBackgroundImageCoordsToAnnotationCoords(DrawContext dc, int width, int height,
             WWTexture texture)
         {
-            GL gl = dc.getGL();
+            GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
             // Rotate around an axis originating from the center of the image and coming out of the screen.
             double hw = (double) texture.getWidth(dc) / 2d;
