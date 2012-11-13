@@ -164,25 +164,17 @@
     </target>
 
     <!-- Builds the World Wind performance Jar file 'worldwind-performance.jar'. Includes all World Wind performance
-         class files and data resource files. The resultant Jar file is dependent on the World Wind core Jar file and
-         the World Wind extensions Jar file, and has those Jar files added to its class-path. -->
+         class files. The resultant Jar file is dependent on the World Wind core Jar file and the World Wind extensions
+         Jar file, and has those Jar files added to its class-path. -->
     <target name="worldwind.performance.jarfile" depends="compile"
             description="Builds the World Wind performance JAR file 'worldwind-performance.jar'.">
         <jar jarfile="${basedir}/${worldwind.performance.jarfile}">
             <manifest>
                 <attribute name="Class-Path" value="${worldwind.jarfile} ${worldwind.extensions.jarfile}"/>
-                <attribute name="Main-Class" value="${worldwind.performance.jarfile.mainclass}"/>
             </manifest>
             <!-- Include class files for the World Wind performance package performance. -->
             <fileset dir="${worldwind.classes.dir}">
                 <include name="performance/**/*.class"/>
-                <type type="file"/>
-            </fileset>
-            <!-- Include the the resource files required by the performance packages. We include only specific files to
-                 avoid including the entire testData folder, which contains many files that are not required to run the
-                 performance applications. -->
-            <fileset dir="${basedir}">
-                <include name="testData/Final.jpg"/>
                 <type type="file"/>
             </fileset>
         </jar>
