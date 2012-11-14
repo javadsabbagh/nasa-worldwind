@@ -5,6 +5,7 @@
  */
 package gov.nasa.worldwind;
 
+import com.jogamp.opengl.util.texture.TextureIO;
 import gov.nasa.worldwind.cache.GpuResourceCache;
 import gov.nasa.worldwind.event.*;
 import gov.nasa.worldwind.exception.WWAbsentRequirementException;
@@ -210,6 +211,20 @@ public class WorldWindowGLAutoDrawable extends WorldWindowImpl implements WorldW
             this.firstInit = false;
         else
             this.reinitialize(glAutoDrawable);
+
+        // Disables use of the OpenGL extension GL_ARB_texture_rectangle by JOGL's Texture creation utility.
+        //
+        // Between version 1.1.1 and version 2.x, JOGL modified its texture creation utility to favor
+        // GL_ARB_texture_rectangle over GL_ARB_texture_non_power_of_two on Mac OS X machines with ATI graphics cards. See
+        // the following URL for details on the texture rectangle extension: http://www.opengl.org/registry/specs/ARB/texture_rectangle.txt
+        //
+        // There are two problems with favoring texture rectangle for non power of two textures:
+        // 1) As of November 2012, we cannot find any evidence that the GL_ARB_texture_non_power_of_two extension is
+        //    problematic on Mac OS X machines with ATI graphics cards. The texture rectangle extension is more limiting
+        //    than the NPOT extension, and therefore not preferred.
+        // 2) World Wind assumes that a texture's target is always GL_TEXTURE_2D, and therefore incorrectly displays
+        //    textures with the target GL_TEXTURE_RECTANGLE.
+        TextureIO.setTexRectEnabled(false);
 
 //        this.drawable.setGL(new DebugGL(this.drawable.getGL())); // uncomment to use the debug drawable
     }
