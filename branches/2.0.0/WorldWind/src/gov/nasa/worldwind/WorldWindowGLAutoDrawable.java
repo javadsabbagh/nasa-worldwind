@@ -15,6 +15,7 @@ import gov.nasa.worldwind.util.*;
 import gov.nasa.worldwind.util.dashboard.DashboardController;
 
 import javax.media.opengl.*;
+import javax.media.opengl.awt.AWTGLAutoDrawable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -126,7 +127,7 @@ public class WorldWindowGLAutoDrawable extends WorldWindowImpl implements WorldW
     public void shutdown()
     {
         this.shuttingDown = true;
-        this.drawable.display(); // Invokes a repaint, where the rest of the shutdown work is done.
+        this.redrawNow(); // Invokes a repaint, where the rest of the shutdown work is done.
     }
 
     protected void doShutdown()
@@ -150,8 +151,7 @@ public class WorldWindowGLAutoDrawable extends WorldWindowImpl implements WorldW
             throw new IllegalArgumentException(msg);
         }
 
-        if (this.drawable != null)
-            this.drawable.display(); // Queue a JOGL display request.
+        this.redraw(); // Queue a JOGL display request.
     }
 
     public GLContext getContext()
@@ -289,7 +289,7 @@ public class WorldWindowGLAutoDrawable extends WorldWindowImpl implements WorldW
                     {
                         public void actionPerformed(ActionEvent actionEvent)
                         {
-                            drawable.display();
+                            redraw();
                             redrawTimer = null;
                         }
                     });
@@ -435,7 +435,7 @@ public class WorldWindowGLAutoDrawable extends WorldWindowImpl implements WorldW
     public void redraw()
     {
         if (this.drawable != null)
-            this.drawable.display();
+            ((AWTGLAutoDrawable) this.drawable).repaint();
     }
 
     public void redrawNow()
