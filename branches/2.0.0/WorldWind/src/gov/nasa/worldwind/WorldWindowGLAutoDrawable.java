@@ -229,12 +229,6 @@ public class WorldWindowGLAutoDrawable extends WorldWindowImpl implements WorldW
 //        this.drawable.setGL(new DebugGL(this.drawable.getGL())); // uncomment to use the debug drawable
     }
 
-    @Override
-    public void dispose(GLAutoDrawable glAutoDrawable)
-    {
-        // TODO: implement disposal
-    }
-
     @SuppressWarnings({"UnusedParameters"})
     protected void reinitialize(GLAutoDrawable glAutoDrawable)
     {
@@ -243,6 +237,29 @@ public class WorldWindowGLAutoDrawable extends WorldWindowImpl implements WorldW
             this.getGpuResourceCache().clear();
 
         this.getSceneController().reinitialize();
+    }
+
+    /**
+     * See {@link GLEventListener#init(GLAutoDrawable)}.
+     * <p/>
+     * GLEventListener's dispose method indicates that the GL context has been released, and provides the listener an
+     * opportunity to clean up any resources. Dispose does not imply that the component's lifecycle has ended or that
+     * the application is closing. There are three cases in which dispose may be called:
+     * <p/>
+     * <ul> <li>The WorldWindow is removed from its parent component.</li> <li>The WorldWindow's parent frame is
+     * closed.</li> <li>The application calls either GLCanvas.dispose or GLJPanel.dispose.</li> </ul>
+     * <p/>
+     * This implementation is left empty. In the case when a WorldWindow or a World Wind application has reached its end
+     * of life, its resources should be released by calling {@link gov.nasa.worldwind.WorldWindow#shutdown()} or {@link
+     * gov.nasa.worldwind.WorldWind#shutDown()}, respectively. In the case when a WorldWindow is removed from its parent
+     * frame or that frame is closed without a call to shutdown, it is assumed that the application intends to reuse the
+     * WorldWindow. Resources associated with the previous GL context are released in the subsequent call to init.
+     *
+     * @param glAutoDrawable the drawable
+     */
+    @Override
+    public void dispose(GLAutoDrawable glAutoDrawable)
+    {
     }
 
     /**
@@ -274,8 +291,9 @@ public class WorldWindowGLAutoDrawable extends WorldWindowImpl implements WorldW
             SceneController sc = this.getSceneController();
             if (sc == null)
             {
-                Logging.logger().severe("WorldWindowGLCanvas.ScnCntrllerNullOnRepaint");
-                throw new IllegalStateException(Logging.getMessage("WorldWindowGLCanvas.ScnCntrllerNullOnRepaint"));
+                String msg = Logging.getMessage("WorldWindowGLCanvas.ScnCntrllerNullOnRepaint");
+                Logging.logger().severe(msg);
+                throw new IllegalStateException(msg);
             }
 
             // Determine if the view has changed since the last frame.
