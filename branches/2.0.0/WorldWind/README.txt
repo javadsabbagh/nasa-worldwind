@@ -66,8 +66,8 @@ This will replace the 32-bit JOGL libraries with 64-bit libraries.
 
 64-bit libraries for Linux are not included with the release, but can be downloaded from:
 
-http://worldwind.arc.nasa.gov/java/jogl/1.1.1/webstart/jogl-natives-linux-amd64.jar
-http://worldwind.arc.nasa.gov/java/jogl/1.1.1/webstart/gluegen-rt-natives-linux-amd64.jar
+http://worldwind.arc.nasa.gov/java/jogl/webstart/jogl-natives-linux-amd64.jar
+http://worldwind.arc.nasa.gov/java/jogl/webstart/gluegen-rt-natives-linux-amd64.jar
 
 Follow instructions above to extract the archives into the World Wind release folder.
 
@@ -82,11 +82,15 @@ New features and improvements in World Wind Java SDK 1.5.0
 - Added support for HighResolutionTerrain line intersection.
 - Added an OpenStreetMap layer provided by a NASA hosted MapServer instance.
 - Added delegate owner support to ScreenImage.
+- Added a section to the Javadoc overview outlining the behavior of World Wind path types.
+- Added static utility methods for equirectangular interpolation to LatLon.
 - Added the PersistSessionState example, which demonstrates how to persist a session's layer and view state.
 - Removed erroneous inclusion of the BGCOLOR parameter in WMS elevation requests. This parameter causes GeoServer to return an exception.
 - Increased the texture cache size from 300 MB to 500 MB.
 - Improved shutdown behavior by simplifying automatic retrieval of WMS capabilities documents in WMSTiledImageLayer and WMSBasicElevationModel.
 - Improved the performance of SectorGeometryList.getSurfacePoint.
+- Repaired Path and Polyline's handling of the LINEAR path type.
+- Repaired Path and Polyline's handling of the LOXODROME alias for RHUMB_LINE path types.
 - Repaired an OpenGL state leak of GL_ELEMENT_ARRAY_BUFFER binding in terrain rendering.
 - Repaired an OpenGL state leak of the normal pointer binding in COLLADA models, which caused a JVM crash on certain machines.
 - Repaired BasicShapeAttributes' handling of the enableLighting attribute in its restorable state.
@@ -97,12 +101,13 @@ New features and improvements in World Wind Java SDK 1.5.0
 - Fixed a bug where the MIL-STD-2525 Fire Support Line graphic appears in the wrong place.
 - Fixed a bug preventing COLLADA models from updating after a position change.
 - Fixed a bug in Triangle.intersectTriangleTypes preventing triangle strip intersection from operating correctly.
+- Fixed a bug in WMSTiledImageLayer causing WMS 1.3 GetMap requests to use the WMS 1.1.1 "srs" query parameter for coordinate system.
+- Fixed a bug in WMSBasicElevationModel causing WMS 1.3 GetMap requests to use the WMS 1.1.1 "srs" query parameter for coordinate system.
 - Modified MIL-STD-2525 symbol code parsing to correctly handle symbol modifier codes without an echelon in the second character.
 - Modified MIL-STD-2525 symbol code parsing to correctly compose the modifier code for the feint/dummy installation modifier.
 - Modified MIL-STD-2525 TacticalGraphicFactory to enable application configuration of MIL-STD-2525 implementation classes.
 - Modified MIL-STD-2525 TacticalGraphicSymbol to enable subclasses to change and extend the symbol layout.
 - Modified SurfaceText to add control over the text size in meters.
-- Simplified AbstractShape's protected lighting interface. Multiple versions of mustApplyLighting and mustCreateNormals have been consolidated.
 
 
 New features and improvements in World Wind Java SDK 1.4.0 - July 20, 2012

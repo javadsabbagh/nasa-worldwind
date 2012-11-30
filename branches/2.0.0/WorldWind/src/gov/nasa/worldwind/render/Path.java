@@ -933,6 +933,8 @@ public class Path extends AbstractShape
      * {@link AVKey#LINEAR}.
      *
      * @param pathType the current path type. The default value is {@link AVKey#LINEAR}.
+     *
+     * @see <a href="{@docRoot}/overview-summary.html#path-types">Path Types</a>
      */
     public void setPathType(String pathType)
     {
@@ -2039,9 +2041,15 @@ public class Path extends AbstractShape
         // This method does not add the first position of the segment to the position list. It adds only the
         // subsequent positions, including the segment's last position.
 
-        double arcLength =
-            this.getPathType() == AVKey.LINEAR ? ptA.distanceTo3(ptB) : this.computeSegmentLength(dc, posA, posB);
-        if (arcLength <= 0 || (this.getPathType() == AVKey.LINEAR && !this.isFollowTerrain()))
+        boolean straightLine = this.getPathType() == AVKey.LINEAR && !this.isFollowTerrain();
+
+        double arcLength;
+        if (straightLine)
+            arcLength = ptA.distanceTo3(ptB);
+        else
+            arcLength = this.computeSegmentLength(dc, posA, posB);
+
+        if (arcLength <= 0 || straightLine)
         {
             if (!ptA.equals(ptB))
                 this.addTessellatedPosition(posB, colorB, ordinalB, pathData);
@@ -2069,7 +2077,19 @@ public class Path extends AbstractShape
                 pos = posB;
                 color = colorB;
             }
-            else if (this.pathType == AVKey.RHUMB_LINE || this.pathType == AVKey.LINEAR) // or LOXODROME
+            else if (this.pathType == AVKey.LINEAR)
+            {
+                if (segmentAzimuth == null)
+                {
+                    segmentAzimuth = LatLon.linearAzimuth(posA, posB);
+                    segmentDistance = LatLon.linearDistance(posA, posB);
+                }
+                Angle distance = Angle.fromRadians(s * segmentDistance.radians);
+                LatLon latLon = LatLon.linearEndPosition(posA, segmentAzimuth, distance);
+                pos = new Position(latLon, (1 - s) * posA.getElevation() + s * posB.getElevation());
+                color = (colorA != null && colorB != null) ? WWUtil.interpolateColor(s, colorA, colorB) : null;
+            }
+            else if (this.pathType == AVKey.RHUMB_LINE || this.pathType == AVKey.LOXODROME)
             {
                 if (segmentAzimuth == null)
                 {
@@ -2101,7 +2121,8 @@ public class Path extends AbstractShape
     }
 
     /**
-     * Computes the approximate model-coordinate, great-circle length between two positions.
+     * Computes the approximate model-coordinate, path length between two positions. The length of the path depends on
+     * the path type: great circle, rhumb, or linear.
      *
      * @param dc   the current draw context.
      * @param posA the first position.
@@ -2109,12 +2130,20 @@ public class Path extends AbstractShape
      *
      * @return the distance between the positions.
      */
+    @SuppressWarnings({"StringEquality"})
     protected double computeSegmentLength(DrawContext dc, Position posA, Position posB)
     {
         LatLon llA = new LatLon(posA.getLatitude(), posA.getLongitude());
         LatLon llB = new LatLon(posB.getLatitude(), posB.getLongitude());
 
-        Angle ang = LatLon.greatCircleDistance(llA, llB);
+        Angle ang;
+        String pathType = this.getPathType();
+        if (pathType == AVKey.LINEAR)
+            ang = LatLon.linearDistance(llA, llB);
+        else if (pathType == AVKey.RHUMB_LINE || pathType == AVKey.LOXODROME)
+            ang = LatLon.rhumbDistance(llA, llB);
+        else // Great circle
+            ang = LatLon.greatCircleDistance(llA, llB);
 
         if (this.getAltitudeMode() == WorldWind.CLAMP_TO_GROUND)
             return ang.radians * (dc.getGlobe().getRadius());
