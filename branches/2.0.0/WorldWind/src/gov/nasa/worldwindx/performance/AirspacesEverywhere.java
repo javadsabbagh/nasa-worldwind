@@ -5,13 +5,13 @@ National Aeronautics and Space Administration.
 All Rights Reserved.
 */
 
-package performance;
+package gov.nasa.worldwindx.performance;
 
-import gov.nasa.worldwind.WorldWind;
+import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwindx.examples.ApplicationTemplate;
-import gov.nasa.worldwind.geom.Position;
-import gov.nasa.worldwind.layers.RenderableLayer;
-import gov.nasa.worldwind.render.*;
+import gov.nasa.worldwind.geom.LatLon;
+import gov.nasa.worldwind.layers.AirspaceLayer;
+import gov.nasa.worldwind.render.airspaces.Polygon;
 
 import java.util.ArrayList;
 
@@ -19,7 +19,7 @@ import java.util.ArrayList;
  * @author tag
  * @version $Id$
  */
-public class PolygonsEverywhere extends ApplicationTemplate
+public class AirspacesEverywhere extends ApplicationTemplate
 {
     public static class AppFrame extends ApplicationTemplate.AppFrame
     {
@@ -32,18 +32,15 @@ public class PolygonsEverywhere extends ApplicationTemplate
 
         protected void makeMany()
         {
-            int altitudeMode = WorldWind.ABSOLUTE;
-
             double minLat = -50, maxLat = 50, minLon = -140, maxLon = -10;
-            double delta = 1.5;
-            double intervals = 5;
+            double delta = 5;
+            double intervals = 100;
             double dLat = 1 / intervals;
             double dLon = 1 / intervals;
 
-            ArrayList<Position> positions = new ArrayList<Position>();
+            ArrayList<LatLon> positions = new ArrayList<LatLon>();
 
-            RenderableLayer layer = new RenderableLayer();
-            layer.setPickEnabled(false);
+            AirspaceLayer layer = new AirspaceLayer();
 
             int count = 0;
             for (double lat = minLat; lat <= maxLat; lat += delta)
@@ -57,40 +54,35 @@ public class PolygonsEverywhere extends ApplicationTemplate
                     for (int i = 0; i <= intervals; i++)
                     {
                         innerLon += dLon;
-                        positions.add(Position.fromDegrees(innerLat, innerLon, 5e4));
+                        positions.add(LatLon.fromDegrees(innerLat, innerLon));
                     }
 
                     for (int i = 0; i <= intervals; i++)
                     {
                         innerLat += dLat;
-                        positions.add(Position.fromDegrees(innerLat, innerLon, 5e4));
+                        positions.add(LatLon.fromDegrees(innerLat, innerLon));
                     }
 
                     for (int i = 0; i <= intervals; i++)
                     {
                         innerLon -= dLon;
-                        positions.add(Position.fromDegrees(innerLat, innerLon, 5e4));
+                        positions.add(LatLon.fromDegrees(innerLat, innerLon));
                     }
 
                     for (int i = 0; i <= intervals; i++)
                     {
                         innerLat -= dLat;
-                        positions.add(Position.fromDegrees(innerLat, innerLon, 5e4));
+                        positions.add(LatLon.fromDegrees(innerLat, innerLon));
                     }
 
                     Polygon pgon = new Polygon(positions);
-                    pgon.setAltitudeMode(altitudeMode);
-                    ShapeAttributes attrs = new BasicShapeAttributes();
-                    attrs.setDrawOutline(false);
-                    attrs.setInteriorMaterial(Material.RED);
-                    attrs.setEnableLighting(true);
-                    pgon.setAttributes(attrs);
-                    layer.addRenderable(pgon);
+                    pgon.setAltitudes(1e3, 1e4);
+                    pgon.setAltitudeDatum(AVKey.ABOVE_MEAN_SEA_LEVEL, AVKey.ABOVE_MEAN_SEA_LEVEL);
+                    layer.addAirspace(pgon);
                     ++count;
                 }
             }
-            System.out.printf("%d Polygons, %d positions each, Altitude mode = %s\n", count, positions.size(),
-                altitudeMode == WorldWind.RELATIVE_TO_GROUND ? "RELATIVE_TO_GROUND" : "ABSOLUTE");
+            System.out.printf("%d Polygons, %d positions\n", count, positions.size());
 
             insertBeforeCompass(getWwd(), layer);
             this.getLayerPanel().update(this.getWwd());
@@ -99,6 +91,6 @@ public class PolygonsEverywhere extends ApplicationTemplate
 
     public static void main(String[] args)
     {
-        ApplicationTemplate.start("World Wind Very Many Polygons", AppFrame.class);
+        ApplicationTemplate.start("World Wind Very Many Airspaces", AppFrame.class);
     }
 }

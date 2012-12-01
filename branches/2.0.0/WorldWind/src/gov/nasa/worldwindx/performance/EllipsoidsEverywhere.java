@@ -66,7 +66,7 @@ Wedges          3 fps / 4 fps                 20 fps / 23 fps          57 fps / 
 
 */
 
-package performance;
+package gov.nasa.worldwindx.performance;
 
 import gov.nasa.worldwind.WorldWind;
 import gov.nasa.worldwind.geom.*;

@@ -5,7 +5,7 @@ National Aeronautics and Space Administration.
 All Rights Reserved.
 */
 
-package performance;
+package gov.nasa.worldwindx.performance;
 
 import gov.nasa.worldwind.WorldWind;
 import gov.nasa.worldwindx.examples.ApplicationTemplate;

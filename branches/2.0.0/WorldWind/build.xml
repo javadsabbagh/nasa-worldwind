@@ -155,23 +155,6 @@
         </jar>
     </target>
 
-    <!-- Builds the World Wind performance Jar file 'worldwind-performance.jar'. Includes all World Wind performance
-         class files. The resultant Jar file is dependent on the World Wind core Jar file and the World Wind extensions
-         Jar file, and has those Jar files added to its class-path. -->
-    <target name="worldwind.performance.jarfile" depends="compile"
-            description="Builds the World Wind performance JAR file 'worldwind-performance.jar'.">
-        <jar jarfile="${basedir}/${worldwind.performance.jarfile}">
-            <manifest>
-                <attribute name="Class-Path" value="${worldwind.jarfile} ${worldwind.extensions.jarfile}"/>
-            </manifest>
-            <!-- Include class files for the World Wind performance package performance. -->
-            <fileset dir="${worldwind.classes.dir}">
-                <include name="performance/**/*.class"/>
-                <type type="file"/>
-            </fileset>
-        </jar>
-    </target>
-
     <!-- Individual clean targets corresponding to each build target above. -->
     <target name="clean.classes">
         <delete dir="${worldwind.classes.dir}"/>
@@ -185,14 +168,10 @@
     <target name="clean.worldwind.extensions.jarfile">
         <delete file="${basedir}/${worldwind.extensions.jarfile}"/>
     </target>
-    <target name="clean.worldwind.performance.jarfile">
-        <delete file="${basedir}/${worldwind.performance.jarfile}"/>
-    </target>
     <target name="clean.build" depends="clean.classes,
                                         clean.javadocs,
                                         clean.worldwind.jarfile,
-                                        clean.worldwind.extensions.jarfile,
-                                        clean.worldwind.performance.jarfile"/>
+                                        clean.worldwind.extensions.jarfile"/>
     <!-- Main clean target for the World Wind Java SDK. Removes all files and directories created by all World Wind
          build targets. -->
     <target name="clean.all" depends="clean.build,
