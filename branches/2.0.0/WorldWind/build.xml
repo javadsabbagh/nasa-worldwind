@@ -21,8 +21,6 @@
     <import file="build/resources.xml"/>
     <!-- Import the World Wind general utility targets. -->
     <import file="build/util.xml"/>
-    <!-- Import the World Wind Server Applications targets. -->
-    <import file="servers/build.xml"/>
 
     <!-- Main build target for the World Wind Java SDK. Compiles the World Wind source, creates the World Wind API
          documentation, and builds the World Wind JAR files. -->
@@ -33,12 +31,12 @@
             description="Main build target for the World Wind Java SDK. Compiles the World Wind source, creates the World Wind API documentation, and builds the World Wind JAR files."/>
 
     <!-- Compiles all World Wind Java sources under the 'src' folder into Java class files under the 'classes'
-         folder. Note that this excludes the Java sources under the 'servers/src' and 'test' directories. We configure
-         the javac task parameters 'source' and 'target' in order to explicitly control the Java compiler version used
-         to build World Wind classes. Without these parameters, the javac task would use the most recent compiler
-         available on the current machine, and the Java compiler version used to build WorldWind classes would be
-         unpredictable. For this reason, the Apache ANT manual strongly recommends specifying the 'source' and 'target'
-         parameters. See the following link for more detail: http://ant.apache.org/manual/CoreTasks/javac.html
+         folder. Note that this excludes the Java sources under the 'test' folder. We configure the javac task
+         parameters 'source' and 'target' in order to explicitly control the Java compiler version used to build World
+         Wind classes. Without these parameters, the javac task would use the most recent compiler available on the
+         current machine, and the Java compiler version used to build WorldWind classes would be unpredictable. For this
+         reason, the Apache ANT manual strongly recommends specifying the 'source' and 'target' parameters. See the
+         following link for more detail: http://ant.apache.org/manual/CoreTasks/javac.html
 
          The Java compiler version used by the javac task is defined by the build parameter 'worldwind.jdk.version'.
          By default, this parameter is defined in the file 'build/build.properties'. -->
@@ -61,13 +59,12 @@
         </javac>
     </target>
 
-    <!-- Builds the World Wind API documentation for all core, extension, and server packages into the 'doc' folder.
-         Includes all World Wind core classes under the packages 'gov.nasa.worldwind', World Wind extension classes
-         under the package 'gov.nasa.worldwindx', and World Wind server classes under the package
-         'gov.nasa.worldwind.servers'. Excludes World Wind format classes under the package
+    <!-- Builds the World Wind API documentation for all core and extension packages into the 'doc' folder. Includes all
+         World Wind core classes under the packages 'gov.nasa.worldwind' and World Wind extension classes under the
+         package 'gov.nasa.worldwindx'. Excludes World Wind format classes under the package
          'gov.nasa.worldwind.formats' -->
     <target name="javadocs" depends="clean.javadocs"
-            description="Builds the World Wind API documentation for all core, extension, and server packages into the 'doc' folder.">
+            description="Builds the World Wind API documentation for all core and extension packages into the 'doc' folder.">
         <javadoc destdir="${worldwind.doc.dir}"
                  overview="${worldwind.src.dir}/overview.html"
                  windowtitle="NASA World Wind" doctitle="NASA World Wind API" header="NASA World Wind"
@@ -77,9 +74,6 @@
                 <include name="gov/nasa/worldwind/**"/>
                 <include name="gov/nasa/worldwindx/**"/>
                 <exclude name="gov/nasa/worldwind/formats/**"/>
-            </packageset>
-            <packageset dir="${servers.src.dir}" defaultexcludes="yes">
-                <include name="gov/nasa/worldwind/servers/**"/>
             </packageset>
             <classpath>
                 <pathelement location="jogl-all.jar"/>
@@ -207,8 +201,7 @@
                                       clean.demosite.all,
                                       clean.native.all,
                                       clean.resources.all,
-                                      clean.build.util.all,
-                                      clean.servers.all"
+                                      clean.build.util.all"
             description="Main clean target for the World Wind Java SDK. Removes all files and directories created by all World Wind build targets."/>
 
 </project>

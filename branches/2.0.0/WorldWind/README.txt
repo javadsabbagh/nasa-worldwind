@@ -9,12 +9,10 @@ Getting Started With the World Wind Java SDK
 
 Key files and folders in the World Wind Java SDK:
 - build.xml: Apache ANT build file for the World Wind Java SDK.
-- src: Contains all Java source files for the World Wind Java SDK, except the World Wind WMS Server.
-- server: Contains the World Wind WMS Server Java source files, build file, and deployment files.
+- src: Contains all Java source files for the World Wind Java SDK.
 - lib-external/gdal: Contains the GDAL native binaries libraries that may optionally be distributed with World Wind.
 
-Links to important World Wind sites that will help you get started using the World Wind Java SDK in your
-application:
+Links to important World Wind sites that will help you get started using the World Wind Java SDK in your application:
 
 World Wind Developer's Guide:
 http://goworldwind.org/

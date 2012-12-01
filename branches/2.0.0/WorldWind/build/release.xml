@@ -23,7 +23,6 @@
                 <include name="jws/**"/>
                 <include name="lib-external/**"/>
                 <include name="schemas/**"/>
-                <include name="servers/**"/>
                 <include name="src/**"/>
                 <include name="test/**"/>
                 <include name="testData/**"/>
