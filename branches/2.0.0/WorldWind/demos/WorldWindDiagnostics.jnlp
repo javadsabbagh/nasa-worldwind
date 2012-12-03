@@ -7,20 +7,20 @@
     $Id$
 -->
 <jnlp codebase="http://worldwindserver.net/java/2.0.0/demos/"
-      href="AnnotationControls.jnlp">
+      href="WorldWindDiagnostics.jnlp">
 
     <!--
-        Provides a description of this World Wind demo application.
+        Provides a description of the World Wind Diagnostics application.
     -->
     <information>
-        <title>World Wind Annotation Controls</title>
+        <title>World Wind Diagnostic Program</title>
         <vendor>NASA</vendor>
-        <homepage href="http://goworldwind.org/demos/"/>
+        <homepage href="http://worldwind.arc.nasa.gov"/>
         <offline-allowed/>
     </information>
 
     <!--
-        Specifies the resources required by the this World Wind demo application:
+        Specifies the resources required by the World Wind Diagnostics application:
         * Java Runtime Environment version 1.6 or newer, with a maximum heap size of at least 512 MB. The World Wind SDK
           requires at least 512 MB of heap space. This heap size must be specified in the application's Web Start file.
         * World Wind extensions Java Web Start component. This downloads and adds the World Wind SDK extensions JAR file
@@ -35,6 +35,6 @@
         Indicates that this Java Web Start file describes an application. The main-class element indicates the class
         who's main method is executed when this Web Start file launches.
     -->
-    <application-desc main-class="gov.nasa.worldwindx.examples.AnnotationControls"/>
+    <application-desc main-class="gov.nasa.worldwindx.examples.WorldWindDiagnostics"/>
 
 </jnlp>
