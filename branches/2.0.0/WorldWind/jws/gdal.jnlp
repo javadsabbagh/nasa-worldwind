@@ -1,18 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--$Id$-->
-<jnlp codebase="http://worldwind.arc.nasa.gov/java/gdal/webstart/"
-      href="gdal.jnlp">
+<!--
+    Copyright (C) 2012 United States Government as represented by
+    the Administrator of the National Aeronautics and Space Administration.
+    All Rights Reserved.
+
+    $Id$
+-->
+<jnlp codebase="http://worldwind.arc.nasa.gov/java/2.0.0/webstart/"
+      href="gdal.jnlp" version="2.0.0">
+
+    <!--
+        Provides a description of the World Wind GDAL library.
+    -->
     <information>
-        <title>Java Binding to the GDAL API</title>
+        <title>NASA World Wind Java GDAL</title>
         <vendor>NASA</vendor>
-        <homepage href="http://worldwind.arc.nasa.gov/java"/>
-        <description>Java Binding to the GDAL API</description>
-        <description kind="short">GDAL Natives</description>
+        <homepage href="http://worldwind.arc.nasa.gov"/>
+        <description>NASA World Wind Java GDAL</description>
+        <description kind="short">NASA World Wind Java GDAL Bindings, version 2.0.0</description>
         <offline-allowed/>
     </information>
+
+    <!--
+        Requests a trusted application environment. The World Wind GDAL library requires access to the local filesystem.
+        All World Wind JAR files are signed with a digital signature associated with NASA.
+    -->
     <security>
         <all-permissions/>
     </security>
+
+    <!--
+        Specifies the resources required by the World Wind GDAL library:
+        * World Wind GDAL JAR file.
+        * World Wind GDAL data JAR file.
+        * World Wind GDAL native libraries.
+    -->
     <resources>
         <jar href="gdal.jar"/>
         <jar href="gdaldata.jar"/>
@@ -62,5 +84,11 @@
     <resources os="Mac OS X" arch="x86_64">
         <nativelib href="gdal-natives-macosx-universal.jar"/>
     </resources>
+
+    <!--
+        Indicates that this Java Web Start file describes a component. This element is intentionally left blank, since
+        it is used only as an indicator.
+    -->
     <component-desc/>
+
 </jnlp>
