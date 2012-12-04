@@ -13,8 +13,6 @@
     <import file="build/test.xml"/>
     <!-- Import the World Wind release targets. -->
     <import file="build/release.xml"/>
-    <!-- Import the World Wind demos website targets. -->
-    <import file="build/demosite.xml"/>
     <!-- Import the World Wind native native library targets. -->
     <import file="build/native.xml"/>
     <!-- Import the World Wind resource targets. -->
@@ -177,7 +175,6 @@
     <target name="clean.all" depends="clean.build,
                                       clean.test.all,
                                       clean.worldwind.release,
-                                      clean.demosite.all,
                                       clean.native.all,
                                       clean.resources.all,
                                       clean.build.util.all"
