@@ -1,8 +1,7 @@
 <!--
-Copyright (C) 2001, 2011 United States Government
-as represented by the Administrator of the
-National Aeronautics and Space Administration.
-All Rights Reserved.
+    Copyright (C) 2012 United States Government as represented by the Administrator of the
+    National Aeronautics and Space Administration.
+    All Rights Reserved.
 -->
 
 <!--
@@ -23,33 +22,26 @@ function getWWJApplet()
    if (theApplet == null) {
       theApplet = document.getElementById('wwjApplet');
    }
-   // See if we're using the old Java Plug-In and the JNLPAppletLauncher
-   try {
-      theApplet = theApplet.getSubApplet();
-   } catch (e) {
-      // Using new-style applet -- ignore
-   }
-return theApplet;
+   return theApplet;
 }
 // -->
 </script>
 </head>
 
 <body>
-<!-- Backward compatible applet setup: if the new-style plugin is used, only the "jnlp_href" param will be used, -->
-<!-- other arguments and attributes are for the 'old' plugin.                                                    -->
-<applet id="wwjApplet" mayscript code="org.jdesktop.applet.util.JNLPAppletLauncher" width=100% height=70%
-        archive="applet-launcher.jar, worldwind.jar, WWJApplet.jar, http://worldwind.arc.nasa.gov/java/jogl/webstart/jogl.jar, http://worldwind.arc.nasa.gov/java/jogl/webstart/gluegen-rt.jar">
-    <param name="jnlp_href" value="WWJApplet.jnlp">
-    <param name="codebase_lookup" value="false">
-    <param name="subapplet.classname" value="gov.nasa.worldwindx.examples.applet.WWJApplet">
-    <param name="subapplet.displayname" value="WWJ Applet">
-    <param name="noddraw.check" value="true">
-    <param name="progressbar" value="true">
-    <param name="jnlpNumExtensions" value="1">
-    <param name="jnlpExtension1"
-           value="http://worldwind.arc.nasa.gov/java/jogl/webstart/jogl.jnlp">
-</applet>
+
+<!-- Include the World Wind Java Applet example in this page using Java Web Start, Oracle's recommended deployment
+     mechanism. The containing document specifies the Applet's main-class, width, and height. The JNLP file specifies
+     the Applet's code and dependencies. This mechanism requires Java 6 update 10 on Windows and Linux, and requires
+     Java 7 on Mac OS X. See the following Oracle document for details on this Applet deployment mechanism:
+     http://docs.oracle.com/javase/7/docs/technotes/guides/jweb/applet/applet_deployment.html -->
+<script src="http://www.java.com/js/deployJava.js"></script>
+<script>
+    var attributes = {code:'gov.nasa.worldwindx.examples.applet.WWJApplet', id:'wwjApplet', mayscript:'true',
+                      width:'100%', height:'70%'};
+    var parameters = {jnlp_href:'WWJApplet.jnlp'};
+    deployJava.runApplet(attributes, parameters, '1.6'); // runApplet automatically looks for JRE 1.6+
+</script>
 
 <form>
 <!-- This change the current view position -->
