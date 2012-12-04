@@ -175,9 +175,9 @@
     <target name="clean.all" depends="clean.build,
                                       clean.test.all,
                                       clean.worldwind.release,
-                                      clean.native.all,
                                       clean.resources.all,
-                                      clean.build.util.all"
+                                      clean.build.util.all,
+                                      clean.webstart.site"
             description="Main clean target for the World Wind Java SDK. Removes all files and directories created by all World Wind build targets."/>
 
 </project>
