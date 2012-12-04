@@ -7,7 +7,7 @@
     $Id$
 -->
 <jnlp codebase="http://worldwindserver.net/java/2.0.0/demos/"
-      href="AnalglyphStereo.jnlp">
+      href="AnaglyphStereo.jnlp">
 
     <!--
         Provides a description of this World Wind demo application.
