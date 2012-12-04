@@ -45,16 +45,10 @@ function appletInit() {
 
 function appletStart() {
    // Fly to a location after a delay
-   setTimeout("startup()", 5000); // 5 seconds
+   setTimeout("startup()", 1000); // 1 second
 }
 
 function startup() {
-   // Turn off USGS Urban Area layer
-    var layer = getWWJApplet().getLayerByName('Urba');
-    if (layer != null)
-        layer.setEnabled(false);
-
-
    // Add labels
    addLocationLabel(MOUNT_RAINIER, 14);
    addLocationLabel(MOUNT_SAINT_HELENS, 12);
@@ -131,19 +125,18 @@ function addLocationLabel(locationString, fontSize) {
 <h1>US Cascade Range Volcanoes</h1>
 
 <span style="float: right; padding: 0px 0px 12px 12px; background-color: white;">
-    <!-- Includes the World Wind Java Applet example in this page using Java Web Start, Oracle's recommended deployment
-     mechanism. The containing document specifies the Applet's main-class, width, and height. The JNLP file specifies
-     the Applet's code and dependencies. This mechanism requires Java 6 update 10 on Windows and Linux, and requires
-     Java 7 on Mac OS X. See the following Oracle document for details on this Applet deployment mechanism:
+<!-- Include the World Wind Java Applet example in this page using Java Web Start, Oracle's recommended deployment
+     mechanism. The containing document specifies the Applet attributes that affect its display and enable
+     Java-to-Javascript communication. The specified Applet parameter jnlp_href defines the Applet's code and its
+     dependencies. This mechanism requires Java 6 update 10 on Windows and Linux, and requires Java 7 on Mac OS X. See
+     the following Oracle document for details on this Applet deployment mechanism:
      http://docs.oracle.com/javase/7/docs/technotes/guides/jweb/applet/applet_deployment.html -->
 <script src="http://www.java.com/js/deployJava.js"></script>
 <script>
-    var attributes = {code:'gov.nasa.worldwindx.examples.applet.WWJApplet', id:'wwjApplet', mayscript:'true',
-                      width:'600', height:'380'};
+    var attributes = {id:'wwjApplet', mayscript:'true', width:'600', height:'380'};
     var parameters = {jnlp_href:'WWJApplet.jnlp'};
     deployJava.runApplet(attributes, parameters, '1.6'); // runApplet automatically looks for JRE 1.6+
 </script>
-
 </span>
 
 <p>
