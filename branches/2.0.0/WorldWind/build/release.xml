@@ -19,6 +19,7 @@
                 <include name="demos/**"/>
                 <include name="doc/**"/>
                 <include name="lib-external/**"/>
+                <include name="resources/**"/>
                 <include name="schemas/**"/>
                 <include name="src/**"/>
                 <include name="test/**"/>
