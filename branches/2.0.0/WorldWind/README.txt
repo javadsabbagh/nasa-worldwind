@@ -1,4 +1,10 @@
-$Id$
+#
+# Copyright (C) 2012 United States Government as represented by the Administrator of the
+# National Aeronautics and Space Administration.
+# All Rights Reserved.
+#
+
+# $Id$
 
 This document provides links on getting started with the World Wind Java SDK, provides instructions on running the a
 World Wind demo application, and outlines the key changes between each World Wind Java SDK release.
