@@ -27,7 +27,7 @@
     -->
     <resources>
         <java version="1.6+" max-heap-size="512m"/>
-        <extension name="worldwindx" href="http://worldwindserver.net/java/2.0.0/webstart/worldwindx.jnlp"/>
+        <extension name="worldwindx" href="http://worldwind.arc.nasa.gov/java/2.0.0/webstart/worldwindx.jnlp"/>
     </resources>
 
     <!--
