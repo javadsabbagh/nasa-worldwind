@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Copyright (C) 2012 United States Government as represented by the Administrator of the
-    National Aeronautics and Space Administration.
-    All Rights Reserved.
+  ~ Copyright (C) 2012 United States Government as represented by the Administrator of the
+  ~ National Aeronautics and Space Administration.
+  ~ All Rights Reserved.
+  -->
 
-    $Id$
--->
+<!-- $Id$ -->
 <jnlp codebase="http://worldwind.arc.nasa.gov/java/2.0.0/webstart/"
       href="gluegen-rt.jnlp" version="v2.0-rc11">
 
