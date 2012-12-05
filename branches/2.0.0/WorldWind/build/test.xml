@@ -5,7 +5,7 @@
   ~ All Rights Reserved.
   -->
 
-<!--$Id$-->
+<!-- $Id$ -->
 <project name="test">
 
     <!-- Compiles all World Wind Java sources under the 'test' folder into Java class files under the 'testClasses'

@@ -5,7 +5,7 @@
   ~ All Rights Reserved.
   -->
 
-<!--$Id$-->
+<!-- $Id$ -->
 <project name="release">
 
     <!-- Creates the World Wind SDK release in the folder 'worldwind-release'. Includes the entire contents of the World

@@ -5,7 +5,7 @@
   ~ All Rights Reserved.
   -->
 
-<!--$Id$-->
+<!-- $Id$ -->
 <project name="worldwind" default="worldwind.jarfile" basedir=".">
     <description>
         Build script for the World Wind Java SDK. Compiles the World Wind source, creates World Wind API documentation,
