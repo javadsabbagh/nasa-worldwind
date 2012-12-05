@@ -24,7 +24,7 @@ World Wind Forum:
 http://forum.worldwindcentral.com/forumdisplay.php?f=37
 
 World Wind API Documentation:
-http://builds.worldwind.arc.nasa.gov/worldwind-releases/1.5/docs/api/index.html
+http://builds.worldwind.arc.nasa.gov/worldwind-releases/2.0/docs/api/index.html
 
 World Wind Bug Base:
 http://issues.worldwind.arc.nasa.gov/jira/browse/WWJ
@@ -49,6 +49,23 @@ problems is an out-of-date graphics driver. To get an updated driver, visit your
 This will most likely be either NVIDIA, ATI or Intel. The drivers are typically under a link named "Downloads" or
 "Support". If your computer is a laptop, then updated drivers are probably at the laptop manufacturer's web site rather
 than the graphics card manufacturer's.
+
+
+New features and improvements in World Wind Java SDK 2.0.0
+------------------------------------------------------------
+- See http://goworldwind.org/releases/ for a description of this release's major features.
+
+- Migrated World Wind's usage of the JOGL library to JOGL version 2.0.
+- Redesigned the World Wind Java Web Start site to work with JOGL 2.0 and Java 7 on all platforms..
+- Redesigned the World Wind Java applet examples to work with JOGL 2.0 and Java 7 on all platforms.
+  New applets leverage the same Java Web Start resources used by applications.
+- Redesigned the World Wind Java demos for simplicity, and consolidated all demo resources in a single place.
+- Added a new ANT target webstart.site that creates a self-contained and deployable World Wind Web Start site.
+- Fixed an issue where World Wind does not compile on Java 7 in IntelliJ IDEA.
+- Removed the World Wind servers module, and its associated packages in the World Wind client:
+  gov.nasa.worldwind.database, gov.nasa.worldwind.ows, gov.nasa.worldwind.wfs, gov.nasa.worldwind.wss
+- Removed the need for the separate performance JAR file worldwind-performance.jar.
+  Moved the performance package into gov.nasa.worldwindx.performance.
 
 
 New features and improvements in World Wind Java SDK 1.5.0
