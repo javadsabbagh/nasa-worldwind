@@ -80,7 +80,7 @@
                 <pathelement location="plugin.jar"/>
             </classpath>
             <link href="http://download.oracle.com/javase/6/docs/api/"/>
-            <link href="http://worldwind.arc.nasa.gov/java/jogl/docs/"/>
+            <link href="http://jogamp.org/deployment/v2.0-rc11/javadoc/jogl/javadoc/"/>
         </javadoc>
     </target>
 
