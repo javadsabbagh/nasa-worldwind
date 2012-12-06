@@ -13,7 +13,7 @@ import junit.textui.TestRunner;
  * Tests operation of AbsentResourceList.
  *
  * @author tag
- * @version $ID$
+ * @version $Id$
  */
 public class AbsentResourceListTest
 {
