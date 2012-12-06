@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 United States Government as represented by the Administrator of the
+ * Copyright (C) 2012 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
@@ -14,7 +14,7 @@ import com.jogamp.opengl.util.texture.Texture;
  * recently used resources that fit within its capacity.
  *
  * @author tag
- * @version $ID$
+ * @version $Id$
  */
 public interface GpuResourceCache
 {

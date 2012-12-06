@@ -1,13 +1,9 @@
 /*
- * Copyright (C) 2011 United States Government as represented by the Administrator of the
+ * Copyright (C) 2012 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
 
-/**
- * @author Tom Gaskins
- * @version $Id$
- */
 package gov.nasa.worldwind.util;
 
 import com.jogamp.common.nio.Buffers;
@@ -24,6 +20,10 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.zip.*;
 
+/**
+ * @author Tom Gaskins
+ * @version $Id$
+ */
 public class WWIO
 {
     public static final String DELETE_ON_EXIT_PREFIX = "WWJDeleteOnExit";

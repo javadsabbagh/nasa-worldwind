@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 United States Government as represented by the Administrator of the
+ * Copyright (C) 2012 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
@@ -23,7 +23,7 @@ import java.util.List;
  * A general cylinder volume defined by a center position, height and radius, or alternatively, by three axis radii.
  *
  * @author ccrick
- * @version $ID$
+ * @version $Id$
  */
 public class Wedge extends RigidShape
 {

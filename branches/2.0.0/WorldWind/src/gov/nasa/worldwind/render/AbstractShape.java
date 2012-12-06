@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 United States Government as represented by the Administrator of the
+ * Copyright (C) 2012 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
@@ -32,7 +32,7 @@ import java.io.*;
  * draw context, is made current. Subsequently called methods rely on the existence of this current data cache entry.
  *
  * @author tag
- * @version $ID$
+ * @version $Id$
  */
 public abstract class AbstractShape extends WWObjectImpl
     implements Highlightable, OrderedRenderable, Movable, ExtentHolder, GeographicExtent, Exportable, Restorable
