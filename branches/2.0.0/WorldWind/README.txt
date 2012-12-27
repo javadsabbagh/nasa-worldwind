@@ -67,7 +67,6 @@ New features and improvements in World Wind Java SDK 2.0.0
   New applets leverage the same Java Web Start resources used by applications.
 - Redesigned the World Wind Java demos for simplicity, and consolidated all demo resources in a single place.
 - Added a new ANT target webstart.site that creates a self-contained and deployable World Wind Web Start site.
-- Fixed an issue where World Wind does not compile on Java 7 in IntelliJ IDEA.
 - Removed the World Wind servers module, and its associated packages in the World Wind client:
   gov.nasa.worldwind.database, gov.nasa.worldwind.ows, gov.nasa.worldwind.wfs, gov.nasa.worldwind.wss
 - Removed the need for the separate performance JAR file worldwind-performance.jar.
