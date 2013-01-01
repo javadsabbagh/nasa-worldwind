@@ -24,6 +24,7 @@ import java.beans.*;
  * @author tag
  * @version $Id$
  */
+@SuppressWarnings("unchecked")
 public class MeasurementPanel extends AbstractFeaturePanel
 {
     private static final String NAME = "Measurement";

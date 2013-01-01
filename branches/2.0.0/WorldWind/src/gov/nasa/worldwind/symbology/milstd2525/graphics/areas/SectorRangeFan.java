@@ -346,7 +346,9 @@ public class SectorRangeFan extends AbstractMilStd2525TacticalGraphic implements
         {
             if (value instanceof Iterable)
             {
-                this.setAzimuths((Iterable) value);
+                // Store the Iterable in an unnecessary variable to suppress Java 7 compiler warnings on Windows.
+                Iterable<? extends Angle> iterable = (Iterable<? extends Angle>) value;
+                this.setAzimuths(iterable);
             }
             else if (value instanceof Angle)
             {
@@ -357,7 +359,9 @@ public class SectorRangeFan extends AbstractMilStd2525TacticalGraphic implements
         {
             if (value instanceof Iterable)
             {
-                this.setAltitudes((Iterable) value);
+                // Store the Iterable in an unnecessary variable to suppress Java 7 compiler warnings on Windows.
+                Iterable<String> iterable = (Iterable<String>) value;
+                this.setAltitudes(iterable);
             }
             else if (value != null)
             {

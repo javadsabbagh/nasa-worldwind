@@ -509,6 +509,7 @@ public class AirspaceBuilder extends ApplicationTemplate
     //********************  Airspace Builder Panel  ****************//
     //**************************************************************//
 
+    @SuppressWarnings("unchecked")
     protected static class AirspaceBuilderPanel extends JPanel
     {
         protected JComboBox factoryComboBox;

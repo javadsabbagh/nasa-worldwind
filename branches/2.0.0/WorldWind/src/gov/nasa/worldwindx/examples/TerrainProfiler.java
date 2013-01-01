@@ -28,6 +28,7 @@ import java.awt.event.*;
  */
 public class TerrainProfiler extends ApplicationTemplate
 {
+    @SuppressWarnings("unchecked")
     public static class AppFrame extends ApplicationTemplate.AppFrame
     {
         private String follow;
