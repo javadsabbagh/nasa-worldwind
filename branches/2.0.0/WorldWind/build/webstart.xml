@@ -15,6 +15,15 @@
                                           webstart.gdal.jarfiles"
             description="Builds a deployable World Wind Java Web Start site in the 'webstart' directory."/>
 
+    <!-- Packages the World Wind Java Web Start site into the ZIP archive 'worldwind-webstart-version.zip', where
+         'version' is the current version. -->
+    <target name="webstart.site.zipfile" depends="webstart.site"
+            description="Packages the World Wind Java Web Start site into the ZIP archive 'worldwind-webstart-version.zip'.">
+        <zip destfile="${webstart.zipfile}">
+            <fileset dir="${webstart.dir}"/>
+        </zip>
+    </target>
+
     <!-- Places signed copies of the World Wind JAR files necessary for Java Web Start deployment in the 'webstart'
          directory. -->
     <target name="webstart.worldwind.jarfiles" depends="build">
