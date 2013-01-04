@@ -79,7 +79,6 @@ public class MeasureToolUsage extends ApplicationTemplate
             switchMeasureTool();
 
             this.getContentPane().add(tabbedPane, BorderLayout.WEST);
-            this.pack();
         }
 
         private class MeasureToolListener implements PropertyChangeListener

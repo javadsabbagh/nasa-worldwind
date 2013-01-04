@@ -2073,8 +2073,10 @@ public abstract class AbstractBrowserBalloon extends AbstractBalloon implements 
 
         this.lastPickPoint = event.getPickPoint();
 
-        // Consume the SelectEvent now that it has been passed on to the WebView as a mouse event.
-        event.consume();
+        // Consume the SelectEvent now that it has been passed on to the WebView as a mouse event. We avoid consuming
+        // left press events, since doing so prevents the WorldWindow from gaining focus.
+        if (!event.isLeftPress())
+            event.consume();
     }
 
     /**
