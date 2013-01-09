@@ -533,7 +533,8 @@ public class CompassLayer extends AbstractLayer
                 }
             }
 
-            iconTexture = TextureIO.newTexture(iconStream, false, null);
+            TextureData textureData = OGLUtil.newTextureData(gl.getGLProfile(), iconStream, false);
+            iconTexture = TextureIO.newTexture(textureData);
             iconTexture.bind(gl);
             this.iconWidth = iconTexture.getWidth();
             this.iconHeight = iconTexture.getHeight();

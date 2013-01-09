@@ -10,7 +10,7 @@ import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.exception.WWRuntimeException;
 import gov.nasa.worldwind.geom.Vec4;
 import gov.nasa.worldwind.render.*;
-import gov.nasa.worldwind.util.Logging;
+import gov.nasa.worldwind.util.*;
 
 import javax.media.opengl.*;
 import java.awt.*;
@@ -355,7 +355,8 @@ public class CrosshairLayer extends AbstractLayer
                 }
             }
 
-            iconTexture = TextureIO.newTexture(iconStream, false, null);
+            TextureData textureData = OGLUtil.newTextureData(gl.getGLProfile(), iconStream, false);
+            iconTexture = TextureIO.newTexture(textureData);
             iconTexture.bind(gl);
             this.iconWidth = iconTexture.getWidth();
             this.iconHeight = iconTexture.getHeight();

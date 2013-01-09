@@ -367,14 +367,14 @@ public class BasicTiledImageLayer extends TiledImageLayer implements BulkRetriev
                 attributes.setBuildMipmaps(useMipMaps);
                 ByteBuffer buffer = DDSCompressor.compressImageURL(url, attributes);
 
-                return TextureIO.newTextureData(Configuration.getMaxCompatibleGLProfile(),
-                    WWIO.getInputStreamFromByteBuffer(buffer), useMipMaps, null);
+                return OGLUtil.newTextureData(Configuration.getMaxCompatibleGLProfile(),
+                    WWIO.getInputStreamFromByteBuffer(buffer), useMipMaps);
             }
             // If the caller has disabled texture compression, or if the texture data is already a DDS file, then read
             // the texture data without converting it.
             else
             {
-                return TextureIO.newTextureData(Configuration.getMaxCompatibleGLProfile(), url, useMipMaps, null);
+                return OGLUtil.newTextureData(Configuration.getMaxCompatibleGLProfile(), url, useMipMaps);
             }
         }
         catch (Exception e)

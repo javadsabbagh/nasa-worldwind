@@ -197,7 +197,7 @@ public class BasicMercatorTiledImageLayer extends MercatorTiledImageLayer
     {
         try
         {
-            return TextureIO.newTextureData(Configuration.getMaxCompatibleGLProfile(), url, useMipMaps, null);
+            return OGLUtil.newTextureData(Configuration.getMaxCompatibleGLProfile(), url, useMipMaps);
         }
         catch (Exception e)
         {

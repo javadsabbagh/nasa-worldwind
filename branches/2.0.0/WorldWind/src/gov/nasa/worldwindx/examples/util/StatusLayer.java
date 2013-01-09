@@ -461,7 +461,8 @@ public class StatusLayer extends AbstractLayer implements PositionListener, Rend
                 }
             }
 
-            iconTexture = TextureIO.newTexture(iconStream, false, null);
+            TextureData textureData = OGLUtil.newTextureData(dc.getGL().getGLProfile(), iconStream, false);
+            iconTexture = TextureIO.newTexture(textureData);
             iconTexture.bind(dc.getGL());
             this.bgWidth = iconTexture.getWidth();
             this.bgHeight = iconTexture.getHeight();

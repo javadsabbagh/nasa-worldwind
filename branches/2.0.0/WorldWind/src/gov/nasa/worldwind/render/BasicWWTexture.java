@@ -266,8 +266,8 @@ public class BasicWWTexture implements WWTexture
 
             try
             {
-                TextureData td = TextureIO.newTextureData(gl.getGLProfile(), (InputStream) streamOrException,
-                    this.useMipMaps, null);
+                TextureData td = OGLUtil.newTextureData(gl.getGLProfile(), (InputStream) streamOrException,
+                    this.useMipMaps);
                 t = TextureIO.newTexture(td);
                 haveMipMapData = td.getMipmapData() != null;
             }
@@ -310,7 +310,7 @@ public class BasicWWTexture implements WWTexture
                     return null;
                 }
 
-                TextureData td = TextureIO.newTextureData(gl.getGLProfile(), stream, this.useMipMaps, null);
+                TextureData td = OGLUtil.newTextureData(gl.getGLProfile(), stream, this.useMipMaps);
                 t = TextureIO.newTexture(td);
                 haveMipMapData = td.getMipmapData() != null;
             }

@@ -11,7 +11,7 @@ import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
 import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.avlist.*;
 import gov.nasa.worldwind.cache.FileStore;
-import gov.nasa.worldwind.util.Logging;
+import gov.nasa.worldwind.util.*;
 
 import javax.media.opengl.*;
 import java.awt.image.*;
@@ -630,8 +630,7 @@ public class LazilyLoadedTexture extends AVListImpl implements WWTexture
     {
         try
         {
-            return TextureIO.newTextureData(Configuration.getMaxCompatibleGLProfile(), fileUrl, this.isUseMipMaps(),
-                null);
+            return OGLUtil.newTextureData(Configuration.getMaxCompatibleGLProfile(), fileUrl, this.isUseMipMaps());
         }
         catch (Exception e)
         {

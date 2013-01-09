@@ -677,7 +677,7 @@ public class RPFTiledImageLayer extends TiledImageLayer
     {
         try
         {
-            return TextureIO.newTextureData(Configuration.getMaxCompatibleGLProfile(), url, useMipMaps, null);
+            return OGLUtil.newTextureData(Configuration.getMaxCompatibleGLProfile(), url, useMipMaps);
         }
         catch (Exception e)
         {

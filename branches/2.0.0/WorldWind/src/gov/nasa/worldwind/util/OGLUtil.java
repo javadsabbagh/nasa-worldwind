@@ -5,9 +5,16 @@
  */
 package gov.nasa.worldwind.util;
 
+import com.jogamp.opengl.util.texture.*;
+import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
+import com.jogamp.opengl.util.texture.spi.DDSImage;
 import gov.nasa.worldwind.geom.Vec4;
 
+import javax.imageio.ImageIO;
 import javax.media.opengl.*;
+import java.awt.image.*;
+import java.io.*;
+import java.net.URL;
 
 /**
  * A collection of OpenGL utility methods, all static.
@@ -498,5 +505,97 @@ public class OGLUtil
             default:
                 return 0;
         }
+    }
+
+    /**
+     * Creates TextureData from the given URL. Does no OpenGL work.
+     *
+     * @param glp        the OpenGL Profile this texture data should be created for.
+     * @param url        the URL from which to read the texture data
+     * @param useMipMaps whether mipmaps should be produced for this texture either by auto-generating them or reading
+     *                   them from the file. Some file formats support multiple mipmaps in a single file in which case
+     *                   those mipmaps will be used rather than generating them.
+     *
+     * @return the texture data from the URL, or null if none of the registered texture providers could read the URL
+     *
+     * @throws IOException if an error occurred while reading the URL
+     */
+    public static TextureData newTextureData(GLProfile glp, URL url, boolean useMipMaps) throws IOException
+    {
+        InputStream stream = new BufferedInputStream(url.openStream());
+        try
+        {
+            return newTextureData(glp, stream, useMipMaps);
+        }
+        finally
+        {
+            stream.close();
+        }
+    }
+
+    /**
+     * Creates TextureData from an InputStream. Does no OpenGL work.
+     *
+     * @param glp        the OpenGL Profile this texture data should be created for.
+     * @param stream     the stream from which to read the texture data
+     * @param useMipMaps whether mipmaps should be produced for this texture either by auto-generating them or reading
+     *                   them from the file. Some file formats support multiple mipmaps in a single file in which case
+     *                   those mipmaps will be used rather than generating them.
+     *
+     * @return the texture data from the URL, or null if none of the registered texture providers could read the URL
+     *
+     * @throws IOException if an error occurred while reading the URL
+     */
+    public static TextureData newTextureData(GLProfile glp, InputStream stream, boolean useMipMaps) throws IOException
+    {
+        // Wrap stream in BufferedInputStream so that DDS detection will work. This is a work around for JOGL issue 4764639/4892246.
+        if (!(stream instanceof BufferedInputStream))
+        {
+            stream = new BufferedInputStream(stream);
+        }
+
+        boolean ddsFormat = DDSImage.isDDSImage(stream);
+
+        // If the image is not in DDS format, attempt to load it using ImageIO. This works around an issue with the
+        // JOGL PNG reader (WWJ-369). However, ImageIO does not support DDS, so in this case just send the image to
+        // TextureIO, for better performance.
+        if (!ddsFormat)
+        {
+            BufferedImage img = ImageIO.read(stream);
+            if (img != null)
+                return AWTTextureIO.newTextureData(glp, img, useMipMaps);
+        }
+
+        return TextureIO.newTextureData(glp, stream, useMipMaps, null);
+    }
+
+    /**
+     * Creates TextureData from a File. Does no OpenGL work.
+     *
+     * @param glp        the OpenGL Profile this texture data should be created for.
+     * @param file       the file from which to read the texture data
+     * @param useMipMaps whether mipmaps should be produced for this texture either by auto-generating them or reading
+     *                   them from the file. Some file formats support multiple mipmaps in a single file in which case
+     *                   those mipmaps will be used rather than generating them.
+     *
+     * @return the texture data from the URL, or null if none of the registered texture providers could read the URL
+     *
+     * @throws IOException if an error occurred while reading the URL
+     */
+    public static TextureData newTextureData(GLProfile glp, File file, boolean useMipMaps) throws IOException
+    {
+        boolean ddsFormat = "dds".equalsIgnoreCase(WWIO.getSuffix(file.getPath()));
+
+        // If the image is not in DDS format, attempt to load it using ImageIO. This works around an issue with the
+        // JOGL PNG reader (WWJ-369). However, ImageIO does not support DDS, so in this case just send the image to
+        // TextureIO, for better performance.
+        if (!ddsFormat)
+        {
+            BufferedImage img = ImageIO.read(file);
+            if (img != null)
+                return AWTTextureIO.newTextureData(glp, img, useMipMaps);
+        }
+
+        return TextureIO.newTextureData(glp, file, useMipMaps, null);
     }
 }
