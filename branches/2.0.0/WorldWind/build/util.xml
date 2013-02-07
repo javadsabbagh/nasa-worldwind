@@ -8,14 +8,12 @@
 <!-- $Id$ -->
 <project name="util">
 
-    <!-- Jar signing support target. The Jar to sign is specified by the parameter "jarfile". Keystore information is
-         read from a keystore properties file 'keystore.properties'. If this file exists, and its contents specify a
-         valid keystore, the specified jar is signed. The keystore properties file must be a Java properties file, with
-         at least the following properties defined:
-            keystore.file
-            keystore.alias
-            keystore.storepass
-            keystore.tsaurl
+    <!-- Jar signing support target. The Jar to sign is specified by the parameter "jarfile". Keystore information must
+         be specified in the following properties:
+            keystore.file=[path/to/keystore]
+            keystore.alias=[myKeystoreAlias]
+            keystore.storepass=[myKeystorePassword]
+            keystore.tsaurl=[URL for timestamp authority]
          These properties coincide with the jarsigner properties of the same name. -->
     <target name="jarsigner" depends="jarsigner-check,keystore-setup,keystore-missing" if="keystore.available">
         <signjar jar="${jarfile}"
@@ -35,18 +33,19 @@
 
             Follow these instructions to enable Jar file signing:
 
-            1. Create a plain text file named 'keystore.properties' in the World Wind project root folder.
-
-            2. Give the file 'keystore.properties' the following contents:
-            keystore.file=[myKeystore]
-            keystore.alias=[myAlais]
-            keystore.storepass=[myPassword]
+            1. Create a plain text file named 'keystore.properties' with the following contents:
+            keystore.file=[path/to/keystore]
+            keystore.alias=[myKeystoreAlias]
+            keystore.storepass=[myKeystorePassword]
             keystore.tsaurl=[URL for timestamp authority]
 
-            3. If you don't have a keystore, you can create a temporary one as follows (use [myPassword] as the
+            2. If you don't have a keystore, you can create a temporary one as follows (use [myKeystorePassword] as the
             password):
-            keytool -genkey -Keystore ./[myKeystore] -alias [myAlias]
-            keytool -selfcert -Keystore ./[myKeystore] -alias [myAlias]
+            keytool -genkey -Keystore [path/to/keystore] -alias [myKeystoreAlias]
+            keytool -selfcert -Keystore [path/to/keystore] -alias [myKeystoreAlias]
+
+            3. Add the following option to the ANT command:
+            -propertyfile /path/to/keystore.properites
 
             For help with keystores or signing Jar files, see
             http://java.sun.com/j2se/1.5.0/docs/guide/security/SecurityToolsSummary.html
@@ -54,17 +53,12 @@
     </target>
 
     <target name="keystore-setup">
-        <copy todir="${basedir}">
-            <fileset dir="${keystore.dir}"/>
-        </copy>
-        <property file="${keystore.properties}"/>
         <condition property="keystore.available">
             <and>
                 <isset property="keystore.file"/>
                 <isset property="keystore.alias"/>
                 <isset property="keystore.storepass"/>
                 <isset property="keystore.tsaurl"/>
-                <available file="${keystore.file}"/>
             </and>
         </condition>
     </target>
