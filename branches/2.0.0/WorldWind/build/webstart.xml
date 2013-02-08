@@ -12,7 +12,8 @@
          properties are specified, the result is a deployable Java Web Start site for the World Wind Java SDK. -->
     <target name="webstart.site" depends="webstart.worldwind.jarfiles,
                                           webstart.jogl.jarfiles,
-                                          webstart.gdal.jarfiles"
+                                          webstart.gdal.jarfiles,
+                                          webstart.signjar"
             description="Builds a deployable World Wind Java Web Start site in the 'webstart' directory."/>
 
     <!-- Packages the World Wind Java Web Start site into the ZIP archive 'worldwind-webstart-version.zip', where
@@ -24,8 +25,7 @@
         </zip>
     </target>
 
-    <!-- Places signed copies of the World Wind JAR files necessary for Java Web Start deployment in the 'webstart'
-         directory. -->
+    <!-- Places copies of the World Wind JAR files necessary for Java Web Start deployment in the 'webstart' directory. -->
     <target name="webstart.worldwind.jarfiles" depends="build">
         <!-- Copy the World Wind core and extensions JAR files into the Web Start directory. -->
         <copy todir="${webstart.dir}">
@@ -49,24 +49,10 @@
                 <type type="file"/>
             </fileset>
         </jar>
-        <!-- Sign the World Wind core and extensions JAR files and the WebView native library JAR files in the Web Start
-             directory. -->
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/${worldwind.jarfile}"/>
-        </antcall>
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/${worldwind.extensions.jarfile}"/>
-        </antcall>
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/${webview.macosx.jarfile}"/>
-        </antcall>
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/${webview.windows.jarfile}"/>
-        </antcall>
     </target>
 
-    <!-- Places signed copies of the JOGL and GlueGen JAR files necessary for Java Web Start deployment in the
-         'webstart' directory. -->
+    <!-- Places copies of the JOGL and GlueGen JAR files necessary for Java Web Start deployment in the 'webstart'
+         directory. -->
     <target name="webstart.jogl.jarfiles">
         <!-- Copy the JOGL JAR file, the GlueGen JAR file, and their associated native library JAR files into the
              Web Start directory. -->
@@ -87,48 +73,9 @@
                 <type type="file"/>
             </fileset>
         </copy>
-        <!-- Sign the JOGL JAR file, the GlueGen JAR file, and their associated native library JAR files in the Web
-             Start directory. -->
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/jogl-all.jar"/>
-        </antcall>
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/jogl-all-natives-macosx-universal.jar"/>
-        </antcall>
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/jogl-all-natives-windows-i586.jar"/>
-        </antcall>
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/jogl-all-natives-windows-amd64.jar"/>
-        </antcall>
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/jogl-all-natives-linux-i586.jar"/>
-        </antcall>
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/jogl-all-natives-linux-amd64.jar"/>
-        </antcall>
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/gluegen-rt.jar"/>
-        </antcall>
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/gluegen-rt-natives-macosx-universal.jar"/>
-        </antcall>
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/gluegen-rt-natives-windows-i586.jar"/>
-        </antcall>
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/gluegen-rt-natives-windows-amd64.jar"/>
-        </antcall>
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/gluegen-rt-natives-linux-i586.jar"/>
-        </antcall>
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/gluegen-rt-natives-linux-amd64.jar"/>
-        </antcall>
     </target>
 
-    <!-- Places signed copies of the GDAL JAR files necessary for Java Web Start deployment in the 'webstart'
-         directory. -->
+    <!-- Places copies of the GDAL JAR files necessary for Java Web Start deployment in the 'webstart' directory. -->
     <target name="webstart.gdal.jarfiles">
         <!-- Copy the World Wind GDAL JAR file to the Web Start directory. -->
         <copy file="${basedir}/${gdal.jarfile}" todir="${webstart.dir}"/>
@@ -194,29 +141,24 @@
                 <type type="file"/>
             </fileset>
         </jar>
-        <!-- Sign the World Wind GDAL JAR file, the World Wind GDAL data JAR file, and the World Wind GDAL native
-             library JAR files in the Web Start directory. -->
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/${gdal.jarfile}"/>
-        </antcall>
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/${gdal.data.jarfile}"/>
-        </antcall>
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/${gdal.macosx.jarfile}"/>
-        </antcall>
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/${gdal.win32.jarfile}"/>
-        </antcall>
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/${gdal.win64.jarfile}"/>
-        </antcall>
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/${gdal.linux32.jarfile}"/>
-        </antcall>
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${webstart.dir}/${gdal.linux64.jarfile}"/>
-        </antcall>
+    </target>
+
+    <!-- Signs all JAR files in the 'webstart' directory provided the following properties have been specified:
+            keystore.file=[path/to/keystore]
+            keystore.alias=[myKeystoreAlias]
+            keystore.storepass=[myKeystorePassword]
+            keystore.tsaurl=[URL for timestamp authority]
+         These properties coincide with the signjar task properties of the same name. -->
+    <target name="webstart.signjar" depends="signjar.setup" if="signjar.enabled">
+        <signjar keystore="${keystore.file}" alias="${keystore.alias}" storepass="${keystore.storepass}"
+                 tsaurl="${keystore.tsaurl}">
+            <path>
+                <fileset dir="${webstart.dir}">
+                    <include name="*.jar"/>
+                    <type type="file"/>
+                </fileset>
+            </path>
+        </signjar>
     </target>
 
     <!-- Individual clean targets corresponding to each build target above. -->

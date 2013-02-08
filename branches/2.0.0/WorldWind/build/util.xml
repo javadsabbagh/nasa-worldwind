@@ -8,30 +8,19 @@
 <!-- $Id$ -->
 <project name="util">
 
-    <!-- Jar signing support target. The Jar to sign is specified by the parameter "jarfile". Keystore information must
-         be specified in the following properties:
+    <!-- JAR signing support target. Verifies that the properties required for JAR signing are specified, and outputs
+         a warning message otherwise. The result of this verification is stored in the signjar.enabled property. The
+         following properties are required:
             keystore.file=[path/to/keystore]
             keystore.alias=[myKeystoreAlias]
             keystore.storepass=[myKeystorePassword]
             keystore.tsaurl=[URL for timestamp authority]
-         These properties coincide with the jarsigner properties of the same name. -->
-    <target name="jarsigner" depends="jarsigner-check,keystore-setup,keystore-missing" if="keystore.available">
-        <signjar jar="${jarfile}"
-                 keystore="${keystore.file}"
-                 alias="${keystore.alias}"
-                 storepass="${keystore.storepass}"
-                 tsaurl="${keystore.tsaurl}"/>
-    </target>
-
-    <target name="jarsigner-check">
-        <fail unless="jarfile" message="Jar file not specified. Set the property 'jarfile'."/>
-    </target>
-
-    <target name="keystore-missing" unless="keystore.available">
-        <echo level="info">Jar '${jarfile}' will NOT be signed. The keystore file cannot be found.
+        These properties coincide with the jarsigner properties of the same name. -->
+    <target name="signjar.setup" depends="signjar.verify" unless="signjar.enabled">
+        <echo level="warning">JAR files will not be signed. The required keystore properties are unspecified.
             (to suppress this message, enable the quiet option: -quiet, -q)
 
-            Follow these instructions to enable Jar file signing:
+            Follow these instructions to enable JAR file signing:
 
             1. Create a plain text file named 'keystore.properties' with the following contents:
             keystore.file=[path/to/keystore]
@@ -47,13 +36,13 @@
             3. Add the following option to the ANT command:
             -propertyfile /path/to/keystore.properites
 
-            For help with keystores or signing Jar files, see
+            For help with keystores or signing JAR files, see
             http://java.sun.com/j2se/1.5.0/docs/guide/security/SecurityToolsSummary.html
         </echo>
     </target>
 
-    <target name="keystore-setup">
-        <condition property="keystore.available">
+    <target name="signjar.verify">
+        <condition property="signjar.enabled">
             <and>
                 <isset property="keystore.file"/>
                 <isset property="keystore.alias"/>

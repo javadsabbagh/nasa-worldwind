@@ -49,16 +49,6 @@
                 <type type="file"/>
             </fileset>
         </copy>
-        <!-- Sign the World Wind core and extensions Jar files and the GDAL Jar file. -->
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${worldwind.release.dir}/${worldwind.jarfile}"/>
-        </antcall>
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${worldwind.release.dir}/${worldwind.extensions.jarfile}"/>
-        </antcall>
-        <antcall target="jarsigner">
-            <param name="jarfile" value="${worldwind.release.dir}/${gdal.jarfile}"/>
-        </antcall>
         <!-- Change the permissions of any unix scripts in the root folder to make them executable. -->
         <chmod perm="ugo+rwx">
             <fileset dir="${worldwind.release.dir}">
