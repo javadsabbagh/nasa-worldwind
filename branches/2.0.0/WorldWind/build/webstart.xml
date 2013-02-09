@@ -8,8 +8,9 @@
 <!-- $Id$ -->
 <project name="webstart">
 
-    <!-- Builds the World Wind Java Web Start site in the 'webstart' directory. When the necessary JAR signing
-         properties are specified, the result is a deployable Java Web Start site for the World Wind Java SDK. -->
+    <!-- Builds the World Wind Java Web Start site in the 'webstart' directory. When a keystore.properties file is
+         located in the World Wind project root folder, the result is a deployable Java Web Start site for the World
+         Wind Java SDK. -->
     <target name="webstart.site" depends="webstart.worldwind.jarfiles,
                                           webstart.jogl.jarfiles,
                                           webstart.gdal.jarfiles,
@@ -143,12 +144,8 @@
         </jar>
     </target>
 
-    <!-- Signs all JAR files in the 'webstart' directory provided the following properties have been specified:
-            keystore.file=[path/to/keystore]
-            keystore.alias=[myKeystoreAlias]
-            keystore.storepass=[myKeystorePassword]
-            keystore.tsaurl=[URL for timestamp authority]
-         These properties coincide with the signjar task properties of the same name. -->
+    <!-- Signs all JAR files in the 'webstart' directory provided that a keystore.properties file is located in the
+         World Wind project root folder.  -->
     <target name="webstart.signjar" depends="signjar.setup" if="signjar.enabled">
         <signjar keystore="${keystore.file}" alias="${keystore.alias}" storepass="${keystore.storepass}"
                  tsaurl="${keystore.tsaurl}">

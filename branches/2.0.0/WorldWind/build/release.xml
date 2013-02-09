@@ -9,9 +9,7 @@
 <project name="release">
 
     <!-- Creates the World Wind SDK release in the folder 'worldwind-release'. Includes the entire contents of the World
-         Wind project and the World Wind core and World Wind extensions Jar files. Includes the WebView Jar files for
-         Java Web Start under the 'jws' folder. All Jar files created for the release are signed with a digital
-         signature when the signature files are available. -->
+         Wind project, the World Wind core JAR file, and the World Wind extensions JAR file. -->
     <target name="worldwind.release" depends="clean.build,
                                               clean.worldwind.release,
                                               build"
