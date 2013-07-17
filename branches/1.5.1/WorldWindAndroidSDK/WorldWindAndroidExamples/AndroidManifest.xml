@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright (C) 2001, 2012 United States Government as represented by
+    the Administrator of the National Aeronautics and Space Administration.
+    All Rights Reserved.
+
+    $Id$
+-->
+<!--suppress AndroidDomInspection -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="gov.nasa.worldwindx.examples"
+          android:versionCode="1"
+          android:versionName="1.0">
+
+    <!-- Specify that World Wind Android applications require SDK Platform Android 4.0.3, API 15. -->
+    <uses-sdk android:minSdkVersion="15"/>
+    <!-- Specify all of the Android features that World Wind requires: OpenGL ES 2.0. -->
+    <uses-feature android:glEsVersion="0x00020000"/>
+    <!-- Specify all of the Android permissions that World Wind requires: internet. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!--
+        Define the Android application that launches when the user selects our application's icon in the launch bar. The
+        example activities beneath inherit their icon and label from this application element. We do not configure the
+        label here so that examples do not inherit it.
+
+        Note: The world_wind_examples icon is taken from www.androidicons.com. This icon is licensed under the Creative
+        Commons Attribution 3.0 Unported License.
+    -->
+    <application android:label="@string/WorldWindExamples.displayName"
+                 android:icon="@drawable/world_wind_examples">
+
+        <!--
+            Define the bootstrap activity that launches when the World Wind based activity launches. Configure the
+            android:launchMode attribute as singleTask so that the activity acts as an entry point for the application.
+            Configure the android:configChanges attribute to denote that our application handles orientation and
+            keyboard availability changes itself. This ensures that the application is not shut down and restarted due
+            to either of these changes. Configure this activity's intent filter with the DEFAULT and LAUNCHER categories
+            so this activity is launched by default, instead of the others listed below.
+        -->
+        <activity android:name=".WorldWindExamples"
+                  android:label="@string/WorldWindExamples.displayName"
+                  android:launchMode="singleTask"
+                  android:configChanges="orientation|keyboardHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+        <!--
+            Define the remaining example activities that may be launched by the WorldWindExamples activity. Each
+            activity listed below is displayed in a list by the default WorldWindExamples activity, in the order they
+            appear below. We configure each activity's intent filter with the MAIN action and the SAMPLE_CODE category.
+            The WorldWindExamples activity uses this intent filter to identify the example activities used to populate
+            its list. Note that all activities must be defined here in order to register themselves with the Android
+            application. Without this registration, the Android system has no knowledge of the activity and cannot
+            interact with the activity.
+        -->
+        <activity android:name=".BasicWorldWindActivity"
+                  android:label="@string/BasicWorldWindActivity.displayName"
+                  android:icon="@drawable/globe">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.SAMPLE_CODE"/>
+            </intent-filter>
+            <meta-data android:name="description" android:value="@string/BasicWorldWindActivity.description"/>
+        </activity>
+        <activity android:name=".SimplestPossibleActivity"
+                  android:label="@string/SimplestPossibleActivity.displayName"
+                  android:icon="@drawable/mount_st_helens">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.SAMPLE_CODE"/>
+            </intent-filter>
+            <meta-data android:name="description" android:value="@string/SimplestPossibleActivity.description"/>
+        </activity>
+        <activity android:name=".PathActivity"
+                  android:label="@string/PathActivity.displayName"
+                  android:icon="@drawable/path">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.SAMPLE_CODE"/>
+            </intent-filter>
+            <meta-data android:name="description" android:value="@string/PathActivity.description"/>
+        </activity>
+        <activity android:name=".KMLActivity"
+                  android:label="@string/KMLActivity.displayName"
+                  android:icon="@drawable/kml">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.SAMPLE_CODE"/>
+            </intent-filter>
+            <meta-data android:name="description" android:value="@string/KMLActivity.description"/>
+        </activity>
+        <activity android:name=".PerformanceTestSuite"
+                  android:label="@string/PerformanceTestSuite.displayName"
+                  android:icon="@drawable/performance_test_suite">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.SAMPLE_CODE"/>
+            </intent-filter>
+            <meta-data android:name="description" android:value="@string/PerformanceTestSuite.description"/>
+        </activity>
+
+    </application>
+
+</manifest>

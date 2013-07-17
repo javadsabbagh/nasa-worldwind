@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (C) 2001, 2012 United States Government as represented by
+    the Administrator of the National Aeronautics and Space Administration.
+    All Rights Reserved.
+
+    Resource file containing strings for the World Wind Android examples. The elements in this file are grouped by the
+    example they correspond to.
+
+    $Id$
+-->
+<!--suppress CheckTagEmptyBody -->
+<resources>
+
+    <!--
+        String resources for the World Wind Android Examples main activity.
+    -->
+    <string name="WorldWindExamples.displayName">World Wind Android Examples</string>
+
+    <!--
+        String resources for the Basic World Wind Activity example.
+    -->
+    <string name="BasicWorldWindActivity.displayName">Basic World Wind Activity</string>
+    <string name="BasicWorldWindActivity.description">This is the most basic usage of the World Wind Android SDK. It displays the default globe with its default layers.</string>
+    <string name="dashboard">Dashboard</string>
+    <string name="latitude">Latitude:</string>
+    <string name="longitude">Longitude:</string>
+    <string name="offglobe">off globe</string>
+    <string name="spacer"></string>
+
+    <!--
+        String resources for the Simplest Possible Activity example.
+    -->
+    <string name="SimplestPossibleActivity.displayName">Simplest Possible Activity</string>
+    <string name="SimplestPossibleActivity.description">This example demonstrates the simplest possible way to create an application using the World Wind Android SDK.</string>
+
+    <!--
+        String resources for the Path Activity example.
+    -->
+    <string name="PathActivity.displayName">Paths</string>
+    <string name="PathActivity.description">Example of World Wind path shape usage. A path is a line or curve between positions. The path may follow terrain, and may be turned into a curtain by extruding the path to the ground.</string>
+
+    <!--
+        String resources for the KML Activity example.
+    -->
+    <string name="KMLActivity.displayName">KML</string>
+    <string name="KMLActivity.description">Example of World Wind KML file import. Loads and displays an example KML file that shows flight passageways in the state of Alaska.</string>
+
+
+    <!--
+        String resources for the Performance Test Suite.
+    -->
+    <string name="PerformanceTestSuite.displayName">Performance Test Suite</string>
+    <string name="PerformanceTestSuite.description">Measures OpenGL ES performance by drawing basic primitives with increasing complexity. Includes tests for the most common World Wind primitives: indexed triangle strips, line strips, and quadrilaterals. Results are written to the Android log with the tag \"gov.nasa.worldwind\".</string>
+
+    <!--
+        String resources for the ActivityList utility.
+    -->
+    <string name="ActivityList.iconDescription">Provides a visual depiction of the activity.</string>
+
+</resources>
