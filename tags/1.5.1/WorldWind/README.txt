@@ -74,6 +74,7 @@ http://worldwind.arc.nasa.gov/java/jogl/webstart/gluegen-rt-natives-linux-amd64.
 
 Follow instructions above to extract the archives into the World Wind release folder.
 
+
 New features and improvements in World Wind Java SDK 1.5.1 - July 24, 2013
 ------------------------------------------------------------
 
