@@ -1,15 +1,14 @@
-/*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
- * National Aeronautics and Space Administration.
- * All Rights Reserved.
- */
+/* Copyright (C) 2001, 2009 United States Government as represented by
+the Administrator of the National Aeronautics and Space Administration.
+All Rights Reserved.
+*/
 package gov.nasa.worldwindx.examples.util;
 
 import gov.nasa.worldwind.geom.Position;
 import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL;
 
 /**
  * @author dcollins
@@ -171,7 +170,7 @@ public class ProgressAnnotation extends ScreenAnnotation
 
     protected void drawCallout(DrawContext dc, int mode, java.awt.Rectangle bounds, boolean useTexCoords)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
 
         OGLStackHandler stackHandler = new OGLStackHandler();
         stackHandler.pushModelview(gl);

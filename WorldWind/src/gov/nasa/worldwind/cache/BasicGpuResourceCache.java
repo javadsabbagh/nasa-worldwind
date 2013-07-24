@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
 
 package gov.nasa.worldwind.cache;
 
-import com.jogamp.opengl.util.texture.Texture;
+import com.sun.opengl.util.texture.Texture;
 import gov.nasa.worldwind.util.Logging;
 
 import javax.media.opengl.*;
@@ -24,7 +24,7 @@ import java.util.logging.Level;
  * not deleted and will likely remain allocated on the GPU until the GL context is destroyed.
  *
  * @author tag
- * @version $Id$
+ * @version $ID$
  */
 public class BasicGpuResourceCache implements GpuResourceCache
 {
@@ -74,34 +74,40 @@ public class BasicGpuResourceCache implements GpuResourceCache
         });
     }
 
-    @SuppressWarnings({"UnusedParameters"})
+    @SuppressWarnings( {"UnusedParameters"})
     protected void onEntryRemoved(Object key, Object clientObject)
     {
-        GLContext context = GLContext.getCurrent();
-        if (context == null || context.getGL() == null)
+        if (GLContext.getCurrent() == null)
             return;
 
         if (!(clientObject instanceof CacheEntry)) // shouldn't be null or wrong type, but check anyway
             return;
 
         CacheEntry entry = (CacheEntry) clientObject;
-        GL2 gl = context.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
 
         if (entry.resourceType == TEXTURE)
         {
             // Unbind a tile's texture when the tile leaves the cache.
-            ((Texture) entry.resource).destroy(gl);
+            ((Texture) entry.resource).dispose();
         }
         else if (entry.resourceType == VBO_BUFFERS)
         {
-            int[] ids = (int[]) entry.resource;
-            gl.glDeleteBuffers(ids.length, ids, 0);
+            GL gl = GLContext.getCurrent().getGL();
+            if (gl != null)
+            {
+                int[] ids = (int[]) entry.resource;
+                GLContext.getCurrent().getGL().glDeleteBuffers(ids.length, ids, 0);
+            }
         }
         else if (entry.resourceType == DISPLAY_LISTS)
         {
-            // Delete display list ids. They're in a two-element int array, with the id at 0 and the count at 1
-            int[] ids = (int[]) entry.resource;
-            gl.glDeleteLists(ids[0], ids[1]);
+            GL gl = GLContext.getCurrent().getGL();
+            if (gl != null)
+            {
+                // Delete display list ids. They're in a two-element int array, with the id at 0 and the count at 1
+                int[] ids = (int[]) entry.resource;
+                GLContext.getCurrent().getGL().glDeleteLists(ids[0], ids[1]);
+            }
         }
     }
 

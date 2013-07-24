@@ -6,9 +6,9 @@
  */
 
 #import <Foundation/Foundation.h>
+#import <CoreGraphics/CoreGraphics.h>
 #import "WorldWind/Navigate/WWNavigatorState.h"
 
-@class WorldWindView;
 @class WWMatrix;
 @class WWVec4;
 @class WWFrustum;
@@ -17,73 +17,45 @@
 * Provides an implementation of the WWNavigatorState protocol.
 */
 @interface WWBasicNavigatorState : NSObject<WWNavigatorState>
-{
-@protected
-    // The inverses of the modelview, projection, and concatenated modelview-projection matrices.
-    WWMatrix* modelviewInv;
-    WWMatrix* projectionInv;
-    WWMatrix* modelviewProjectionInv;
-    // The bounds for the view associated with the navigator.
-    CGRect viewBounds;
-    // Constants computed during initialization and used in pixelSizeAtDistance.
-    double pixelSizeScale;
-    double pixelSizeOffset;
-}
 
-/// @name Navigator State Attributes
+/// @name Attributes
 
-/// The navigator's modelview matrix.
+/// The modelview matrix.
 @property (nonatomic, readonly) WWMatrix* modelview;
 
-/// The navigator's projection matrix.
+/// The projection matrix.
 @property (nonatomic, readonly) WWMatrix* projection;
 
-/// The navigator's combined modelview - projection matrix.
+/// The concatenation of the modelview and projection matrices.
 @property (nonatomic, readonly) WWMatrix* modelviewProjection;
 
-/// The navigator's viewport rectangle in OpenGL screen coordinates.
-///
-/// The viewport is in the OpenGL screen coordinate system of the WorldWindView, with its origin in the bottom-left
-/// corner and axes that extend up and to the right from the origin point.
-@property (nonatomic, readonly) CGRect viewport;
-
-/// The navigator's eye point in model coordinates.
+/// The eye point, in model coordinates.
 @property (nonatomic, readonly) WWVec4* eyePoint;
 
-/// The navigator's forward vector in model coordinates.
-@property (nonatomic, readonly) WWVec4* forward;
+/// The view frustum.
+@property (nonatomic, readonly) WWFrustum* frustum;
 
-/// The navigator's forward-ray in model coordinates.
-@property (nonatomic, readonly) WWLine* forwardRay;
-
-/// The navigator's frustum in model coordinates.
+// The view frustum in model coordinates.
 @property (nonatomic, readonly) WWFrustum* frustumInModelCoordinates;
-
-/// The number of degrees of heading clockwise relative to north.
-@property (nonatomic, readonly) double heading;
-
-/// The number of degrees the globe is tilted relative to its surface being parallel to the screen.
-@property (nonatomic, readonly) double tilt;
 
 /// @name Initializing Navigator State
 
 /**
-* Initializes this navigator state.
+* Initialize this navigator state.
 *
-* @param modelviewMatrix The navigator's modelview matrix.
-* @param projectionMatrix The navigator's projection matrix.
-* @param view The World Wind view associated with the navigator. This view defines the navigator's viewport.
-* @param heading The number of degrees clockwise from north to which the view is directed.
-* @param tilt The number of degrees the globe is tilted relative to its surface being parallel to the screen.
+* @param modelviewMatrix The modelview matrix.
+* @param projectionMatrix The projection matrix.
 *
 * @return The initialized instance.
 *
-* @exception NSInvalidArgumentException If any argument is nil.
+* @exception NSInvalidArgumentException if either the modelview or projection matrices are nil.
 */
-- (WWBasicNavigatorState*) initWithModelview:(WWMatrix*)modelviewMatrix
-                                  projection:(WWMatrix*)projectionMatrix
-                                        view:(WorldWindView*)view
-                                     heading:(double)heading
-                                        tilt:(double)tilt;
+- (WWBasicNavigatorState*) initWithModelview:(WWMatrix*)modelviewMatrix projection:(WWMatrix*)projectionMatrix;
+//
+//- (WWBasicNavigatorState*) initWithModelview:(WWMatrix*)modelviewMatrix
+//                                  projection:(WWMatrix*)projectionMatrix
+//                                        viewport:(CGRect)viewport
+//                                nearDistance:(double)nearDistance
+//                                 farDistance:(double)farDistance;
 
 @end

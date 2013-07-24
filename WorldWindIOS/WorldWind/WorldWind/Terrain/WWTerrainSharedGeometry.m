@@ -4,7 +4,10 @@ National Aeronautics and Space Administration.
 All Rights Reserved.
 */
 
+
+
 #import "WWTerrainSharedGeometry.h"
+
 
 @implementation WWTerrainSharedGeometry
 
@@ -12,8 +15,7 @@ All Rights Reserved.
 {
     self = [super init];
 
-    _texCoordVboCacheKey = @"TexCoordVboCacheKey.WWTerrainSharedGeometry";
-    _indicesVboCacheKey = @"IndicesVboCacheKey.WWTerrainSharedGeometry";
+    _vboCacheKey = [[NSObject alloc] init];
 
     return self;
 }

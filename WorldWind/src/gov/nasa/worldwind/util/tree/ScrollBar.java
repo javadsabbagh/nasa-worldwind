@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
@@ -12,7 +12,7 @@ import gov.nasa.worldwind.pick.PickSupport;
 import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -785,24 +785,24 @@ public class ScrollBar implements Renderable
      */
     protected void draw(DrawContext dc)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
         OGLStackHandler oglStack = new OGLStackHandler();
         try
         {
             oglStack.pushAttrib(gl,
-                GL2.GL_COLOR_BUFFER_BIT
-                    | GL2.GL_CURRENT_BIT
-                    | GL2.GL_LINE_BIT
-                    | GL2.GL_POLYGON_BIT);
+                GL.GL_COLOR_BUFFER_BIT
+                    | GL.GL_CURRENT_BIT
+                    | GL.GL_LINE_BIT
+                    | GL.GL_POLYGON_BIT);
 
             gl.glLineWidth(1f);
             OGLUtil.applyColor(gl, this.getLineColor(), this.getOpacity(), false);
 
-            gl.glPolygonMode(GL2.GL_FRONT, GL2.GL_LINE);
+            gl.glPolygonMode(GL.GL_FRONT, GL.GL_LINE);
 
             try
             {
-                gl.glBegin(GL2.GL_QUADS);
+                gl.glBegin(GL.GL_QUADS);
                 // Draw scroll bar frame
                 this.drawQuad(dc, this.bounds);
 
@@ -815,7 +815,7 @@ public class ScrollBar implements Renderable
                 gl.glEnd();
             }
 
-            gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_FILL);
+            gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL);
 
             // Draw background gradient
             String gradientDirection;
@@ -829,11 +829,11 @@ public class ScrollBar implements Renderable
             // Draw a border around the knob
             OGLUtil.applyColor(gl, this.getLineColor(), this.getOpacity(), false);
 
-            gl.glBegin(GL2.GL_LINE_LOOP);
+            gl.glBegin(GL.GL_LINE_LOOP);
             this.drawQuad(dc, this.scrollKnobBounds);
             gl.glEnd();
 
-            gl.glPolygonMode(GL2.GL_FRONT_AND_BACK, GL2.GL_FILL);
+            gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_FILL);
             if (AVKey.VERTICAL.equals(this.getOrientation()))
             {
                 this.drawTriangle(dc, 90, this.scrollUpControlBounds, arrowInsets);
@@ -858,13 +858,13 @@ public class ScrollBar implements Renderable
      */
     protected void doPick(DrawContext dc)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
         try
         {
             this.pickSupport.clearPickList();
             this.pickSupport.beginPicking(dc);
 
-            gl.glBegin(GL2.GL_QUADS);
+            gl.glBegin(GL.GL_QUADS);
 
             this.drawPickableQuad(dc, this.scrollDownControl, this.scrollDownControlBounds);
             this.drawPickableQuad(dc, this.scrollUpControl, this.scrollUpControlBounds);
@@ -893,7 +893,7 @@ public class ScrollBar implements Renderable
      */
     protected void drawPickableQuad(DrawContext dc, Object pickObject, Rectangle bounds)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
 
         Color color = dc.getUniquePickColor();
         int colorCode = color.getRGB();
@@ -912,7 +912,7 @@ public class ScrollBar implements Renderable
      */
     protected void drawQuad(DrawContext dc, Rectangle bounds)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
 
         int minX = (int) bounds.getMinX();
         int minY = (int) bounds.getMinY();
@@ -936,7 +936,7 @@ public class ScrollBar implements Renderable
      */
     protected void drawTriangle(DrawContext dc, float rotation, Rectangle bounds, Insets insets)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
 
         try
         {
@@ -976,7 +976,7 @@ public class ScrollBar implements Renderable
             gl.glTranslated(insetBounds.x + adjustX, insetBounds.y + adjustY, 1.0);
             gl.glRotatef(rotation, 0, 0, 1);
 
-            gl.glBegin(GL2.GL_TRIANGLES);
+            gl.glBegin(GL.GL_TRIANGLES);
             gl.glVertex2f(0, halfHeight);
             gl.glVertex2f(halfWidth, 0);
             gl.glVertex2f(0, -halfHeight);

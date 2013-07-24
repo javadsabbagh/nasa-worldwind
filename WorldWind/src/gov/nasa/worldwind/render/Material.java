@@ -1,13 +1,14 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
 package gov.nasa.worldwind.render;
 
-import gov.nasa.worldwind.util.*;
+import gov.nasa.worldwind.util.Logging;
+import gov.nasa.worldwind.util.RestorableSupport;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL;
 import java.awt.*;
 
 /**
@@ -22,20 +23,20 @@ public class Material
     private final Color emission;
     private final double shininess;
 
-    public static final Material WHITE = new Material(Color.WHITE);
-    public static final Material LIGHT_GRAY = new Material(Color.LIGHT_GRAY);
-    public static final Material GRAY = new Material(Color.GRAY);
-    public static final Material DARK_GRAY = new Material(Color.DARK_GRAY);
-    public static final Material BLACK = new Material(Color.BLACK);
-    public static final Material RED = new Material(Color.RED);
-    public static final Material PINK = new Material(Color.PINK);
-    public static final Material ORANGE = new Material(Color.ORANGE);
-    public static final Material YELLOW = new Material(Color.YELLOW);
-    public static final Material GREEN = new Material(Color.GREEN);
-    public static final Material MAGENTA = new Material(Color.MAGENTA);
-    public static final Material CYAN = new Material(Color.CYAN);
-    public static final Material BLUE = new Material(Color.BLUE);
-
+    public static final Material WHITE          = new Material(Color.WHITE);
+    public static final Material LIGHT_GRAY     = new Material(Color.LIGHT_GRAY);
+    public static final Material GRAY           = new Material(Color.GRAY);
+    public static final Material DARK_GRAY      = new Material(Color.DARK_GRAY);
+    public static final Material BLACK          = new Material(Color.BLACK);
+    public static final Material RED            = new Material(Color.RED);
+    public static final Material PINK           = new Material(Color.PINK);
+    public static final Material ORANGE         = new Material(Color.ORANGE);
+    public static final Material YELLOW         = new Material(Color.YELLOW);
+    public static final Material GREEN          = new Material(Color.GREEN);
+    public static final Material MAGENTA        = new Material(Color.MAGENTA);
+    public static final Material CYAN           = new Material(Color.CYAN);
+    public static final Material BLUE           = new Material(Color.BLUE);
+    
     public Material(Color specular, Color diffuse, Color ambient, Color emission, float shininess)
     {
         if (specular == null || diffuse == null || ambient == null || emission == null)
@@ -109,7 +110,7 @@ public class Material
         return this.shininess;
     }
 
-    public void apply(GL2 gl, int face)
+    public void apply(GL gl, int face)
     {
         if (gl == null)
         {
@@ -118,14 +119,14 @@ public class Material
             throw new IllegalArgumentException(msg);
         }
 
-        glMaterial(gl, face, GL2.GL_AMBIENT, this.ambient);
-        glMaterial(gl, face, GL2.GL_DIFFUSE, this.diffuse);
-        glMaterial(gl, face, GL2.GL_SPECULAR, this.specular);
-        glMaterial(gl, face, GL2.GL_EMISSION, this.emission);
-        gl.glMaterialf(face, GL2.GL_SHININESS, (float) this.shininess);
+        glMaterial(gl, face, GL.GL_AMBIENT, this.ambient);
+        glMaterial(gl, face, GL.GL_DIFFUSE, this.diffuse);
+        glMaterial(gl, face, GL.GL_SPECULAR, this.specular);
+        glMaterial(gl, face, GL.GL_EMISSION, this.emission);
+        gl.glMaterialf(face, GL.GL_SHININESS, (float) this.shininess);
     }
 
-    public void apply(GL2 gl, int face, float alpha)
+    public void apply(GL gl, int face, float alpha)
     {
         if (gl == null)
         {
@@ -136,14 +137,14 @@ public class Material
 
         // The alpha value at a vertex is taken only from the diffuse material's alpha channel. Therefore we specify
         // alpha for the diffuse value, and alpha=0 for ambient, specular and emission values.
-        glMaterial(gl, face, GL2.GL_AMBIENT, this.ambient, 0.0f);
-        glMaterial(gl, face, GL2.GL_DIFFUSE, this.diffuse, alpha);
-        glMaterial(gl, face, GL2.GL_SPECULAR, this.specular, 0.0f);
-        glMaterial(gl, face, GL2.GL_EMISSION, this.emission, 0.0f);
-        gl.glMaterialf(face, GL2.GL_SHININESS, (float) this.shininess);
+        glMaterial(gl, face, GL.GL_AMBIENT, this.ambient, 0.0f);
+        glMaterial(gl, face, GL.GL_DIFFUSE, this.diffuse, alpha);
+        glMaterial(gl, face, GL.GL_SPECULAR, this.specular, 0.0f);
+        glMaterial(gl, face, GL.GL_EMISSION, this.emission, 0.0f);
+        gl.glMaterialf(face, GL.GL_SHININESS, (float) this.shininess);
     }
 
-    protected void glMaterial(GL2 gl, int face, int name, Color color)
+    protected void glMaterial(GL gl, int face, int name, Color color)
     {
         if (gl == null)
         {
@@ -163,7 +164,7 @@ public class Material
         gl.glMaterialfv(face, name, compArray, 0);
     }
 
-    protected void glMaterial(GL2 gl, int face, int name, Color color, float alpha)
+    protected void glMaterial(GL gl, int face, int name, Color color, float alpha)
     {
         if (gl == null)
         {
@@ -177,14 +178,14 @@ public class Material
             Logging.logger().severe(msg);
             throw new IllegalArgumentException(msg);
         }
-
+        
         float[] compArray = new float[4];
         color.getRGBComponents(compArray);
         compArray[3] = alpha;
         gl.glMaterialfv(face, name, compArray, 0);
     }
 
-    //protected void glMaterialPremult(GL2 gl, int face, int name, Color color)
+    //protected void glMaterialPremult(GL gl, int face, int name, Color color)
     //{
     //    float[] compArray = new float[4];
     //    color.getRGBComponents(compArray);
@@ -194,7 +195,7 @@ public class Material
     //    gl.glMaterialfv(face, name, compArray, 0);
     //}
 
-    //protected void glMaterialfvPremult(GL2 gl, int face, int name, Color color, float alpha)
+    //protected void glMaterialfvPremult(GL gl, int face, int name, Color color, float alpha)
     //{
     //    float[] compArray = new float[4];
     //    color.getRGBColorComponents(compArray);

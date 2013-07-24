@@ -25,8 +25,23 @@
 @protected
     NSString* programKey;
     WWMatrix* tileCoordMatrix;
-    WWMatrix* textureMatrix;
+    WWMatrix* texCoordMatrix;
 }
+
+/// @name Surface Tile Renderer Attributes
+
+/// The surface tiles intersecting the terrain tile most recently specified to assembleIntersectingTiles.
+@property (nonatomic, readonly) NSMutableArray* intersectingTiles;
+
+/// The terrain tiles intersecting the surface tile most recently specified to assembleIntersectingGeometry.
+@property (nonatomic, readonly) NSMutableArray* intersectingGeometry;
+
+/**
+* Returns the GPU program (WWGpuProgram) used by this surface tile renderer.
+*
+* @param dc The current draw context.
+*/
+- (WWGpuProgram*) gpuProgram:(WWDrawContext*)dc;
 
 /// @name Initialized a Surface Tile Renderer
 
@@ -46,11 +61,10 @@
 *
 * @param dc The current draw context.
 * @param surfaceTile The surface tile to draw.
-* @param opacity The opacity with which to render the tile.
 *
 * @exception NSInvalidArgumentException If either the draw context or surface tile are nil.
 */
-- (void) renderTile:(WWDrawContext*)dc surfaceTile:(id <WWSurfaceTile>)surfaceTile opacity:(float)opacity;
+- (void) renderTile:(WWDrawContext*)dc surfaceTile:(id <WWSurfaceTile>)surfaceTile;
 
 /**
 * Draws a collection of surface tiles at their designated locations on the globe.
@@ -59,22 +73,47 @@
 *
 * @param dc The current draw context.
 * @param surfaceTiles The list of surface tiles to draw.
-* @param opacity The opacity with which to render the tiles.
 *
 * @exception If either the draw context or surface tile list is nil.
 */
-- (void) renderTiles:(WWDrawContext*)dc surfaceTiles:(NSArray*)surfaceTiles opacity:(float)opacity;
+- (void) renderTiles:(WWDrawContext*)dc surfaceTiles:(NSArray*)surfaceTiles;
 
 /// @name Supporting Methods of Interest Only to Subclasses
 
+/**
+* Determine the surface tiles that intersect a specified terrain tile.
+*
+* This method places the set of intersecting surface tiles in this instance's intersectingTiles property.
+*
+* @param terrainTile The terrain tile to find intersections for.
+* @param surfaceTiles The surface tiles to test for intersection.
+*/
+- (void) assembleIntersectingTiles:(WWTerrainTile*)terrainTile surfaceTiles:(NSArray*)surfaceTiles;
+
+/**
+* Determine the terrain tiles that intersect a specified surface tile.
+*
+* This method places the set of intersecting tiles in this instance's intersectingGeometry property.
+*
+* @param surfaceTile The surface tile to find intersections for.
+* @param terrainTiles The terrain tiles to test for intersection.
+*/
+- (void) assembleIntersectingGeometry:(id <WWSurfaceTile>)surfaceTile terrainTiles:(WWTerrainTileList*)terrainTiles;
+
+
 // The following methods are intentionally not documented.
-
-- (void) beginRendering:(WWDrawContext*)dc opacity:(float)opacity;
-
-- (void) endRendering:(WWDrawContext*)dc;
 
 - (void) applyTileState:(WWDrawContext*)dc
             terrainTile:(WWTerrainTile*)terrainTile
             surfaceTile:(id <WWSurfaceTile>)surfaceTile;
 
+- (void) computeTileCoordMatrix:(WWTerrainTile*)terrainTile
+                    surfaceTile:(id <WWSurfaceTile>)surfaceTile
+                         result:(WWMatrix*)result;
+
+- (void) beginRendering:(WWDrawContext*)dc program:(WWGpuProgram*)program;
+
+- (void) endRendering:(WWDrawContext*)dc;
+
 @end
+

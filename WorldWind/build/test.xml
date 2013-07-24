@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<!--
-  ~ Copyright (C) 2012 United States Government as represented by the Administrator of the
-  ~ National Aeronautics and Space Administration.
-  ~ All Rights Reserved.
-  -->
-
-<!-- $Id$ -->
+<!--$Id$-->
 <project name="test">
 
     <!-- Compiles all World Wind Java sources under the 'test' folder into Java class files under the 'testClasses'
@@ -23,20 +17,17 @@
                destdir="${worldwind.test.classes.dir}"
                source="${worldwind.jdk.version}"
                target="${worldwind.jdk.version}"
-               encoding="UTF-8"
                fork="true"
                includeantruntime="false"
                memoryMaximumSize="512m">
             <classpath>
                 <pathelement location="${worldwind.classes.dir}"/>
-                <pathelement location="jogl-all.jar"/>
+                <pathelement location="jogl.jar"/>
                 <pathelement location="gluegen-rt.jar"/>
                 <pathelement location="gdal.jar"/>
                 <pathelement location="build/lib/junit-4.5.jar"/>
                 <pathelement location="${java.home}/lib/plugin.jar"/>
             </classpath>
-            <compilerarg value="-Xlint:unchecked"/>
-            <compilerarg value="-Xlint:-options"/>
         </javac>
     </target>
 
@@ -52,7 +43,7 @@
                 <pathelement location="${worldwind.src.dir}"/>
                 <pathelement location="${worldwind.classes.dir}"/>
                 <pathelement location="${worldwind.test.classes.dir}"/>
-                <pathelement location="jogl-all.jar"/>
+                <pathelement location="jogl.jar"/>
                 <pathelement location="gluegen-rt.jar"/>
                 <pathelement location="gdal.jar"/>
                 <pathelement location="build/lib/junit-4.5.jar"/>

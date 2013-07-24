@@ -6,136 +6,62 @@
  */
 
 #import "WorldWind/Util/WWRetriever.h"
+#import "WorldWind/Util/WWUtil.h"
 #import "WorldWind/WorldWind.h"
 
 @implementation WWRetriever
 
-- (WWRetriever*) initWithUrl:(NSURL*)url
-                   timeout:(NSTimeInterval)timeout
-             finishedBlock:(void (^) (WWRetriever*))finishedBlock;
+- (WWRetriever*) initWithUrl:(NSURL*)url filePath:(NSString*)filePath notification:(NSNotification*)notification
 {
     if (url == nil)
     {
         WWLOG_AND_THROW(NSInvalidArgumentException, @"URL is nil")
     }
 
-    if (finishedBlock == nil)
+    if (filePath == nil || [filePath length] == 0)
     {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Finished block is nil")
+        WWLOG_AND_THROW(NSInvalidArgumentException, @"File path is nil or empty")
     }
 
     self = [super init];
 
     _url = url;
-    _timeout = timeout;
-    finished = finishedBlock;
-
-    _retrievedData = [[NSMutableData alloc] init];
+    _filePath = filePath;
+    _notification = notification;
 
     return self;
 }
 
 - (void) main
 {
-    [self performRetrieval];
-}
-
-- (void) performRetrieval
-{
-    if (![WorldWind isNetworkAvailable])
-    {
-        _status = WW_CANCELED;
-        [self doFinish];
-    }
-    else
-    {
-        @try
-        {
-            [WorldWind setNetworkBusySignalVisible:YES];
-
-            NSURLRequest* request = [[NSURLRequest alloc] initWithURL:_url
-                                                          cachePolicy:NSURLRequestReloadIgnoringLocalCacheData
-                                                      timeoutInterval:_timeout];
-            NSURLConnection* connection = [[NSURLConnection alloc] initWithRequest:request delegate:self
-                                                                  startImmediately:YES];
-
-            if (![NSThread isMainThread])
-            {
-                // Set up this thread to remain running until all the data has been retrieved.
-                // See http://www.cocoaintheshell.com/2011/04/nsurlconnection-synchronous-asynchronous/
-                // If this is not done, this thread's delegate methods do not get called because they're called on the
-                // thread that created the connection (this thread) but that thread exits at the end of this method, which
-                // is before the delegates are called. Thus when the connection tries to call the delegates the thread to
-                // call them on doesn't exist.
-                NSRunLoop* runLoop = [NSRunLoop currentRunLoop];
-                [connection scheduleInRunLoop:runLoop forMode:NSDefaultRunLoopMode];
-                [connection start];
-                [runLoop runUntilDate:[NSDate distantFuture]];
-            }
-        }
-        @catch (NSException* exception)
-        {
-            [WorldWind setNetworkBusySignalVisible:NO];
-
-            NSString* msg = [NSString stringWithFormat:@"Retrieving %@", _url];
-            WWLogE(msg, exception);
-        }
-    }
-}
-
-- (void) connection:(NSURLConnection*)connection didFailWithError:(NSError*)error
-{
-    [WorldWind setNetworkBusySignalVisible:NO];
-    _status = WW_FAILED;
-    [self doFinish];
-}
-
-- (void) connection:(NSURLConnection*)connection didReceiveResponse:(NSURLResponse*)response
-{
-    [_retrievedData setLength:0];
-}
-
-- (void) connection:(NSURLConnection*)connection didReceiveData:(NSData*)data
-{
-    [_retrievedData appendData:data];
-}
-
-- (void) connectionDidFinishLoading:(NSURLConnection*)connection
-{
-    [WorldWind setNetworkBusySignalVisible:NO];
-
-    _status = WW_SUCCEEDED;
-    [self doFinish];
-}
-
-- (void) doFinish
-{
     @try
     {
-        finished(self);
+        if (![self isCancelled])
+        {
+            if ([WWUtil retrieveUrl:_url toFile:_filePath] && _notification != nil)
+            {
+                [[NSNotificationCenter defaultCenter] postNotification:_notification];
+            }
+        }
     }
     @catch (NSException* exception)
     {
-        NSString* msg = [NSString stringWithFormat:@"Finishing retrieval of %@", _url];
+        NSString* msg = [NSString stringWithFormat:@"Retrieving %@ to %@", _url, _filePath];
         WWLogE(msg, exception);
     }
     @finally
     {
-        [self stopRunLoop];
     }
 }
 
-- (NSCachedURLResponse*) connection:(NSURLConnection*)connection willCacheResponse:(NSCachedURLResponse*)cachedResponse
+- (void) addToQueue:(WWRetriever*)retriever
 {
-    return nil; // prevent caching in order to avoid excessive memory usage
-}
-
-- (void) stopRunLoop
-{
-    if (![NSThread isMainThread])
+    if (retriever == nil)
     {
-        [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.01]];
+        WWLOG_AND_THROW(NSInvalidArgumentException, @"Retriever is nil")
     }
+
+    [[WorldWind retrievalQueue] addOperation:retriever];
 }
 
 @end

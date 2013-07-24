@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
@@ -15,7 +15,7 @@ import gov.nasa.worldwind.pick.PickSupport;
 import gov.nasa.worldwind.util.*;
 import gov.nasa.worldwind.util.measure.LengthMeasurer;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
@@ -670,9 +670,9 @@ public class Polyline extends AVListImpl implements Renderable, OrderedRenderabl
 
     protected void drawOrderedRenderable(DrawContext dc)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
 
-        int attrBits = GL2.GL_HINT_BIT | GL2.GL_CURRENT_BIT | GL2.GL_LINE_BIT;
+        int attrBits = GL.GL_HINT_BIT | GL.GL_CURRENT_BIT | GL.GL_LINE_BIT;
         if (!dc.isPickingMode())
         {
             if (this.color.getAlpha() != 255)
@@ -693,7 +693,7 @@ public class Polyline extends AVListImpl implements Renderable, OrderedRenderabl
                     gl.glEnable(GL.GL_BLEND);
                     gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
                 }
-                gl.glColor4ub((byte) this.color.getRed(), (byte) this.color.getGreen(),
+                dc.getGL().glColor4ub((byte) this.color.getRed(), (byte) this.color.getGreen(),
                     (byte) this.color.getBlue(), (byte) this.color.getAlpha());
             }
             else
@@ -708,22 +708,22 @@ public class Polyline extends AVListImpl implements Renderable, OrderedRenderabl
 
             if (this.stippleFactor > 0)
             {
-                gl.glEnable(GL2.GL_LINE_STIPPLE);
+                gl.glEnable(GL.GL_LINE_STIPPLE);
                 gl.glLineStipple(this.stippleFactor, this.stipplePattern);
             }
             else
             {
-                gl.glDisable(GL2.GL_LINE_STIPPLE);
+                gl.glDisable(GL.GL_LINE_STIPPLE);
             }
 
-            int hintAttr = GL2.GL_LINE_SMOOTH_HINT;
+            int hintAttr = GL.GL_LINE_SMOOTH_HINT;
             if (this.filled)
-                hintAttr = GL2.GL_POLYGON_SMOOTH_HINT;
+                hintAttr = GL.GL_POLYGON_SMOOTH_HINT;
             gl.glHint(hintAttr, this.antiAliasHint);
 
-            int primType = GL2.GL_LINE_STRIP;
+            int primType = GL.GL_LINE_STRIP;
             if (this.filled)
-                primType = GL2.GL_POLYGON;
+                primType = GL.GL_POLYGON;
 
             if (dc.isPickingMode())
                 gl.glLineWidth((float) this.lineWidth + 8);
@@ -764,7 +764,7 @@ public class Polyline extends AVListImpl implements Renderable, OrderedRenderabl
                         gl.glEnable(GL.GL_BLEND);
                         gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
                     }
-                    gl.glColor4ub((byte) this.highlightColor.getRed(), (byte) this.highlightColor.getGreen(),
+                    dc.getGL().glColor4ub((byte) this.highlightColor.getRed(), (byte) this.highlightColor.getGreen(),
                         (byte) this.highlightColor.getBlue(), (byte) this.highlightColor.getAlpha());
 
                     gl.glLineWidth((float) this.lineWidth + 2);

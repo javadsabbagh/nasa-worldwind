@@ -9,8 +9,8 @@
 #import "WorldWind/WWLog.h"
 #import "WorldWind/Terrain/WWTessellator.h"
 #import "WorldWind/Geometry/WWVec4.h"
-#import "WorldWind/Terrain/WWTerrainTile.h"
-#import "WorldWind/Geometry/WWSector.h"
+#import "WWTerrainTile.h"
+#import "WWSector.h"
 
 @implementation WWTerrainTileList
 
@@ -49,9 +49,14 @@
     return [self->tiles count];
 }
 
-- (void) removeAllTiles
+- (void) beginRendering:(WWDrawContext*)dc
 {
-    [self->tiles removeAllObjects];
+    [_tessellator beginRendering:dc];
+}
+
+- (void) endRendering:(WWDrawContext*)dc
+{
+    [_tessellator endRendering:dc];
 }
 
 - (BOOL) surfacePoint:(double)latitude
@@ -64,8 +69,9 @@
         WWLOG_AND_THROW(NSInvalidArgumentException, @"Result pointer is nil")
     }
 
-    for (WWTerrainTile* tile in tiles)
+    for (NSUInteger i = 0; i < [self->tiles count]; i++)
     {
+        WWTerrainTile* tile = [self->tiles objectAtIndex:i];
         if ([[tile sector] contains:latitude longitude:longitude])
         {
             [tile surfacePoint:latitude longitude:longitude offset:offset result:result];

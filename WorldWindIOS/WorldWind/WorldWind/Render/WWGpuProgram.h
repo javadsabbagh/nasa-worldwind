@@ -12,7 +12,6 @@
 
 @class WWGpuShader;
 @class WWMatrix;
-@class WWColor;
 
 /**
 * Represents an OpenGL shading language (GLSL) shader program and provides methods for identifying and accessing shader
@@ -71,7 +70,7 @@
 */
 - (void) dispose;
 
-/// @name Accessing Vertex Attributes
+/// @name Accessing Shader Variables
 
 /**
 * Returns the GLSL attribute location of a specified attribute name.
@@ -84,9 +83,7 @@
 *
 * @exception NSInvalidArgumentException If the specified name is nil or empty.
 */
-- (int) attributeLocation:(NSString*)attributeName;
-
-/// @name Accessing Uniform Variables
+- (int) getAttributeLocation:(NSString*)attributeName;
 
 /**
 * Returns the GLSL uniform variable location of a specified uniform name.
@@ -99,54 +96,32 @@
 *
 * @exception NSInvalidArgumentException If the specified name is nil or empty.
 */
-- (int) uniformLocation:(NSString*)uniformName;
+- (int) getUniformLocation:(NSString*)uniformName;
 
 /**
-* Loads the specified matrix as the value of a GLSL 4x4 matrix uniform variable with the specified location index.
+* Sets the values of a named uniform matrix variable to those of a specified matrix.
 *
-* An OpenGL context must be current when this method is called, and an OpenGL program must be bound. The result of this
-* method is undefined if there is no current OpenGL context or no current program.
+* An OpenGL context must be current when this method is called.
 *
-* This converts the matrix into column-major order prior to loading its components into the GLSL uniform variable, but
-* does not modify the specified matrix.
+* @param uniformName The name of the uniform matrix variable.
+* @param matrix The values to set the uniform matrix variable to.
 *
-* @param matrix The matrix to set the uniform variable to.
-* @param location The location index of the uniform variable in the currently bound OpenGL program.
-*
-* @exception NSInvalidArgumentException If the matrix is nil.
+* @exception NSInvalidArgumentException If the uniform variable's name is nil or empty, the specified matrix is nil,
+* or the named uniform variable does not exist.
 */
-+ (void) loadUniformMatrix:(WWMatrix*)matrix location:(GLuint)location;
+- (void) loadUniformMatrix:(NSString*)uniformName matrix:(WWMatrix*)matrix;
 
 /**
-* Loads the specified color as the value of a GLSL vec4 uniform variable with the specified location index.
+* Sets the value of a named uniform sampler to a specified value.
 *
-* An OpenGL context must be current when this method is called, and an OpenGL program must be bound. The result of this
-* method is undefined if there is no current OpenGL context or no current program.
+* An OpenGL context must be current when this method is called.
 *
-* This multiplies the red, green and blue components by the alpha component prior to loading the color in the GLSL
-* uniform variable, but does not modify the specified color.
+* @param samplerName The name of the uniform sampler.
+* @param value The value to set the sampler to.
 *
-* @param color The color to set the uniform variable to.
-* @param location The location index of the uniform variable in the currently bound OpenGL program.
-*
-* @exception NSInvalidArgumentException If the color is nil.
+* @exception NSInvalidArgumentException If the specified sampler name is nil or empty or the sampler does not exist.
 */
-+ (void) loadUniformColor:(WWColor*)color location:(GLuint)location;
-
-/**
-* Loads the specified pick color as the value of a GLSL vec4 uniform variable with the specified location index.
-*
-* An OpenGL context must be current when this method is called, and an OpenGL program must be bound. The result of this
-* method is undefined if there is no current OpenGL context or no current program.
-*
-* This converts the color from a packed 32-bit integer representation in the range [0,255] to a floating-point
-* representation in the range [0,1]. The red, green, blue and alpha components are otherwise loaded in the GLSL uniform
-* variable without modification.
-*
-* @param color The color to set the uniform variable to.
-* @param location The location index of the uniform variable in the currently bound OpenGL program.
-*/
-+ (void) loadUniformPickColor:(unsigned int)color location:(GLuint)location;
+- (void) loadUniformSampler:(NSString*)samplerName value:(int)value;
 
 /// @name Supporting Methods
 

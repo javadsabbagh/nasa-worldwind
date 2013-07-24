@@ -1,11 +1,12 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
- * National Aeronautics and Space Administration.
- * All Rights Reserved.
- */
+Copyright (C) 2001, 2011 United States Government
+as represented by the Administrator of the
+National Aeronautics and Space Administration.
+All Rights Reserved.
+*/
 package gov.nasa.worldwindx.examples;
 
-import com.jogamp.opengl.util.awt.TextRenderer;
+import com.sun.opengl.util.j2d.TextRenderer;
 import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.event.*;
@@ -16,14 +17,14 @@ import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.util.*;
 import gov.nasa.worldwindx.examples.util.PowerOfTwoPaddedImage;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL;
 import javax.swing.*;
 import javax.swing.Box;
 import javax.swing.border.*;
 import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.*;
+import java.awt.image.BufferedImage;
 import java.net.URL;
 
 /**
@@ -375,7 +376,7 @@ public class Annotations extends ApplicationTemplate
 
                 protected void applyScreenTransform(DrawContext dc, int x, int y, int width, int height, double scale)
                 {
-                    GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+                    GL gl = dc.getGL();
                     gl.glTranslated(x, y, 0);
                     gl.glScaled(scale, scale, 1);
                 }
@@ -403,11 +404,11 @@ public class Annotations extends ApplicationTemplate
                     Color borderColor = this.getAttributes().getBorderColor();
                     this.applyColor(dc, borderColor, opacity, false);
                     // Draw 3x3 shape from its bottom left corner
-                    GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+                    GL gl = dc.getGL();
                     gl.glDisable(GL.GL_LINE_SMOOTH);
-                    gl.glDisable(GL2.GL_LINE_STIPPLE);
+                    gl.glDisable(GL.GL_LINE_STIPPLE);
                     gl.glLineWidth(1);
-                    gl.glTranslated(-1, -1, 0);
+                    dc.getGL().glTranslated(-1, -1, 0);
                     FrameFactory.drawShape(dc, AVKey.SHAPE_RECTANGLE, 3, 3, GL.GL_LINE_STRIP, 0);
                 }
             }
@@ -453,15 +454,14 @@ public class Annotations extends ApplicationTemplate
                     // set during drawing.
                     this.applyColor(dc, Color.BLACK, 0.5 * opacity, true);
                     // Translate to draw area bottom left corner, 3 pixels outside
-                    GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
-                    gl.glTranslated(insetBounds.x - 3, insetBounds.y - 3, 0);
+                    dc.getGL().glTranslated(insetBounds.x - 3, insetBounds.y - 3, 0);
                     FrameFactory.drawShape(dc, AVKey.SHAPE_RECTANGLE, insetBounds.width + 6,
                         insetBounds.height + 6, GL.GL_LINE_STRIP, 4);
 
                     // Draw another frame in the free space if any
                     if (freeBounds.height > 0)
                     {
-                        gl.glTranslated(+3, +3, 0);
+                        dc.getGL().glTranslated(+3, +3, 0);
                         FrameFactory.drawShape(dc, AVKey.SHAPE_ELLIPSE, freeBounds.width,
                             freeBounds.height, GL.GL_TRIANGLE_FAN, 0);
                     }

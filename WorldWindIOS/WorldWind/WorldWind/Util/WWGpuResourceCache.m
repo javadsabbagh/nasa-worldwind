@@ -14,40 +14,40 @@
 
 @implementation WWGpuResourceCacheEntry
 
-- (WWGpuResourceCacheEntry*) initWithResource:(id)object resourceType:(NSString*)type;
+- (WWGpuResourceCacheEntry*) initWithResource:(id)resource resourceType:(NSString*)resourceType;
 {
     self = [super init];
 
-    resource = object;
-    resourceType = type;
+    _resource = resource;
+    _resourceType = resourceType;
 
     return self;
 }
 
-- (WWGpuResourceCacheEntry*) initWithResource:(id)object resourceType:(NSString*)type size:(long)size;
+- (WWGpuResourceCacheEntry*) initWithResource:(id)resource resourceType:(NSString*)resourceType size:(long)size;
 {
     self = [super init];
 
-    resource = object;
-    resourceType = type;
-    resourceSize = size;
+    _resource = resource;
+    _resourceType = resourceType;
+    _resourceSize = size;
 
     return self;
 }
 
 - (long) sizeInBytes // WWCacheable protocol
 {
-    return resourceSize;
+    return _resourceSize;
 }
 @end
 
 @implementation WWGpuResourceCache
 
-- (WWGpuResourceCache*) initWithLowWater:(long)lowWater capacity:(long)capacity
+- (WWGpuResourceCache*) initWithLowWater:(long)lowWater highWater:(long)highWater
 {
     self = [super init];
 
-    self->resources = [[WWMemoryCache alloc] initWithCapacity:capacity lowWater:lowWater];
+    self->resources = [[WWMemoryCache alloc] initWithCapacity:highWater lowWater:lowWater];
     [self->resources addCacheListener:self]; // install entry-removed and removal-exception handler
 
     return self;
@@ -57,25 +57,10 @@
 {
     WWGpuResourceCacheEntry* entry = (WWGpuResourceCacheEntry*) value;
 
-    if ([entry->resource respondsToSelector:@selector(dispose)])
+    if ([[entry resource] respondsToSelector:@selector(dispose)])
     {
-        [self performSelectorOnMainThread:@selector(disposeTexture:) withObject:entry waitUntilDone:NO];
+        [[entry resource] dispose];
     }
-    else if ([entry->resourceType isEqualToString:WW_GPU_VBO])
-    {
-        [self performSelectorOnMainThread:@selector(disposeVBO:) withObject:entry waitUntilDone:NO];
-    }
-}
-
-- (void) disposeTexture:(id)entry
-{
-    [((WWGpuResourceCacheEntry*) entry)->resource dispose];
-}
-
-- (void) disposeVBO:(id)entry
-{
-    GLuint bufferId = (GLuint) [((NSNumber*) ((WWGpuResourceCacheEntry*) entry)->resource) intValue];
-    glDeleteBuffers(1, &bufferId);
 }
 
 - (void) removalException:(NSException*)exception key:(id <NSCopying>)key value:(id)value // memory cache listener
@@ -83,40 +68,40 @@
     WWLogE(@"removing GPU resource", exception);
 }
 
-- (NSObject*) resourceForKey:(id <NSCopying> __unsafe_unretained)key
+- (NSObject*) getResourceForKey:(id <NSCopying>)key
 {
     if (key == nil)
     {
         WWLOG_AND_THROW(NSInvalidArgumentException, @"Key is nil")
     }
 
-    WWGpuResourceCacheEntry* __unsafe_unretained entry = (WWGpuResourceCacheEntry*) [resources getValueForKey:key];
+    WWGpuResourceCacheEntry* entry = (WWGpuResourceCacheEntry*) [self->resources getValueForKey:key];
 
-    return entry != nil ? entry->resource : nil;
+    return entry != nil ? [entry resource] : nil;
 }
 
-- (WWGpuProgram*) programForKey:(id <NSCopying> __unsafe_unretained)key
+- (WWGpuProgram*) getProgramForKey:(id <NSCopying>)key
 {
     if (key == nil)
     {
         WWLOG_AND_THROW(NSInvalidArgumentException, @"Key is nil")
     }
 
-    WWGpuResourceCacheEntry* __unsafe_unretained entry = (WWGpuResourceCacheEntry*) [resources getValueForKey:key];
+    WWGpuResourceCacheEntry* entry = (WWGpuResourceCacheEntry*) [self->resources getValueForKey:key];
 
-    return entry != nil && [entry->resourceType isEqual:WW_GPU_PROGRAM] ? (WWGpuProgram*) entry->resource : nil;
+    return entry != nil && [[entry resourceType] isEqual:WW_GPU_PROGRAM] ? (WWGpuProgram*) [entry resource] : nil;
 }
 
-- (WWTexture*) textureForKey:(id <NSCopying>__unsafe_unretained)key
+- (WWTexture*) getTextureForKey:(id <NSCopying>)key
 {
     if (key == nil)
     {
         WWLOG_AND_THROW(NSInvalidArgumentException, @"Key is nil")
     }
 
-    WWGpuResourceCacheEntry* __unsafe_unretained entry = (WWGpuResourceCacheEntry*) [resources getValueForKey:key];
+    WWGpuResourceCacheEntry* entry = (WWGpuResourceCacheEntry*) [self->resources getValueForKey:key];
 
-    return entry != nil && [entry->resourceType isEqual:WW_GPU_TEXTURE] ? (WWTexture*) entry->resource : nil;
+    return entry != nil && [[entry resourceType] isEqual:WW_GPU_TEXTURE] ? (WWTexture*) [entry resource] : nil;
 }
 
 - (void) putResource:(id)resource resourceType:(NSString*)resourceType size:(long)size forKey:(id <NSCopying>)key
@@ -166,7 +151,7 @@
 
     WWGpuResourceCacheEntry* entry = [[WWGpuResourceCacheEntry alloc] initWithResource:program
                                                                           resourceType:WW_GPU_PROGRAM];
-    entry->resourceSize = [self entrySize:entry];
+    [entry setResourceSize:[self computeEntrySize:entry]];
 
     [self->resources putValue:entry forKey:key];
 }
@@ -185,16 +170,16 @@
 
     WWGpuResourceCacheEntry* entry = [[WWGpuResourceCacheEntry alloc] initWithResource:texture
                                                                           resourceType:WW_GPU_TEXTURE];
-    entry->resourceSize = [self entrySize:entry];
+    [entry setResourceSize:[self computeEntrySize:entry]];
 
     [self->resources putValue:entry forKey:key];
 }
 
-- (long) entrySize:(WWGpuResourceCacheEntry*)entry
+- (long) computeEntrySize:(WWGpuResourceCacheEntry*)entry
 {
-    if ([entry->resource respondsToSelector:@selector(sizeInBytes)])
+    if ([[entry resource] respondsToSelector:@selector(sizeInBytes)])
     {
-        return [entry->resource sizeInBytes];
+        return [[entry resource] sizeInBytes];
     }
 
     return 0;

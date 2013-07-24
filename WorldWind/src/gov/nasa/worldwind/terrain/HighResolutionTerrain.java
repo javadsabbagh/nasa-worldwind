@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
 
 package gov.nasa.worldwind.terrain;
 
-import gov.nasa.worldwind.*;
+import gov.nasa.worldwind.WWObjectImpl;
 import gov.nasa.worldwind.cache.*;
 import gov.nasa.worldwind.exception.WWRuntimeException;
 import gov.nasa.worldwind.geom.*;
@@ -392,33 +392,6 @@ public class HighResolutionTerrain extends WWObjectImpl implements Terrain
         }
     }
 
-    /** {@inheritDoc} */
-    public Intersection[] intersect(Position pA, Position pB, int altitudeMode)
-    {
-        if (pA == null || pB == null)
-        {
-            String msg = Logging.getMessage("nullValue.PositionIsNull");
-            Logging.logger().severe(msg);
-            throw new IllegalArgumentException(msg);
-        }
-
-        // The intersect method expects altitudes to be relative to ground, so make them so if they aren't already.
-        double altitudeA = pA.getAltitude();
-        double altitudeB = pB.getAltitude();
-        if (altitudeMode == WorldWind.ABSOLUTE)
-        {
-            altitudeA -= this.getElevation(pA);
-            altitudeB -= this.getElevation(pB);
-        }
-        else if (altitudeMode == WorldWind.CLAMP_TO_GROUND)
-        {
-            altitudeA = 0;
-            altitudeB = 0;
-        }
-
-        return this.intersect(new Position(pA, altitudeA), new Position(pB, altitudeB));
-    }
-
     /**
      * Cause the tiles used by subsequent intersection calculations to be cached so that they are available immediately
      * to those subsequent calculations.
@@ -534,11 +507,11 @@ public class HighResolutionTerrain extends WWObjectImpl implements Terrain
 //                return null;
 //            }
 //
-//            vertices.add(Buffers.newDirectFloatBuffer(tile.ri.vertices.length).put(tile.ri.vertices));
+//            vertices.add(BufferUtil.newFloatBuffer(tile.ri.vertices.length).put(tile.ri.vertices));
 //            refCenters.add(tile.ri.referenceCenter);
 //        }
 //
-//        return Buffers.newDirectIntBuffer(this.indices.length).put(this.indices);
+//        return BufferUtil.newIntBuffer(this.indices.length).put(this.indices);
 //    }
 
     /** Computes the row and column dimensions of the tile array. */

@@ -21,114 +21,68 @@
 
     return uuidStr;
 }
-//
-//+ (BOOL) retrieveUrl:(NSURL*)url toFile:(NSString*)filePath timeout:(NSTimeInterval)timeout
-//{
-//    if (url == nil)
-//    {
-//        WWLOG_AND_THROW(NSInvalidArgumentException, @"URL is nil")
-//    }
-//
-//    if (filePath == nil || [filePath length] == 0)
-//    {
-//        WWLOG_AND_THROW(NSInvalidArgumentException, @"File path is nil or empty")
-//    }
-//
-//    // Get the data from the URL.
-//    NSData* data = [self retrieveUrl:url timeout:timeout];
-//    if (data == nil)
-//    {
-//        return NO;
-//    }
-//
-//    // Ensure that the directory for the file exists.
-//    NSError* error = nil;
-//    NSString* pathDir = [filePath stringByDeletingLastPathComponent];
-//    [[NSFileManager defaultManager] createDirectoryAtPath:pathDir
-//                              withIntermediateDirectories:YES attributes:nil error:&error];
-//    if (error != nil)
-//    {
-//        WWLog("@Error \"%@\" creating path %@", [error description], filePath);
-//        return NO;
-//    }
-//
-//    // Write the data to the file.
-//    [data writeToFile:filePath options:NSDataWritingAtomic error:&error];
-//    if (error != nil)
-//    {
-//        WWLog("@Error \"%@\" writing file %@", [error description], filePath);
-//        return NO;
-//    }
-//
-//    return YES;
-//}
-//
-//+ (NSData*) retrieveUrl:(NSURL*)url timeout:(NSTimeInterval)timeout
-//{
-//    if (url == nil)
-//    {
-//        WWLOG_AND_THROW(NSInvalidArgumentException, @"URL is nil")
-//    }
-//
-//    @try
-//    {
-//        [WorldWind setNetworkBusySignalVisible:YES];
-//
-//        // Get the data from the URL.
-//        NSURLRequest* request = [[NSURLRequest alloc] initWithURL:url
-//                                                      cachePolicy:NSURLRequestReloadIgnoringLocalCacheData
-//                                                  timeoutInterval:timeout];
-//        NSURLResponse* response;
-//        NSError* error = nil;
-//        NSData* data = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
-//        if (error != nil)
-//        {
-//            WWLog("@Error \"%@\" retrieving %@", [error description], [url absoluteString]);
-//        }
-//
-//        return data;
-//    }
-//    @finally
-//    {
-//        [WorldWind setNetworkBusySignalVisible:NO];
-//    }
-//}
+
++ (BOOL) retrieveUrl:(NSURL*)url toFile:(NSString*)filePath
+{
+    if (url == nil)
+    {
+        WWLOG_AND_THROW(NSInvalidArgumentException, @"URL is nil")
+    }
+
+    if (filePath == nil || [filePath length] == 0)
+    {
+        WWLOG_AND_THROW(NSInvalidArgumentException, @"File path is nil or empty")
+    }
+
+    @try
+    {
+        [WorldWind setNetworkBusySignalVisible:YES];
+
+        NSError* error = nil;
+
+        // Get the data from the URL.
+        NSData* data = [NSData dataWithContentsOfURL:url options:0 error:&error];
+        if (error != nil)
+        {
+            WWLog("@Error \"%@\" retrieving %@", [error description], [url absoluteString]);
+            return NO;
+        }
+
+        // Ensure that the directory for the file exists.
+        NSString* pathDir = [filePath stringByDeletingLastPathComponent];
+        [[NSFileManager defaultManager] createDirectoryAtPath:pathDir
+                                  withIntermediateDirectories:YES attributes:nil error:&error];
+        if (error != nil)
+        {
+            WWLog("@Error \"%@\" creating path %@", [error description], filePath);
+            return NO;
+        }
+
+        // Write the data to the file.
+        [data writeToFile:filePath options:NSDataWritingAtomic error:&error];
+        if (error != nil)
+        {
+            WWLog("@Error \"%@\" writing file %@", [error description], filePath);
+            return NO;
+        }
+    }
+    @finally
+    {
+        [WorldWind setNetworkBusySignalVisible:NO];
+    }
+
+    return YES;
+}
 
 + (NSString*) suffixForMimeType:(NSString*)mimeType
 {
     if ([@"image/png" isEqualToString:mimeType])
-        return @"png";
+        return @".png";
 
     if ([@"image/jpeg" isEqualToString:mimeType])
-        return @"jpg";
+        return @".jpg";
 
     return nil;
-}
-
-+ (NSString*) replaceSuffixInPath:(NSString*)path newSuffix:(NSString*)newSuffix
-{
-    if (newSuffix == nil)
-    {
-        return [path stringByDeletingPathExtension];
-    }
-
-    return [[path stringByDeletingPathExtension] stringByAppendingPathExtension:newSuffix];
-}
-
-+ (NSString*) makeValidFilePath:(NSString*)path
-{
-    if (path == nil)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Path is nil")
-    }
-
-    // TODO: Verify that this set of characters is the correct set of invalid file name characters.
-    NSString* filePath = [path stringByReplacingOccurrencesOfString:@"/" withString:@"_"];
-    filePath = [filePath stringByReplacingOccurrencesOfString:@"?" withString:@"_"];
-    filePath = [filePath stringByReplacingOccurrencesOfString:@":" withString:@"_"];
-    filePath = [filePath stringByReplacingOccurrencesOfString:@"*" withString:@"_"];
-
-    return filePath;
 }
 
 @end

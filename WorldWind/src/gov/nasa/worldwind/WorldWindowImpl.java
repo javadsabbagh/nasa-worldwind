@@ -1,9 +1,8 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
-
 package gov.nasa.worldwind;
 
 import gov.nasa.worldwind.avlist.AVKey;
@@ -31,7 +30,6 @@ public abstract class WorldWindowImpl extends WWObjectImpl implements WorldWindo
     private final EventListenerList eventListeners = new EventListenerList();
     private InputHandler inputHandler;
     protected GpuResourceCache gpuResourceCache;
-    protected boolean gpuResourceCacheShared;
 
     public WorldWindowImpl()
     {

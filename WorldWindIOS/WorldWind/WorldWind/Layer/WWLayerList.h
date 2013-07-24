@@ -11,8 +11,6 @@
 
 /**
 * Holds a list of WWLayer instances in the order in which they are to be rendered.
-*
-* When the layer list changes it sends a WW_LAYER_LIST_CHANGED notification to the default notification center.
 */
 @interface WWLayerList : NSObject
 {
@@ -22,11 +20,7 @@
 
 /// @name Layer List Attributes
 
-/// The number of layers in the layer list.
 - (NSUInteger) count;
-
-/// An array of all the layers in the layer list.
-- (NSArray*) allLayers;
 
 /// @name Initializing
 
@@ -56,8 +50,6 @@
 * Appends a specified layer to the end of this layer list.
 *
 * @param layer The layer to add.
-*
-* @exception NSInvalidArgumentException If the specified layer is nil.
 */
 - (void) addLayer:(WWLayer*)layer;
 
@@ -73,34 +65,5 @@
 * @exception NSRangeException If the specified position is greater than or equal to the number of layers in the list.
 */
 - (void) insertLayer:(WWLayer*)layer atIndex:(NSUInteger)atIndex;
-
-/**
-* Remove a specified layer from this layer list.
-*
-* @param layer The layer to remove.
-*
-* @exception NSInvalidArgumentException if the specified layer is nil.
-*/
-- (void) removeLayer:(WWLayer*)layer;
-
-/**
-* Remove a layer at a specified location in the layer list.
-*
-* @param rowIndex The index, 0 origin, of the layer to remove.
-*
-* @exception NSInvalidArgumentException If the specified index is invalid.
-*/
-- (void) removeLayerAtRow:(int)rowIndex;
-
-/**
-* Moves a layer from one position to another in the layer list.
-*
-* @param fromIndex The index, 0 origin, of the layer to move.
-* @param toIndex The index, 0 origin, of the layer's new location. Other layers are moved further down the list as
-* necessary to accommodate the layer at its new position.
-*
-* @exception NSInvalidArgumentException if either index is invalid.
-*/
-- (void) moveLayerAtRow:(int)fromIndex toRow:(int)toIndex;
 
 @end

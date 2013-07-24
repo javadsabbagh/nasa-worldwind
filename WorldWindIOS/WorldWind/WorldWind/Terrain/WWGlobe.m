@@ -6,13 +6,11 @@
  */
 
 #import "WorldWind/Terrain/WWGlobe.h"
-#import "WorldWind/Terrain/WWEarthElevationModel.h"
 #import "WorldWind/Terrain/WWTessellator.h"
-#import "WorldWind/Geometry/WWLine.h"
+#import "WorldWind/Geometry/WWAngle.h"
 #import "WorldWind/Geometry/WWPosition.h"
 #import "WorldWind/Geometry/WWSector.h"
 #import "WorldWind/Geometry/WWVec4.h"
-#import "WorldWind/Util/WWMath.h"
 #import "WorldWind/WWLog.h"
 
 @implementation WWGlobe : NSObject
@@ -24,10 +22,8 @@
     _equatorialRadius = 6378137.0;
     _polarRadius = 6356752.3;
     _es = 0.00669437999013;
+    _minElevation = 0;
     _tessellator = [[WWTessellator alloc] initWithGlobe:self];
-    _elevationModel = [[WWEarthElevationModel alloc] init];
-
-    tmpPos = [[WWPosition alloc] initWithZeroPosition];
 
     return self;
 }
@@ -50,7 +46,7 @@
 - (void) computePointFromPosition:(double)latitude
                         longitude:(double)longitude
                          altitude:(double)altitude
-                      outputPoint:(WWVec4* __unsafe_unretained)result
+                      outputPoint:(WWVec4*)result
 {
     if (result == nil)
     {
@@ -64,94 +60,86 @@
 
     double rpm = _equatorialRadius / sqrt(1.0 - _es * sinLat * sinLat);
 
-    double x = (rpm + altitude) * cosLat * sinLon;
-    double y = (rpm * (1.0 - _es) + altitude) * sinLat;
-    double z = (rpm + altitude) * cosLat * cosLon;
-
-    [result set:x y:y z:z];
+    result.x = (rpm + altitude) * cosLat * sinLon;
+    result.y = (rpm * (1.0 - _es) + altitude) * sinLat;
+    result.z = (rpm + altitude) * cosLat * cosLon;
 }
 
-- (void) computePointsFromPositions:(WWSector* __unsafe_unretained)sector
+- (void) computePointFromPosition:(double)latitude
+                        longitude:(double)longitude
+                         altitude:(double)altitude
+                           offset:(WWVec4*)offset // nil value is acceptable
+                      outputArray:(float [])result
+{
+    if (result == nil)
+    {
+        WWLOG_AND_THROW(NSInvalidArgumentException, @"Result pointer is nil")
+    }
+
+    double cosLat = cos(RADIANS(latitude));
+    double sinLat = sin(RADIANS(latitude));
+    double cosLon = cos(RADIANS(longitude));
+    double sinLon = sin(RADIANS(longitude));
+
+    double rpm = _equatorialRadius / sqrt(1.0 - _es * sinLat * sinLat);
+
+    result[0] = (float) ((rpm + altitude) * cosLat * sinLon - (offset != nil ? offset.x : 0));
+    result[1] = (float) ((rpm * (1.0 - _es) + altitude) * sinLat - (offset != nil ? offset.y : 0));
+    result[2] = (float) ((rpm + altitude) * cosLat * cosLon - (offset != nil ? offset.z : 0));
+}
+
+- (void) computePointsFromPositions:(WWSector*)sector
                              numLat:(int)numLat
                              numLon:(int)numLon
-                    metersElevation:(double[])metersElevation
-                    borderElevation:(double)borderElevation
-                             offset:(WWVec4* __unsafe_unretained)offset
-                        outputArray:(float[])result
-                       outputStride:(int)stride
+                    metersElevation:(double [])metersElevation
+                  constantElevation:(double*)constantElevation
+                             offset:(WWVec4*)offset // nil value is acceptable
+                        outputArray:(float [])outputArray
 {
     if (sector == nil)
     {
         WWLOG_AND_THROW(NSInvalidArgumentException, @"Sector is nil")
     }
 
-    if (numLat <= 0 || numLon <= 0)
+    if (outputArray == nil)
     {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Number of latitude or longitude points is <= 0")
+        WWLOG_AND_THROW(NSInvalidArgumentException, @"Output array is nil")
     }
 
-    if (!metersElevation)
+    if (metersElevation == nil && constantElevation == nil)
     {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Elevations is NULL")
+        WWLOG_AND_THROW(NSInvalidArgumentException, @"Elevations array and constant elevation cannot both be nil")
     }
 
-    if (result == nil)
+    if (numLat <=0 || numLon <= 0)
     {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Result pointer is nil")
+        WWLOG_AND_THROW(NSInvalidArgumentException, @"A dimension is <= 0")
     }
 
-    if (stride < 3)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Stride is less than 3")
-    }
+    double minLat = RADIANS(sector.minLatitude);
+    double maxLat = RADIANS(sector.maxLatitude);
+    double minLon = RADIANS(sector.minLongitude);
+    double maxLon = RADIANS(sector.maxLongitude);
 
-    double minLat = RADIANS([sector minLatitude]);
-    double maxLat = RADIANS([sector maxLatitude]);
-    double minLon = RADIANS([sector minLongitude]);
-    double maxLon = RADIANS([sector maxLongitude]);
     double deltaLat = (maxLat - minLat) / (numLat > 1 ? numLat - 1 : 1);
     double deltaLon = (maxLon - minLon) / (numLon > 1 ? numLon - 1 : 1);
 
-    double offsetX = [offset x];
-    double offsetY = [offset y];
-    double offsetZ = [offset z];
-
-    int numLatPoints = numLat + 2;
-    int numLonPoints = numLon + 2;
-    int vertexOffset = 0;
-    int elevOffset = 0;
-
-    // Iterate over the latitude coordinates in the specified sector and compute the cosine and sine of each longitude
-    // value required to compute Cartesian points for the specified sector. This eliminates the need to re-compute the
-    // same cosine and sine results for each row of latitude.
-    double lon = minLon;
-    double cosLon[numLonPoints];
-    double sinLon[numLonPoints];
-    for (int i = 0; i < numLonPoints; i++)
-    {
-        // Explicitly set the first and last row to minLon and maxLon, respectively, rather than using the
-        // accumulated lon value, in order to ensure that the Cartesian points of adjacent sectors match perfectly.
-        if (i <= 1) // Border and first longitude.
-            lon = minLon;
-        else if (i >= numLon) // Border and last longitude.
-            lon = maxLon;
-        else
-            lon += deltaLon;
-
-        cosLon[i] = cos(lon);
-        sinLon[i] = sin(lon);
-    }
-
-    // Iterate over the latitude and longitude coordinates in the specified sector, computing the Cartesian point
-    // corresponding to each latitude and longitude.
     double lat = minLat;
-    for (int j = 0; j < numLatPoints; j++)
+    double lon = minLon;
+
+    double offsetX = offset != nil ? offset.x : 0;
+    double offsetY = offset != nil ? offset.y : 0;
+    double offsetZ = offset != nil ? offset.z : 0;
+
+    int index = 0;
+
+    for (int j = 0; j < numLat; j++)
     {
         // Explicitly set the first and last row to minLat and maxLat, respectively, rather than using the
         // accumulated lat value, in order to ensure that the Cartesian points of adjacent sectors match perfectly.
-        if (j <= 1) // Border and first latitude.
+        if (j == 0)
             lat = minLat;
-        else if (j >= numLat) // Border and last latitude.
+        else if (j == numLat - 1)
             lat = maxLat;
         else
             lat += deltaLat;
@@ -161,15 +149,27 @@
         double sinLat = sin(lat);
         double rpm = _equatorialRadius / sqrt(1.0 - _es * sinLat * sinLat);
 
-        for (int i = 0; i < numLon + 2; i++)
+        for (int i = 0; i < numLon; i++)
         {
-            double elev = (j == 0 || j == numLat + 1 || i == 0 || i == numLon + 1)
-                    ? borderElevation : metersElevation[elevOffset++];
+            // Explicitly set the first and last row to minLon and maxLon, respectively, rather than using the
+            // accumulated lon value, in order to ensure that the Cartesian points of adjacent sectors match perfectly.
+            if (i == 0)
+                lon = minLon;
+            else if (i == numLon - 1)
+                lon = maxLon;
+            else
+                lon += deltaLon;
 
-            result[vertexOffset] = (float) ((rpm + elev) * cosLat * sinLon[i] - offsetX);
-            result[vertexOffset + 1] = (float) ((rpm * (1.0 - _es) + elev) * sinLat - offsetY);
-            result[vertexOffset + 2] = (float) ((rpm + elev) * cosLat * cosLon[i] - offsetZ);
-            vertexOffset += stride;
+            double cosLon = cos(lon);
+            double sinLon = sin(lon);
+
+            double elevation = metersElevation != nil ? metersElevation[index] : *constantElevation;
+
+            outputArray[index * 3] = (float) ((rpm + elevation) * cosLat * sinLon - offsetX);
+            outputArray[index * 3 + 1] = (float) ((rpm * (1.0 - _es) + elevation) * sinLat - offsetY);
+            outputArray[index * 3 + 2] = (float) ((rpm + elevation) * cosLat * cosLon - offsetZ);
+
+            ++index;
         }
     }
 }
@@ -177,7 +177,7 @@
 - (void) computePositionFromPoint:(double)x
                                 y:(double)y
                                 z:(double)z
-                   outputPosition:(WWPosition* __unsafe_unretained)result
+                   outputPosition:(WWPosition*)result
 {
     if (result == nil)
     {
@@ -285,7 +285,9 @@
     [result setDegreesLatitude:DEGREES(phi) longitude:DEGREES(lambda) altitude:h];
 }
 
-- (void) surfaceNormalAtLatitude:(double)latitude longitude:(double)longitude result:(WWVec4* __unsafe_unretained)result
+- (void) computeNormal:(double)latitude
+             longitude:(double)longitude
+           outputPoint:(WWVec4*)result
 {
     if (result == nil)
     {
@@ -300,16 +302,19 @@
     double eqSquared = _equatorialRadius * _equatorialRadius;
     double polSquared = _polarRadius * _polarRadius;
 
-    double x = cosLat * sinLon / eqSquared;
-    double y = (1 - _es) * sinLat / polSquared;
-    double z = cosLat * cosLon / eqSquared;
-
-    [result set:x y:y z:z];
+    result.x = cosLat * sinLon / eqSquared;
+    result.y = (1 - _es) * sinLat / polSquared;
+    result.z = cosLat * cosLon / eqSquared;
     [result normalize3];
 }
 
-- (void) surfaceNormalAtPoint:(double)x y:(double)y z:(double)z result:(WWVec4* __unsafe_unretained)result
+- (void) surfaceNormalAtPoint:(WWVec4*)point result:(WWVec4*)result
 {
+    if (point == nil)
+    {
+        WWLOG_AND_THROW(NSInvalidArgumentException, @"Point is nil")
+    }
+
     if (result == nil)
     {
         WWLOG_AND_THROW(NSInvalidArgumentException, @"Result pointer is nil")
@@ -318,15 +323,13 @@
     double eSquared = _equatorialRadius * _equatorialRadius;
     double polSquared = _polarRadius * _polarRadius;
 
-    double nx = x / eSquared;
-    double ny = y / polSquared;
-    double nz = z / eSquared;
-
-    [result set:nx y:ny z:nz];
+    [result set:[point x] / eSquared y:[point y] / polSquared z:[point z] / eSquared];
     [result normalize3];
 }
 
-- (void) northTangentAtLatitude:(double)latitude longitude:(double)longitude result:(WWVec4* __unsafe_unretained)result
+- (void) computeNorthTangent:(double)latitude
+                   longitude:(double)longitude
+                 outputPoint:(WWVec4*)result
 {
     if (result == nil)
     {
@@ -351,78 +354,15 @@
     double sinLat = sin(RADIANS(latitude));
     double sinLon = sin(RADIANS(longitude));
 
-    double x = -sinLat * sinLon;
-    double y = cosLat;
-    double z = -sinLat * cosLon;
-
-    [result set:x y:y z:z];
+    result.x = -sinLat * sinLon;
+    result.y = cosLat;
+    result.z = -sinLat * cosLon;
     [result normalize3];
-}
-
-- (void) northTangentAtPoint:(double)x y:(double)y z:(double)z result:(WWVec4* __unsafe_unretained)result;
-{
-    if (result == nil)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Result pointer is nil")
-    }
-
-    [self computePositionFromPoint:x y:y z:z outputPosition:tmpPos];
-    [self northTangentAtLatitude:[tmpPos latitude] longitude:[tmpPos longitude] result:result];
-}
-
-- (BOOL) intersectWithRay:(WWLine*)ray result:(WWVec4*)result
-{
-    if (ray == nil)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Ray is nil")
-    }
-
-    if (result == nil)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Result pointer is nil")
-    }
-
-    // Taken from "Mathematics for 3D Game Programming and Computer Graphics, Second Edition", Section 5.2.4.
-    //
-    // Note that the parameter n from in equations 5.70 and 5.71 is omitted here. For an ellipsoidal globe this
-    // parameter is always 1, so its square and its product with any other value simplifies to the identity.
-
-    double m = _equatorialRadius / _polarRadius; // ratio of the x semi-axis length to the y semi-axis length
-    double m2 = m * m;
-    double r2 = _equatorialRadius * _equatorialRadius; // nominal radius squared
-
-    double vx = [[ray direction] x];
-    double vy = [[ray direction] y];
-    double vz = [[ray direction] z];
-    double sx = [[ray origin] x];
-    double sy = [[ray origin] y];
-    double sz = [[ray origin] z];
-
-    double a = vx * vx + m2 * vy * vy + vz * vz;
-    double b = 2 * (sx * vx + m2 * sy * vy + sz * vz);
-    double c = sx * sx + m2 * sy * sy + sz * sz - r2;
-    double d = b * b - 4 * a * c; // discriminant
-
-    if (d < 0)
-    {
-        return NO;
-    }
-    else
-    {
-        double t = (-b - sqrt(d)) / (2 * a);
-        [ray pointAt:t result:result];
-        return YES;
-    }
-}
-
-- (NSTimeInterval) elevationTimestamp
-{
-    return [_elevationModel timestamp];
 }
 
 - (double) elevationForLatitude:(double)latitude longitude:(double)longitude
 {
-    return [_elevationModel elevationForLatitude:latitude longitude:longitude];
+    return 0;
 }
 
 - (double) elevationsForSector:(WWSector*)sector
@@ -430,7 +370,7 @@
                         numLon:(int)numLon
               targetResolution:(double)targetResolution
           verticalExaggeration:(double)verticalExaggeration
-                        result:(double[])result
+                        result:(double [])result
 {
     if (sector == nil)
     {
@@ -447,20 +387,19 @@
         WWLOG_AND_THROW(NSInvalidArgumentException, @"A dimension is <= 0")
     }
 
-    return [_elevationModel elevationsForSector:sector
-                                         numLat:numLat
-                                         numLon:numLon
-                               targetResolution:targetResolution
-                           verticalExaggeration:verticalExaggeration
-                                         result:result];
+    for (int j = 0; j < numLat; j++)
+    {
+        for (int i = 0; i < numLon; i++)
+        {
+            int index = j * numLon + i;
+            result[index] = 0;
+        }
+    }
+
+    return 1;
 }
 
-- (double) minElevation
-{
-    return [_elevationModel minElevation];
-}
-
-- (void) minAndMaxElevationsForSector:(WWSector*)sector result:(double[])result
+- (void) minAndMaxElevationsForSector:(WWSector*)sector result:(double [])result
 {
     if (sector == nil)
     {
@@ -472,7 +411,8 @@
         WWLOG_AND_THROW(NSInvalidArgumentException, @"Output array is nil")
     }
 
-    [_elevationModel minAndMaxElevationsForSector:sector result:result];
+    result[0] = 0;
+    result[1] = 0;
 }
 
 @end

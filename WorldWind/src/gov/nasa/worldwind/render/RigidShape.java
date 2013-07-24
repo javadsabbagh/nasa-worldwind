@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
 
 package gov.nasa.worldwind.render;
 
-import com.jogamp.common.nio.Buffers;
+import com.sun.opengl.util.BufferUtil;
 import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.cache.*;
@@ -17,7 +17,7 @@ import gov.nasa.worldwind.render.airspaces.Geometry;
 import gov.nasa.worldwind.terrain.Terrain;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL;
 import java.nio.*;
 import java.util.*;
 
@@ -810,8 +810,7 @@ public abstract class RigidShape extends AbstractShape
         {
             // Push an identity texture matrix. This prevents drawGeometry() from leaking GL texture matrix state. The
             // texture matrix stack is popped from OGLStackHandler.pop().
-            GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
-            ogsh.pushTextureIdentity(gl);
+            ogsh.pushTextureIdentity(dc.getGL());
         }
 
         return ogsh;
@@ -840,7 +839,7 @@ public abstract class RigidShape extends AbstractShape
     @Override
     protected void doDrawInterior(DrawContext dc)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
 
         // render extent if specified
         if (this.renderExtent)
@@ -868,7 +867,7 @@ public abstract class RigidShape extends AbstractShape
                     // TODO: should only do this when offsets have changed, e.g. during editing!
                     int bufferSize = mesh.getBuffer(Geometry.TEXTURE).limit();
                     FloatBuffer texCoords = (FloatBuffer) mesh.getBuffer(Geometry.TEXTURE);
-                    FloatBuffer offsetCoords = Buffers.newDirectFloatBuffer(bufferSize);
+                    FloatBuffer offsetCoords = BufferUtil.newFloatBuffer(bufferSize);
 
                     for (int j = 0; j < bufferSize; j += 2)
                     {
@@ -899,7 +898,7 @@ public abstract class RigidShape extends AbstractShape
                     gl.glTexCoordPointer(2, GL.GL_FLOAT, 0, mesh.getBuffer(Geometry.TEXTURE).rewind());
                 }
                 gl.glEnable(GL.GL_TEXTURE_2D);
-                gl.glEnableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
+                gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
 
                 gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT);
                 gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT);
@@ -907,7 +906,7 @@ public abstract class RigidShape extends AbstractShape
             else
             {
                 gl.glDisable(GL.GL_TEXTURE_2D);
-                gl.glDisableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
+                gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
             }
 
             drawGeometry(dc, this.getCurrentShapeData(), i);
@@ -1011,7 +1010,7 @@ public abstract class RigidShape extends AbstractShape
     protected FloatBuffer computeTransformedVertices(FloatBuffer vertices, int numVertices, Matrix matrix)
     {
         int size = numVertices * 3;
-        FloatBuffer newVertices = Buffers.newDirectFloatBuffer(size);
+        FloatBuffer newVertices = BufferUtil.newFloatBuffer(size);
 
         // transform all vertices by the render matrix
         for (int i = 0; i < numVertices; i++)
@@ -1248,13 +1247,13 @@ public abstract class RigidShape extends AbstractShape
         Matrix matrix = dc.getView().getModelviewMatrix();
         matrix = matrix.multiply(computeRenderMatrix(dc));
 
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
 
         // Were applying a scale transform on the modelview matrix, so the normal vectors must be re-normalized
         // before lighting is computed.
-        gl.glEnable(GL2.GL_NORMALIZE);
+        gl.glEnable(GL.GL_NORMALIZE);
 
-        gl.glMatrixMode(GL2.GL_MODELVIEW);
+        gl.glMatrixMode(GL.GL_MODELVIEW);
 
         double[] matrixArray = new double[16];
         matrix.toArray(matrixArray, 0, false);
@@ -1421,8 +1420,8 @@ public abstract class RigidShape extends AbstractShape
             int size = 0;
             for (int face = 0; face < getFaceCount(); face++)
             {
-                size += meshes.get(face).getBuffer(Geometry.VERTEX).limit() * Buffers.SIZEOF_FLOAT;
-                size += meshes.get(face).getBuffer(Geometry.ELEMENT).limit() * Buffers.SIZEOF_FLOAT;
+                size += meshes.get(face).getBuffer(Geometry.VERTEX).limit() * BufferUtil.SIZEOF_FLOAT;
+                size += meshes.get(face).getBuffer(Geometry.ELEMENT).limit() * BufferUtil.SIZEOF_FLOAT;
             }
 
             vboIds = new int[2 * getFaceCount()];
@@ -1441,7 +1440,7 @@ public abstract class RigidShape extends AbstractShape
                 {
                     IntBuffer ib = (IntBuffer) meshes.get(face).getBuffer(Geometry.ELEMENT);
                     gl.glBindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, vboIds[2 * face + 1]);
-                    gl.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER, ib.limit() * Buffers.SIZEOF_FLOAT, ib.rewind(),
+                    gl.glBufferData(GL.GL_ELEMENT_ARRAY_BUFFER, ib.limit() * BufferUtil.SIZEOF_FLOAT, ib.rewind(),
                         GL.GL_DYNAMIC_DRAW);
                 }
 
@@ -1459,7 +1458,7 @@ public abstract class RigidShape extends AbstractShape
             {
                 FloatBuffer vb = (FloatBuffer) meshes.get(face).getBuffer(Geometry.VERTEX);
                 gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vboIds[2 * face]);
-                gl.glBufferData(GL.GL_ARRAY_BUFFER, vb.limit() * Buffers.SIZEOF_FLOAT, vb.rewind(),
+                gl.glBufferData(GL.GL_ARRAY_BUFFER, vb.limit() * BufferUtil.SIZEOF_FLOAT, vb.rewind(),
                     GL.GL_STATIC_DRAW);
             }
         }

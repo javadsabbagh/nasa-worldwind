@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
 package gov.nasa.worldwind.render;
 
-import com.jogamp.common.nio.Buffers;
-import com.jogamp.opengl.util.texture.TextureCoords;
+import com.sun.opengl.util.BufferUtil;
+import com.sun.opengl.util.texture.TextureCoords;
 import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.cache.GpuResourceCache;
 import gov.nasa.worldwind.geom.*;
@@ -18,7 +18,6 @@ import gov.nasa.worldwind.util.*;
 
 import javax.media.opengl.*;
 import javax.media.opengl.glu.GLU;
-import javax.media.opengl.glu.gl2.GLUgl2;
 import java.awt.*;
 import java.nio.*;
 import java.util.*;
@@ -34,7 +33,7 @@ public class DrawContextImpl extends WWObjectImpl implements DrawContext
     protected long frameTimestamp;
     protected GLContext glContext;
     protected GLRuntimeCapabilities glRuntimeCaps;
-    protected GLU glu = new GLUgl2();
+    protected GLU glu = new GLU();
     protected View view;
     protected Model model;
     protected Globe globe;
@@ -499,7 +498,7 @@ public class DrawContextImpl extends WWObjectImpl implements DrawContext
 
         // Read the framebuffer color at the specified point in OpenGL screen coordinates as a 24-bit RGB value.
         if (this.pixelColors == null || this.pixelColors.capacity() < 3)
-            this.pixelColors = Buffers.newDirectByteBuffer(3);
+            this.pixelColors = BufferUtil.newByteBuffer(3);
         this.pixelColors.clear();
         this.getGL().glReadPixels(x, y, 1, 1, GL.GL_RGB, GL.GL_UNSIGNED_BYTE, this.pixelColors);
 
@@ -537,7 +536,7 @@ public class DrawContextImpl extends WWObjectImpl implements DrawContext
         // Allocate a native byte buffer to hold the framebuffer RGB colors.
         int numPixels = r.width * r.height;
         if (this.pixelColors == null || this.pixelColors.capacity() < 3 * numPixels)
-            this.pixelColors = Buffers.newDirectByteBuffer(3 * numPixels);
+            this.pixelColors = BufferUtil.newByteBuffer(3 * numPixels);
         this.pixelColors.clear();
 
         GL gl = this.getGL();
@@ -764,7 +763,7 @@ public class DrawContextImpl extends WWObjectImpl implements DrawContext
         if (declutterableArray.size() == 0)
             return;
 
-        // Prepare the declutterable list for the filter and remove eliminated ordered renderables from the renderable
+         // Prepare the declutterable list for the filter and remove eliminated ordered renderables from the renderable
         // list. The clutter filter will add those it wants displayed back to the list, or it will add some other
         // representation.
         List<Declutterable> declutterables = new ArrayList<Declutterable>(declutterableArray.size());
@@ -831,9 +830,9 @@ public class DrawContextImpl extends WWObjectImpl implements DrawContext
 
     public void drawUnitQuad()
     {
-        GL2 gl = this.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = this.getGL();
 
-        gl.glBegin(GL2.GL_QUADS);
+        gl.glBegin(GL.GL_QUADS);
         gl.glVertex2d(0d, 0d);
         gl.glVertex2d(1, 0d);
         gl.glVertex2d(1, 1);
@@ -843,9 +842,9 @@ public class DrawContextImpl extends WWObjectImpl implements DrawContext
 
     public void drawUnitQuad(TextureCoords texCoords)
     {
-        GL2 gl = this.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = this.getGL();
 
-        gl.glBegin(GL2.GL_QUADS);
+        gl.glBegin(GL.GL_QUADS);
         gl.glTexCoord2d(texCoords.left(), texCoords.bottom());
         gl.glVertex2d(0d, 0d);
         gl.glTexCoord2d(texCoords.right(), texCoords.bottom());
@@ -859,9 +858,9 @@ public class DrawContextImpl extends WWObjectImpl implements DrawContext
 
     public void drawUnitQuadOutline()
     {
-        GL2 gl = this.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = this.getGL();
 
-        gl.glBegin(GL2.GL_LINE_LOOP);
+        gl.glBegin(GL.GL_LINE_LOOP);
         gl.glVertex2d(0d, 0d);
         gl.glVertex2d(1, 0d);
         gl.glVertex2d(1, 1);
@@ -874,12 +873,12 @@ public class DrawContextImpl extends WWObjectImpl implements DrawContext
         if (vBuf == null || nBuf == null)
             return;
 
-        GL2 gl = this.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = this.getGL();
 
         vBuf.rewind();
         nBuf.rewind();
 
-        gl.glBegin(GL2.GL_LINES);
+        gl.glBegin(GL.GL_LINES);
 
         while (nBuf.hasRemaining())
         {
@@ -1227,23 +1226,23 @@ public class DrawContextImpl extends WWObjectImpl implements DrawContext
     {
         // Modify the projection transform to shift the depth values slightly toward the camera in order to
         // ensure the lines are selected during depth buffering.
-        GL2 gl = this.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = this.getGL();
 
         float[] pm = new float[16];
-        gl.glGetFloatv(GL2.GL_PROJECTION_MATRIX, pm, 0);
+        gl.glGetFloatv(GL.GL_PROJECTION_MATRIX, pm, 0);
         pm[10] *= offset != null ? offset : 0.99; // TODO: See Lengyel 2 ed. Section 9.1.2 to compute optimal offset
 
-        gl.glPushAttrib(GL2.GL_TRANSFORM_BIT);
-        gl.glMatrixMode(GL2.GL_PROJECTION);
+        gl.glPushAttrib(GL.GL_TRANSFORM_BIT);
+        gl.glMatrixMode(GL.GL_PROJECTION);
         gl.glPushMatrix();
         gl.glLoadMatrixf(pm, 0);
     }
 
     public void popProjectionOffest()
     {
-        GL2 gl = this.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = this.getGL();
 
-        gl.glMatrixMode(GL2.GL_PROJECTION);
+        gl.glMatrixMode(GL.GL_PROJECTION);
         gl.glPopMatrix();
         gl.glPopAttrib();
     }
@@ -1264,7 +1263,7 @@ public class DrawContextImpl extends WWObjectImpl implements DrawContext
         //
         // These issues are resolved by making several passes for the interior and outline, as follows:
 
-        GL2 gl = this.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = this.getGL();
 
         if (this.isDeepPickingEnabled())
         {
@@ -1278,7 +1277,7 @@ public class DrawContextImpl extends WWObjectImpl implements DrawContext
         }
 
         OGLStackHandler ogsh = new OGLStackHandler();
-        int attribMask = GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT | GL2.GL_POLYGON_BIT;
+        int attribMask = GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT | GL.GL_POLYGON_BIT;
         ogsh.pushAttrib(gl, attribMask);
 
         try
@@ -1357,7 +1356,7 @@ public class DrawContextImpl extends WWObjectImpl implements DrawContext
         if (this.standardLighting != null)
         {
             this.standardLighting.beginLighting(this);
-            this.getGL().glEnable(GL2.GL_LIGHTING);
+            this.getGL().glEnable(GL.GL_LIGHTING);
         }
     }
 
@@ -1463,32 +1462,6 @@ public class DrawContextImpl extends WWObjectImpl implements DrawContext
             return sectorGeometry.intersect(new Line(ptA, ptB.subtract3(ptA)));
         }
 
-        public Intersection[] intersect(Position pA, Position pB, int altitudeMode)
-        {
-            if (pA == null || pB == null)
-            {
-                String msg = Logging.getMessage("nullValue.PositionIsNull");
-                Logging.logger().severe(msg);
-                throw new IllegalArgumentException(msg);
-            }
-
-            // The intersect method expects altitudes to be relative to ground, so make them so if they aren't already.
-            double altitudeA = pA.getAltitude();
-            double altitudeB = pB.getAltitude();
-            if (altitudeMode == WorldWind.ABSOLUTE)
-            {
-                altitudeA -= this.getElevation(pA);
-                altitudeB -= this.getElevation(pB);
-            }
-            else if (altitudeMode == WorldWind.CLAMP_TO_GROUND)
-            {
-                altitudeA = 0;
-                altitudeB = 0;
-            }
-
-            return this.intersect(new Position(pA, altitudeA), new Position(pB, altitudeB));
-        }
-
         public Double getElevation(LatLon location)
         {
             if (location == null)
@@ -1516,8 +1489,7 @@ public class DrawContextImpl extends WWObjectImpl implements DrawContext
 
     public void restoreDefaultCurrentColor()
     {
-        GL2 gl = this.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
-        gl.glColor4f(1, 1, 1, 1);
+        this.getGL().glColor4f(1, 1, 1, 1);
     }
 
     public void restoreDefaultDepthTesting()

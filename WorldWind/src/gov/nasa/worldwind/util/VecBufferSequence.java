@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
@@ -7,7 +7,7 @@ package gov.nasa.worldwind.util;
 
 import gov.nasa.worldwind.render.DrawContext;
 
-import javax.media.opengl.GL2;
+import javax.media.opengl.GL;
 
 /**
  * VecBufferSequence provides storage and retrieval of a sequence of logical VecBuffers in a single VecBuffer that
@@ -309,7 +309,7 @@ public class VecBufferSequence extends CompoundVecBuffer
             throw new IllegalArgumentException(message);
         }
 
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
 
         if (this.haveMultiDrawArrays(dc))
         {

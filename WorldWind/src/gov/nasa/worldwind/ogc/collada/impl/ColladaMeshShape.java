@@ -6,7 +6,7 @@
 
 package gov.nasa.worldwind.ogc.collada.impl;
 
-import com.jogamp.common.nio.Buffers;
+import com.sun.opengl.util.BufferUtil;
 import gov.nasa.worldwind.cache.GpuResourceCache;
 import gov.nasa.worldwind.geom.Box;
 import gov.nasa.worldwind.geom.*;
@@ -16,7 +16,7 @@ import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.terrain.Terrain;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL;
 import java.awt.*;
 import java.nio.FloatBuffer;
 import java.util.*;
@@ -267,20 +267,19 @@ public class ColladaMeshShape extends AbstractGeneralShape
     @Override
     protected OGLStackHandler beginDrawing(DrawContext dc, int attrMask)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
         OGLStackHandler ogsh = super.beginDrawing(dc, attrMask);
 
         if (!dc.isPickingMode())
         {
             // Push an identity texture matrix. This prevents drawSides() from leaking GL texture matrix state. The
             // texture matrix stack is popped from OGLStackHandler.pop(), in the finally block below.
-            ogsh.pushTextureIdentity(gl);
+            ogsh.pushTextureIdentity(dc.getGL());
 
             if (this.mustApplyLighting(dc, null))
             {
                 // We apply a scale transform on the modelview matrix, so the normal vectors must be re-normalized
                 // before lighting is computed.
-                gl.glEnable(GL2.GL_NORMALIZE);
+                dc.getGL().glEnable(GL.GL_NORMALIZE);
             }
         }
 
@@ -461,7 +460,7 @@ public class ColladaMeshShape extends AbstractGeneralShape
     @Override
     protected void doDrawInterior(DrawContext dc)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
 
         // Create an OpenGL stack handler to handle matrix stack push/pop. Explicitly track changes to the OpenGL
         // texture and cull face states in order to eliminate the need for attribute push/pop on a per mesh basis.
@@ -508,7 +507,7 @@ public class ColladaMeshShape extends AbstractGeneralShape
                     if (!texturesEnabled)
                     {
                         gl.glEnable(GL.GL_TEXTURE_2D);
-                        gl.glEnableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
+                        gl.glEnableClientState(GL.GL_TEXTURE_COORD_ARRAY);
                         texturesEnabled = true;
                     }
 
@@ -521,7 +520,7 @@ public class ColladaMeshShape extends AbstractGeneralShape
                 else if (texturesEnabled)
                 {
                     gl.glDisable(GL.GL_TEXTURE_2D);
-                    gl.glDisableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
+                    gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
                     texturesEnabled = false;
                 }
 
@@ -569,7 +568,7 @@ public class ColladaMeshShape extends AbstractGeneralShape
             if (texturesEnabled)
             {
                 gl.glDisable(GL.GL_TEXTURE_2D);
-                gl.glDisableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
+                gl.glDisableClientState(GL.GL_TEXTURE_COORD_ARRAY);
             }
 
             if (cullingEnabled)
@@ -587,7 +586,7 @@ public class ColladaMeshShape extends AbstractGeneralShape
      */
     protected void doDrawInteriorVA(DrawContext dc, Geometry geometry)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
         if (geometry.offset == -1)
             return;
 
@@ -607,7 +606,7 @@ public class ColladaMeshShape extends AbstractGeneralShape
      */
     protected void doDrawInteriorVBO(DrawContext dc, Geometry geometry, int[] vboIds)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
         if (geometry.offset == -1)
             return;
 
@@ -618,7 +617,7 @@ public class ColladaMeshShape extends AbstractGeneralShape
 
             if (!dc.isPickingMode() && this.mustApplyLighting(dc, null) && this.normalBuffer != null)
             {
-                gl.glNormalPointer(GL.GL_FLOAT, 0, this.normalBufferPosition * Buffers.SIZEOF_FLOAT);
+                gl.glNormalPointer(GL.GL_FLOAT, 0, this.normalBufferPosition * BufferUtil.SIZEOF_FLOAT);
             }
 
             gl.glDrawArrays(this.elementType, geometry.offset,
@@ -650,8 +649,8 @@ public class ColladaMeshShape extends AbstractGeneralShape
         Matrix matrix = dc.getView().getModelviewMatrix();
         matrix = matrix.multiply(this.computeRenderMatrix(dc));
 
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
-        gl.glMatrixMode(GL2.GL_MODELVIEW);
+        GL gl = dc.getGL();
+        gl.glMatrixMode(GL.GL_MODELVIEW);
 
         double[] matrixArray = new double[16];
         matrix.toArray(matrixArray, 0, false);
@@ -786,7 +785,7 @@ public class ColladaMeshShape extends AbstractGeneralShape
         if (this.coordBuffer != null && this.coordBuffer.capacity() >= size)
             this.coordBuffer.clear();
         else
-            this.coordBuffer = Buffers.newDirectFloatBuffer(size);
+            this.coordBuffer = BufferUtil.newFloatBuffer(size);
 
         for (Geometry geometry : this.geometries)
         {
@@ -847,7 +846,7 @@ public class ColladaMeshShape extends AbstractGeneralShape
         int[] vboIds = this.getVboIds(dc);
         if (vboIds == null)
         {
-            int size = this.coordBuffer.limit() * Buffers.SIZEOF_FLOAT;
+            int size = this.coordBuffer.limit() * BufferUtil.SIZEOF_FLOAT;
 
             vboIds = new int[1];
             gl.glGenBuffers(vboIds.length, vboIds, 0);
@@ -859,7 +858,7 @@ public class ColladaMeshShape extends AbstractGeneralShape
         {
             FloatBuffer vb = this.coordBuffer;
             gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vboIds[0]);
-            gl.glBufferData(GL.GL_ARRAY_BUFFER, vb.limit() * Buffers.SIZEOF_FLOAT, vb.rewind(), GL.GL_STATIC_DRAW);
+            gl.glBufferData(GL.GL_ARRAY_BUFFER, vb.limit() * BufferUtil.SIZEOF_FLOAT, vb.rewind(), GL.GL_STATIC_DRAW);
         }
         finally
         {
@@ -988,14 +987,14 @@ public class ColladaMeshShape extends AbstractGeneralShape
      */
     protected void applyMaterial(DrawContext dc, Material material)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
         ShapeAttributes activeAttrs = this.getActiveAttributes();
         double opacity = activeAttrs.getInteriorOpacity();
 
         // We don't need to enable or disable lighting; that's handled by super.prepareToDrawInterior.
         if (this.mustApplyLighting(dc, activeAttrs))
         {
-            material.apply(gl, GL2.GL_FRONT_AND_BACK, (float) opacity);
+            material.apply(gl, GL.GL_FRONT_AND_BACK, (float) opacity);
         }
         else
         {

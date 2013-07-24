@@ -5,30 +5,36 @@
  @version $Id$
  */
 
-#import <pthread.h>
 #import "WorldWind/Util/WWMemoryCache.h"
-#import "WorldWind/Util/WWMemoryCacheListener.h"
 #import "WorldWind/Util/WWCacheable.h"
 #import "WorldWind/WWLog.h"
+#import "WWMemoryCacheListener.h"
 
 @implementation WWMemoryCacheEntry
 
-- (WWMemoryCacheEntry*) initWithKey:(id <NSCopying>)entryKey value:(id)entryValue size:(long)entrySize
+- (WWMemoryCacheEntry*) initWithKey:(id <NSCopying>)key value:(id)value size:(long)size
 {
     self = [super init];
 
-    key = entryKey;
-    value = entryValue;
-    size = entrySize;
+    _key = key;
+    _value = value;
+    _size = size;
+    _lastUsed = [NSDate date];
 
     return self;
 }
 
-- (NSComparisonResult) compareTo:(id)other
+- (int) compareTo:(id)other
 {
-    uint64_t otherLastUsed = ((WWMemoryCacheEntry*) other)->lastUsed;
+    NSComparisonResult result = [_lastUsed compare:[other lastUsed]];
 
-    return lastUsed < otherLastUsed ? NSOrderedAscending : (lastUsed > otherLastUsed ? NSOrderedDescending : NSOrderedSame);
+    if (result == NSOrderedAscending)
+        return -1;
+
+    if (result == NSOrderedSame)
+        return 0;
+
+    return 1;
 }
 @end
 
@@ -40,7 +46,7 @@
 
     self->entries = [[NSMutableDictionary alloc] init];
     self->listeners = [[NSMutableArray alloc] init];
-    pthread_mutex_init(&mutex, NULL);
+    self->lock = [[NSObject alloc] init];
 
     _capacity = capacity;
     _lowWater = lowWater;
@@ -48,36 +54,25 @@
     return self;
 }
 
-- (void) dealloc
-{
-    pthread_mutex_destroy(&mutex);
-}
-
-- (id) getValueForKey:(id <NSCopying> __unsafe_unretained)key
+- (id) getValueForKey:(id <NSCopying>)key
 {
     if (key == nil)
     {
         WWLOG_AND_THROW(NSInvalidArgumentException, @"Key is nil")
     }
 
-    WWMemoryCacheEntry* __unsafe_unretained entry;
-
-    pthread_mutex_lock(&mutex);
-    @try
+    WWMemoryCacheEntry* entry;
+    @synchronized (self->lock)
     {
         entry = [self->entries objectForKey:key];
 
         if (entry != nil)
         {
-            entry->lastUsed = entryUsedCounter++;
+            [entry setLastUsed:[NSDate date]];
         }
     }
-    @finally
-    {
-        pthread_mutex_unlock(&mutex);
-    }
 
-    return entry != nil ? entry->value : nil;
+    return entry != nil ? [entry value] : nil;
 }
 
 - (void) putValue:(id)value forKey:(id <NSCopying>)key size:(long)size
@@ -104,8 +99,7 @@
 
     WWMemoryCacheEntry* entry = [[WWMemoryCacheEntry alloc] initWithKey:key value:value size:size];
 
-    pthread_mutex_lock(&mutex);
-    @try
+    @synchronized (self->lock)
     {
         WWMemoryCacheEntry* existing = [self->entries objectForKey:key];
         if (existing != nil)
@@ -121,11 +115,6 @@
         _usedCapacity += size;
 
         [self->entries setObject:entry forKey:key];
-        entry->lastUsed = entryUsedCounter++;
-    }
-    @finally
-    {
-        pthread_mutex_unlock(&mutex);
     }
 }
 
@@ -144,26 +133,17 @@
     [self putValue:value forKey:key size:[value sizeInBytes]];
 }
 
-- (BOOL) containsKey:(id <NSCopying> __unsafe_unretained)key
+- (BOOL) containsKey:(id <NSCopying>)key
 {
     if (key == nil)
     {
         WWLOG_AND_THROW(NSInvalidArgumentException, @"Key is nil")
     }
 
-    BOOL yn;
-
-    pthread_mutex_lock(&mutex);
-    @try
+    @synchronized (self->lock)
     {
-        yn = [self->entries objectForKey:key] != nil;
+        return [self->entries objectForKey:key] != nil;
     }
-    @finally
-    {
-        pthread_mutex_unlock(&mutex);
-    }
-
-    return yn;
 }
 
 - (void) removeEntryForKey:(id <NSCopying>)key
@@ -173,8 +153,7 @@
         WWLOG_AND_THROW(NSInvalidArgumentException, @"Key is nil")
     }
 
-    pthread_mutex_lock(&mutex);
-    @try
+    @synchronized (self->lock)
     {
         WWMemoryCacheEntry* entry = [self->entries objectForKey:key];
         if (entry != nil)
@@ -182,16 +161,11 @@
             [self removeEntry:entry];
         }
     }
-    @finally
-    {
-        pthread_mutex_unlock(&mutex);
-    }
 }
 
 - (void) clear
 {
-    pthread_mutex_lock(&mutex);
-    @try
+    @synchronized (self->lock)
     {
         NSArray* values = [self->entries allValues];
 
@@ -199,10 +173,6 @@
         {
             [self removeEntry:[values objectAtIndex:i]];
         }
-    }
-    @finally
-    {
-        pthread_mutex_unlock(&mutex);
     }
 }
 
@@ -243,24 +213,24 @@
 {
     // All removal passes through this method.
 
-    if ([self->entries objectForKey:entry->key] == nil)
+    if ([self->entries objectForKey:[entry key]] == nil)
     {
         return;
     }
 
-    [self->entries removeObjectForKey:entry->key];
+    [self->entries removeObjectForKey:[entry key]];
 
-    _usedCapacity -= entry->size;
+    _usedCapacity -= [entry size];
 
     for (NSUInteger i = 0; i < [self->listeners count]; i++)
     {
         @try
         {
-            [[self->listeners objectAtIndex:i] entryRemovedForKey:entry->key value:entry->value];
+            [[self->listeners objectAtIndex:i] entryRemovedForKey:[entry key] value:[entry value]];
         }
         @catch (NSException* exception)
         {
-            [[self->listeners objectAtIndex:i] removalException:exception key:entry->key value:entry->value];
+            [[self->listeners objectAtIndex:i] removalException:exception key:[entry key] value:[entry value]];
         }
     }
 
@@ -271,17 +241,14 @@
     if (spaceRequired > _capacity || spaceRequired < 0)
         return;
 
-    // Sort the entries from least recently used to most recently used, then remove the least recently used entries
-    // until the cache capacity either reaches the low water or the cache has enough free capacity for the required
-    // space, whichever comes last.
-    NSArray* useOrderedEntries = [[self->entries allValues] sortedArrayUsingSelector:@selector(compareTo:)];
+    NSArray* timeOrderedEntries = [[self->entries allValues] sortedArrayUsingSelector:@selector(compareTo:)];
 
     NSUInteger i = 0;
     while ([self freeCapacity] < spaceRequired || _usedCapacity > _lowWater)
     {
-        if (i < [useOrderedEntries count])
+        if (i < [timeOrderedEntries count])
         {
-            [self removeEntry:[useOrderedEntries objectAtIndex:i++]];
+            [self removeEntry:[timeOrderedEntries objectAtIndex:i++]];
         }
     }
 }

@@ -1,14 +1,13 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
 
 package gov.nasa.worldwind.util;
 
-import com.jogamp.opengl.util.packrect.*;
-import com.jogamp.opengl.util.texture.*;
-import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
+import com.sun.opengl.impl.packrect.*;
+import com.sun.opengl.util.texture.*;
 import gov.nasa.worldwind.exception.WWRuntimeException;
 import gov.nasa.worldwind.render.DrawContext;
 
@@ -59,16 +58,6 @@ public class TextureAtlas
         /**
          * {@inheritDoc}
          * <p/>
-         * Returns <code>true</code>. The texture atlas can always attempt to expand or compact.
-         */
-        public boolean canCompact()
-        {
-            return true;
-        }
-
-        /**
-         * {@inheritDoc}
-         * <p/>
          * Returns <code>false</code>, indicating that the rectangle packer should just expand. When configured to do
          * so, texture atlas evicts old elements in <code>additionFailed</code> if this texture atlas is full and the
          * addition would otherwise fail.
@@ -87,12 +76,10 @@ public class TextureAtlas
          *
          * @throws WWRuntimeException if this backing store cannot fit the rectangle in its layout.
          */
-        public boolean additionFailed(Rect cause, int attemptNumber)
+        public void additionFailed(Rect cause, int attemptNumber)
         {
             if (!isEvictOldElements() || !removeLeastRecentlyUsedEntry())
                 throw new WWRuntimeException(Logging.getMessage("TextureAtlas.AtlasIsFull"));
-            else
-                return true;
         }
 
         /**
@@ -109,8 +96,8 @@ public class TextureAtlas
         /**
          * {@inheritDoc}
          * <p/>
-         * Calls {@link TextureAtlas#moveEntry(java.awt.image.BufferedImage, com.jogamp.opengl.util.packrect.Rect,
-         * java.awt.image.BufferedImage, com.jogamp.opengl.util.packrect.Rect)}, casting the specified backing stores to
+         * Calls {@link TextureAtlas#moveEntry(java.awt.image.BufferedImage, com.sun.opengl.impl.packrect.Rect,
+         * java.awt.image.BufferedImage, com.sun.opengl.impl.packrect.Rect)}, casting the specified backing stores to
          * BufferedImages.
          */
         public void move(Object oldBackingStore, Rect oldLocation, Object newBackingStore, Rect newLocation)
@@ -788,7 +775,7 @@ public class TextureAtlas
         Texture texture = this.syncTexture(dc);
         if (texture != null)
         {
-            texture.bind(dc.getGL());
+            texture.bind();
             return true;
         }
         else
@@ -954,7 +941,7 @@ public class TextureAtlas
      * @param oldBackingImage the backing image corresponding to the previous layout.
      * @param newBackingImage the backing image corresponding to the new layout.
      */
-    @SuppressWarnings({"UnusedParameters"})
+    @SuppressWarnings( {"UnusedParameters"})
     protected void beginMoveEntries(BufferedImage oldBackingImage, BufferedImage newBackingImage)
     {
         if (this.g != null) // This should never happen, but we check anyway.
@@ -973,7 +960,7 @@ public class TextureAtlas
      * @param oldBackingImage the backing image corresponding to the previous layout.
      * @param newBackingImage the backing image corresponding to the new layout.
      */
-    @SuppressWarnings({"UnusedParameters"})
+    @SuppressWarnings( {"UnusedParameters"})
     protected void endMoveEntries(BufferedImage oldBackingImage, BufferedImage newBackingImage)
     {
         if (this.g != null) // This should never happen, but we check anyway.
@@ -1185,7 +1172,7 @@ public class TextureAtlas
     protected Texture makeTextureWithBackingImage(DrawContext dc)
     {
         BufferedImage backingImage = (BufferedImage) this.rectPacker.getBackingStore();
-        Texture texture = AWTTextureIO.newTexture(dc.getGL().getGLProfile(), backingImage, this.isUseMipMaps());
+        Texture texture = TextureIO.newTexture(backingImage, this.isUseMipMaps());
 
         this.setTexture(dc, texture);
         this.setTextureParameters(dc);
@@ -1221,9 +1208,8 @@ public class TextureAtlas
             // system.
             BufferedImage backingImage = (BufferedImage) this.rectPacker.getBackingStore();
             BufferedImage subImage = backingImage.getSubimage(rect.x, rect.y, rect.width, rect.height);
-            GL gl = dc.getGL();
-            TextureData subTextureData = AWTTextureIO.newTextureData(gl.getGLProfile(), subImage, false);
-            texture.updateSubImage(gl, subTextureData, 0, rect.x, rect.y);
+            TextureData subTextureData = TextureIO.newTextureData(subImage, false); // No need for sub-image mip-maps.
+            texture.updateSubImage(subTextureData, 0, rect.x, rect.y);
         }
         else
         {
@@ -1232,8 +1218,7 @@ public class TextureAtlas
             // respecify the texture parameters, because Texture.updateImage overwrites the texture parameters with
             // default values.
             BufferedImage backingImage = (BufferedImage) this.rectPacker.getBackingStore();
-            GL gl = dc.getGL();
-            texture.updateImage(gl, AWTTextureIO.newTextureData(gl.getGLProfile(), backingImage, this.isUseMipMaps()));
+            texture.updateImage(TextureIO.newTextureData(backingImage, this.isUseMipMaps()));
             this.setTextureParameters(dc);
         }
 

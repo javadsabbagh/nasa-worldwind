@@ -1,10 +1,9 @@
-/*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
- * National Aeronautics and Space Administration.
- * All Rights Reserved.
- */
-
 package gov.nasa.worldwindx.examples.shapebuilder;
+
+/* Copyright (C) 2001, 2011 United States Government as represented by
+the Administrator of the National Aeronautics and Space Administration.
+All Rights Reserved.
+*/
 
 import gov.nasa.worldwind.View;
 import gov.nasa.worldwind.avlist.AVKey;

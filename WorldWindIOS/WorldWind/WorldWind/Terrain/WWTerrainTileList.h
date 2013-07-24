@@ -22,9 +22,8 @@
     NSMutableArray* tiles;
 }
 
-@property (nonatomic, readonly, weak) WWTessellator* tessellator;
-
-@property (nonatomic) WWSector* sector;
+@property(nonatomic) WWSector* sector;
+@property(readonly, nonatomic, weak) WWTessellator* tessellator;
 
 - (WWTerrainTileList*) initWithTessellator:(WWTessellator*)tessellator;
 
@@ -34,7 +33,9 @@
 
 - (NSUInteger) count;
 
-- (void) removeAllTiles;
+- (void) beginRendering:(WWDrawContext*)dc;
+
+- (void) endRendering:(WWDrawContext*)dc;
 
 /**
 * Computes a point on the terrain at a specified latitude and longitude.

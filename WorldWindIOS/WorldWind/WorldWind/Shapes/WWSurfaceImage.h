@@ -11,36 +11,19 @@
 
 @class WWDrawContext;
 @class WWTexture;
-@class WWPickSupport;
-@class WWLayer;
 
 /**
 * Provides a surface image shape. A surface image renders an image onto the globe's terrain.
 */
 @interface WWSurfaceImage : NSObject <WWSurfaceTile, WWRenderable>
-{
-    WWPickSupport* pickSupport;
-}
 
 /// @name Surface Image Attributes
-
-/// This surface image's display name.
-@property (nonatomic) NSString* displayName;
-
-/// Indicates whether this surface image should be displayed.
-@property(nonatomic) BOOL enabled;
 
 /// The sector over which the image is displayed. The image is stretched to fill this region.
 @property (readonly, nonatomic) WWSector* sector;
 
 /// The full file-system path to the image.
 @property (readonly, nonatomic) NSString* imagePath;
-
-/// The opacity with which to draw the image.
-@property (nonatomic) float opacity;
-
-/// A field for application-specific use, typically used to associate application data with the shape.
-@property (nonatomic) id userObject;
 
 /// @name Initializing Surface Images
 

@@ -1,12 +1,12 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
 package gov.nasa.worldwind.layers;
 
-import com.jogamp.opengl.util.texture.*;
-import gov.nasa.worldwind.*;
+import com.sun.opengl.util.texture.*;
+import gov.nasa.worldwind.WorldWind;
 import gov.nasa.worldwind.avlist.*;
 import gov.nasa.worldwind.cache.FileStore;
 import gov.nasa.worldwind.event.BulkRetrievalListener;
@@ -367,14 +367,13 @@ public class BasicTiledImageLayer extends TiledImageLayer implements BulkRetriev
                 attributes.setBuildMipmaps(useMipMaps);
                 ByteBuffer buffer = DDSCompressor.compressImageURL(url, attributes);
 
-                return OGLUtil.newTextureData(Configuration.getMaxCompatibleGLProfile(),
-                    WWIO.getInputStreamFromByteBuffer(buffer), useMipMaps);
+                return TextureIO.newTextureData(WWIO.getInputStreamFromByteBuffer(buffer), useMipMaps, null);
             }
             // If the caller has disabled texture compression, or if the texture data is already a DDS file, then read
             // the texture data without converting it.
             else
             {
-                return OGLUtil.newTextureData(Configuration.getMaxCompatibleGLProfile(), url, useMipMaps);
+                return TextureIO.newTextureData(url, useMipMaps, null);
             }
         }
         catch (Exception e)
@@ -797,7 +796,9 @@ public class BasicTiledImageLayer extends TiledImageLayer implements BulkRetriev
         return b != null && b;
     }
 
-    /** Starts retrieving non-tile resources associated with this Layer in a non-rendering thread. */
+    /**
+     * Starts retrieving non-tile resources associated with this Layer in a non-rendering thread.
+     */
     protected void startResourceRetrieval()
     {
         Thread t = new Thread(new Runnable()

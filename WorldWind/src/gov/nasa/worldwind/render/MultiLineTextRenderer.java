@@ -1,13 +1,13 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
 package gov.nasa.worldwind.render;
 
-import com.jogamp.opengl.util.awt.TextRenderer;
-import gov.nasa.worldwind.avlist.AVKey;
-import gov.nasa.worldwind.geom.Position;
+import com.sun.opengl.util.j2d.*;
+import gov.nasa.worldwind.avlist.*;
+import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.pick.*;
 import gov.nasa.worldwind.util.*;
 
@@ -165,8 +165,8 @@ public class MultiLineTextRenderer
     }
 
     /**
-     * Get the current text alignment. Can be one of {@link AVKey#LEFT} the default, {@link AVKey#CENTER} or {@link
-     * AVKey#RIGHT}.
+     * Get the current text alignment. Can be one of {@link AVKey#LEFT} the default,
+     * {@link AVKey#CENTER} or {@link AVKey#RIGHT}.
      *
      * @return the current text alignment.
      */
@@ -176,8 +176,8 @@ public class MultiLineTextRenderer
     }
 
     /**
-     * Set the current text alignment. Can be one of {@link AVKey#LEFT} the default, {@link AVKey#CENTER} or {@link
-     * AVKey#RIGHT}.
+     * Set the current text alignment. Can be one of {@link AVKey#LEFT} the default,
+     * {@link AVKey#CENTER} or {@link AVKey#RIGHT}.
      *
      * @param align the current text alignment.
      */
@@ -272,8 +272,8 @@ public class MultiLineTextRenderer
     }
 
     /**
-     * Set the character string appended at the end of text truncated during a wrap operation when exceeding the given
-     * height limit.
+     * Set the character string appended at the end of text truncated during
+     * a wrap operation when exceeding the given height limit.
      *
      * @param s the continuation character string.
      */
@@ -286,7 +286,6 @@ public class MultiLineTextRenderer
      * Get the maximum line height for the given text renderer.
      *
      * @param tr the TextRenderer.
-     *
      * @return the maximum line height.
      */
     public double getMaxLineHeight(TextRenderer tr)
@@ -300,14 +299,13 @@ public class MultiLineTextRenderer
 
     /**
      * Returns the bounding rectangle for a multi-line string.
-     * <p/>
-     * Note that the X component of the rectangle is the number of lines found in the text and the Y component of the
-     * rectangle is the max line height encountered.
-     * <p/>
+     * <p>
+     * Note that the X component of the rectangle is the number of lines found in the text
+     * and the Y component of the rectangle is the max line height encountered.
+     * <p>
      * Note too that this method will automatically set the current line height to the max height found.
      *
      * @param text the multi-line text to evaluate.
-     *
      * @return the bounding rectangle for the string.
      */
     public Rectangle getBounds(String text)
@@ -338,14 +336,15 @@ public class MultiLineTextRenderer
     }
 
     /**
-     * Draw a multi-line text string with bounding rectangle top starting at the y position. Depending on the current
-     * textAlign, the x position is either the rectangle left side, middle or right side.
-     * <p/>
+     * Draw a multi-line text string with bounding rectangle top starting at the y position.
+     * Depending on the current textAlign, the x position is either the rectangle left side,
+     * middle or right side.
+     * <p>
      * Uses the current line height.
      *
      * @param text the multi-line text to draw.
-     * @param x    the x position for top left corner of text rectangle.
-     * @param y    the y position for top left corner of the text rectangle.
+     * @param x the x position for top left corner of text rectangle.
+     * @param y the y position for top left corner of the text rectangle.
      */
     public void draw(String text, int x, int y)
     {
@@ -353,16 +352,17 @@ public class MultiLineTextRenderer
     }
 
     /**
-     * Draw a multi-line text string with bounding rectangle top starting at the y position. Depending on the current
-     * textAlign, the x position is either the rectangle left side, middle or right side.
-     * <p/>
+     * Draw a multi-line text string with bounding rectangle top starting at the y position.
+     * Depending on the current textAlign, the x position is either the rectangle left side,
+     * middle or right side.
+     * <p>
      * Uses the current line height and the given effect.
      *
-     * @param text   the multi-line text to draw.
-     * @param x      the x position for top left corner of text rectangle.
-     * @param y      the y position for top left corner of the text rectangle.
+     * @param text the multi-line text to draw.
+     * @param x the x position for top left corner of text rectangle.
+     * @param y the y position for top left corner of the text rectangle.
      * @param effect the effect to use for the text rendering. Can be one of <code>EFFECT_NONE</code>,
-     *               <code>EFFECT_SHADOW</code> or <code>EFFECT_OUTLINE</code>.
+     * <code>EFFECT_SHADOW</code> or <code>EFFECT_OUTLINE</code>.
      */
     public void draw(String text, int x, int y, String effect)
     {
@@ -370,17 +370,18 @@ public class MultiLineTextRenderer
     }
 
     /**
-     * Draw a multi-line text string with bounding rectangle top starting at the y position. Depending on the current
-     * textAlign, the x position is either the rectangle left side, middle or right side.
-     * <p/>
+     * Draw a multi-line text string with bounding rectangle top starting at the y position.
+     * Depending on the current textAlign, the x position is either the rectangle left side,
+     * middle or right side.
+     * <p>
      * Uses the given line height and effect.
      *
-     * @param text           the multi-line text to draw.
-     * @param x              the x position for top left corner of text rectangle.
-     * @param y              the y position for top left corner of the text rectangle.
+     * @param text the multi-line text to draw.
+     * @param x the x position for top left corner of text rectangle.
+     * @param y the y position for top left corner of the text rectangle.
      * @param textLineHeight the line height in pixels.
-     * @param effect         the effect to use for the text rendering. Can be one of <code>EFFECT_NONE</code>,
-     *                       <code>EFFECT_SHADOW</code> or <code>EFFECT_OUTLINE</code>.
+     * @param effect the effect to use for the text rendering. Can be one of <code>EFFECT_NONE</code>,
+     * <code>EFFECT_SHADOW</code> or <code>EFFECT_OUTLINE</code>.
      */
     public void draw(String text, int x, int y, int textLineHeight, String effect)
     {
@@ -411,14 +412,15 @@ public class MultiLineTextRenderer
     }
 
     /**
-     * Draw a multi-line text string with bounding rectangle top starting at the y position. Depending on the current
-     * textAlign, the x position is either the rectangle left side, middle or right side.
-     * <p/>
+     * Draw a multi-line text string with bounding rectangle top starting at the y position.
+     * Depending on the current textAlign, the x position is either the rectangle left side,
+     * middle or right side.
+     * <p>
      * Uses the given line height.
      *
-     * @param text           the multi-line text to draw.
-     * @param x              the x position for top left corner of text rectangle.
-     * @param y              the y position for top left corner of the text rectangle.
+     * @param text the multi-line text to draw.
+     * @param x the x position for top left corner of text rectangle.
+     * @param y the y position for top left corner of the text rectangle.
      * @param textLineHeight the line height in pixels.
      */
     public void draw(String text, int x, int y, int textLineHeight)
@@ -445,17 +447,17 @@ public class MultiLineTextRenderer
     }
 
     /**
-     * Draw text with unique colors word bounding rectangles and add each as a pickable object to the provided
-     * PickSupport instance.
+     * Draw text with unique colors word bounding rectangles and add each as a pickable object
+     * to the provided PickSupport instance.
      *
-     * @param text           the multi-line text to draw.
-     * @param x              the x position for top left corner of text rectangle.
-     * @param y              the y position for top left corner of the text rectangle.
+     * @param text the multi-line text to draw.
+     * @param x the x position for top left corner of text rectangle.
+     * @param y the y position for top left corner of the text rectangle.
      * @param textLineHeight the line height in pixels.
-     * @param dc             the current DrawContext.
-     * @param pickSupport    the PickSupport instance to be used.
-     * @param refObject      the user reference object associated with every picked word.
-     * @param refPosition    the user reference Position associated with every picked word.
+     * @param dc the current DrawContext.
+     * @param pickSupport the PickSupport instance to be used.
+     * @param refObject the user reference object associated with every picked word.
+     * @param refPosition the user reference Position associated with every picked word.
      */
     public void pick(String text, int x, int y, int textLineHeight,
         DrawContext dc, PickSupport pickSupport, Object refObject, Position refPosition)
@@ -496,8 +498,6 @@ public class MultiLineTextRenderer
     protected void drawLineWithUniqueColors(String text, int x, int y,
         DrawContext dc, PickSupport pickSupport, Object refObject, Position refPosition)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
-
         //float spaceWidth = this.textRenderer.getCharWidth(' ');
         float drawX;
         String source = text.trim();
@@ -520,7 +520,7 @@ public class MultiLineTextRenderer
             po.setValue(AVKey.TEXT, word.trim());
             pickSupport.addPickableObject(po);
             // Draw word rectangle
-            gl.glColor3ub((byte) color.getRed(), (byte) color.getGreen(), (byte) color.getBlue());
+            dc.getGL().glColor3ub((byte) color.getRed(), (byte) color.getGreen(), (byte) color.getBlue());
             drawFilledRectangle(dc, drawX + wordBounds.getX(), y - wordBounds.getHeight() - wordBounds.getY(),
                 wordBounds.getWidth(), wordBounds.getHeight());
             // Move forward in source string
@@ -533,19 +533,19 @@ public class MultiLineTextRenderer
     }
 
     /**
-     * Add 'new line' characters inside a string so that it's bounding rectangle tries not to exceed the given dimension
-     * width.
-     * <p/>
-     * If the dimension height is more than zero, the text will be truncated accordingly and the continuation string
-     * will be appended to the last line.
-     * <p/>
-     * Note that words will not be split and at least one word will be used per line so the longest word defines the
-     * final width of the bounding rectangle. Each line is trimmed of leading and trailing spaces.
+     * Add 'new line' characters inside a string so that it's bounding rectangle
+     * tries not to exceed the given dimension width.
+     * <p>
+     * If the dimension height is more than zero, the text will be truncated accordingly and
+     * the continuation string will be appended to the last line.
+     * <p>
+     * Note that words will not be split and at least one word will be used per line
+     * so the longest word defines the final width of the bounding rectangle.
+     * Each line is trimmed of leading and trailing spaces.
      *
-     * @param text   the text string to wrap
-     * @param width  the maximum width in pixels the text can occupy.
+     * @param text the text string to wrap
+     * @param width the maximum width in pixels the text can occupy.
      * @param height if not zero, the maximum height in pixels the text can occupy.
-     *
      * @return the wrapped string.
      */
     public String wrap(String text, int width, int height)
@@ -672,7 +672,6 @@ public class MultiLineTextRenderer
      * Return true if the text contains some sgml tags.
      *
      * @param text The text string to evaluate.
-     *
      * @return true if the string contains sgml or html tags
      */
     public static boolean containsHTML(String text)
@@ -692,7 +691,6 @@ public class MultiLineTextRenderer
      * Remove new line characters then replace BR and P tags with appropriate new lines.
      *
      * @param text The html text string to process.
-     *
      * @return The processed text string.
      */
     public static String processLineBreaksHTML(String text)
@@ -715,7 +713,6 @@ public class MultiLineTextRenderer
      * Remove all HTML tags from a text string.
      *
      * @param text the string to filter.
-     *
      * @return the filtered string.
      */
     public static String removeTagsHTML(String text)
@@ -731,12 +728,11 @@ public class MultiLineTextRenderer
     }
 
     /**
-     * Extract an attribute value from a HTML tag string. The attribute is expected to be formed on the pattern:
-     * name="...". Other variants will likely fail.
+     * Extract an attribute value from a HTML tag string. The attribute is expected to be formed
+     * on the pattern: name="...". Other variants will likely fail.
      *
-     * @param text          the HTML tage string.
+     * @param text the HTML tage string.
      * @param attributeName the attribute name.
-     *
      * @return the attribute value found. Null if empty or not found.
      */
     public static String getAttributeFromTagHTML(String text, String attributeName)
@@ -762,9 +758,8 @@ public class MultiLineTextRenderer
     /**
      * Returns the bounding rectangle for a multi-line html string.
      *
-     * @param text      the multi-line html text to evaluate.
+     * @param text the multi-line html text to evaluate.
      * @param renderers a {@link TextRendererCache} instance.
-     *
      * @return the bounding rectangle for the rendered text.
      */
     public Rectangle getBoundsHTML(String text, TextRendererCache renderers)
@@ -858,20 +853,20 @@ public class MultiLineTextRenderer
     }
 
     /**
-     * Add 'new line' characters inside an html text string so that it's bounding rectangle tries not to exceed the
-     * given dimension width.
-     * <p/>
-     * If the dimension height is more than zero, the text will be truncated accordingly and the continuation string
-     * will be appended to the last line.
-     * <p/>
-     * Note that words will not be split and at least one word will be used per line so the longest word defines the
-     * final width of the bounding rectangle. Each line is trimmed of leading and trailing spaces.
+     * Add 'new line' characters inside an html text string so that it's bounding rectangle
+     * tries not to exceed the given dimension width.
+     * <p>
+     * If the dimension height is more than zero, the text will be truncated accordingly and
+     * the continuation string will be appended to the last line.
+     * <p>
+     * Note that words will not be split and at least one word will be used per line
+     * so the longest word defines the final width of the bounding rectangle.
+     * Each line is trimmed of leading and trailing spaces.
      *
-     * @param text      the html text string to wrap
-     * @param width     the maximum width in pixels one text line can occupy.
-     * @param height    if not zero, the maximum height the text can occupy.
+     * @param text the html text string to wrap
+     * @param width the maximum width in pixels one text line can occupy.
+     * @param height if not zero, the maximum height the text can occupy.
      * @param renderers a {@link TextRendererCache} instance.
-     *
      * @return the wrapped html string
      */
     public String wrapHTML(String text, double width, double height, TextRendererCache renderers)
@@ -976,16 +971,16 @@ public class MultiLineTextRenderer
     }
 
     /**
-     * Draw text with unique colors word bounding rectangles and add each as a pickable object to the provided
-     * PickSupport instance.
+     * Draw text with unique colors word bounding rectangles and add each as a pickable object
+     * to the provided PickSupport instance.
      *
-     * @param text        the multi-line text to draw.
-     * @param x           the x position for top left corner of text rectangle.
-     * @param y           the y position for top left corner of the text rectangle.
-     * @param renderers   a {@link TextRendererCache} instance.
-     * @param dc          the current DrawContext.
+     * @param text the multi-line text to draw.
+     * @param x the x position for top left corner of text rectangle.
+     * @param y the y position for top left corner of the text rectangle.
+     * @param renderers a {@link TextRendererCache} instance.
+     * @param dc the current DrawContext.
      * @param pickSupport the PickSupport instance to be used.
-     * @param refObject   the user reference object associated with every picked word.
+     * @param refObject the user reference object associated with every picked word.
      * @param refPosition the user reference Position associated with every picked word.
      */
     public void pickHTML(String text, int x, int y, TextRendererCache renderers, DrawContext dc,
@@ -1023,12 +1018,12 @@ public class MultiLineTextRenderer
     }
 
     /**
-     * Draw a multi-line html text string with bounding rectangle top starting at the y position. The x position is
-     * eiher the rectangle left side, middle or right side depending on the current text alignement.
+     * Draw a multi-line html text string with bounding rectangle top starting at the y position. The x
+     * position is eiher the rectangle left side, middle or right side depending on the current text alignement.
      *
-     * @param text      the multi-line text to draw
-     * @param x         the x position for top left corner of text rectangle
-     * @param y         the y position for top left corner of the text rectangle
+     * @param text the multi-line text to draw
+     * @param x the x position for top left corner of text rectangle
+     * @param y the y position for top left corner of the text rectangle
      * @param renderers a {@link TextRendererCache} instance.
      */
     public void drawHTML(String text, double x, double y, TextRendererCache renderers)
@@ -1200,8 +1195,6 @@ public class MultiLineTextRenderer
     protected void pickWord(String word, String hyperlink, double drawX, double drawY, Rectangle2D wordBounds,
         DrawContext dc, PickSupport pickSupport, Object refObject, Position refPosition)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
-
         // Add pickable object
         Color color = dc.getUniquePickColor();
         int colorCode = color.getRGB();
@@ -1211,7 +1204,7 @@ public class MultiLineTextRenderer
             po.setValue(AVKey.URL, hyperlink);
         pickSupport.addPickableObject(po);
         // Draw word rectangle
-        gl.glColor3ub((byte) color.getRed(), (byte) color.getGreen(), (byte) color.getBlue());
+        dc.getGL().glColor3ub((byte) color.getRed(), (byte) color.getGreen(), (byte) color.getBlue());
         drawFilledRectangle(dc, drawX, drawY - wordBounds.getHeight() / 4,  // TODO: handle font descent properly
             wordBounds.getWidth(), wordBounds.getHeight());
     }
@@ -1219,8 +1212,8 @@ public class MultiLineTextRenderer
     // Draw a filled rectangle
     protected void drawFilledRectangle(DrawContext dc, double x, double y, double width, double height)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
-        gl.glBegin(GL2.GL_POLYGON);
+        GL gl = dc.getGL();
+        gl.glBegin(GL.GL_POLYGON);
         gl.glVertex3d(x, y, 0);
         gl.glVertex3d(x + width - 1, y, 0);
         gl.glVertex3d(x + width - 1, y + height - 1, 0);
@@ -1232,8 +1225,8 @@ public class MultiLineTextRenderer
     // -- HTML word iterator ------------------------------------
 
     /**
-     * Iterates through words from an HTML text line. Note that returned 'words' can contain html tags at any place,
-     * before, inside or after the word.
+     * Iterates through words from an HTML text line. Note that returned 'words' can contain html
+     * tags at any place, before, inside or after the word.
      */
     public static class WordIteratorHTML implements Iterator<String>
     {

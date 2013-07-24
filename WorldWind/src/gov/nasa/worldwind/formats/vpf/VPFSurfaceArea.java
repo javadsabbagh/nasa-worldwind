@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
@@ -11,7 +11,7 @@ import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL;
 import javax.media.opengl.glu.*;
 import java.nio.IntBuffer;
 import java.util.*;
@@ -134,8 +134,7 @@ public class VPFSurfaceArea extends SurfacePolygon // TODO: consolidate with Sur
     {
         // Apply the geographic to surface tile coordinate transform.
         Matrix modelview = sdc.getModelviewMatrix();
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
-        gl.glMultMatrixd(modelview.toArray(new double[16], 0, false), 0);
+        dc.getGL().glMultMatrixd(modelview.toArray(new double[16], 0, false), 0);
     }
 
     @Override
@@ -158,14 +157,14 @@ public class VPFSurfaceArea extends SurfacePolygon // TODO: consolidate with Sur
 
         // Apply interior attributes using a reference location of (0, 0), because VPFSurfaceArea's coordinates
         // are not offset with respect to a reference location.
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
         this.applyInteriorState(dc, sdc, this.getActiveAttributes(), this.getInteriorTexture(), LatLon.ZERO);
 
         int[] dlResource = (int[]) dc.getGpuResourceCache().get(this.interiorDisplayListCacheKey);
         if (dlResource == null)
         {
-            dlResource = new int[] {gl.glGenLists(1), 1};
-            gl.glNewList(dlResource[0], GL2.GL_COMPILE);
+            dlResource = new int[] {dc.getGL().glGenLists(1), 1};
+            gl.glNewList(dlResource[0], GL.GL_COMPILE);
             // Tessellate the interior vertices using a reference location of (0, 0), because VPFSurfaceArea's
             // coordinates do not need to be offset with respect to a reference location.
             Integer numBytes = this.tessellateInterior(dc);
@@ -216,13 +215,13 @@ public class VPFSurfaceArea extends SurfacePolygon // TODO: consolidate with Sur
     //********************  Interior Tessellation  *****************//
     //**************************************************************//
 
-    protected Integer tessellateInteriorVertices(GLUtessellator tess)
+    protected Integer tessellateInteriorVertices(GLU glu, GLUtessellator tess)
     {
         // Setup the winding order to correctly tessellate the outer and inner rings. The outer ring is specified
         // with a clockwise winding order, while inner rings are specified with a counter-clockwise order. Inner
         // rings are subtracted from the outer ring, producing an area with holes.
-        GLU.gluTessProperty(tess, GLU.GLU_TESS_WINDING_RULE, GLU.GLU_TESS_WINDING_NEGATIVE);
-        GLU.gluTessBeginPolygon(tess, null);
+        glu.gluTessProperty(tess, GLU.GLU_TESS_WINDING_RULE, GLU.GLU_TESS_WINDING_NEGATIVE);
+        glu.gluTessBeginPolygon(tess, null);
 
         int numBytes = 0; // approximate size of the display list
         String primitiveName = this.feature.getFeatureClass().getPrimitiveTableName();
@@ -232,26 +231,26 @@ public class VPFSurfaceArea extends SurfacePolygon // TODO: consolidate with Sur
             VPFPrimitiveData.FaceInfo faceInfo = (VPFPrimitiveData.FaceInfo) primitiveData.getPrimitiveInfo(
                 primitiveName, id);
 
-            Integer nb = this.tessellateRing(tess, faceInfo.getOuterRing());
+            Integer nb = this.tessellateRing(glu, tess, faceInfo.getOuterRing());
             if (nb != null)
                 numBytes += nb;
 
             for (VPFPrimitiveData.Ring ring : faceInfo.getInnerRings())
             {
-                nb = this.tessellateRing(tess, ring);
+                nb = this.tessellateRing(glu, tess, ring);
                 if (nb != null)
                     numBytes += nb;
             }
         }
 
-        GLU.gluTessEndPolygon(tess);
+        glu.gluTessEndPolygon(tess);
 
         return numBytes;
     }
 
-    protected Integer tessellateRing(GLUtessellator tess, VPFPrimitiveData.Ring ring)
+    protected Integer tessellateRing(GLU glu, GLUtessellator tess, VPFPrimitiveData.Ring ring)
     {
-        GLU.gluTessBeginContour(tess);
+        glu.gluTessBeginContour(tess);
 
         CompoundVecBuffer buffer = this.primitiveData.getPrimitiveCoords(VPFConstants.EDGE_PRIMITIVE_TABLE);
         int numEdges = ring.getNumEdges();
@@ -265,12 +264,12 @@ public class VPFSurfaceArea extends SurfacePolygon // TODO: consolidate with Sur
 
             for (double[] coords : iterable)
             {
-                GLU.gluTessVertex(tess, coords, 0, coords);
+                glu.gluTessVertex(tess, coords, 0, coords);
                 numBytes += 3 * 4; // 3 float coords
             }
         }
 
-        GLU.gluTessEndContour(tess);
+        glu.gluTessEndContour(tess);
 
         return numBytes;
     }

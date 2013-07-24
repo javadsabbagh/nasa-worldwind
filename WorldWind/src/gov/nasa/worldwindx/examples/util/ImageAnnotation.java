@@ -1,15 +1,14 @@
-/*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
- * National Aeronautics and Space Administration.
- * All Rights Reserved.
- */
+/* Copyright (C) 2001, 2009 United States Government as represented by
+the Administrator of the National Aeronautics and Space Administration.
+All Rights Reserved.
+*/
 package gov.nasa.worldwindx.examples.util;
 
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.geom.Position;
 import gov.nasa.worldwind.render.*;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL;
 
 /**
  * @author dcollins
@@ -253,7 +252,7 @@ public class ImageAnnotation extends ScreenAnnotation
     protected void transformBackgroundImageCoordsToAnnotationCoords(DrawContext dc, int width, int height,
         WWTexture texture)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
 
         // Scale background image coordinates to fit the Annotation's dimensions.
         java.awt.Dimension size = this.getImageSize(dc);

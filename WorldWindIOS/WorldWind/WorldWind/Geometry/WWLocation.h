@@ -6,16 +6,14 @@
  */
 
 #import <Foundation/Foundation.h>
-#import <CoreLocation/CoreLocation.h>
-
-@class WWGlobe;
 
 /**
-* Represents a geographic location as a latitude longitude pair and provides operations on and between location
+* Represents a geographic location as a latitude/longitude pair and provides operations on and between location
 * coordinates.
 *
 * @warning WWLocation instances are mutable. Most methods of this class modify the instance, itself.
 */
+
 @interface WWLocation : NSObject <NSCopying>
 
 /// @name Location Attributes
@@ -23,16 +21,16 @@
 /**
 * This location's latitude in degrees.
 */
-@property(nonatomic) double latitude;
+@property (nonatomic) double latitude;
 /**
 * This location's longitude in degrees.
 */
-@property(nonatomic) double longitude;
+@property (nonatomic) double longitude;
 
 /// @name Initializing Locations
 
 /**
-* Initializes a location to the specified latitude and longitude.
+* Initializes a location to specified latitude and longitude.
 *
 * @param latitude The location's latitude in degrees.
 * @param longitude The location's longitude in degrees.
@@ -41,67 +39,6 @@
 */
 - (WWLocation*) initWithDegreesLatitude:(double)latitude longitude:(double)longitude;
 
-/**
-* Initializes a location to the specified latitude and longitude.
-*
-* The location's longitude is derived from the specified time zone. The time zone is converted from a time offset
-* relative to Greenwich Mean Time into a longitude offset relative to the prime meridian. For example, an offset of +12
-* hours is converted into a longitude offset of +180 degrees, while an offset of -12 hours is converted into a longitude
-* offset of -180 degrees. This conversion ignores differences in time zone offsets at different points in the year such
-* as Daylight Savings Time.
-*
-* @param latitude The location's latitude in degrees.
-* @param timeZone The time zone associated with the location's longitude.
-*
-* @return The initialized location.
-*
-* @exception NSInvalidArgumentException If the time zone is nil.
-*/
-- (WWLocation*) initWithDegreesLatitude:(double)latitude timeZoneForLongitude:(NSTimeZone*)timeZone;
-
-/**
-* Initializes a location to the latitude and longitude of a specified location.
-*
-* @param location The location containing the latitude and longitude.
-*
-* @return The initialized location.
-*
-* @exception NSInvalidArgumentException If the location is nil.
-*/
-- (WWLocation*) initWithLocation:(WWLocation*)location;
-
-/**
-* Initializes a location to the latitude and longitude of a specified CLLocation.
-*
-* The location's latitude and longitude are taken directly from the specified CLLocation's coordinate property.
-*
-* @param location The location containing the latitude and longitude.
-*
-* @return The initialized location.
-*
-* @exception NSInvalidArgumentException If the location is nil.
-*/
-- (WWLocation*) initWithCLLocation:(CLLocation*)location;
-
-/**
-* Initializes a location to the latitude and longitude of a specified CLLocationCoordinate2D.
-*
-* The location's latitude and longitude are taken directly from the specified CLLocationCoordinate2D's latitude
-* and longitude fields.
-*
-* @param locationCoordinate The location coordinate containing the latitude and longitude.
-*
-* @return The initialized location.
-*/
-- (WWLocation*) initWithCLCoordinate:(CLLocationCoordinate2D)locationCoordinate;
-
-/**
-* Initializes a location with its latitude and longitude set to 0.
-*
-* @return The initialized location.
-*/
-- (WWLocation*) initWithZeroLocation;
-
 /// @name Setting the Contents of Locations
 
 /**
@@ -109,54 +46,47 @@
 *
 * @param latitude The location's latitude.
 * @param longitude The location's longitude.
+*
+* @return This location with the specified latitude and longitude.
 */
-- (void) setDegreesLatitude:(double)latitude longitude:(double)longitude;
-
-/**
-* Specifies a location's latitude and longitude.
-*
-* The location's longitude is derived from the specified time zone. The time zone is converted from a time offset
-* relative to Greenwich Mean Time into a longitude offset relative to the prime meridian. For example, an offset of +12
-* hours is converted into a longitude offset of +180 degrees, while an offset of -12 hours is converted into a longitude
-* offset of -180 degrees. This conversion ignores differences in time zone offsets at different points in the year such
-* as Daylight Savings Time.
-*
-* @param latitude The location's latitude in degrees.
-* @param timeZone The time zone associated with the location's longitude.
-*
-* @exception NSInvalidArgumentException If the time zone is nil.
-*/
-- (void) setDegreesLatitude:(double)latitude timeZoneForLongitude:(NSTimeZone*)timeZone;
+- (WWLocation*) setDegreesLatitude:(double)latitude longitude:(double)longitude;
 
 /**
 * Sets a location to the latitude and longitude of a specified location.
 *
 * @param location The location containing the new latitude and longitude.
 *
-* @exception NSInvalidArgumentException If the location is nil.
+* @return This location with the specified latitude and longitude.
+*
+* @exception NSInvalidArgumentException If the specified location is nil.
 */
-- (void) setLocation:(WWLocation*)location;
+- (WWLocation*) setLocation:(WWLocation*)location;
 
 /**
-* Sets a location to the latitude and longitude of a specified CLLocation.
+* Sets this location to the end of a great circle path specified by an azimuth and distance.
 *
-* The location's latitude and longitude are taken directly from the specified CLLocation's coordinate property.
+* @param startLocation The beginning location of the great circle path.
+* @param azimuth The direction, in degrees clockwise from north, of the great circle path.
+* @param distance The angular distance, in degrees, between the start location of the path and its end location.
 *
-* @param location The location containing the new latitude and longitude.
+* @return This instance set to the end position of the specified great circle path.
 *
-* @exception NSInvalidArgumentException If the location is nil.
+* @exception NSInvalidArgumentException If the specified start location is nil.
 */
-- (void) setCLLocation:(CLLocation*)location;
+- (WWLocation*) setGreatCircleEndLocation:(WWLocation*)startLocation azimuth:(double)azimuth distance:(double)distance;
 
 /**
-* Sets a location to the latitude and longitude of a specified CLLocationCoordinate2D.
+* Sets this location to the end of a rhumb path specified by an azimuth and distance.
 *
-* The location's latitude and longitude are taken directly from the specified CLLocationCoordinate2D's latitude
-* and longitude fields.
+* @param startLocation The beginning location of the rhumb path.
+* @param azimuth The direction, in degrees clockwise from north, of the rhumb path.
+* @param distance The angular distance, in degrees, between the start location of the path and its end location.
 *
-* @param locationCoordinate The location coordinate containing the latitude and longitude.
+* @return This instance set to the end position of the specified rhumb path.
+*
+* @exception NSInvalidArgumentException If the specified start location is nil.
 */
-- (void) setCLCoordinate:(CLLocationCoordinate2D)locationCoordinate;
+- (WWLocation*) setRhumbEndLocation:(WWLocation*)startLocation azimuth:(double)azimuth distance:(double)distance;
 
 /// @name Operations on Locations
 
@@ -165,196 +95,21 @@
 *
 * @param location The location whose latitude and longitude are to be added.
 *
-* @exception NSInvalidArgumentException If the location is nil.
+* @return This location with the specified location added to it.
+*
+* @exception NSInvalidArgumentException If the specified location is nil.
 */
-- (void) addLocation:(WWLocation*)location;
+- (WWLocation*) addLocation:(WWLocation*)location;
 
 /**
 * Subtracts a specified location's latitude and longitude from this location's latitude and longitude.
 *
 * @param location The location whose latitude and longitude are to be subtracted from this location.
 *
-* @exception NSInvalidArgumentException If the location is nil.
+* @return This location with the specified location subtracted from it.
+*
+* @exception NSInvalidArgumentException If the specified location is nil.
 */
-- (void) subtractLocation:(WWLocation*)location;
-
-/// @name Common Geographic Operations
-
-/**
-* TODO
-*
-* @param beginLocation TODO
-* @param endLocation TODO
-*
-* @return TODO
-*
-* @exception TODO
-*/
-+ (double) greatCircleAzimuth:(WWLocation*)beginLocation endLocation:(WWLocation*)endLocation;
-
-/**
-* TODO
-*
-* @param beginLocation TODO
-* @param endLocation TODO
-*
-* @return TODO
-*
-* @exception TODO
-*/
-+ (double) greatCircleDistance:(WWLocation*)beginLocation endLocation:(WWLocation*)endLocation;
-
-/**
-* Computes a location on the great circle path specified by a beginning location, azimuth and distance.
-*
-* @param beginLocation The beginning location of the great circle path.
-* @param azimuth The direction of the great circle path in degrees clockwise from north.
-* @param distance The angular distance between the begin location of the path and the desired location, in degrees.
-* @param result TODO
-*
-* @exception NSInvalidArgumentException If either the begin location or the result is nil.
-*/
-+ (void) greatCircleLocation:(WWLocation*)beginLocation
-                     azimuth:(double)azimuth
-                    distance:(double)distance
-              outputLocation:(WWLocation*)result;
-
-/**
-* TODO
-*
-* @param beginLocation TODO
-* @param endLocation TODO
-* @param amount TODO
-* @param result TODO
-*
-* @exception TODO
-*/
-+ (void) greatCircleInterpolate:(WWLocation*)beginLocation
-                    endLocation:(WWLocation*)endLocation
-                         amount:(double)amount
-                 outputLocation:(WWLocation*)result;
-
-/**
-* TODO
-*
-* @param beginLocation TODO
-* @param endLocation TODO
-*
-* @return TODO
-*
-* @exception TODO
-*/
-+ (double) rhumbAzimuth:(WWLocation*)beginLocation endLocation:(WWLocation*)endLocation;
-
-/**
-* TODO
-*
-* @param beginLocation TODO
-* @param endLocation TODO
-*
-* @return TODO
-*
-* @exception TODO
-*/
-+ (double) rhumbDistance:(WWLocation*)beginLocation endLocation:(WWLocation*)endLocation;
-
-/**
-* Computes this location on the rhumb path specified by a beginning location, azimuth and distance.
-*
-* @param beginLocation The beginning location of the rhumb path.
-* @param azimuth The direction of the rhumb path in degrees clockwise from north.
-* @param distance The angular distance, between the begin location of the path and the desired location, in degrees.
-* @param result TODO
-*
-* @exception NSInvalidArgumentException If either the begin location or the result is nil.
-*/
-+ (void) rhumbLocation:(WWLocation*)beginLocation
-               azimuth:(double)azimuth
-              distance:(double)distance
-        outputLocation:(WWLocation*)result;
-
-/**
-* TODO
-*
-* @param beginLocation TODO
-* @param endLocation TODO
-* @param amount TODO
-* @param result TODO
-*
-* @exception TODO
-*/
-+ (void) rhumbInterpolate:(WWLocation*)beginLocation
-              endLocation:(WWLocation*)endLocation
-                   amount:(double)amount
-           outputLocation:(WWLocation*)result;
-
-/**
-* TODO
-*
-* @param beginLocation TODO
-* @param endLocation TODO
-*
-* @return TODO
-*
-* @exception TODO
-*/
-+ (double) linearAzimuth:(WWLocation*)beginLocation endLocation:(WWLocation*)endLocation;
-
-/**
-* TODO
-*
-* @param beginLocation TODO
-* @param endLocation TODO
-*
-* @return TODO
-*
-* @exception TODO
-*/
-+ (double) linearDistance:(WWLocation*)beginLocation endLocation:(WWLocation*)endLocation;
-
-/**
-* Computes this location on the rhumb path specified by a beginning location, azimuth and distance.
-*
-* @param beginLocation The beginning location of the rhumb path.
-* @param azimuth The direction of the rhumb path in degrees clockwise from north.
-* @param distance The angular distance, between the begin location of the path and the desired location, in degrees.
-* @param result TODO
-*
-* @exception NSInvalidArgumentException If either the begin location or the result is nil.
-*/
-+ (void) linearLocation:(WWLocation*)beginLocation
-                azimuth:(double)azimuth
-               distance:(double)distance
-         outputLocation:(WWLocation*)result;
-
-/**
-* TODO
-*
-* @param beginLocation TODO
-* @param endLocation TODO
-* @param amount TODO
-* @param result TODO
-*
-* @exception TODO
-*/
-+ (void) linearInterpolate:(WWLocation*)beginLocation
-               endLocation:(WWLocation*)endLocation
-                    amount:(double)amount
-            outputLocation:(WWLocation*)result;
-
-/**
-* TODO
-*
-* @param location TODO
-* @param date TODO
-* @param globe TODO
-* @param result TODO
-*
-* @exception TODO
-*/
-+ (void) forecastLocation:(CLLocation*)location
-                  forDate:(NSDate*)date
-                  onGlobe:(WWGlobe*)globe
-           outputLocation:(WWLocation*)result;
+- (WWLocation*) subtractLocation:(WWLocation*)location;
 
 @end

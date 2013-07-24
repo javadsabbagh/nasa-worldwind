@@ -1,15 +1,16 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
 
 package gov.nasa.worldwind.render.markers;
 
-import gov.nasa.worldwind.render.*;
+import gov.nasa.worldwind.render.Material;
+import gov.nasa.worldwind.render.DrawContext;
 import gov.nasa.worldwind.util.Logging;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL;
 
 /**
  * @author tag
@@ -52,7 +53,7 @@ public class BasicMarkerAttributes implements MarkerAttributes
     }
 
     public BasicMarkerAttributes(Material material, String shapeType, double opacity, double markerPixels,
-        double minMarkerSize)
+                                 double minMarkerSize)
     {
         if (material == null)
         {
@@ -97,7 +98,7 @@ public class BasicMarkerAttributes implements MarkerAttributes
     }
 
     public BasicMarkerAttributes(Material material, String shapeType, double opacity, double markerPixels,
-        double minMarkerSize, double maxMarkerSize)
+                                 double minMarkerSize, double maxMarkerSize)
     {
         if (material == null)
         {
@@ -248,7 +249,6 @@ public class BasicMarkerAttributes implements MarkerAttributes
 
         return shape;
     }
-
     public double getOpacity()
     {
         return opacity;
@@ -321,12 +321,10 @@ public class BasicMarkerAttributes implements MarkerAttributes
     {
         if (!dc.isPickingMode() && this.material != null)
         {
-            GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
-
             if (this.opacity < 1)
-                this.material.apply(gl, GL2.GL_FRONT, (float) this.opacity);
+                this.material.apply(dc.getGL(), GL.GL_FRONT, (float) this.opacity);
             else
-                this.material.apply(gl, GL2.GL_FRONT);
+                this.material.apply(dc.getGL(), GL.GL_FRONT);
         }
     }
 }

@@ -1,8 +1,9 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
- * National Aeronautics and Space Administration.
- * All Rights Reserved.
- */
+Copyright (C) 2001, 2009 United States Government
+as represented by the Administrator of the
+National Aeronautics and Space Administration.
+All Rights Reserved.
+*/
 package gov.nasa.worldwind.layers.Earth;
 
 import gov.nasa.worldwind.avlist.*;
@@ -12,9 +13,6 @@ import gov.nasa.worldwind.util.*;
 
 import java.net.*;
 
-/**
- * @version $Id$
- */
 public class OSMCycleMapLayer extends BasicMercatorTiledImageLayer
 {
 	public OSMCycleMapLayer()

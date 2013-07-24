@@ -8,10 +8,8 @@
 #import <Foundation/Foundation.h>
 #import "WorldWind/Geometry/WWExtent.h"
 
-@class WWFrustum;
-@class WWGlobe;
-@class WWSector;
 @class WWVec4;
+@class WWPlane;
 
 /**
 * Provides box geometry for use as a bounding volume.
@@ -42,103 +40,53 @@
 /// The S axis, the box's mid-length axis.
 @property(nonatomic, readonly) WWVec4* s;
 
-/// The T axis, the box's shortest axis.
+// The T axis, the box's shortest axis.
 @property(nonatomic, readonly) WWVec4* t;
 
-/// This bounding box's radius.
-@property (nonatomic, readonly) double radius;
+/// The unit length R axis.
+@property(nonatomic, readonly) WWVec4* ru;
+
+/// The unit length S axis.
+@property(nonatomic, readonly) WWVec4* su;
+
+/// The unit length T axis.
+@property(nonatomic, readonly) WWVec4* tu;
+
+/// The length in meters of the box's longest axis.
+@property(nonatomic, readonly) double rLength;
+
+/// The length in meters of the box's mid-length axis.
+@property(nonatomic, readonly) double sLength;
+
+/// The length in meters of the box's shortest axis.
+@property(nonatomic, readonly) double tLength;
+
+/// The six planes that bound the box.
+@property(nonatomic, readonly) NSArray* planes;
 
 /// @name Initializing Bounding Boxes
 
 /**
-* Initializes this bounding box to the unit box.
+* Initializes this bounding box to one meter on each axis and centered on a specified point.
 *
-* The unit box has its r- s- and t-axes aligned with the x- y- and z-axes, respectively, and has its length, width and
-* height set to 1.
+* @param point The point to contain.
 *
-* @return The bounding box initialized to the unit box.
+* @return This bounding box initialized to contain the specified point.
+*
+* @exception NSInvalidArgumentException If the specified point is nil.
 */
-- (WWBoundingBox*) initWithUnitBox;
+- (WWBoundingBox*) initWithPoint:(WWVec4*)point;
 
 /**
-* Sets this bounding box such that it contains a specified list of points.
+* Initializes this bounding box such that it contains a specified list of points.
 *
 * @param points The points to contain.
 *
-* @exception NSInvalidArgumentException If the list of points is nil or empty.
+* @return The bounding box initialized to contain the specified points.
+*
+* @exception NSInvalidArgumentException if the specified list of points is nil.
 */
-- (void) setToPoints:(NSArray*)points;
-
-/**
-* Sets this bounding box such that it contains a specified sector on a specified globe with min and max elevation.
-*
-* - To create a bounding box that contains the sector at mean sea level, specify zero for the minimum and maximum
-* elevations.
-* - To create a bounding box that contains the terrain surface in this sector, specify the actual minimum and maximum
-* elevation values associated with this sector, multiplied by the scene's vertical exaggeration. These values can be
-* determined by calling [WWGlobe minAndMaxElevationsForSector:result:] and [WWDrawContext verticalExaggeration]. The
-* returned bounding box must be recomputed whenever the globe's elevations or the vertical exaggeration changes. The
-* method [WWGlobe elevationTimestamp] can be used to determine when the elevations change.
-*
-* @param sector The sector to contain.
-* @param globe The globe defining the surface and terrain geometry of the specified sector.
-* @param minElevation The globe's minimum elevation within the specified sector.
-* @param maxElevation The globe's maximum elevation within the specified sector.
-*
-* @exception NSInvalidArgumentException If any argument is nil.
-*/
-- (void) setToSector:(WWSector*)sector
-             onGlobe:(WWGlobe*)globe
-        minElevation:(double)minElevation
-        maxElevation:(double)maxElevation;
-
-/// @name Operations on Bounding Boxes
-
-/**
-* Translates this box by a specified translation vector.
-*
-* @param translation The translation vector.
-*
-* @exception NSInvalidArgumentException If the translation vector is nil.
-*/
-- (void) translate:(WWVec4*)translation;
-
-/// @name Operations on Bounding Boxes
-
-/**
-* Computes the approximate distance between this bounding box and a specified point.
-*
-* This calculation treats the bounding box as a sphere of radius.
-*
-* @param point The point to compute the distance to.
-*
-* @return the distance from the edge of this bounding box to the specified point.
-*
-* @exception NSInvalidArgumentException If the point is nil.
-*/
-- (double) distanceTo:(WWVec4*)point;
-
-/**
-* Computes the effective radius of this bounding box relative to a specified plane.
-*
-* @param plane The plane of interest.
-*
-* @return The effective radius of this bounding box to the specified plane.
-*
-* @exception NSInvalidArgumentException If the plane is nil.
-*/
-- (double) effectiveRadius:(WWPlane*)plane;
-
-/**
-* Indicates whether this bounding box intersects a specified frustum.
-*
-* @param frustum The frustum of interest.
-*
-* @return YES if this bounding box intersects the specified frustum, otherwise NO.
-*
-* @exception NSInvalidArgumentException if the frustum is nil.
-*/
-- (BOOL) intersects:(WWFrustum*)frustum;
+- (WWBoundingBox*) initWithPoints:(NSArray*)points;
 
 /// @name Methods of Interest Only to Subclasses
 

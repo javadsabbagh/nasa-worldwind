@@ -1,17 +1,16 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
 
 package gov.nasa.worldwind.render;
 
-import com.jogamp.opengl.util.texture.*;
-import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
-import gov.nasa.worldwind.*;
+import com.sun.opengl.util.texture.*;
+import gov.nasa.worldwind.WorldWind;
 import gov.nasa.worldwind.avlist.*;
 import gov.nasa.worldwind.cache.FileStore;
-import gov.nasa.worldwind.util.*;
+import gov.nasa.worldwind.util.Logging;
 
 import javax.media.opengl.*;
 import java.awt.image.*;
@@ -325,7 +324,7 @@ public class LazilyLoadedTexture extends AVListImpl implements WWTexture
 
         if (texture != null)
         {
-            texture.bind(dc.getGL());
+            texture.bind();
             return true;
         }
         else
@@ -352,8 +351,8 @@ public class LazilyLoadedTexture extends AVListImpl implements WWTexture
 
         if (texture.getMustFlipVertically())
         {
-            GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
-            gl.glMatrixMode(GL2.GL_TEXTURE);
+            GL gl = GLContext.getCurrent().getGL();
+            gl.glMatrixMode(GL.GL_TEXTURE);
             gl.glLoadIdentity();
             gl.glScaled(1, -1, 1);
             gl.glTranslated(0, -1, 0);
@@ -423,8 +422,7 @@ public class LazilyLoadedTexture extends AVListImpl implements WWTexture
 
         try
         {
-            TextureData td = AWTTextureIO.newTextureData(Configuration.getMaxCompatibleGLProfile(),
-                (BufferedImage) this.getImageSource(), this.isUseMipMaps());
+            TextureData td = TextureIO.newTextureData((BufferedImage) this.getImageSource(), this.isUseMipMaps());
             if (td == null)
                 return null;
 
@@ -630,7 +628,7 @@ public class LazilyLoadedTexture extends AVListImpl implements WWTexture
     {
         try
         {
-            return OGLUtil.newTextureData(Configuration.getMaxCompatibleGLProfile(), fileUrl, this.isUseMipMaps());
+            return TextureIO.newTextureData(fileUrl, this.isUseMipMaps(), null);
         }
         catch (Exception e)
         {

@@ -1,8 +1,7 @@
-/*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
- * National Aeronautics and Space Administration.
- * All Rights Reserved.
- */
+/* Copyright (C) 2001, 2009 United States Government as represented by
+the Administrator of the National Aeronautics and Space Administration.
+All Rights Reserved.
+*/
 package gov.nasa.worldwindx.examples.util;
 
 import gov.nasa.worldwind.avlist.AVKey;
@@ -10,7 +9,7 @@ import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.util.Logging;
 
-import javax.media.opengl.GL2;
+import javax.media.opengl.GL;
 
 /**
  * @author dcollins
@@ -222,7 +221,7 @@ public abstract class DialogAnnotation extends GlobeAnnotation implements java.a
         protected void transformBackgroundImageCoordsToAnnotationCoords(DrawContext dc, int width, int height,
             WWTexture texture)
         {
-            GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+            GL gl = dc.getGL();
 
             // Rotate around an axis originating from the center of the image and coming out of the screen.
             double hw = (double) texture.getWidth(dc) / 2d;

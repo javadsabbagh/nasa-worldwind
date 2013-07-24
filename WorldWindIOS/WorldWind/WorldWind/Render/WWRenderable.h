@@ -10,15 +10,7 @@
 /**
 * Provides a method to draw an instance conforming to this protocol.
 */
-@protocol WWRenderable <NSObject>
-
-///  @name Renderable Attributes
-
-/// This renderable's display name.
-@property(nonatomic) NSString* displayName;
-
-/// Indicates whether this renderable should be displayed.
-@property(nonatomic) BOOL enabled;
+@protocol WWRenderable
 
 /// @name Drawing Renderables
 

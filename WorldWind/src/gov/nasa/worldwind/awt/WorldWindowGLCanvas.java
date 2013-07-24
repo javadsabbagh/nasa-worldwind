@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
@@ -15,7 +15,6 @@ import gov.nasa.worldwind.pick.PickedObjectList;
 import gov.nasa.worldwind.util.*;
 
 import javax.media.opengl.*;
-import javax.media.opengl.awt.GLCanvas;
 import java.awt.*;
 import java.beans.*;
 import java.util.*;
@@ -56,15 +55,15 @@ public class WorldWindowGLCanvas extends GLCanvas implements WorldWindow, Proper
 {
     /**
      * Returns a {@link GLCapabilities} identifying default graphics features to request. The capabilities instance
-     * returned requests an OpenGL 1.3 - 2.0 profile, a frame buffer with 8 bits each of red, green, blue and alpha, a
-     * 24-bit depth buffer, double buffering, and if the Java property "gov.nasa.worldwind.stereo.mode" is set to
-     * "device", device-supported stereo.
+     * returned requests a frame buffer with 8 bits each of red, green, blue and alpha, a 24-bit depth buffer, double
+     * buffering, and if the Java property "gov.nasa.worldwind.stereo.mode" is set to "device", device-supported
+     * stereo.
      *
      * @return a new capabilities instance identifying desired graphics features.
      */
     protected static GLCapabilities getCaps()
     {
-        GLCapabilities caps = new GLCapabilities(Configuration.getMaxCompatibleGLProfile());
+        GLCapabilities caps = new GLCapabilities();
 
         caps.setAlphaBits(8);
         caps.setRedBits(8);
@@ -112,13 +111,9 @@ public class WorldWindowGLCanvas extends GLCanvas implements WorldWindow, Proper
      * with another <code>WorldWindow</code>.
      *
      * @param shareWith a <code>WorldWindow</code> with which to share graphics resources. May be null, in which case
-     *                  it's assumed that the window will be shared with another, unspecified, <code>WorldWindow</code>
-     *                  that will reference this <code>WorldWindowGLCanvas</code> as its shared window. Specifying
-     *                  null prevents this window's GPU resource cache from being cleared when the window is closed,
-     *                  thereby leaving those resources in tact for the shared windows.
+     *                  resources are not shared.
      *
-     * @see GLCanvas#GLCanvas(javax.media.opengl.GLCapabilitiesImmutable, javax.media.opengl.GLCapabilitiesChooser,
-     *      javax.media.opengl.GLContext, java.awt.GraphicsDevice)
+     * @see GLCanvas#GLCanvas(GLCapabilities, GLCapabilitiesChooser, GLContext, GraphicsDevice)
      */
     public WorldWindowGLCanvas(WorldWindow shareWith)
     {
@@ -129,9 +124,9 @@ public class WorldWindowGLCanvas extends GLCanvas implements WorldWindow, Proper
             this.wwd = ((WorldWindowGLDrawable) WorldWind.createConfigurationComponent(AVKey.WORLD_WINDOW_CLASS_NAME));
             this.wwd.initDrawable(this);
             if (shareWith != null)
-                this.wwd.initGpuResourceCache(shareWith.getGpuResourceCache(), true);
+                this.wwd.initGpuResourceCache(shareWith.getGpuResourceCache());
             else
-                this.wwd.initGpuResourceCache(WorldWindowImpl.createGpuResourceCache(), true);
+                this.wwd.initGpuResourceCache(WorldWindowImpl.createGpuResourceCache());
             this.createView();
             this.createDefaultInputHandler();
             WorldWind.addPropertyChangeListener(WorldWind.SHUTDOWN_EVENT, this);
@@ -150,15 +145,11 @@ public class WorldWindowGLCanvas extends GLCanvas implements WorldWindow, Proper
      * with another <code>WorldWindow</code>.
      *
      * @param shareWith a <code>WorldWindow</code> with which to share graphics resources. May be null, in which case
-     *                  it's assumed that the window will be shared with another, unspecified, <code>WorldWindow</code>
-     *                  that will reference this <code>WorldWindowGLCanvas</code> as its shared window. Specifying
-     *                  null prevents this window's GPU resource cache from being cleared when the window is closed,
-     *                  thereby leaving those resources in tact for the shared windows.
+     *                  resources are not shared.
      * @param device    the <code>GraphicsDevice</code> on which to create the window. May be null, in which case the
      *                  default screen device of the local {@link GraphicsEnvironment} is used.
      *
-     * @see GLCanvas#GLCanvas(javax.media.opengl.GLCapabilitiesImmutable, javax.media.opengl.GLCapabilitiesChooser,
-     *      javax.media.opengl.GLContext, java.awt.GraphicsDevice)
+     * @see GLCanvas#GLCanvas(GLCapabilities, GLCapabilitiesChooser, GLContext, GraphicsDevice)
      */
     public WorldWindowGLCanvas(WorldWindow shareWith, java.awt.GraphicsDevice device)
     {
@@ -169,9 +160,9 @@ public class WorldWindowGLCanvas extends GLCanvas implements WorldWindow, Proper
             this.wwd = ((WorldWindowGLDrawable) WorldWind.createConfigurationComponent(AVKey.WORLD_WINDOW_CLASS_NAME));
             this.wwd.initDrawable(this);
             if (shareWith != null)
-                this.wwd.initGpuResourceCache(shareWith.getGpuResourceCache(), true);
+                this.wwd.initGpuResourceCache(shareWith.getGpuResourceCache());
             else
-                this.wwd.initGpuResourceCache(WorldWindowImpl.createGpuResourceCache(), true);
+                this.wwd.initGpuResourceCache(WorldWindowImpl.createGpuResourceCache());
             this.createView();
             this.createDefaultInputHandler();
             WorldWind.addPropertyChangeListener(WorldWind.SHUTDOWN_EVENT, this);
@@ -189,11 +180,8 @@ public class WorldWindowGLCanvas extends GLCanvas implements WorldWindow, Proper
      * Constructs a new <code>WorldWindowGLCanvas</code> on a specified device with the specified capabilities and
      * shares graphics resources with another <code>WorldWindow</code>.
      *
-     * @param shareWith a <code>WorldWindow</code> with which to share graphics resources. May be null, in which case
-     *                  it's assumed that the window will be shared with another, unspecified, <code>WorldWindow</code>
-     *                  that will reference this <code>WorldWindowGLCanvas</code> as its shared window. Specifying
-     *                  null prevents this window's GPU resource cache from being cleared when the window is closed,
-     *                  thereby leaving those resources in tact for the shared windows.
+     * @param shareWith    a <code>WorldWindow</code> with which to share graphics resources. May be null, in which case
+     *                     resources are not shared.
      * @param device       the <code>GraphicsDevice</code> on which to create the window. May be null, in which case the
      *                     default screen device of the local {@link GraphicsEnvironment} is used.
      * @param capabilities a capabilities object indicating the OpenGL rendering context's capabilities. May be null, in
@@ -201,8 +189,7 @@ public class WorldWindowGLCanvas extends GLCanvas implements WorldWindow, Proper
      * @param chooser      a chooser object that customizes the specified capabilities. May be null, in which case a
      *                     default chooser is used.
      *
-     * @see GLCanvas#GLCanvas(javax.media.opengl.GLCapabilitiesImmutable, javax.media.opengl.GLCapabilitiesChooser,
-     *      javax.media.opengl.GLContext, java.awt.GraphicsDevice)
+     * @see GLCanvas#GLCanvas(GLCapabilities, GLCapabilitiesChooser, GLContext, GraphicsDevice)
      */
     public WorldWindowGLCanvas(WorldWindow shareWith, java.awt.GraphicsDevice device,
         GLCapabilities capabilities, GLCapabilitiesChooser chooser)
@@ -214,9 +201,9 @@ public class WorldWindowGLCanvas extends GLCanvas implements WorldWindow, Proper
             this.wwd = ((WorldWindowGLDrawable) WorldWind.createConfigurationComponent(AVKey.WORLD_WINDOW_CLASS_NAME));
             this.wwd.initDrawable(this);
             if (shareWith != null)
-                this.wwd.initGpuResourceCache(shareWith.getGpuResourceCache(), true);
+                this.wwd.initGpuResourceCache(shareWith.getGpuResourceCache());
             else
-                this.wwd.initGpuResourceCache(WorldWindowImpl.createGpuResourceCache(), true);
+                this.wwd.initGpuResourceCache(WorldWindowImpl.createGpuResourceCache());
             this.createView();
             this.createDefaultInputHandler();
             WorldWind.addPropertyChangeListener(WorldWind.SHUTDOWN_EVENT, this);

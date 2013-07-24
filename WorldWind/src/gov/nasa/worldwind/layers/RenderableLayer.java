@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
@@ -12,7 +12,6 @@ import gov.nasa.worldwind.pick.PickSupport;
 import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.util.Logging;
 
-import javax.media.opengl.GL2;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -389,7 +388,6 @@ public class RenderableLayer extends AbstractLayer
 
     protected void doPick(DrawContext dc, Iterable<? extends Renderable> renderables, java.awt.Point pickPoint)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
         this.pickSupport.clearPickList();
         this.pickSupport.beginPicking(dc);
 
@@ -402,9 +400,9 @@ public class RenderableLayer extends AbstractLayer
                 if (renderable != null)
                 {
 //                    float[] inColor = new float[4];
-//                    gl.glGetFloatv(GL.GL_CURRENT_COLOR, inColor, 0);
+//                    dc.getGL().glGetFloatv(GL.GL_CURRENT_COLOR, inColor, 0);
                     java.awt.Color color = dc.getUniquePickColor();
-                    gl.glColor3ub((byte) color.getRed(), (byte) color.getGreen(), (byte) color.getBlue());
+                    dc.getGL().glColor3ub((byte) color.getRed(), (byte) color.getGreen(), (byte) color.getBlue());
 
                     try
                     {
@@ -418,7 +416,7 @@ public class RenderableLayer extends AbstractLayer
                         continue; // go on to next renderable
                     }
 //
-//                    gl.glColor4fv(inColor, 0);
+//                    dc.getGL().glColor4fv(inColor, 0);
 
                     if (renderable instanceof Locatable)
                     {
@@ -468,7 +466,7 @@ public class RenderableLayer extends AbstractLayer
 
     /**
      * {@inheritDoc}
-     * <p/>
+     *
      * This implementation forwards the message to each Renderable that implements {@link MessageListener}.
      *
      * @param message The message that was received.

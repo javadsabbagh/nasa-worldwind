@@ -6,59 +6,45 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "WorldWind/Util/WWCacheable.h"
 
-@class WWBoundingBox;
-@class WWDrawContext;
-@class WWGlobe;
-@class WWLevel;
-@class WWMemoryCache;
 @class WWSector;
-@class WWVec4;
-@protocol WWExtent;
+@class WWLevel;
+@class WWDrawContext;
 @protocol WWTileFactory;
+@class WWGlobe;
+@protocol WWExtent;
+@class WWBoundingBox;
 
 /**
 * Provides a base class for texture tiles used by tiled image layers and elevation tiles used by elevation models.
 * Applications typically do not interact with this class.
 */
-@interface WWTile : NSObject <WWCacheable>
+@interface WWTile : NSObject
 {
 @protected
-    // Immutable properties inherited from the parent level and stored in the tile for fast access.
-    int tileWidth;
-    int tileHeight;
-    double texelSize;
-    // Cache key used to retrieve the tile's children from a memory cache.
-    NSString* tileKey;
-    // Values used to update the tile's extent and determine when the tile needs to subdivide.
-    double minHeight;
-    double maxHeight;
-    WWVec4* nearestPoint;
-    // Values used to invalidate the tile's extent when the elevations or the vertical exaggeration changes.
-    NSTimeInterval extentTimestamp;
-    double extentVerticalExaggeration;
+    NSMutableArray* children;
 }
 
 /// @name Attributes
 
 /// The sector this tile spans.
-@property(nonatomic, readonly) WWSector* sector;
+@property(readonly, nonatomic) WWSector* sector;
 
 /// The level this tile is associated with.
-@property(nonatomic, readonly) WWLevel* level;
+@property(readonly, nonatomic) WWLevel* level;
 
 /// The tile's row in the associated level.
-@property(nonatomic, readonly) int row;
+@property(readonly, nonatomic) int row;
 
 /// The tile's column in the associated level.
-@property(nonatomic, readonly) int column;
+@property(readonly, nonatomic) int column;
 
-/// The tile's Cartesian bounding box.
-@property(nonatomic, readonly) WWBoundingBox* extent;
+/// The resolution of a single pixel or cell in a tile of this level set.
+@property(readonly, nonatomic) double resolution; // TODO: Is this property necessary?
 
-/// The tile's local origin point. Any model coordinate points created for the tile should be relative to this point.
-@property(nonatomic, readonly) WWVec4* referencePoint;
+@property(readonly, nonatomic) NSMutableArray* referencePoints;
+
+@property(readonly, nonatomic) WWBoundingBox* extent;
 
 /**
 * Indicates the width in pixels or cells of this tile's resource.
@@ -75,21 +61,14 @@
 - (int) tileHeight;
 
 /**
- * Indicates the size of pixels or elevation cells of this tile's resource, in radians per pixel.
- *
- * @return The requested size.
- */
-- (double) texelSize;
-
-/**
 * Computes a row number for a tile within a level given its latitude.
 *
 * @param delta The level's latitudinal tile delta in degrees.
 * @param latitude The tile's minimum latitude.
 *
-* @return The row number of the specified tile.
+* @return the row number of the specified tile.
 *
-* @exception NSInvalidArgumentException If the specified delta is less than or equal to 0 or the specified latitude
+* @exception NSInvalidArgumentException if the specified delta is less than or equal to 0 or the specified latitude
 * is not within the range -90, 90.
 */
 + (int) computeRow:(double)delta latitude:(double)latitude;
@@ -100,51 +79,12 @@
 * @param delta The level's longitudinal tile delta in degrees.
 * @param longitude The tile's minimum longitude.
 *
-* @return The column number of the specified tile.
+* @return the column number of the specified tile.
 *
-* @exception NSInvalidArgumentException If the specified delta is less than or equal to 0 or the specified longitude
+* @exception NSInvalidArgumentException if the specified delta is less than or equal to 0 or the specified longitude
 * is not within the range --180, 180.
 */
 + (int) computeColumn:(double)delta longitude:(double)longitude;
-
-/**
-* Computes the last row number for a tile within a level given its maximum latitude.
-*
-* @param delta The level's latitudinal tile delta in degrees.
-* @param maxLatitude The tile's maximum latitude.
-*
-* @return The last row number of the specified tile.
-*
-* @exception NSInvalidArgumentException If the specified delta is less than or equal to 0 or the specified maxLatitude
-* is not within the range -90, 90.
-*/
-+ (int) computeLastRow:(double)delta maxLatitude:(double)maxLatitude;
-
-/**
-* Computes the last column number for a tile within a level given its maximum longitude.
-*
-* @param delta The level's longitudinal tile delta in degrees.
-* @param maxLongitude The tile's maximum longitude.
-*
-* @return The last column number of the specified tile.
-*
-* @exception NSInvalidArgumentException If the specified delta is less than or equal to 0 or the specified maxLongitude
-* is not within the range --180, 180.
-*/
-+ (int) computeLastColumn:(double)delta maxLongitude:(double)maxLongitude;
-
-/**
-* Computes a sector spanned by a tile with the specified level, row, and column.
-*
-* @param level The tile's level.
-* @param row The row number of the tile within the specified level.
-* @param column The column number of the tile within the specified level.
-*
-* @return The sector the tile spans.
-*
-* @exception NSInvalidArgumentException If level is nil or the row or column number are less than 0.
-*/
-+ (WWSector*) computeSector:(WWLevel*)level row:(int)row column:(int)column;
 
 /// @name Initializing Tiles
 
@@ -154,36 +94,13 @@
 * @param sector The sector the tile spans.
 * @param level The tile's level.
 * @param row The row number of the tile within the specified level.
-* @param column The column number of the tile within the specified level.
+* @param column The column number of the tile withing the specified level.
 *
 * @return The initialized tile.
 *
 * @exception NSInvalidArgumentException If the sector or level are nil or the row or column number are less than 0.
 */
 - (WWTile*) initWithSector:(WWSector*)sector level:(WWLevel*)level row:(int)row column:(int)column;
-
-/// @name Identifying and Comparing Tiles
-
-/**
-* Returns a boolean value indicating whether this tile is equivalent to the specified object.
-*
-* The object is considered equivalent to this tile if it is an instance of WWTile and has the same level number, row,
-* and column as this tile. This returns NO if the object is nil.
-*
-* @param anObject The object to compare to this tile. May be nil, in which case this method returns NO.
-*
-* @return YES if this tile is equivalent to the specified object, otherwise NO.
-*/
-- (BOOL) isEqual:(id)anObject;
-
-/**
-* Returns an unsigned integer that can be used as a hash table address.
-*
-* If two tiles are considered equal by isEqual: then they both return the same hash value.
-*
-* @return An unsigned integer that can be used as a hash table address.
-*/
-- (NSUInteger) hash;
 
 /// @name Creating Tiles
 
@@ -194,36 +111,13 @@
 * @param tileFactory The tile factory to use for creating tiles. This is typically implemented by the calling class.
 * @param tilesOut An array in which to return the created tiles.
 *
-* @exception NSInvalidArgumentException If the specified level, tile factory or output array are nil.
+* @exception NSInvalidArgumentException if the specified level, tile factory or output array are nil.
 */
 + (void) createTilesForLevel:(WWLevel*)level
                  tileFactory:(id <WWTileFactory>)tileFactory
                     tilesOut:(NSMutableArray*)tilesOut;
 
-/**
-* Returns the four children formed by subdividing this tile.
-*
-* @param nextLevel The level of the children.
-* @param tileFactory The tile factory to use to create the children.
-*
-* @return An array of four child tiles.
-*
-* @exception NSInvalidArgumentException If either the nextLevel or tileFactory parameters are nil.
-*/
 - (NSArray*) subdivide:(WWLevel*)nextLevel tileFactory:(id <WWTileFactory>)tileFactory;
-
-/**
-* Returns the four children formed by subdividing this tile, drawing from and adding to a specified cache.
-*
-* @param nextLevel The level of the children.
-* @param cache The cache to use for the tiles.
-* @param tileFactory The tile factory to use to create the children.
-*
-* @return An array of four child tiles.
-*
-* @exception NSInvalidArgumentException If either the nextLevel or tileFactory parameters are nil.
-*/
-- (NSArray*) subdivide:(WWLevel*)nextLevel cache:(WWMemoryCache*)cache tileFactory:(id <WWTileFactory>)tileFactory;
 
 /**
 * Determines whether the tile should be subdivided based on the current navigation state and a specified detail factor.
@@ -241,16 +135,24 @@
 /// @name Operations on Tiles
 
 /**
-* Updates this tile's extent (bounding volume) and reference points according to this tile's sector on the current
-* globe.
+* Updates the tile's reference points to reflect current state.
 *
-* This tile's extent is invalid and must be recomputed whenever the globe's elevations or the vertical exaggeration
-* changes. Therefore updateExtent must be called once per frame before the extent is used. updateExtent intelligently
-* determines when it is necessary to recompute the extent, and does nothing if the elevations or the vertical
-* exaggeration have not changed since the last call.
+* The tile's reference points are the Cartesian points corresponding to the tile's corner and center points. These
+* must be up-to-date for certain operations such as computing the tile's extent or whether it should be subdivided.
 *
-* @param dc The draw context used to update this tile's extent and reference points.
+* @param globe The globe the tile's associated with.
+* @param verticalExaggeration The current vertical exaggeration.
+*
+* @exception NSInvalidArgumentException If the globe is nil.
 */
-- (void) update:(WWDrawContext*)dc;
+- (void) updateReferencePoints:(WWGlobe*)globe verticalExaggeration:(double)verticalExaggeration;
+
+/**
+* Updates this tile's extent (bounding volume).
+*
+* @param globe The globe to use to compute this tile's extent.
+* @param verticalExaggeration The vertical exaggeration to use when computing the extent.
+*/
+- (void) updateExtent:(WWGlobe*)globe verticalExaggeration:(double)verticalExaggeration;
 
 @end

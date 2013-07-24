@@ -10,61 +10,48 @@
 /**
 * Provides retrieval and caching of resources. This class is typically used to retrieve image and elevation resources
  * from the internet and save them to the local World Wind file system cache.
- *
- * The retrieval is performed on a separate thread from that of the initializer. The finished block is called on the
- * same thread that performRetrieval is called on.
- *
- * Instances of this class can be used directly by calling performRetrieval or as an NSOperation. In the latter case
- * the call to performRetrieval is made on the NSOperation's thread.
 */
-@interface WWRetriever : NSOperation <NSURLConnectionDelegate, NSURLConnectionDataDelegate>
-{
-    void (^finished)(WWRetriever* retriever);
-}
+@interface WWRetriever : NSOperation
 
-/// name Retriever Attributes
+/// @name Attributes
 
 /// The URL from which to retrieve the resource.
-@property(nonatomic, readonly) NSURL* url;
+@property (nonatomic, readonly) NSURL* url;
 
-/// The status of the retrieval when the finished block is called. Will be one of WW_SUCCEEDED, WW_CANCELED or
-/// WW_FAILED.
-@property(nonatomic, readonly) NSString* status;
+/// The full path and name of the file in which to store the resource.
+@property (nonatomic, readonly) NSString* filePath;
 
-/// The number of seconds to wait before the request times out.
-@property(nonatomic, readonly) NSTimeInterval timeout;
-
-/// The retrieved data. Available only once the finished block is called.
-@property(nonatomic, readonly) NSMutableData* retrievedData;
+/// A notification instance to send to the default iOS Notification Center when the resource is successfully retrieved
+// and stored.
+@property (nonatomic, readonly) NSNotification* notification;
 
 /// @name Initializing Retrievers
 
 /**
-* Initializes this instance.
+* Initialize a retriever with a specified URL, file path and optional notification.
 *
-* The specified finished block is called when the download completed. It is called on the same thread that
-* initialized this instance.
+* The notification, if not nil, is sent to the default iOS Notification Center if the retrieval and storage
+* operations are successful.
 *
-* Call performRetrieval to begin the download.
+* @param url The URL from which to retrieve the resource.
+* @param filePath The full path and name of the file in which to write the resource. If the directories in the path
+* do not exist they are created.
+* @param notification An optional notification to sent to the notification center when retrieval and storage are
+* complete and successful. May be nil.
 *
-* @param url The URL to download from.
-* @param timeout The number of seconds to wait for a connection.
-* @param finishedBlock The block to call when the download is complete.
+* @return The initialized retriever.
 *
-* @return This instance, initialized.
-*
-* @exception NSInvalidArgumentException If either the specified url or finished block is nil.
+* @exception NSInvalidArgumentException If the url or file path are nil.
 */
-- (WWRetriever*) initWithUrl:(NSURL*)url
-                     timeout:(NSTimeInterval)timeout
-               finishedBlock:(void (^) (WWRetriever*))finishedBlock;
+- (WWRetriever*) initWithUrl:(NSURL*)url filePath:(NSString*)filePath notification:(NSNotification*)notification;
 
 /**
-* Perform the download.
+* Adds the retriever to the World Wind retrieval queue, from which it runs asynchronously.
 *
-* The finished block specified at initialization is called when the download completes. It is called on the same
-* thread that the call to performRetrieval is made.
+* @param retriever The retriever to run.
+*
+* @exception NSInvalidArgumentException If the retriever is nil.
 */
-- (void) performRetrieval;
+- (void) addToQueue:(WWRetriever*)retriever;
 
 @end

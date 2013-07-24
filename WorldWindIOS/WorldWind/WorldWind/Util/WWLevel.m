@@ -6,11 +6,11 @@
  */
 
 #import "WorldWind/Util/WWLevel.h"
+#import "WorldWind/Geometry/WWAngle.h"
 #import "WorldWind/Geometry/WWLocation.h"
 #import "WorldWind/Util/WWLevelSet.h"
 #import "WorldWind/WWLog.h"
 #import "WorldWind/Geometry/WWSector.h"
-#import "WorldWind/Util/WWMath.h"
 
 @implementation WWLevel
 
@@ -36,6 +36,7 @@
     _parent = parent;
     _levelNumber = levelNumber;
     _tileDelta = tileDelta;
+
     _texelSize = RADIANS([tileDelta latitude]) / [_parent tileHeight];
 
     return self;
@@ -54,42 +55,6 @@
 - (WWSector*) sector
 {
     return [_parent sector];
-}
-
-- (BOOL) isFirstLevel
-{
-    return [_parent firstLevel] == self;
-}
-
-- (BOOL) isLastLevel
-{
-    return [_parent lastLevel] == self;
-}
-
-- (WWLevel*) previousLevel
-{
-    return [_parent level:_levelNumber - 1];
-}
-
-- (WWLevel*) nextLevel
-{
-    return [_parent level:_levelNumber + 1];
-}
-
-- (NSComparisonResult) compare:(WWLevel*)level
-{
-    if (level == nil)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Level is nil")
-    }
-
-    if (_levelNumber < level->_levelNumber)
-        return NSOrderedAscending;
-
-    if (_levelNumber > level->_levelNumber)
-        return NSOrderedDescending;
-
-    return NSOrderedSame;
 }
 
 @end

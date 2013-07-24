@@ -1,13 +1,13 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
 
 package gov.nasa.worldwind.util.tree;
 
-import com.jogamp.opengl.util.awt.TextRenderer;
-import com.jogamp.opengl.util.texture.*;
+import com.sun.opengl.util.j2d.TextRenderer;
+import com.sun.opengl.util.texture.*;
 import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.event.SelectEvent;
@@ -15,7 +15,7 @@ import gov.nasa.worldwind.pick.PickSupport;
 import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL;
 import javax.media.opengl.glu.GLU;
 import java.awt.*;
 import java.awt.event.*;
@@ -806,7 +806,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
         // If we don't have a texture, or if we need a different size of texture, allocate a new one
         if (texture == null || this.textureDimension != dim)
         {
-            texture = this.createTileTexture(dc, dim, dim);
+            texture = this.createTileTexture(dim, dim);
             dc.getTextureCache().put(this.textureCacheKey, texture);
             this.textureDimension = dim;
 
@@ -963,12 +963,9 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
      *
      * @return a new texture with the specified width and height.
      */
-    protected Texture createTileTexture(DrawContext dc, int width, int height)
+    protected Texture createTileTexture(int width, int height)
     {
-        GL gl = dc.getGL();
-
         TextureData td = new TextureData(
-            gl.getGLProfile(),    // GL profile
             GL.GL_RGBA8,          // internal format
             width, height,        // dimension
             0,                    // border
@@ -996,7 +993,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
         };
 
         Texture t = TextureIO.newTexture(td);
-        t.bind(gl);
+        t.bind();
 
         return t;
     }
@@ -1515,11 +1512,11 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
      */
     protected void drawContentTiles(DrawContext dc)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
 
         try
         {
-            gl.glPolygonMode(GL2.GL_FRONT, GL2.GL_FILL);
+            gl.glPolygonMode(GL.GL_FRONT, GL.GL_FILL);
             gl.glEnable(GL.GL_TEXTURE_2D);
 
             // Set up blending with pre-multiplied colors
@@ -1529,7 +1526,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
             if (texture == null)
                 return;
 
-            texture.bind(gl);
+            texture.bind();
 
             for (ContentTile tile : tiles)
             {
@@ -1597,7 +1594,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
      */
     protected void drawFrame(DrawContext dc)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
 
         OGLStackHandler oglStack = new OGLStackHandler();
         try
@@ -1690,7 +1687,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
 
                 // Do not draw the outline on the edges with scroll bars because the scrollbar draws its own border. On
                 // some devices the scroll bar border draws next to the frame border, resulting in a double width border.
-                gl.glBegin(GL2.GL_LINE_STRIP);
+                gl.glBegin(GL.GL_LINE_STRIP);
                 try
                 {
                     if (!drawVerticalScrollbar)
@@ -1759,7 +1756,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
      */
     protected void drawTitleBar(DrawContext dc)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
 
         FrameAttributes attributes = this.getActiveAttributes();
 
@@ -1775,7 +1772,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
             if (!this.isDrawMinimized())
             {
                 // Draw a line to separate the title bar from the frame
-                gl.glBegin(GL2.GL_LINES);
+                gl.glBegin(GL.GL_LINES);
                 try
                 {
                     gl.glVertex2f(0, 0);
@@ -1810,7 +1807,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
     {
         // This method is never called during picked, so picking mode is not handled here
 
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
         FrameAttributes attributes = this.getActiveAttributes();
 
         int iconSpace = attributes.getIconSpace();
@@ -1863,7 +1860,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
     {
         // This method is never called during picked, so picking mode is not handled here
 
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
         FrameAttributes attributes = this.getActiveAttributes();
 
         String frameTitle = this.getFrameTitle();
@@ -1994,7 +1991,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
      */
     protected void drawMinimizeButton(DrawContext dc)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
 
         OGLStackHandler oglStack = new OGLStackHandler();
         try
@@ -2015,7 +2012,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
 
                 OGLUtil.applyColor(gl, attributes.getForegroundColor(), false);
 
-                gl.glBegin(GL2.GL_LINE_LOOP);
+                gl.glBegin(GL.GL_LINE_LOOP);
                 try
                 {
                     gl.glVertex2f(0f, 0f);
@@ -2028,7 +2025,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
                     gl.glEnd();
                 }
 
-                gl.glBegin(GL2.GL_LINES);
+                gl.glBegin(GL.GL_LINES);
                 try
                 {
                     // Draw a horizontal line. If the frame is maximized, this will be a minus sign. If the tree is
@@ -2068,17 +2065,17 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
 
     protected void beginDrawing(DrawContext dc)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
         GLU glu = dc.getGLU();
 
-        this.BEogsh.pushAttrib(gl, GL2.GL_DEPTH_BUFFER_BIT
-            | GL2.GL_COLOR_BUFFER_BIT
-            | GL2.GL_ENABLE_BIT
-            | GL2.GL_CURRENT_BIT
-            | GL2.GL_POLYGON_BIT     // For polygon mode
-            | GL2.GL_LINE_BIT        // For line width
-            | GL2.GL_TRANSFORM_BIT
-            | GL2.GL_SCISSOR_BIT);
+        this.BEogsh.pushAttrib(gl, GL.GL_DEPTH_BUFFER_BIT
+            | GL.GL_COLOR_BUFFER_BIT
+            | GL.GL_ENABLE_BIT
+            | GL.GL_CURRENT_BIT
+            | GL.GL_POLYGON_BIT     // For polygon mode
+            | GL.GL_LINE_BIT        // For line width
+            | GL.GL_TRANSFORM_BIT
+            | GL.GL_SCISSOR_BIT);
 
         gl.glEnable(GL.GL_BLEND);
         gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
@@ -2108,7 +2105,7 @@ public class ScrollFrame extends DragControl implements PreRenderable, Renderabl
             this.pickSupport.resolvePick(dc, dc.getPickPoint(), dc.getCurrentLayer());
         }
 
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
         this.BEogsh.pop(gl);
     }
 

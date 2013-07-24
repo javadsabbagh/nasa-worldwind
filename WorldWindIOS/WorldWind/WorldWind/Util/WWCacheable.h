@@ -5,12 +5,8 @@
  @version $Id$
  */
 
-/**
-* A protocol implemented by all cacheable objects.
-*/
 @protocol WWCacheable
 
-/// The size of the cachable object, in bytes.
 - (long) sizeInBytes;
 
 @end

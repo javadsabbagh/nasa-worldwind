@@ -47,7 +47,7 @@
 *
 * @return The initialized frustum.
 *
-* @exception NSInvalidArgumentException If any of the planes are nil.
+* @exception NSInvalidArgumentException If any of the specified planes are nil.
 */
 - (WWFrustum*) initWithPlanes:(WWPlane*)left
                         right:(WWPlane*)right
@@ -55,15 +55,23 @@
                           top:(WWPlane*)top
                          near:(WWPlane*)near
                           far:(WWPlane*)far;
+//
+//- (WWFrustum*) initWithViewportWidth:(double)viewportWidth
+//                      viewportHeight:(double)viewportHeight
+//                        nearDistance:(double)nearDistance
+//                         farDistance:(double)farDistance;
 
 /**
-* Transforms this frustum by a specified matrix.
+* Initialize this frustum to that of a specified frustum transformed by a specified matrix.
 *
-* @param matrix The matrix to transform this frustum by.
+* @param frustum The frustum to transform.
+* @param matrix The matrix to apply to the specified frustum.
 *
-* @exception NSInvalidArgumentException If the matrix is nil.
+* @return This frustum initialized to the specified and transformed frustum.
+*
+* @exception NSInvalidArgumentException if either the specified frustum or matrix are nil.
 */
-- (void) transformByMatrix:(WWMatrix*)matrix;
+- (WWFrustum*) initWithTransformedFrustum:(WWFrustum*)frustum matrix:(WWMatrix*)matrix;
 
 /**
 * Normalizes the planes of this frustum.

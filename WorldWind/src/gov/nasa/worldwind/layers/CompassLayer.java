@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
 package gov.nasa.worldwind.layers;
 
-import com.jogamp.opengl.util.texture.*;
+import com.sun.opengl.util.texture.*;
 import gov.nasa.worldwind.View;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.exception.WWRuntimeException;
@@ -15,7 +15,7 @@ import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.util.*;
 import gov.nasa.worldwind.view.orbit.OrbitView;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL;
 import java.awt.*;
 import java.io.*;
 
@@ -296,7 +296,7 @@ public class CompassLayer extends AbstractLayer
         if (this.getIconFilePath() == null)
             return;
 
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
         OGLStackHandler ogsh = new OGLStackHandler();
 
         try
@@ -345,15 +345,10 @@ public class CompassLayer extends AbstractLayer
                     }
                 }
 
-                // Need to assign the width and height here to address the case in which the texture was already
-                // loaded into the cache by another layer or a previous instance of this one.
-                this.iconWidth = iconTexture.getWidth();
-                this.iconHeight = iconTexture.getHeight();
-
                 if (iconTexture != null)
                 {
                     gl.glEnable(GL.GL_TEXTURE_2D);
-                    iconTexture.bind(gl);
+                    iconTexture.bind();
 
                     gl.glColor4d(1d, 1d, 1d, this.getOpacity());
                     gl.glEnable(GL.GL_BLEND);
@@ -524,8 +519,6 @@ public class CompassLayer extends AbstractLayer
         if (iconTexture != null)
             return;
 
-        GL gl = dc.getGL();
-
         try
         {
             InputStream iconStream = this.getClass().getResourceAsStream("/" + this.getIconFilePath());
@@ -538,9 +531,8 @@ public class CompassLayer extends AbstractLayer
                 }
             }
 
-            TextureData textureData = OGLUtil.newTextureData(gl.getGLProfile(), iconStream, false);
-            iconTexture = TextureIO.newTexture(textureData);
-            iconTexture.bind(gl);
+            iconTexture = TextureIO.newTexture(iconStream, false, null);
+            iconTexture.bind();
             this.iconWidth = iconTexture.getWidth();
             this.iconHeight = iconTexture.getHeight();
             dc.getTextureCache().put(this.getIconFilePath(), iconTexture);
@@ -552,6 +544,7 @@ public class CompassLayer extends AbstractLayer
             throw new WWRuntimeException(msg, e);
         }
 
+        GL gl = dc.getGL();
         gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);//_MIPMAP_LINEAR);
         gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
         gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE);

@@ -7,8 +7,9 @@
 
 #import "WorldWind/Geometry/WWFrustum.h"
 #import "WorldWind/Geometry/WWPlane.h"
-#import "WorldWind/Geometry/WWMatrix.h"
 #import "WorldWind/WWLog.h"
+#import "WorldWind/Geometry/WWVec4.h"
+#import "WorldWind/Geometry/WWMatrix.h"
 
 @implementation WWFrustum
 
@@ -74,13 +75,49 @@
 
     return self;
 }
+//
+//- (WWFrustum*) initWithViewportWidth:(double)viewportWidth
+//                    viewportHeight:(double)viewportHeight
+//                      nearDistance:(double)nearDistance
+//                       farDistance:(double)farDistance
+//{
+//    double focalLength = viewportWidth / viewportHeight;
+//    double aspect = viewportHeight/ viewportWidth;
+//    double lrLen = sqrt(focalLength * focalLength + 1);
+//    double btLen = sqrt(focalLength * focalLength + aspect * aspect);
+//
+//    _left = [[WWPlane alloc] initWithCoordinates:focalLength / lrLen y:0 z:-1 / lrLen distance:0];
+//    _right = [[WWPlane alloc] initWithCoordinates:-focalLength / lrLen y:0 z:-1 / lrLen distance:0];
+//
+//    _bottom = [[WWPlane alloc] initWithCoordinates:0 y:focalLength / btLen z:-aspect / btLen distance:0];
+//    _top = [[WWPlane alloc] initWithCoordinates:0 y:-focalLength / btLen z:-aspect / btLen distance:0];
+//
+//    _near = [[WWPlane alloc] initWithCoordinates:0 y:0 z:-1 distance:-nearDistance];
+//    _far = [[WWPlane alloc] initWithCoordinates:0 y:0 z:1 distance:farDistance];
+//
+//    return self;
+//}
 
-- (void) transformByMatrix:(WWMatrix* __unsafe_unretained)matrix
+- (WWFrustum*) initWithTransformedFrustum:(WWFrustum*)frustum matrix:(WWMatrix*)matrix
 {
+    if (frustum == nil)
+    {
+        WWLOG_AND_THROW(NSInvalidArgumentException, @"Frustum is nil")
+    }
+
     if (matrix == nil)
     {
         WWLOG_AND_THROW(NSInvalidArgumentException, @"Matrix is nil")
     }
+
+    self = [super init];
+
+    _left = [[WWPlane alloc] initWithNormal:[frustum->_left vector]];
+    _right = [[WWPlane alloc] initWithNormal:[frustum->_right vector]];
+    _bottom = [[WWPlane alloc] initWithNormal:[frustum->_bottom vector]];
+    _top = [[WWPlane alloc] initWithNormal:[frustum->_top vector]];
+    _near = [[WWPlane alloc] initWithNormal:[frustum->_near vector]];
+    _far = [[WWPlane alloc] initWithNormal:[frustum->_far vector]];
 
     [_left transformByMatrix:matrix];
     [_right transformByMatrix:matrix];
@@ -88,6 +125,8 @@
     [_top transformByMatrix:matrix];
     [_near transformByMatrix:matrix];
     [_far transformByMatrix:matrix];
+
+    return self;
 }
 
 - (void) normalize

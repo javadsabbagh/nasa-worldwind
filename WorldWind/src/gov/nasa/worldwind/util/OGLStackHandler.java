@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
 package gov.nasa.worldwind.util;
 
-import javax.media.opengl.GL2;
+import javax.media.opengl.GL;
 
 /**
  * @author tag
@@ -34,40 +34,40 @@ public class OGLStackHandler
             || this.texturePushed;
     }
 
-    public void pushAttrib(GL2 gl, int mask)
+    public void pushAttrib(GL gl, int mask)
     {
         gl.glPushAttrib(mask);
         this.attribsPushed = true;
     }
 
-    public void pushClientAttrib(GL2 gl, int mask)
+    public void pushClientAttrib(GL gl, int mask)
     {
         gl.glPushClientAttrib(mask);
         this.clientAttribsPushed = true;
     }
 
-    public void pushModelview(GL2 gl)
+    public void pushModelview(GL gl)
     {
-        gl.glMatrixMode(GL2.GL_MODELVIEW);
+        gl.glMatrixMode(GL.GL_MODELVIEW);
         gl.glPushMatrix();
         this.modelviewPushed = true;
     }
 
-    public void pushProjection(GL2 gl)
+    public void pushProjection(GL gl)
     {
-        gl.glMatrixMode(GL2.GL_PROJECTION);
+        gl.glMatrixMode(GL.GL_PROJECTION);
         gl.glPushMatrix();
         this.projectionPushed = true;
     }
 
-    public void pushTexture(GL2 gl)
+    public void pushTexture(GL gl)
     {
-        gl.glMatrixMode(GL2.GL_TEXTURE);
+        gl.glMatrixMode(GL.GL_TEXTURE);
         gl.glPushMatrix();
         this.texturePushed = true;
     }
 
-    public void pop(GL2 gl)
+    public void pop(GL gl)
     {
         if (this.attribsPushed)
         {
@@ -83,45 +83,45 @@ public class OGLStackHandler
 
         if (this.modelviewPushed)
         {
-            gl.glMatrixMode(GL2.GL_MODELVIEW);
+            gl.glMatrixMode(GL.GL_MODELVIEW);
             gl.glPopMatrix();
             this.modelviewPushed = false;
         }
 
         if (this.projectionPushed)
         {
-            gl.glMatrixMode(GL2.GL_PROJECTION);
+            gl.glMatrixMode(GL.GL_PROJECTION);
             gl.glPopMatrix();
             this.projectionPushed = false;
         }
 
         if (this.texturePushed)
         {
-            gl.glMatrixMode(GL2.GL_TEXTURE);
+            gl.glMatrixMode(GL.GL_TEXTURE);
             gl.glPopMatrix();
             this.texturePushed = false;
         }
     }
 
-    public void pushModelviewIdentity(GL2 gl)
+    public void pushModelviewIdentity(GL gl)
     {
-        gl.glMatrixMode(GL2.GL_MODELVIEW);
+        gl.glMatrixMode(GL.GL_MODELVIEW);
         this.modelviewPushed = true;
         gl.glPushMatrix();
         gl.glLoadIdentity();
     }
 
-    public void pushProjectionIdentity(GL2 gl)
+    public void pushProjectionIdentity(GL gl)
     {
-        gl.glMatrixMode(GL2.GL_PROJECTION);
+        gl.glMatrixMode(GL.GL_PROJECTION);
         this.projectionPushed = true;
         gl.glPushMatrix();
         gl.glLoadIdentity();
     }
 
-    public void pushTextureIdentity(GL2 gl)
+    public void pushTextureIdentity(GL gl)
     {
-        gl.glMatrixMode(GL2.GL_TEXTURE);
+        gl.glMatrixMode(GL.GL_TEXTURE);
         this.texturePushed = true;
         gl.glPushMatrix();
         gl.glLoadIdentity();

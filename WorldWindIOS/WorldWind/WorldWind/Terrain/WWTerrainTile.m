@@ -11,16 +11,15 @@
 #import "WorldWind/Geometry/WWVec4.h"
 #import "WorldWind/Terrain/WWGlobe.h"
 #import "WorldWind/Geometry/WWSector.h"
-#import "WorldWind/Geometry/WWMatrix.h"
-#import "WorldWind/Util/WWLevel.h"
+#import "WorldWind/Terrain/WWTerrainGeometry.h"
 
 @implementation WWTerrainTile
 
-- (WWTerrainTile*) initWithSector:(WWSector*)sector
-                            level:(WWLevel*)level
-                              row:(int)row
-                           column:(int)column
-                      tessellator:(WWTessellator*)tessellator
+- (WWTerrainTile*) initWithSector:(WWSector*) sector
+                            level:(WWLevel*) level
+                              row:(int) row
+                           column:(int) column
+                      tessellator:(WWTessellator*) tessellator
 {
     // superclass checks sector, level, row and column arguments.
 
@@ -32,31 +31,33 @@
     self = [super initWithSector:sector level:level row:row column:column];
 
     _tessellator = tessellator;
-    _transformationMatrix = [[WWMatrix alloc] initWithIdentity];
-    _points = 0;
-    _geometryVboCacheKey = [[NSString alloc] initWithFormat:@"%d.%d.%d", [level levelNumber], row, column];
+
+    _numLonCells = 5;
+    _numLatCells = 5;
+
+    //TODO: set the resolution (if that property is still necessary).
 
     return self;
 }
 
-- (void) dealloc
+- (void) beginRendering:(WWDrawContext*) dc
 {
-    if (_points)
-    {
-        free(_points);
-    }
+    [_tessellator beginRendering:dc tile:self];
 }
 
-- (long) sizeInBytes
+- (void) endRendering:(WWDrawContext*) dc
 {
-    long size = 4 // tessellator pointer
-            + (4 + 128) // transformation matrix
-            + (4) // numPoints
-            + (4 + (tileHeight + 3) * (tileWidth + 3) * 3 * 4) // points
-            + 8 // timestamps
-            + 10; // cache key (approx)
+    [_tessellator endRendering:dc tile:self];
+}
 
-    return size + [super sizeInBytes];
+- (void) render:(WWDrawContext*) dc
+{
+    [_tessellator render:dc tile:self];
+}
+
+- (void) renderWireframe:(WWDrawContext*) dc
+{
+    [_tessellator renderWireFrame:dc tile:self];
 }
 
 - (void) surfacePoint:(double)latitude longitude:(double)longitude offset:(double)offset result:(WWVec4*)result
@@ -67,6 +68,9 @@
     }
 
     WWSector* tileSector = [self sector];
+    int tileWidth = [self tileWidth];
+    int tileHeight = [self tileHeight];
+
     double minLat = [tileSector minLatitude];
     double maxLat = [tileSector maxLatitude];
     double minLon = [tileSector minLongitude];
@@ -92,18 +96,18 @@
     int ti = (t < tileHeight ? (int) t : tileHeight - 1) + 1;
     int rowStride = tileWidth + 3;
 
-    float* vertices = _points;
+    float* vertices = [_terrainGeometry points];
     float points[12]; // temporary working buffer
-    int k = 3 * (si  + ti * rowStride); // lower-left and lower-right vertices
+    int k = 3 * (si + ti * rowStride); // lower-left and lower-right vertices
     for (int i = 0; i < 6; i++)
     {
         points[i] = vertices[k + i];
     }
 
-    k = 3 * (si  + (ti + 1) * rowStride); // upper-left and upper-right vertices
+    k = 3 * (si + (ti + 1) * rowStride); // upper-left and upper-right vertices
     for (int i = 6; i < 12; i++)
     {
-        points[i] = vertices[k + (i - 6)];
+        points[i] = vertices[k + i];
     }
 
     // Compute the location's corresponding point on the cell in tile local coordinates,
@@ -111,8 +115,8 @@
     // relative placement within the cell. The cell's vertices are defined in the following order: lower-left,
     // lower-right, upper-left, upper-right. The cell's diagonal starts at the lower-left vertex and ends at the
     // upper-right vertex.
-    double sf = (s < tileWidth ? s - (int) s : 1);
-    double tf = (t < tileHeight ? t - (int) t : 1);
+    double sf = (s < tileWidth ? s - (int)s : 1);
+    double tf = (t < tileHeight? t - (int) t : 1);
 
     if (sf < tf)
     {
@@ -129,15 +133,11 @@
         [result set:x y:y z:z];
     }
 
-    [result add3:[self referencePoint]];
+    [result add3:[_terrainGeometry referenceCenter]];
 
     // Apply the offset.
-    if (offset != 0)
-    {
-        WWVec4* normal = [[WWVec4 alloc] initWithZeroVector];
-        [[_tessellator globe] surfaceNormalAtPoint:[result x] y:[result y] z:[result z] result:normal];
-        [WWVec4 pointOnLine:result direction:normal t:offset result:result];
-    }
+    WWVec4* normal = [[WWVec4 alloc] initWithZeroVector];
+    [[_tessellator globe] surfaceNormalAtPoint:result result:normal];
+    [WWVec4 pointOnLine:result direction:normal t:offset result:result];
 }
-
 @end

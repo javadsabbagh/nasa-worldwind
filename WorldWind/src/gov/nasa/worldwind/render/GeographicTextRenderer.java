@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
 package gov.nasa.worldwind.render;
 
-import com.jogamp.opengl.util.awt.TextRenderer;
+import com.sun.opengl.util.j2d.TextRenderer;
 import gov.nasa.worldwind.View;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.exception.WWRuntimeException;
@@ -13,9 +13,8 @@ import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.terrain.SectorGeometryList;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL;
 import javax.media.opengl.glu.GLU;
-import javax.media.opengl.glu.gl2.GLUgl2;
 import java.awt.*;
 import java.awt.geom.*;
 import java.io.IOException;
@@ -28,7 +27,7 @@ import java.util.*;
 public class GeographicTextRenderer
 {
     private TextRenderer lastTextRenderer = null;
-    private final GLU glu = new GLUgl2();
+    private final GLU glu = new GLU();
 
     private static final Font DEFAULT_FONT = Font.decode("Arial-PLAIN-12");
     private static final Color DEFAULT_COLOR = Color.white;
@@ -518,7 +517,7 @@ public class GeographicTextRenderer
         return bounds;
     }
 
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings( {"UnusedDeclaration"})
     protected double[] computeDistanceScaleAndOpacity(DrawContext dc, OrderedText ot)
     {
         if (!this.isDistanceScaling)
@@ -557,28 +556,28 @@ public class GeographicTextRenderer
 
     protected void beginRendering(DrawContext dc)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
         int attribBits =
-            GL2.GL_ENABLE_BIT // for enable/disable changes
-                | GL2.GL_COLOR_BUFFER_BIT // for alpha test func and ref, and blend
-                | GL2.GL_CURRENT_BIT      // for current color
-                | GL2.GL_DEPTH_BUFFER_BIT // for depth test, depth func, and depth mask
-                | GL2.GL_TRANSFORM_BIT    // for modelview and perspective
-                | GL2.GL_VIEWPORT_BIT;    // for depth range
+            GL.GL_ENABLE_BIT // for enable/disable changes
+                | GL.GL_COLOR_BUFFER_BIT // for alpha test func and ref, and blend
+                | GL.GL_CURRENT_BIT      // for current color
+                | GL.GL_DEPTH_BUFFER_BIT // for depth test, depth func, and depth mask
+                | GL.GL_TRANSFORM_BIT    // for modelview and perspective
+                | GL.GL_VIEWPORT_BIT;    // for depth range
         gl.glPushAttrib(attribBits);
 
-        gl.glMatrixMode(GL2.GL_PROJECTION);
+        gl.glMatrixMode(GL.GL_PROJECTION);
         gl.glPushMatrix();
         gl.glLoadIdentity();
         glu.gluOrtho2D(0, dc.getView().getViewport().width, 0, dc.getView().getViewport().height);
-        gl.glMatrixMode(GL2.GL_MODELVIEW);
+        gl.glMatrixMode(GL.GL_MODELVIEW);
         gl.glPushMatrix();
         gl.glLoadIdentity();
-        gl.glMatrixMode(GL2.GL_TEXTURE);
+        gl.glMatrixMode(GL.GL_TEXTURE);
         gl.glPushMatrix();
         gl.glLoadIdentity();
         // Set model view as current matrix mode
-        gl.glMatrixMode(GL2.GL_MODELVIEW);
+        gl.glMatrixMode(GL.GL_MODELVIEW);
 
         // Enable the depth test but don't write to the depth buffer.
         gl.glEnable(GL.GL_DEPTH_TEST);
@@ -588,8 +587,8 @@ public class GeographicTextRenderer
         gl.glDisable(GL.GL_CULL_FACE);
 
         // Suppress any fully transparent image pixels
-        gl.glEnable(GL2.GL_ALPHA_TEST);
-        gl.glAlphaFunc(GL2.GL_GREATER, 0.001f);
+        gl.glEnable(GL.GL_ALPHA_TEST);
+        gl.glAlphaFunc(GL.GL_GREATER, 0.001f);
 
         // Cache distance scaling values
         this.isDistanceScaling = this.getDistanceMinScale() != 1 || this.getDistanceMaxScale() != 1
@@ -605,13 +604,13 @@ public class GeographicTextRenderer
             this.lastTextRenderer = null;
         }
 
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
 
-        gl.glMatrixMode(GL2.GL_PROJECTION);
+        gl.glMatrixMode(GL.GL_PROJECTION);
         gl.glPopMatrix();
-        gl.glMatrixMode(GL2.GL_MODELVIEW);
+        gl.glMatrixMode(GL.GL_MODELVIEW);
         gl.glPopMatrix();
-        gl.glMatrixMode(GL2.GL_TEXTURE);
+        gl.glMatrixMode(GL.GL_TEXTURE);
         gl.glPopMatrix();
 
         gl.glPopAttrib();
@@ -627,7 +626,7 @@ public class GeographicTextRenderer
         }
 
         GeographicText geographicText = uText.text;
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
 
         final CharSequence charSequence = geographicText.getText();
         if (charSequence == null)
@@ -743,13 +742,13 @@ public class GeographicTextRenderer
      *
      * @return the final draw point for the given rectangle lower left corner or <code>null</code>.
      */
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings( {"UnusedDeclaration"})
     protected Point.Float computeDrawPoint(DrawContext dc, Rectangle2D rect, Vec4 screenPoint)
     {
         return new Point.Float((float) (screenPoint.x - rect.getWidth() / 2d), (float) (screenPoint.y));
     }
 
-    @SuppressWarnings({"UnusedDeclaration"})
+    @SuppressWarnings( {"UnusedDeclaration"})
     protected void setDepthFunc(DrawContext dc, OrderedText uText, Vec4 screenPoint)
     {
         GL gl = dc.getGL();

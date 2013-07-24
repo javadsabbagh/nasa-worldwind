@@ -7,11 +7,5 @@
 
 #import <UIKit/UIKit.h>
 
-@class WorldWindView;
-
-@interface ViewController : UIViewController <UISearchBarDelegate, UIGestureRecognizerDelegate>
-
-@property (nonatomic, readonly) WorldWindView* wwv;
-@property (nonatomic, readonly) UIToolbar* toolbar;
-
+@interface ViewController : UIViewController
 @end

@@ -6,534 +6,166 @@
  */
 
 #import "WorldWind/Util/WWMath.h"
+#import "WorldWind/Geometry/WWAngle.h"
 #import "WorldWind/Geometry/WWMatrix.h"
-#import "WorldWind/Geometry/WWPosition.h"
-#import "WorldWind/Geometry/WWVec4.h"
-#import "WorldWind/Terrain/WWGlobe.h"
 #import "WorldWind/WWLog.h"
-#import "WorldWind/Geometry/WWLine.h"
-
-#define ANIMATION_DISTANCE_MIN 1000
-#define ANIMATION_DISTANCE_MAX 1000000
-#define ANIMATION_DURATION_MIN 1.0
-#define ANIMATION_DURATION_MAX 5.0
+#import "WorldWind/Geometry/WWVec4.h"
 
 @implementation WWMath
 
-//--------------------------------------------------------------------------------------------------------------------//
-//-- Commonly Used Math Operations --//
-//--------------------------------------------------------------------------------------------------------------------//
-
-+ (double) clampValue:(double)value min:(double)min max:(double)max
++ (double) clamp:(double)value min:(double)min max:(double)max
 {
     return value < min ? min : (value > max ? max : value);
 }
 
-+ (double) stepValue:(double)value min:(double)min max:(double)max
++ (double) horizonDistance:(double)globeRadius elevation:(double)elevation
 {
-    // When the min and max are equivalent this cannot distinguish between the two. In this case, this returns 0 if the
-    // value is on or before the min, and 1 if the value is after the max. The case that would cause a divide by zero
-    // error is never evaluated. The value is always less than, equal to, or greater than the min/max.
-
-    if (value <= min)
-    {
+    if (elevation <= 0)
         return 0;
-    }
-    else if (value >= max)
-    {
-        return 1;
-    }
-    else
-    {
-        return (value - min) / (max - min);
-    }
+
+    return sqrt(elevation * (2 * globeRadius + elevation));
 }
 
-+ (double) smoothStepValue:(double)value min:(double)min max:(double)max
++ (NSArray*) principalAxesFromPoints:(NSArray*)points
 {
-    // When the min and max are equivalent this cannot distinguish between the two. In this case, this returns 0 if the
-    // value is on or before the min, and 1 if the value is after the max. The case that would cause a divide by zero
-    // error is never evaluated. The value is always less than, equal to, or greater than the min/max.
-
-    if (value <= min)
+    if (points == nil)
     {
-        return 0;
-    }
-    else if (value >= max)
-    {
-        return 1;
-    }
-    else
-    {
-        double step = (value - min) / (max - min);
-        return step * step * (3 - 2 * step);
-    }
-}
-
-+ (double) interpolateValue1:(double)value1 value2:(double)value2 amount:(double)amount
-{
-    return (1 - amount) * value1 + amount * value2;
-}
-
-+ (double) interpolateDegrees1:(double)angle1 degrees2:(double)angle2 amount:(double)amount
-{
-    // Normalize the two angles to the range [-180, +180].
-    double a1 = [WWMath normalizeDegrees:angle1];
-    double a2 = [WWMath normalizeDegrees:angle2];
-
-    // If the shortest arc between the two angles crosses the -180/+180 degree boundary, add 360 degrees to the smaller
-    // of the two angles then interpolate.
-    if (a1 - a2 > 180)
-    {
-        a2 += 360;
-    }
-    else if (a1 - a2 < -180)
-    {
-        a1 += 360;
-    }
-
-    // Linearly interpolate between the two angles then normalize the interpolated result. Normalizing the result is
-    // necessary when we have added 360 degrees to either angle in order to interpolate along the shortest arc.
-    double a = (1 - amount) * a1 + amount * a2;
-    return [WWMath normalizeDegrees:a];
-}
-
-+ (double) normalizeDegrees:(double)angle
-{
-    double a = fmod(angle, 360);
-    return a > 180 ? a - 360 : (a < -180 ? 360 + a : a);
-}
-
-+ (double) normalizeDegreesLatitude:(double)latitude
-{
-    double lat = fmod(latitude, 180);
-    return lat > 90 ? 180 - lat : (lat < -90 ? -180 - lat : lat);
-}
-
-+ (double) normalizeDegreesLongitude:(double)longitude
-{
-    double lon = fmod(longitude, 360);
-    return lon > 180 ? lon - 360 : (lon < -180 ? 360 + lon : lon);
-}
-
-+ (int) powerOfTwoCeiling:(int)value
-{
-    // Return the value if it's either zero or is already a power of two. Otherwise return the smallest power of two
-    // that's greater than the value.
-
-    if (value == 0)
-    {
-        return 0;
-    }
-    else if (value != 0 && (value & (value - 1)) == 0)
-    {
-        return value; // take from http://stackoverflow.com/questions/600293/how-to-check-if-a-number-is-a-power-of-2
-    }
-    else
-    {
-        double n = ceil(log2(value)); // the n'th power of two larger than value
-        return (int) exp2(n);
-    }
-}
-
-//--------------------------------------------------------------------------------------------------------------------//
-//-- Computing Information About Shapes --//
-//--------------------------------------------------------------------------------------------------------------------//
-
-+ (void) principalAxesFromPoints:(NSArray* __unsafe_unretained)points
-                           axis1:(WWVec4* __unsafe_unretained)axis1
-                           axis2:(WWVec4* __unsafe_unretained)axis2
-                           axis3:(WWVec4* __unsafe_unretained)axis3
-{
-    if (points == nil || [points count] == 0)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Points is nil or empty")
-    }
-
-    if (axis1 == nil || axis2 == nil || axis3 == nil)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Result axis is nil");
+        WWLOG_AND_THROW(NSInvalidArgumentException, @"Points is nil");
     }
 
     // Compute the covariance matrix.
     WWMatrix* covariance = [[WWMatrix alloc] initWithCovarianceOfPoints:points];
+    if (covariance == nil)
+        return nil;
 
-    // Compute the eigenvectors the covariance matrix. Since the covariance matrix is symmetric by definition, we can
-    // safely use the "symmetric" method below.
-    [WWMatrix eigensystemFromSymmetricMatrix:covariance vec1:axis1 vec2:axis2 vec3:axis3];
+    // Compute the eigenvectors and eigenvalues of the covariance matrix. Since the covariance matrix is symmetric by
+    // definition, we can safely use the "symmetric" method below.
+    NSMutableArray* eigenvalues = [[NSMutableArray alloc] initWithCapacity:3];
+    NSMutableArray* eigenvectors = [[NSMutableArray alloc] initWithCapacity:3];
+    [WWMatrix eigensystemFromSymmetricMatrix:covariance
+                           resultEigenvalues:eigenvalues
+                          resultEigenvectors:eigenvectors];
 
-    // Normalize the eigenvectors, which are already sorted in order from most prominent to least prominent.
-    [axis1 normalize3];
-    [axis2 normalize3];
-    [axis3 normalize3];
+    // Return the normalized eigenvectors in order of decreasing eigenvalue. This has the effect of returning three
+    // normalized orthogonal vectors defining a coordinate system, with the vectors sorted from the most prominent
+    // axis to the lease prominent.
+    NSArray* indexArray = [[NSArray alloc] initWithObjects:[NSNumber numberWithInt:0],
+                                                           [NSNumber numberWithInt:1],
+                                                           [NSNumber numberWithInt:2], nil];
+    NSArray* sortedIndexArray = [indexArray sortedArrayUsingComparator:^NSComparisonResult(id a, id b)
+    {
+        NSUInteger indexA = (NSUInteger) [(NSNumber*) a intValue];
+        NSUInteger indexB = (NSUInteger) [(NSNumber*) b intValue];
+
+        return [[eigenvalues objectAtIndex:indexA] compare:[eigenvalues objectAtIndex:indexB]];
+    }];
+
+    NSUInteger index0 = (NSUInteger) [(NSNumber*) [sortedIndexArray objectAtIndex:0] intValue];
+    NSUInteger index1 = (NSUInteger) [(NSNumber*) [sortedIndexArray objectAtIndex:1] intValue];
+    NSUInteger index2 = (NSUInteger) [(NSNumber*) [sortedIndexArray objectAtIndex:2] intValue];
+
+    NSMutableArray* resultArray = [[NSMutableArray alloc] initWithCapacity:3];
+    [resultArray addObject:[[eigenvectors objectAtIndex:index2] normalize3]];
+    [resultArray addObject:[[eigenvectors objectAtIndex:index1] normalize3]];
+    [resultArray addObject:[[eigenvectors objectAtIndex:index0] normalize3]];
+
+    return resultArray;
 }
 
-+ (void) localCoordinateAxesAtPoint:(WWVec4* __unsafe_unretained)point
-                            onGlobe:(WWGlobe* __unsafe_unretained)globe
-                              xaxis:(WWVec4* __unsafe_unretained)xaxis
-                              yaxis:(WWVec4* __unsafe_unretained)yaxis
-                              zaxis:(WWVec4* __unsafe_unretained)zaxis
++ (CGRect) perspectiveFieldOfViewFrustumRect:(double)horizontalFOV
+                               viewportWidth:(double)viewportWidth
+                              viewportHeight:(double)viewportHeight
+                                   zDistance:(double)zDistance
 {
-    if (point == nil)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Point is nil")
-    }
+    // Based on http://www.opengl.org/resources/faq/technical/transformations.htm#tran0085.
+    // This method uses horizontal field-of-view here to describe the perspective viewing angle. This results in a
+    // different set of clip plane distances than documented in sources using vertical field-of-view.
 
-    if (globe == nil)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Globe is nil")
-    }
+    double tanHalfFOV = tan(RADIANS(horizontalFOV / 2));
+    double width = 2 * zDistance * tanHalfFOV;
+    double height = width * viewportHeight / viewportWidth;
+    double x = -width / 2;
+    double y = -height / 2;
 
-    if (xaxis == nil || yaxis == nil || zaxis == nil)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Result axis is nil");
-    }
-
-    double x = [point x];
-    double y = [point y];
-    double z = [point z];
-
-    // Compute the z axis from the surface normal in model coordinates. This axis is used to determine the other two
-    // axes, and is the only constant in the computations below.
-    [globe surfaceNormalAtPoint:x y:y z:z result:zaxis];
-
-    // Compute the y axis from the north pointing tangent in model coordinates. This axis is known to be orthogonal to
-    // the z axis, and is therefore used to compute the x axis.
-    [globe northTangentAtPoint:x y:y z:z result:yaxis];
-
-    // Compute the x axis as the cross product of the y and z axes. This ensures that the x and z axes are orthogonal.
-    [xaxis set:yaxis];
-    [xaxis cross3:zaxis];
-    [xaxis normalize3];
-
-    // Re-compute the y axis as the cross product of the z and x axes. This ensures that all three axes are orthogonal.
-    // Though the initial y axis computed above is likely to be very nearly orthogonal, we re-compute it using cross
-    // products to reduce the effect of floating point rounding errors caused by working with Earth sized coordinates.
-    [yaxis set:zaxis];
-    [yaxis cross3:xaxis];
-    [yaxis normalize3];
+    return CGRectMake((CGFloat) x, (CGFloat) y, (CGFloat) width, (CGFloat) height);
 }
 
-+ (CGRect) boundingRectForUnitQuad:(WWMatrix* __unsafe_unretained)transformMatrix
++ (double) perspectiveFieldOfViewMaxNearDistance:(double)horizontalFOV
+                                   viewportWidth:(double)viewportWidth
+                                  viewportHeight:(double)viewportHeight
+                                distanceToObject:(double)distanceToObject
 {
-    if (transformMatrix == nil)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Matrix is nil")
-    }
+    // Note: based on calculations on 12/21/2012, the equation below is incorrect, and should instead be as follows:
+    //
+    // distanceToObject / sqrt(1 + tanHalfFOV * tanHalfFOV * (1 + aspect * aspect))
+    //
+    // We are currently leaving this equation as-is. It has been used in World Wind Java since 2006, and therefore
+    // requires testing before it can be safely changed.
 
-    double* m = transformMatrix->m;
-    // transform of (0, 0)
-    double x1 = m[3];
-    double y1 = m[7];
-    // transform of (1, 0)
-    double x2 = m[0] + m[3];
-    double y2 = m[4] + m[7];
-    // transform of (0, 1)
-    double x3 = m[1] + m[3];
-    double y3 = m[5] + m[7];
-    // transform of (1, 1)
-    double x4 = m[0] + m[1] + m[3];
-    double y4 = m[4] + m[5] + m[7];
+    double tanHalfFOV = tan(RADIANS(horizontalFOV / 2));
 
-    double minX = MIN(MIN(x1, x2), MIN(x3, x4));
-    double maxX = MAX(MAX(x1, x2), MAX(x3, x4));
-    double minY = MIN(MIN(y1, y2), MIN(y3, y4));
-    double maxY = MAX(MAX(y1, y2), MAX(y3, y4));
-
-    return CGRectMake((CGFloat) minX, (CGFloat) minY, (CGFloat) (maxX - minX), (CGFloat) (maxY - minY));
+    return distanceToObject / (2 * sqrt(2 * tanHalfFOV * tanHalfFOV + 1));
 }
 
-//--------------------------------------------------------------------------------------------------------------------//
-//-- Computing Viewing and Navigation Information --//
-//--------------------------------------------------------------------------------------------------------------------//
-
-+ (NSTimeInterval) durationForAnimationWithBeginPosition:(WWPosition* __unsafe_unretained)posA
-                                             endPosition:(WWPosition* __unsafe_unretained)posB
-                                                 onGlobe:(WWGlobe* __unsafe_unretained)globe
++ (double) perspectiveFieldOfViewMaxPixelSize:(double)horizontalFOV
+                                viewportWidth:(double)viewportWidth
+                               viewportHeight:(double)viewportHeight
+                             distanceToObject:(double)distanceToObject
 {
-    if (posA == nil)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Begin position is nil")
-    }
+    CGRect frustRect = [WWMath perspectiveFieldOfViewFrustumRect:horizontalFOV
+                                                   viewportWidth :viewportWidth
+                                                  viewportHeight:viewportHeight
+                                                       zDistance:distanceToObject];
+    double xPixelSize = CGRectGetWidth(frustRect) / viewportWidth;
+    double yPixelSize = CGRectGetHeight(frustRect) / viewportHeight;
 
-    if (posB == nil)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"End position is nil")
-    }
-
-    if (globe == nil)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Globe is nil")
-    }
-
-    WWVec4* pa = [[WWVec4 alloc] initWithZeroVector];
-    WWVec4* pb = [[WWVec4 alloc] initWithZeroVector];
-    [globe computePointFromPosition:[posA latitude] longitude:[posA longitude] altitude:[posA altitude] outputPoint:pa];
-    [globe computePointFromPosition:[posB latitude] longitude:[posB longitude] altitude:[posB altitude] outputPoint:pb];
-
-    double distance = [pa distanceTo3:pb];
-    double stepDistance = [WWMath stepValue:distance min:ANIMATION_DISTANCE_MIN max:ANIMATION_DISTANCE_MAX];
-
-    return [WWMath interpolateValue1:ANIMATION_DURATION_MIN value2:ANIMATION_DURATION_MAX amount:stepDistance];
+    return MAX(xPixelSize, yPixelSize);
 }
 
-+ (double) horizonDistanceForGlobeRadius:(double)radius eyeAltitude:(double)altitude
++ (CGRect) perspectiveSizePreservingFrustumRect:(double)viewportWidth
+                                 viewportHeight:(double)viewportHeight
+                                      zDistance:(double)zDistance
 {
-    if (radius < 0)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Radius is negative")
-    }
-
-    return (radius > 0 && altitude > 0) ? sqrt(altitude * (2 * radius + altitude)) : 0;
-}
-
-+ (CGRect) perspectiveFrustumRect:(CGRect)viewport atDistance:(double)near
-{
-    CGFloat viewportWidth = CGRectGetWidth(viewport);
-    CGFloat viewportHeight = CGRectGetHeight(viewport);
-
-    if (viewportWidth == 0)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Viewport width is zero")
-    }
-
-    if (viewportHeight == 0)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Viewport height is zero")
-    }
-
-    // Compute a frustum rectangle that preserves the scene's size relative to the viewport when the viewport width and
-    // height are swapped. This has the effect of maintaining the scene's size on screen when the device is rotated.
-
-    CGFloat x, y, width, height;
+    double x, y, width, height;
 
     if (viewportWidth < viewportHeight)
     {
-        width = (CGFloat) near;
-        height = (CGFloat) near * viewportHeight / viewportWidth;
+        width = zDistance;
+        height = zDistance * viewportHeight / viewportWidth;
         x = -width / 2;
         y = -height / 2;
     }
     else
     {
-        width = (CGFloat) near * viewportWidth / viewportHeight;
-        height = (CGFloat) near;
+        width = zDistance * viewportWidth / viewportHeight;
+        height = zDistance;
         x = -width / 2;
         y = -height / 2;
     }
 
-    return CGRectMake(x, y, width, height);
+    return CGRectMake((CGFloat) x, (CGFloat) y, (CGFloat) width, (CGFloat) height);
 }
 
-+ (double) perspectivePixelSize:(CGRect)viewport atDistance:(double)distance
++ (double) perspectiveSizePreservingMaxNearDistance:(double)viewportWidth
+                                     viewportHeight:(double)viewportHeight
+                                   distanceToObject:(double)distanceToObject
 {
-    if (CGRectGetWidth(viewport) == 0)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Viewport width is zero")
-    }
+    double aspect = (viewportWidth < viewportHeight) ? (viewportHeight / viewportWidth) : (viewportWidth / viewportHeight);
 
-    if (CGRectGetHeight(viewport) == 0)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Viewport height is zero")
-    }
+    return 2 * distanceToObject / sqrt(aspect * aspect + 5);
+}
 
-    // Compute the dimensions of a rectangle in model coordinates carved out of the frustum at the given distance along
-    // the negative z axis, also in model coordinates.
-    CGRect frustRect = [WWMath perspectiveFrustumRect:viewport atDistance:distance];
++ (double) perspectiveSizePreservingMaxPixelSize:(double)viewportWidth
+                                  viewportHeight:(double)viewportHeight
+                                distanceToObject:(double)distanceToObject
+{
+    CGRect frustRect = [WWMath perspectiveSizePreservingFrustumRect:viewportWidth
+                                                     viewportHeight:viewportHeight
+                                                          zDistance:distanceToObject];
+    double xPixelSize = CGRectGetWidth(frustRect) / viewportWidth;
+    double yPixelSize = CGRectGetHeight(frustRect) / viewportHeight;
 
-    // Compute the pixel size in model coordinates as a ratio of the rectangle dimensions to the viewport dimensions.
-    // The resultant units are model coordinates per pixel (usually meters per pixel).
-    CGFloat xPixelSize = CGRectGetWidth(frustRect) / CGRectGetWidth(viewport);
-    CGFloat yPixelSize = CGRectGetHeight(frustRect) / CGRectGetHeight(viewport);
-
-    // Return the maximum of the x and y pixel sizes. These two sizes are usually equivalent but we select the maximum
-    // in order to correctly handle the case where the x and y pixel sizes differ.
     return MAX(xPixelSize, yPixelSize);
-}
-
-+ (double) perspectiveFitDistance:(CGRect)viewport forObjectWithRadius:(double)radius
-{
-    if (CGRectGetWidth(viewport) == 0)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Viewport width is zero")
-    }
-
-    if (CGRectGetHeight(viewport) == 0)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Viewport height is zero")
-    }
-
-    if (radius < 0)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Radius is negative")
-    }
-
-    // The distance needed to fill the smaller of either frustum dimensions with an object of a specified radius is
-    // always half the object's radius. Though this this method is trivial, it provides a layer of indirection for the
-    // details of the perspective projections used by World Wind. This indirection makes it simple to add a field of
-    // view to perspective projections without identifying inline computations based on assumptions of how perspective
-    // projections worked prior to adding field of view.
-
-    return radius * 2;
-}
-
-+ (double) perspectiveFitDistance:(CGRect)viewport
-                     forPositionA:(WWPosition* __unsafe_unretained)posA
-                        positionB:(WWPosition* __unsafe_unretained)posB
-                          onGlobe:(WWGlobe* __unsafe_unretained)globe
-{
-    if (CGRectGetWidth(viewport) == 0)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Viewport width is zero")
-    }
-
-    if (CGRectGetHeight(viewport) == 0)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Viewport height is zero")
-    }
-
-    if (posA == nil)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Position A is nil")
-    }
-
-    if (posB == nil)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Position B is nil")
-    }
-
-    if (globe == nil)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Globe is nil")
-    }
-
-    WWVec4* pa = [[WWVec4 alloc] initWithZeroVector];
-    WWVec4* pb = [[WWVec4 alloc] initWithZeroVector];
-    [globe computePointFromPosition:[posA latitude] longitude:[posA longitude] altitude:[posA altitude] outputPoint:pa];
-    [globe computePointFromPosition:[posB latitude] longitude:[posB longitude] altitude:[posB altitude] outputPoint:pb];
-
-    double radius = [pa distanceTo3:pb] / 2;
-
-    return [WWMath perspectiveFitDistance:viewport forObjectWithRadius:radius];
-}
-
-+ (double) perspectiveNearDistance:(CGRect)viewport forObjectAtDistance:(double)distance
-{
-    CGFloat viewportWidth = CGRectGetWidth(viewport);
-    CGFloat viewportHeight = CGRectGetHeight(viewport);
-
-    if (viewportWidth == 0)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Viewport width is zero")
-    }
-
-    if (viewportHeight == 0)
-    {
-        WWLOG_AND_THROW(NSInvalidArgumentException, @"Viewport height is zero")
-    }
-
-    // Compute the maximum near clip distance that avoids clipping an object at the specified distance from the eye.
-    // Since the furthest points on the near clip rectangle are the four corners, we compute a near distance that puts
-    // any one of these corners exactly at the given distance. The distance to one of the four corners can be expressed
-    // in terms of the near clip distance, given distance to a corner 'd', near distance 'n', and aspect ratio 'a':
-    //
-    // d*d = x*x + y*y + z*z
-    // d*d = (n*n/4 * a*a) + (n*n/4) + (n*n)
-    //
-    // Extracting 'n*n/4' from the right hand side gives:
-    //
-    // d*d = (n*n/4) * (a*a + 1 + 4)
-    // d*d = (n*n/4) * (a*a + 5)
-    //
-    // Finally, solving for 'n' gives:
-    //
-    // n*n = 4 * d*d / (a*a + 5)
-    // n = 2 * d / sqrt(a*a + 5)
-
-    CGFloat aspect = (viewportWidth < viewportHeight)
-            ? (viewportHeight / viewportWidth) : (viewportWidth / viewportHeight);
-
-    return 2 * distance / sqrt(aspect * aspect + 5);
-}
-
-+ (BOOL) computeTriangleIntersection:(WWLine* __unsafe_unretained)line
-                                 vax:(double)vax
-                                 vay:(double)vay
-                                 vaz:(double)vaz
-                                 vbx:(double)vbx
-                                 vby:(double)vby
-                                 vbz:(double)vbz
-                                 vcx:(double)vcx
-                                 vcy:(double)vcy
-                                 vcz:(double)vcz
-                              result:(WWVec4* __unsafe_unretained)result
-{
-    // Taken from Moller and Trumbore
-    // http://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/
-    // Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
-
-    static double EPSILON = 0.00001;
-
-    WWVec4* origin = [line origin];
-    WWVec4* dir = [line direction];
-
-    // find vectors for two edges sharing point a: vb - va and vc - va
-    double edge1x = vbx - vax;
-    double edge1y = vby - vay;
-    double edge1z = vbz - vaz;
-
-    double edge2x = vcx - vax;
-    double edge2y = vcy - vay;
-    double edge2z = vcz - vaz;
-
-    // Compute cross product of line direction and edge2
-    double pvecx = ([dir y] * edge2z) - ([dir z] * edge2y);
-    double pvecy = ([dir z] * edge2x) - ([dir x] * edge2z);
-    double pvecz = ([dir x] * edge2y) - ([dir y] * edge2x);
-
-    // Get determinant
-    double det = edge1x * pvecx + edge1y * pvecy + edge1z * pvecz; // edge1 dot pvec
-    if (det > -EPSILON && det < EPSILON) // if det is near zero then ray lies in plane of triangle
-    {
-        return NO;
-    }
-
-    double detInv = 1.0 / det;
-
-    // Compute distance for vertex A to ray origin: origin - va
-    double tvecx = [origin x] - vax;
-    double tvecy = [origin y] - vay;
-    double tvecz = [origin z] - vaz;
-
-    // Calculate u parameter and test bounds: 1/det * tvec dot pvec
-    double u = detInv * (tvecx * pvecx + tvecy * pvecy + tvecz * pvecz);
-    if (u < 0 || u > 1)
-    {
-        return NO;
-    }
-
-    // Prepare to test v parameter: tvec cross edge1
-    double qvecx = (tvecy * edge1z) - (tvecz * edge1y);
-    double qvecy = (tvecz * edge1x) - (tvecx * edge1z);
-    double qvecz = (tvecx * edge1y) - (tvecy * edge1x);
-
-    // Calculate v parameter and test bounds: 1/det * dir dot qvec
-    double v = detInv * ([dir x] * qvecx + [dir y] * qvecy + [dir z] * qvecz);
-    if (v < 0 || u + v > 1)
-    {
-        return NO;
-    }
-
-    // Calculate the point of intersection on the line: t = 1/det * edge2 dot qvec
-    double t = detInv * (edge2x * qvecx + edge2y * qvecy + edge2z * qvecz);
-    if (t < 0)
-    {
-        return NO;
-    }
-
-    [line pointAt:t result:result];
-
-    return YES;
 }
 
 @end

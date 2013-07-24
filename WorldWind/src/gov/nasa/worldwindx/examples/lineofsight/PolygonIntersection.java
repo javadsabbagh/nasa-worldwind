@@ -1,8 +1,9 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
- * National Aeronautics and Space Administration.
- * All Rights Reserved.
- */
+Copyright (C) 2001, 2010 United States Government
+as represented by the Administrator of the
+National Aeronautics and Space Administration.
+All Rights Reserved.
+*/
 
 package gov.nasa.worldwindx.examples.lineofsight;
 
@@ -21,7 +22,7 @@ import java.util.*;
 /**
  * Shows how to determine and display the intersection of a line with an {@link Polygon}.
  * @author tag
- * @version $Id$
+ * @version $ID$
  */
 public class PolygonIntersection extends ApplicationTemplate
 {

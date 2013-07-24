@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
@@ -71,9 +71,8 @@ public interface Terrain
     Vec4 getSurfacePoint(Angle latitude, Angle longitude, double metersOffset);
 
     /**
-     * Computes the intersections of a line with the terrain. The line is specified by two positions whose altitude
-     * field indicates the height above the terrain (not the altitude relative to sea level). All intersection points
-     * are returned.
+     * Computes the intersections of a line with the terrain. The line is specified by two positions. All intersection
+     * points are returned.
      * <p/>
      * This operation fails with a {@link gov.nasa.worldwind.exception.WWTimeoutException} if a timeout has been
      * specified and it is exceeded during the operation.
@@ -92,29 +91,6 @@ public interface Terrain
      *                                  retrieving terrain data.
      */
     Intersection[] intersect(Position pA, Position pB);
-
-    /**
-     * Computes the intersections of a line with the terrain. The line is specified by two positions whose altitude
-     * field is interpreted according to the specified altitude mode. All intersection points are returned.
-     * <p/>
-     * This operation fails with a {@link gov.nasa.worldwind.exception.WWTimeoutException} if a timeout has been
-     * specified and it is exceeded during the operation.
-     *
-     * @param pA the line's first position.
-     * @param pB the line's second position.
-     * @param altitudeMode the altitude mode indicating the reference for the altitudes in the specified positions.
-     *
-     * @return an array of Cartesian model-coordinate intersection points, or null if no intersections occur or the
-     *         operation is interrupted.
-     *
-     * @throws IllegalArgumentException if either position is null.
-     * @throws gov.nasa.worldwind.exception.WWTimeoutException
-     *
-     * @throws gov.nasa.worldwind.exception.WWRuntimeException
-     *                                  if the operation is interrupted. if the current timeout is exceeded while
-     *                                  retrieving terrain data.
-     */
-    Intersection[] intersect(Position pA, Position pB, int altitudeMode);
 
     /**
      * Computes the elevation at a specified location.

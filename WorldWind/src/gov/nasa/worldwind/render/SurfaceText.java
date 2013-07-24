@@ -1,22 +1,22 @@
 /*
- * Copyright (C) 2012 United States Government as represented by the Administrator of the
+ * Copyright (C) 2011 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration.
  * All Rights Reserved.
  */
 
 package gov.nasa.worldwind.render;
 
-import com.jogamp.opengl.util.awt.TextRenderer;
+import com.sun.opengl.util.j2d.TextRenderer;
 import gov.nasa.worldwind.Movable;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL;
 import java.awt.*;
 import java.awt.geom.*;
-import java.util.Arrays;
+import java.util.*;
 
 /**
  * Renders a string of text on the surface of the globe. The text will appear draped over terrain. Surface text is drawn
@@ -204,7 +204,7 @@ public class SurfaceText extends AbstractSurfaceObject implements GeographicText
             throw new IllegalArgumentException(message);
         }
 
-        if (bgColor == null || !bgColor.equals(background))
+        if (!bgColor.equals(background))
         {
             this.bgColor = background;
             this.updateModifiedTime();
@@ -322,11 +322,11 @@ public class SurfaceText extends AbstractSurfaceObject implements GeographicText
     /** {@inheritDoc} */
     protected void drawGeographic(DrawContext dc, SurfaceTileDrawContext sdc)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
         OGLStackHandler ogsh = new OGLStackHandler();
         ogsh.pushAttrib(gl,
-            GL2.GL_CURRENT_BIT       // For current color (used by JOGL TextRenderer).
-                | GL2.GL_TRANSFORM_BIT); // For matrix mode.
+            GL.GL_CURRENT_BIT       // For current color (used by JOGL TextRenderer).
+                | GL.GL_TRANSFORM_BIT); // For matrix mode.
         ogsh.pushModelview(gl);
         try
         {
@@ -406,7 +406,7 @@ public class SurfaceText extends AbstractSurfaceObject implements GeographicText
         Vec4 point = new Vec4(this.location.getLongitude().degrees, this.location.getLatitude().degrees, 1);
         point = point.transformBy4(sdc.getModelviewMatrix());
 
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
 
         // Translate to location point
         gl.glTranslated(point.x(), point.y(), point.z());

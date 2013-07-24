@@ -1,10 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  ~ Copyright (C) 2012 United States Government as represented by the Administrator of the
-  ~ National Aeronautics and Space Administration.
-  ~ All Rights Reserved.
-  -->
-
 <!--$Id$-->
 <!--Default World Wind configuration values-->
 <!--Any of these can be overridden by specifying an application configuration document-->
@@ -19,7 +13,7 @@
     <Property name="gov.nasa.worldwind.avkey.GlobeClassName"
               value="gov.nasa.worldwind.globes.Earth"/>
     <Property name="gov.nasa.worldwind.avkey.EarthElevationModelConfigFile"
-              value="config/Earth/EarthElevations2.xml"/>
+              value="config/Earth/EarthElevationModelAsBil16.xml"/>
     <Property name="gov.nasa.worldwind.avkey.InitialLatitude" value="38"/>
     <Property name="gov.nasa.worldwind.avkey.InitialAltitude" value="19.07e6"/>
     <Property name="gov.nasa.worldwind.avkey.ViewClassName" value="gov.nasa.worldwind.view.orbit.BasicOrbitView"/>

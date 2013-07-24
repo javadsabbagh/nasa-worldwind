@@ -6,7 +6,7 @@
 
 package gov.nasa.worldwind.symbology;
 
-import com.jogamp.opengl.util.awt.TextRenderer;
+import com.sun.opengl.util.j2d.TextRenderer;
 import gov.nasa.worldwind.View;
 import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.geom.*;
@@ -15,7 +15,7 @@ import gov.nasa.worldwind.pick.*;
 import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL;
 import java.awt.*;
 import java.awt.geom.*;
 
@@ -909,16 +909,16 @@ public class TacticalGraphicLabel implements OrderedRenderable
      */
     protected void beginDrawing(DrawContext dc)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
 
         int attrMask =
-            GL2.GL_DEPTH_BUFFER_BIT // for depth test, depth mask and depth func
-                | GL2.GL_TRANSFORM_BIT // for modelview and perspective
-                | GL2.GL_VIEWPORT_BIT // for depth range
-                | GL2.GL_CURRENT_BIT // for current color
-                | GL2.GL_COLOR_BUFFER_BIT // for alpha test func and ref, and blend
-                | GL2.GL_DEPTH_BUFFER_BIT // for depth func
-                | GL2.GL_ENABLE_BIT; // for enable/disable changes
+            GL.GL_DEPTH_BUFFER_BIT // for depth test, depth mask and depth func
+                | GL.GL_TRANSFORM_BIT // for modelview and perspective
+                | GL.GL_VIEWPORT_BIT // for depth range
+                | GL.GL_CURRENT_BIT // for current color
+                | GL.GL_COLOR_BUFFER_BIT // for alpha test func and ref, and blend
+                | GL.GL_DEPTH_BUFFER_BIT // for depth func
+                | GL.GL_ENABLE_BIT; // for enable/disable changes
 
         this.BEogsh.pushAttrib(gl, attrMask);
 
@@ -946,9 +946,7 @@ public class TacticalGraphicLabel implements OrderedRenderable
      */
     protected void endDrawing(DrawContext dc)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
-
-        this.BEogsh.pop(gl);
+        this.BEogsh.pop(dc.getGL());
     }
 
     /**
@@ -959,7 +957,7 @@ public class TacticalGraphicLabel implements OrderedRenderable
      */
     protected void doPick(DrawContext dc, PickSupport pickSupport)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
 
         Angle heading = this.rotation;
 
@@ -1008,7 +1006,7 @@ public class TacticalGraphicLabel implements OrderedRenderable
 
                 try
                 {
-                    gl.glBegin(GL2.GL_POLYGON);
+                    gl.glBegin(GL.GL_POLYGON);
                     gl.glVertex3d(x, y, 0);
                     gl.glVertex3d(x + width - 1, y, 0);
                     gl.glVertex3d(x + width - 1, y + height - 1, 0);
@@ -1041,7 +1039,7 @@ public class TacticalGraphicLabel implements OrderedRenderable
      */
     protected void drawText(DrawContext dc, TextRenderer textRenderer)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
 
         Angle heading = this.rotation;
 
@@ -1100,7 +1098,7 @@ public class TacticalGraphicLabel implements OrderedRenderable
      */
     protected void drawInterior(DrawContext dc)
     {
-        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        GL gl = dc.getGL();
 
         double width = this.bounds.getWidth();
         double height = this.bounds.getHeight();
