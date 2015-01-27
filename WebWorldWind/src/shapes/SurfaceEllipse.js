@@ -23,10 +23,10 @@ define([
          * @alias SurfaceEllipse
          * @constructor
          * @augments SurfaceShape
-         * @classdesc Represents a surface ellipse.
+         * @classdesc Represents an ellipse draped over the terrain surface.
          * <p>
-         *     SurfaceEllipse uses the following attributes from its associated shape attributes bundle:
-         *     <ul>
+         * SurfaceEllipse uses the following attributes from its associated shape attributes bundle:
+         * <ul>
          *         <li>Draw interior</li>
          *         <li>Draw outline</li>
          *         <li>Interior color</li>
@@ -34,7 +34,7 @@ define([
          *         <li>Outline width</li>
          *         <li>Outline stipple factor</li>
          *         <li>Outline stipple pattern</li>
-         *     </ul>
+         * </ul>
          * @param {Location} center The ellipse's center location.
          * @param {Number} majorRadius The ellipse's major radius in meters.
          * @param {Number} minorRadius The ellipse's minor radius in meters.

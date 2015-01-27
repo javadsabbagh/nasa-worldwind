@@ -29,8 +29,8 @@ define([
          * @classdesc Represents a surface shape. This is an abstract base class and is meant to be instantiated
          * only by subclasses.
          * <p>
-         *     Surface shapes other than [SurfacePolyline]{SurfacePolyline} have an interior and an outline and utilize
-         *     the corresponding attributes in their associated [ShapeAttributes]{ShapeAttributes}. They do not
+         *     Surface shapes other than [SurfacePolyline]{@link SurfacePolyline} have an interior and an outline and utilize
+         *     the corresponding attributes in their associated [ShapeAttributes]{@link ShapeAttributes}. They do not
          *     utilize image-related attributes.
          * @param {ShapeAttributes} attributes The attributes to apply to this shape. May be null, in which case
          * attributes must be set directly before the shape is drawn.
@@ -54,7 +54,7 @@ define([
             this.attributes = attributes ? attributes : new ShapeAttributes(null);
 
             /**
-             * The attributes used when this shape's 'highlighted' flag is <code>true</code>. If null and the
+             * The attributes used when this shape's highlighted flag is <code>true</code>. If null and the
              * highlighted flag is true, this shape's normal attributes are used. If they, too, are null, this
              * shape is not drawn.
              * @type {ShapeAttributes}
@@ -77,10 +77,12 @@ define([
             this.enabled = true;
 
             /**
-             * The path type to used to interpolate between locations on this shape. Recognized values are
-             * [WorldWind.GREAT_CIRCLE]{@link WorldWind.GREAT_CIRCLE},
-             * [WorldWind.RHUMB_LINE]{@link WorldWind.RHUMB_LINE},
-             * or [WorldWind.LINEAR]{@link WorldWind.LINEAR},
+             * The path type to used to interpolate between locations on this shape. Recognized values are:
+             * <ul>
+             * <li>WorldWind.GREAT_CIRCLE</li>
+             * <li>WorldWind.RHUMB_LINE</li>
+             * <li>WorldWind.LINEAR</li>
+             * </ul>
              * @type {string}
              * @default WorldWind.GREAT_CIRCLE
              */

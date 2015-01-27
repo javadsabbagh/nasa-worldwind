@@ -23,7 +23,7 @@ define([
          * @alias SurfaceCircle
          * @constructor
          * @augments SurfaceEllipse
-         * @classdesc Represents a surface circle.
+         * @classdesc Represents a circle draped over the terrain surface.
          * <p>
          *     SurfaceCircle uses the following attributes from its associated shape attributes bundle:
          *     <ul>
