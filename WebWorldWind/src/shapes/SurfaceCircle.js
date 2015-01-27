@@ -53,7 +53,7 @@ define([
                     Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceCircle", "constructor", "Radius is negative"));
             }
 
-            SurfaceEllipse.call(this, attributes, radius, radius);
+            SurfaceEllipse.call(this, radius, radius, attributes);
 
             /**
              * This shape's center location.
