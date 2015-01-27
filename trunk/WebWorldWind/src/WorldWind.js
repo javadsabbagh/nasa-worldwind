@@ -61,8 +61,12 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './layer/RenderableLayer',
         './gesture/RotationGestureRecognizer',
         './geom/Sector',
+        './shapes/ShapeAttributes',
         './layer/ShowTessellationLayer',
         './shapes/SurfaceImage',
+        './shapes/SurfaceCircle',
+        './shapes/SurfaceEllipse',
+        './shapes/SurfaceShape',
         './render/SurfaceTile',
         './render/SurfaceTileRenderer',
         './shaders/SurfaceTileRendererProgram',
@@ -139,8 +143,12 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               RenderableLayer,
               RotationGestureRecognizer,
               Sector,
+              ShapeAttributes,
               ShowTessellationLayer,
               SurfaceImage,
+              SurfaceCircle,
+              SurfaceEllipse,
+              SurfaceShape,
               SurfaceTile,
               SurfaceTileRenderer,
               SurfaceTileRendererProgram,
@@ -311,8 +319,12 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['RenderableLayer'] = RenderableLayer;
         WorldWind['RotationGestureRecognizer'] = RotationGestureRecognizer;
         WorldWind['Sector'] = Sector;
+        WorldWind['ShapeAttributes'] = ShapeAttributes;
         WorldWind['ShowTessellationLayer'] = ShowTessellationLayer;
         WorldWind['SurfaceImage'] = SurfaceImage;
+        WorldWind['SurfaceCircle'] = SurfaceImage;
+        WorldWind['SurfaceEllipse'] = SurfaceImage;
+        WorldWind['SurfaceShape'] = SurfaceImage;
         WorldWind['SurfaceTile'] = SurfaceTile;
         WorldWind['SurfaceTileRenderer'] = SurfaceTileRenderer;
         WorldWind['SurfaceTileRendererProgram'] = SurfaceTileRendererProgram;
