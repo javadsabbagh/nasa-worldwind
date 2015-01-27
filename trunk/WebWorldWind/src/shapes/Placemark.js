@@ -65,7 +65,7 @@ define([
              * The placemark's attributes. If null and this placemark is not highlighted, this placemark is not
              * drawn.
              * @type {PlacemarkAttributes}
-             * @default see [PlacemarkAttributes]{@link PlacemarkAttributes)
+             * @default see [PlacemarkAttributes]{@link PlacemarkAttributes}
              */
             this.attributes = new PlacemarkAttributes(null);
 
@@ -73,7 +73,7 @@ define([
              * The attributes used when this placemark's 'highlighted' flag is <code>true</code>. If null and the
              * highlighted flag is true, this placemark's normal attributes are used. If they, too, are null, this
              * placemark is not drawn.
-             * @type {null}
+             * @type {ShapeAttributes}
              * @default null
              */
             this.highlightAttributes = null;

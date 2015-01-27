@@ -49,7 +49,7 @@ define([
             /**
              * The shape's attributes. If null and this shape is not highlighted, this shape is not drawn.
              * @type {ShapeAttributes}
-             * @default see [ShapeAttributes]{@link ShapeAttributes)
+             * @default see [ShapeAttributes]{@link ShapeAttributes}
              */
             this.attributes = attributes ? attributes : new ShapeAttributes(null);
 
@@ -57,7 +57,7 @@ define([
              * The attributes used when this shape's 'highlighted' flag is <code>true</code>. If null and the
              * highlighted flag is true, this shape's normal attributes are used. If they, too, are null, this
              * shape is not drawn.
-             * @type {null}
+             * @type {ShapeAttributes}
              * @default null
              */
             this.highlightAttributes = null;
