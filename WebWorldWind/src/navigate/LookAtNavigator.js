@@ -8,6 +8,7 @@
  */
 define([
         '../geom/Angle',
+        '../gesture/DragGestureRecognizer',
         '../geom/Frustum',
         '../gesture/GestureRecognizer',
         '../util/Logger',
@@ -22,6 +23,7 @@ define([
         '../util/WWMath'
     ],
     function (Angle,
+              DragGestureRecognizer,
               Frustum,
               GestureRecognizer,
               Logger,
@@ -60,58 +62,38 @@ define([
              */
             this.range = 10e6; // TODO: Compute initial range to fit globe in viewport.
 
-            /**
-             * A gesture recognizer configured to look for touch drag gestures with any number of touches or
-             * primary-mouse drag gestures, which initiates navigator panning while the gesture is occurring.
-             * @type {PanGestureRecognizer}
-             * @protected
-             */
+            // Internal use only. Intentionally not documented.
+            this.primaryDragRecognizer = new DragGestureRecognizer(worldWindow.canvas);
+            this.primaryDragRecognizer.addGestureListener(function (gestureRecognizer) {
+                self.handlePanOrDrag(gestureRecognizer);
+            });
+
+            // Internal use only. Intentionally not documented.
+            this.secondaryDragRecognizer = new DragGestureRecognizer(worldWindow.canvas);
+            this.secondaryDragRecognizer.buttons = 4; // secondary mouse button
+            this.secondaryDragRecognizer.addGestureListener(function (gestureRecognizer) {
+                self.handleSecondaryDrag(gestureRecognizer);
+            });
+
+            // Internal use only. Intentionally not documented.
             this.panRecognizer = new PanGestureRecognizer(worldWindow.canvas);
             this.panRecognizer.addGestureListener(function (gestureRecognizer) {
-                self.handlePan(gestureRecognizer);
+                self.handlePanOrDrag(gestureRecognizer);
             });
 
-            /**
-             * A gesture recognizer configured to look for secondary-mouse drag gestures, which initiates navigator
-             * rotation while the gesture is occurring.
-             * @type {PanGestureRecognizer}
-             * @protected
-             */
-            this.secondaryPanRecognizer = new PanGestureRecognizer(worldWindow.canvas);
-            this.secondaryPanRecognizer.buttons = 4; // secondary mouse button
-            this.secondaryPanRecognizer.minimumNumberOfTouches = Number.MAX_VALUE; // disable touch gestures
-            this.secondaryPanRecognizer.addGestureListener(function (gestureRecognizer) {
-                self.handleSecondaryPan(gestureRecognizer);
-            });
-
-            /**
-             * A gesture recognizer configured to look for two finger pinch gestures, which initiates navigator zooming
-             * while the gesture is occurring.
-             * @type {PinchGestureRecognizer}
-             * @protected
-             */
+            // Internal use only. Intentionally not documented.
             this.pinchRecognizer = new PinchGestureRecognizer(worldWindow.canvas);
             this.pinchRecognizer.addGestureListener(function (gestureRecognizer) {
                 self.handlePinch(gestureRecognizer);
             });
 
-            /**
-             * A gesture recognizer configured to look for two finger rotation gestures, which initiates navigator
-             * rotation while the gesture is occurring.
-             * @type {RotationGestureRecognizer}
-             * @protected
-             */
+            // Internal use only. Intentionally not documented.
             this.rotationRecognizer = new RotationGestureRecognizer(worldWindow.canvas);
             this.rotationRecognizer.addGestureListener(function (gestureRecognizer) {
                 self.handleRotation(gestureRecognizer);
             });
 
-            /** 
-             * A gesture recognizer configured to look for two finger tilt gestures, which initiates navigator tilting
-             * while the gesture is occurring.
-             * @type {PanGestureRecognizer}
-             * @protected
-             */
+            // Internal use only. Intentionally not documented.
             this.tiltRecognizer = new TiltGestureRecognizer(worldWindow.canvas);
             this.tiltRecognizer.addGestureListener(function (gestureRecognizer) {
                 self.handleTilt(gestureRecognizer);
@@ -125,6 +107,7 @@ define([
             this.pinchRecognizer.recognizeWith(this.rotationRecognizer);
             this.rotationRecognizer.recognizeWith(this.panRecognizer);
             this.rotationRecognizer.recognizeWith(this.pinchRecognizer);
+
             // Since the tilt gesture is a subset of the pan gesture, pan will typically recognize before tilt,
             // effectively suppressing tilt. Establish a dependency between the other touch gestures and tilt to provide
             // tilt an opportunity to recognize.
@@ -176,7 +159,7 @@ define([
          *
          * @param gestureRecognizer The gesture recognizer that identified the gesture.
          */
-        LookAtNavigator.prototype.handlePan = function (gestureRecognizer) {
+        LookAtNavigator.prototype.handlePanOrDrag = function (gestureRecognizer) {
             var state = gestureRecognizer.state,
                 translation = gestureRecognizer.translation,
                 viewport = this.worldWindow.viewport,
@@ -232,7 +215,7 @@ define([
          *
          * @param gestureRecognizer The gesture recognizer that identified the gesture.
          */
-        LookAtNavigator.prototype.handleSecondaryPan = function (gestureRecognizer) {
+        LookAtNavigator.prototype.handleSecondaryDrag = function (gestureRecognizer) {
             var state = gestureRecognizer.state,
                 translation = gestureRecognizer.translation,
                 viewport = this.worldWindow.viewport,

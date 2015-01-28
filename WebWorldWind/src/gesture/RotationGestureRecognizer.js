@@ -114,7 +114,7 @@ define([
                 this.rotation = this.computeRotation();
 
                 if (this.state == GestureRecognizer.POSSIBLE) {
-                    if (this.shouldRecognizeTouches()) {
+                    if (this.shouldRecognize()) {
                         this.transitionToState(GestureRecognizer.BEGAN);
                     }
                 } else if (this.state == GestureRecognizer.BEGAN || this.state == GestureRecognizer.CHANGED) {
@@ -153,7 +153,7 @@ define([
          * @returns {boolean}
          * @protected
          */
-        RotationGestureRecognizer.prototype.shouldRecognizeTouches = function () {
+        RotationGestureRecognizer.prototype.shouldRecognize = function () {
             return Math.abs(this.slope[0] - this.beginSlope[0]) > this.threshold
                 || Math.abs(this.slope[1] - this.beginSlope[1]) > this.threshold;
         };

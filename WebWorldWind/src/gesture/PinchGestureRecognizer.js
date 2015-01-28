@@ -109,7 +109,7 @@ define([
                 this.scale = this.computeScale();
 
                 if (this.state == GestureRecognizer.POSSIBLE) {
-                    if (this.shouldRecognizeTouches()) {
+                    if (this.shouldRecognize()) {
                         this.transitionToState(GestureRecognizer.BEGAN);
                     }
                 } else if (this.state == GestureRecognizer.BEGAN || this.state == GestureRecognizer.CHANGED) {
@@ -148,7 +148,7 @@ define([
          * @returns {boolean}
          * @protected
          */
-        PinchGestureRecognizer.prototype.shouldRecognizeTouches = function () {
+        PinchGestureRecognizer.prototype.shouldRecognize = function () {
             return Math.abs(this.distance - this.startDistance) > this.threshold
         };
 
