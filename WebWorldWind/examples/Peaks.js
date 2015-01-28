@@ -938,7 +938,7 @@ requirejs(['../src/WorldWind'], function () {
         // Only display the first peak in any given state.
         var state = peak.state;
         if (!states.hasOwnProperty(state)) {
-            var text = new WorldWind.UserFaceingText(
+            var text = new WorldWind.UserFacingText(
                 peak.name,
                 new WorldWind.Position(peak.latitude, peak.longitude, peak.elevation + 1000),
                 font
