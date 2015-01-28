@@ -3,7 +3,7 @@
  * National Aeronautics and Space Administration. All Rights Reserved.
  */
 /**
- * @exports PanGestureRecognizer
+ * @exports DragGestureRecognizer
  * @version $Id$
  */
 define([
@@ -15,29 +15,23 @@ define([
         "use strict";
 
         /**
-         * Constructs a pan gesture recognizer.
-         * @alias PanGestureRecognizer
+         * Constructs a drag gesture recognizer.
+         * @alias DragGestureRecognizer
          * @constructor
-         * @classdesc A concrete gesture recognizer subclass that looks for touch panning gestures.
+         * @classdesc A concrete gesture recognizer subclass that looks for mouse drag gestures.
          */
-        var PanGestureRecognizer = function (target) {
+        var DragGestureRecognizer = function (target) {
             GestureRecognizer.call(this, target);
 
             /**
              *
              * @type {number}
              */
-            this.minimumNumberOfTouches = 1;
-
-            /**
-             *
-             * @type {Number}
-             */
-            this.maximumNumberOfTouches = Number.MAX_VALUE;
+            this.buttons = 1;
 
             /**
              * The gesture's translation in the window's coordinate system. This indicates the translation of the
-             * touches since the gesture began.
+             * cursor since the first button was pressed.
              * @type {Vec2}
              */
             this.translation = new Vec2(0, 0);
@@ -46,12 +40,12 @@ define([
             this.threshold = 10;
         };
 
-        PanGestureRecognizer.prototype = Object.create(GestureRecognizer.prototype);
+        DragGestureRecognizer.prototype = Object.create(GestureRecognizer.prototype);
 
         /**
          * @protected
          */
-        PanGestureRecognizer.prototype.reset = function () {
+        DragGestureRecognizer.prototype.reset = function () {
             GestureRecognizer.prototype.reset.call(this);
 
             this.translation.set(0, 0);
@@ -62,22 +56,11 @@ define([
          * @param event
          * @protected
          */
-        PanGestureRecognizer.prototype.mouseDown = function (event) {
+        DragGestureRecognizer.prototype.mouseDown = function (event) {
             GestureRecognizer.prototype.mouseDown.call(this, event);
 
-            if (this.state == GestureRecognizer.POSSIBLE) {
-                this.transitionToState(GestureRecognizer.FAILED); // pan does not recognize mouse input
-            }
-        };
-
-        /**
-         *
-         * @param event
-         */
-        PanGestureRecognizer.prototype.touchStart = function (event) {
-            GestureRecognizer.prototype.touchStart.call(this, event);
-
-            if (event.touches.length == event.changedTouches.length) { // first touches started
+            var buttonBit = (1 << event.button);
+            if (buttonBit == this.buttonMask) { // first button down
                 this.translation.set(0, 0);
             }
         };
@@ -87,12 +70,11 @@ define([
          * @param event
          * @protected
          */
-        PanGestureRecognizer.prototype.touchMove = function (event) {
-            GestureRecognizer.prototype.touchMove.call(this, event);
+        DragGestureRecognizer.prototype.mouseMove = function (event) {
+            GestureRecognizer.prototype.mouseMove.call(this, event);
 
             this.translation.copy(this.clientLocation);
             this.translation.subtract(this.clientStartLocation);
-            this.translation.add(this.touchCentroidShift);
 
             if (this.state == GestureRecognizer.POSSIBLE) {
                 if (this.shouldInterpret()) {
@@ -112,13 +94,12 @@ define([
          * @param event
          * @protected
          */
-        PanGestureRecognizer.prototype.touchEndOrCancel = function (event) {
-            GestureRecognizer.prototype.touchEndOrCancel.call(this, event);
+        DragGestureRecognizer.prototype.mouseUp = function (event) {
+            GestureRecognizer.prototype.mouseUp.call(this, event);
 
-            if (event.targetTouches.length == 0) { // last touches cancelled
+            if (this.buttonMask == 0) { // last button up
                 if (this.state == GestureRecognizer.BEGAN || this.state == GestureRecognizer.CHANGED) {
-                    this.transitionToState(event.type == "touchend" ?
-                        GestureRecognizer.ENDED : GestureRecognizer.CANCELLED);
+                    this.transitionToState(GestureRecognizer.ENDED);
                 }
             }
         };
@@ -128,9 +109,9 @@ define([
          * @returns {boolean}
          * @protected
          */
-        PanGestureRecognizer.prototype.shouldInterpret = function () {
+        DragGestureRecognizer.prototype.shouldInterpret = function () {
             var distance = this.translation.magnitude();
-            return distance > this.threshold; // interpret touches when the touch centroid moves far enough
+            return distance > this.threshold; // interpret mouse movement when the cursor moves far enough
         };
 
         /**
@@ -138,12 +119,22 @@ define([
          * @returns {boolean}
          * @protected
          */
-        PanGestureRecognizer.prototype.shouldRecognize = function () {
-            var touchCount = this.touchCount();
-            return touchCount != 0
-                && touchCount >= this.minimumNumberOfTouches
-                && touchCount <= this.maximumNumberOfTouches
+        DragGestureRecognizer.prototype.shouldRecognize = function () {
+            var buttonMask = this.buttonMask;
+            return buttonMask != 0 && buttonMask == this.buttons;
         };
 
-        return PanGestureRecognizer;
+        /**
+         *
+         * @param event
+         */
+        DragGestureRecognizer.prototype.touchStart = function (event) {
+            GestureRecognizer.prototype.touchStart.call(this, event);
+
+            if (this.state == GestureRecognizer.POSSIBLE) {
+                this.transitionToState(GestureRecognizer.FAILED); // drag does not recognize touch input
+            }
+        };
+
+        return DragGestureRecognizer;
     });

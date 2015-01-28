@@ -18,6 +18,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './layer/BMNGRestLayer',
         './geom/BoundingBox',
         './util/Color',
+        './gesture/DragGestureRecognizer',
         './render/DrawContext',
         './globe/EarthElevationModel',
         './globe/EarthRestElevationModel',
@@ -101,6 +102,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               BMNGRestLayer,
               BoundingBox,
               Color,
+              DragGestureRecognizer,
               DrawContext,
               EarthElevationModel,
               EarthRestElevationModel,
@@ -278,6 +280,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['BMNGRestLayer'] = BMNGRestLayer;
         WorldWind['BoundingBox'] = BoundingBox;
         WorldWind['Color'] = Color;
+        WorldWind['DragGestureRecognizer'] = DragGestureRecognizer;
         WorldWind['DrawContext'] = DrawContext;
         WorldWind['EarthElevationModel'] = EarthElevationModel;
         WorldWind['EarthRestElevationModel'] = EarthRestElevationModel;

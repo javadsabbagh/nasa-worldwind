@@ -46,21 +46,10 @@ define([
 
         /**
          *
-         * @param event
-         * @protected
-         */
-        TiltGestureRecognizer.prototype.mouseDown = function (event) {
-            if (this.state == GestureRecognizer.POSSIBLE) {
-                this.transitionToState(GestureRecognizer.FAILED); // tilt does not recognize mouse input
-            }
-        };
-
-        /**
-         *
          * @returns {boolean}
          * @protected
          */
-        TiltGestureRecognizer.prototype.shouldInterpretTouches = function () {
+        TiltGestureRecognizer.prototype.shouldInterpret = function () {
             for (var i = 0, count = this.touches.length; i < count; i++) {
                 var entry = this.touches[i],
                     distance = entry.clientLocation.distanceTo(entry.clientStartLocation);
@@ -77,7 +66,7 @@ define([
          * @returns {boolean}
          * @protected
          */
-        TiltGestureRecognizer.prototype.shouldRecognizeTouches = function () {
+        TiltGestureRecognizer.prototype.shouldRecognize = function () {
             var touchCount = this.touchCount();
             if (touchCount != 2) {
                 return false;
