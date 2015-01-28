@@ -184,7 +184,7 @@ define([
             this.drawOrderedPlacemark(dc);
 
             if (dc.pickingMode) {
-                dc.resolvePick(new PickedObject(this.pickColor.copy(), dc.pickPoint,
+                dc.resolvePick(new PickedObject(this.pickColor.copy(),
                     this.pickDelegate ? this.pickDelegate : this,
                     this.position, this.layer, false));
             }
