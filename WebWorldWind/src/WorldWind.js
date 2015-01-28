@@ -50,7 +50,6 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './gesture/PanGestureRecognizer',
         './pick/PickedObject',
         './pick/PickedObjectList',
-        './pick/PickSupport',
         './gesture/PinchGestureRecognizer',
         './shapes/Placemark',
         './shapes/PlacemarkAttributes',
@@ -138,7 +137,6 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               PanGestureRecognizer,
               PickedObject,
               PickedObjectList,
-              PickSupport,
               PinchGestureRecognizer,
               Placemark,
               PlacemarkAttributes,
@@ -320,7 +318,6 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['PanGestureRecognizer'] = PanGestureRecognizer;
         WorldWind['PickedObject'] = PickedObject;
         WorldWind['PickedObjectList'] = PickedObjectList;
-        WorldWind['PickSupport'] = PickSupport;
         WorldWind['PinchGestureRecognizer'] = PinchGestureRecognizer;
         WorldWind['Placemark'] = Placemark;
         WorldWind['PlacemarkAttributes'] = PlacemarkAttributes;

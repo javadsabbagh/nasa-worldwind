@@ -130,6 +130,14 @@ define([
         Color.TRANSPARENT = new Color(0, 0, 0, 0);
 
         /**
+         * Create a copy of this color.
+         * @returns {Color} A new instance containing the color components of this color.
+         */
+        Color.prototype.copy = function () {
+            return new Color(this.red, this.green, this.blue, this.alpha);
+        };
+
+        /**
          * Returns this color's components premultiplied by this color's alpha component.
          * @param {Float32Array} array A pre-allocated array in which to return the color components.
          * @returns {Float32Array} This colors premultiplied components as an array, in the order RGBA.
