@@ -102,8 +102,6 @@ define([
              * @default 50
              */
             this.texelsPerEdgeInterval = 50;
-
-            this.minAndMaxEdgeIntervals = [0, 100]; // TODO: Is this property necessary? How does it relate to above?
         };
 
         SurfaceShape.prototype = Object.create(Renderable.prototype);

@@ -67,6 +67,10 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './shapes/SurfaceImage',
         './shapes/SurfaceCircle',
         './shapes/SurfaceEllipse',
+        './shapes/SurfacePolygon',
+        './shapes/SurfacePolyline',
+        './shapes/SurfaceRectangle',
+        './shapes/SurfaceSector',
         './shapes/SurfaceShape',
         './render/SurfaceTile',
         './render/SurfaceTileRenderer',
@@ -151,6 +155,10 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               SurfaceImage,
               SurfaceCircle,
               SurfaceEllipse,
+              SurfacePolygon,
+              SurfacePolyline,
+              SurfaceRectangle,
+              SurfaceSector,
               SurfaceShape,
               SurfaceTile,
               SurfaceTileRenderer,
@@ -327,9 +335,13 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['ShapeAttributes'] = ShapeAttributes;
         WorldWind['ShowTessellationLayer'] = ShowTessellationLayer;
         WorldWind['SurfaceImage'] = SurfaceImage;
-        WorldWind['SurfaceCircle'] = SurfaceImage;
-        WorldWind['SurfaceEllipse'] = SurfaceImage;
-        WorldWind['SurfaceShape'] = SurfaceImage;
+        WorldWind['SurfaceCircle'] = SurfaceCircle;
+        WorldWind['SurfaceEllipse'] = SurfaceEllipse;
+        WorldWind['SurfacePolygon'] = SurfacePolygon;
+        WorldWind['SurfacePolyline'] = SurfacePolyline;
+        WorldWind['SurfaceRectangle'] = SurfaceRectangle;
+        WorldWind['SurfaceSector'] = SurfaceSector;
+        WorldWind['SurfaceShape'] = SurfaceShape;
         WorldWind['SurfaceTile'] = SurfaceTile;
         WorldWind['SurfaceTileRenderer'] = SurfaceTileRenderer;
         WorldWind['SurfaceTileRendererProgram'] = SurfaceTileRendererProgram;

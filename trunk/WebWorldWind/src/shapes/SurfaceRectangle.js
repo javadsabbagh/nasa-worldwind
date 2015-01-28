@@ -3,7 +3,7 @@
  * National Aeronautics and Space Administration. All Rights Reserved.
  */
 /**
- * @exports SurfaceEllipse
+ * @exports SurfaceRectangle
  * @version $Id$
  */
 define([
@@ -19,13 +19,13 @@ define([
         "use strict";
 
         /**
-         * Constructs a surface ellipse with a specified center and radii and an optional attributes bundle.
-         * @alias SurfaceEllipse
+         * Constructs a surface rectangle with a specified center and size and an optional attributes bundle.
+         * @alias SurfaceRectangle
          * @constructor
          * @augments SurfaceShape
-         * @classdesc Represents an ellipse draped over the terrain surface.
+         * @classdesc Represents a rectangle draped over the terrain surface.
          * <p>
-         * SurfaceEllipse uses the following attributes from its associated shape attributes bundle:
+         * SurfaceRectangle uses the following attributes from its associated shape attributes bundle:
          * <ul>
          *         <li>Draw interior</li>
          *         <li>Draw outline</li>
@@ -35,23 +35,23 @@ define([
          *         <li>Outline stipple factor</li>
          *         <li>Outline stipple pattern</li>
          * </ul>
-         * @param {Location} center The ellipse's center location.
-         * @param {Number} majorRadius The ellipse's major radius in meters.
-         * @param {Number} minorRadius The ellipse's minor radius in meters.
+         * @param {Location} center The rectangle's center location.
+         * @param {Number} width The rectangle's width in meters.
+         * @param {Number} height The rectangle's height in meters.
          * @param {ShapeAttributes} attributes The attributes to apply to this shape. May be null, in which case
          * attributes must be set directly before the shape is drawn.
-         * @throws {ArgumentError} If the specified center location is null or undefined or if either specified radii
-         * is negative.
+         * @throws {ArgumentError} If the specified center location is null or undefined or if either specified width
+         * or height is negative.
          */
-        var SurfaceEllipse = function (center, majorRadius, minorRadius, attributes) {
+        var SurfaceRectangle = function (center, width, height, attributes) {
             if (!center) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceEllipse", "constructor", "missingLocation"));
             }
 
-            if (majorRadius < 0 || minorRadius < 0) {
+            if (width < 0 || height < 0) {
                 throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceEllipse", "constructor", "Radius is negative."));
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceEllipse", "constructor", "Size is negative."));
             }
 
             SurfaceShape.call(this, attributes);
@@ -63,26 +63,27 @@ define([
             this.center = center;
 
             /**
-             * This shape's major radius, in meters.
+             * This shape's width, in meters.
              * @type {Number}
              */
-            this.majorRadius = majorRadius;
+            this.width = width;
 
             /**
-             * This shape's minor radius in meters.
+             * This shape's height in meters.
              * @type {Number}
              */
-            this.minorRadius = minorRadius;
+            this.height = height;
 
             /**
-             * The heading of the major axis, specified as degrees clockwise from North.
+             * The shape's heading, specified as degrees clockwise from North. This shape's height and width are
+             * relative to its heading.
              * @type {number}
              * @default 0
              */
             this.heading = 0;
         };
 
-        SurfaceEllipse.prototype = Object.create(SurfaceShape.prototype);
+        SurfaceRectangle.prototype = Object.create(SurfaceShape.prototype);
 
-        return SurfaceEllipse;
+        return SurfaceRectangle;
     });
