@@ -138,20 +138,10 @@ define([
 
         //noinspection JSUnusedGlobalSymbols
         /**
-         * @param element
          * @returns {Vec2}
          */
-        GestureRecognizer.prototype.locationInElement = function (element) {
-            var x = this.clientLocation[0],
-                y = this.clientLocation[1],
-                clientRect;
-
-            if (element) {
-                clientRect = element.getBoundingClientRect();
-                return new Vec2(x - clientRect.left, y - clientRect.top);
-            } else {
-                return new Vec2(x, y);
-            }
+        GestureRecognizer.prototype.location = function () {
+            return this.clientLocation;
         };
 
         /**
@@ -165,27 +155,16 @@ define([
         /**
          *
          * @param index
-         * @param element
          * @returns {Vec2}
          */
-        GestureRecognizer.prototype.touchLocationInElement = function (index, element) {
+        GestureRecognizer.prototype.touchLocation = function (index) {
             if (index < 0 || index >= this.touches.length) {
                 throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GestureRecognizer", "touchLocationInElement",
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GestureRecognizer", "touchLocation",
                         "indexOutOfRange"));
             }
 
-            var entry = this.touches[index],
-                x = entry.clientLocation[0],
-                y = entry.clientLocation[1],
-                clientRect;
-
-            if (element) {
-                clientRect = element.getBoundingClientRect();
-                return new Vec2(x - clientRect.left, y - clientRect.top);
-            } else {
-                return new Vec2(x, y);
-            }
+            return this.touches[index].clientLocation;
         };
 
         /**
