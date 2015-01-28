@@ -16,14 +16,13 @@ define([],
          * @constructor
          * @classdesc Represents a picked object.
          * @param {Color} color The color identifying the object.
-         * @param {Vec2} pickPoint The pick point.
          * @param {Object} userObject An optional object to associate with this picked object.
          * @param {Position} position The picked object's geographic position.
          * @param {Layer} parentLayer The layer containing the picked object.
          * @param {Boolean} isTerrain <code>true</code> if the picked object is terrain, otherwise
          * <code>false</code>.
          */
-        var PickedObject = function (color, pickPoint, userObject, position, parentLayer, isTerrain) {
+        var PickedObject = function (color, userObject, position, parentLayer, isTerrain) {
 
             /**
              * This picked object's pick color.
@@ -34,8 +33,9 @@ define([],
             /**
              * The pick point used to select this picked object.
              * @type {Vec2}
+             * @default null
              */
-            this.pickPoint = pickPoint;
+            this.pickPoint = null;
 
             /**
              * An optional object associated with this picked object.

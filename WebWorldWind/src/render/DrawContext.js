@@ -411,6 +411,8 @@ define([
          * @returns {null}
          */
         DrawContext.prototype.resolvePick = function (pickableObject) {
+            pickableObject.pickPoint = this.pickPoint;
+
             if (this.singlePickMode) {
                 this.addPickedObject(pickableObject);
             } else {
