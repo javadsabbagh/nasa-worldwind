@@ -341,7 +341,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['TileFactory'] = TileFactory;
         WorldWind['TiltGestureRecognizer'] = TiltGestureRecognizer;
         WorldWind['UnsupportedOperationError'] = UnsupportedOperationError;
-        WorldWind['UserFaceingText'] = UserFacingText;
+        WorldWind['UserFacingText'] = UserFacingText;
         WorldWind['Vec2'] = Vec2;
         WorldWind['Vec3'] = Vec3;
         WorldWind['WmsUrlBuilder'] = WmsUrlBuilder;
