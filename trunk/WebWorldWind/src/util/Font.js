@@ -33,6 +33,10 @@ define([
          * @classdesc A font descriptor.
          */
         var Font = function(size, style, variant, weight, family, color, backgroundColor, horizontalAlignment, verticalAlignment) {
+            /*
+             * All properties of Font are intended to be private and must be accessed via public getters and setters.
+             */
+
             if (!size) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "Font", "constructor",
                     "missingSize"));
@@ -42,7 +46,7 @@ define([
                     "invalidSize"));
             }
             else {
-                this.size = size;
+                this._size = size;
             }
 
             this.style = style || Font.styles.default;
@@ -54,6 +58,109 @@ define([
             this.horizontalAlignment = horizontalAlignment || Font.horizontalAlignments.default;
             this.verticalAlignment = verticalAlignment || Font.verticalAlignments.default;
         };
+
+        Object.defineProperties(Font.prototype, {
+            size: {
+                get: function() {
+                    return this._size;
+                },
+                set: function(value) {
+                    this._hashKey = null;
+                    this._size = value;
+                }
+            },
+            style: {
+                get: function() {
+                    return this._style;
+                },
+                set: function(value) {
+                    this._hashKey = null;
+                    this._style = value;
+                }
+            },
+            variant: {
+                get: function() {
+                    return this._variant;
+                },
+                set: function(value) {
+                    this._hashKey = null;
+                    this._variant = value;
+                }
+            },
+            weight: {
+                get: function() {
+                    return this._weight;
+                },
+                set: function(value) {
+                    this._hashKey = null;
+                    this._weight = value;
+                }
+            },
+            family: {
+                get: function() {
+                    return this._family;
+                },
+                set: function(value) {
+                    this._hashKey = null;
+                    this._family = value;
+                }
+            },
+            color: {
+                get: function() {
+                    return this._color;
+                },
+                set: function(value) {
+                    this._hashKey = null;
+                    this._color = value;
+                }
+            },
+            backgroundColor: {
+                get: function() {
+                    return this._backgroundColor;
+                },
+                set: function(value) {
+                    this._hashKey = null;
+                    this._backgroundColor = value;
+                }
+            },
+            horizontalAlignment: {
+                get: function() {
+                    return this._horizontalAlignment;
+                },
+                set: function(value) {
+                    this._hashKey = null;
+                    this._horizontalAlignment = value;
+                }
+            },
+            verticalAlignment: {
+                get: function() {
+                    return this._verticalAlignment;
+                },
+                set: function(value) {
+                    this._hashKey = null;
+                    this._verticalAlignment = value;
+                }
+            },
+            hashKey: {
+                get: function() {
+                    // If hash key doesn't exist yet, generate it.
+                    if (!this._hashKey) {
+                        this._hashKey = "Font:{" +
+                            "size:" + this._size.toString() + "," +
+                            "style:" + this._style + "," +
+                            "variant:" + this._variant + "," +
+                            "weight:" + this._weight + "," +
+                            "family:" + this._family + "," +
+                            "color:" + this._color.toHexString(false) + "," +
+                            "backgroundColor:" + this._backgroundColor.toHexString(false) + "," +
+                            "horizontalALignment:" + this._horizontalAlignment + "," +
+                            "verticalALignment:" + this._verticalAlignment +
+                            "}";
+                    }
+                    return this._hashKey;
+                }
+            }
+        });
 
         Font.styles = {
             'default': "normal",
