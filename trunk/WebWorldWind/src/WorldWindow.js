@@ -530,9 +530,7 @@ define([
                 topObject = null,
                 terrainObject = null;
 
-            if (pickedObjects.objects.length === 1) {
-                pickedObjects.objects[0].isOnTop = true;
-            } else if (pickedObjects.objects.length > 1) {
+            if (pickedObjects.objects.length > 0) {
                 var pickColor = this.drawContext.readPickColor(this.drawContext.pickPoint);
                 if (pickColor) {
                     // Find the picked object with the top color code and set its isOnTop flag.
