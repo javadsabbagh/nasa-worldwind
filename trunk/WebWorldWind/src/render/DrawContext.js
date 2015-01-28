@@ -18,6 +18,7 @@ define([
         '../geom/Matrix',
         '../navigate/NavigatorState',
         '../pick/PickedObjectList',
+        '../pick/PickSupport',
         '../geom/Position',
         '../geom/Rectangle',
         '../geom/Sector',
@@ -35,6 +36,7 @@ define([
               Matrix,
               NavigatorState,
               PickedObjectList,
+              PickSupport,
               Position,
               Rectangle,
               Sector,
@@ -165,6 +167,12 @@ define([
              * @type {Color}
              */
             this.pickColor = new Color(0, 0, 0, 1);
+
+            /**
+             * A pick support instance for use by shapes during picking.
+             * @type {PickSupport}
+             */
+            this.pickSupport = new PickSupport();
 
             /**
              * The objects at the current pick point.

@@ -467,7 +467,7 @@ define([
 
             while (or = dc.popOrderedRenderable()) {
                 try {
-                    or.render(dc);
+                    or.renderOrdered(dc);
                 } catch (e) {
                     Logger.logMessage(Logger.LEVEL_WARNING, "WorldWindow", "drawOrderedRenderables",
                         "Error while rendering a shape:" + e.message);

@@ -148,34 +148,19 @@ define([
         // Internal use only. Intentionally not documented.
         Placemark.matrix = Matrix.fromIdentity(); // scratch variable
 
-        // Internal use only. Intentionally not documented.
-        Placemark.pickSupport = new PickSupport(); // scratch variable
-
         Placemark.prototype = Object.create(Renderable.prototype);
 
         /**
          * Renders this placemark. This method is typically not called by applications but is called by
-         * [RenderableLayer]{@link RenderableLayer} during rendering. When called while the draw context is not in
-         * ordered rendering mode it merely enques an ordered renderable for subsequent drawing. When called while
-         * the draw context is in ordered rendering mode it draws this placemark.
+         * [RenderableLayer]{@link RenderableLayer} during rendering. For this shape this method creates and
+         * enques an ordered renderable with the draw context and does not actually draw the placemark.
+         * @protected
          * @param {DrawContext} dc The current draw context.
          */
         Placemark.prototype.render = function (dc) {
             if (!this.enabled) {
                 return;
             }
-
-            if (dc.orderedRenderingMode) {
-                this.drawOrderedPlacemark(dc);
-
-                if (dc.pickingMode) {
-                    Placemark.pickSupport.resolvePick(dc);
-                }
-
-                return;
-            }
-
-            // Else make and enque the ordered renderable.
 
             var orderedPlacemark = this.makeOrderedRenderable(dc);
             if (!orderedPlacemark) {
@@ -191,7 +176,27 @@ define([
             dc.addOrderedRenderable(orderedPlacemark);
         };
 
-        // Internal. Intentionally not documented.
+        /**
+         * Draws this shape as an ordered renderable. Applications do not call this function. It is called by the
+         * World Window during rendering.
+         * @protected
+         * @param {DrawContext} dc The current draw context.
+         */
+        Placemark.prototype.renderOrdered = function (dc) {
+            this.drawOrderedPlacemark(dc);
+
+            if (dc.pickingMode) {
+                dc.pickSupport.resolvePick(dc);
+            }
+        };
+
+        /**
+         * Creates an ordered renderable for this shape.
+         * @protected
+         * @param {DrawContext} dc The current draw context.
+         * @returns {OrderedRenderable} The ordered renderable. May be null, in which case an ordered renderable
+         * cannot be created or should not be created at the time this method is called.
+         */
         Placemark.prototype.makeOrderedRenderable = function (dc) {
             var w, h, s,
                 offset;
@@ -381,7 +386,7 @@ define([
             // Set the pick color for picking or the color, opacity and texture if not picking.
             if (dc.pickingMode) {
                 color = dc.uniquePickColor();
-                Placemark.pickSupport.addPickableObject(this.createPickedObject(dc, color));
+                dc.pickSupport.addPickableObject(this.createPickedObject(dc, color));
                 program.loadPickColor(gl, color);
             } else {
                 program.loadColor(gl, this.activeAttributes.imageColor);
