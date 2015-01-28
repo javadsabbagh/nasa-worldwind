@@ -123,6 +123,14 @@ define([
             this.verticalExaggeration = 1;
 
             /**
+             * Indicates that picking will return only one picked item plus the picked terrain, if any. Setting this
+             * flag to <code>true</code> may increase picking performance when the scene contains very many shapes.
+             * @type {boolean}
+             * @default false
+             */
+            this.singlePickMode = false;
+
+            /**
              * Performance statistics for this WorldWindow.
              * @type {FrameStatistics}
              */
@@ -243,6 +251,7 @@ define([
             dc.navigatorState = this.navigator.currentState();
             dc.verticalExaggeration = this.verticalExaggeration;
             dc.frameStatistics = this.frameStatistics;
+            dc.singlePickMode = this.singlePickMode;
             dc.update();
         };
 
@@ -517,7 +526,10 @@ define([
         WorldWindow.prototype.resolveTopPick = function () {
             // Make a last reading to determine what's on top.
 
-            var pickedObjects = this.drawContext.objectsAtPickPoint;
+            var pickedObjects = this.drawContext.objectsAtPickPoint,
+                topObject = null,
+                terrainObject = null;
+
             if (pickedObjects.objects.length === 1) {
                 pickedObjects.objects[0].isOnTop = true;
             } else if (pickedObjects.objects.length > 1) {
@@ -526,9 +538,29 @@ define([
                     // Find the picked object with the top color code and set its isOnTop flag.
                     for (var i = 0, len = pickedObjects.objects.length; i < len; i++) {
                         var po = pickedObjects.objects[i];
+
+                        if (po.isTerrain) {
+                            terrainObject = po;
+                        }
+
                         if (po.color.equals(pickColor)) {
                             po.isOnTop = true;
-                            break;
+                            topObject = po;
+
+                            if (terrainObject){
+                                break; // no need to search for more than the top object and the terrain object
+                            }
+                        }
+                    }
+
+                    // In single-pick mode provide only the top-most object and the terrain object, if any.
+                    if (this.drawContext.singlePickMode) {
+                        pickedObjects.clear();
+                        if (topObject) {
+                            pickedObjects.add(topObject);
+                        }
+                        if (terrainObject) {
+                            pickedObjects.add(terrainObject);
                         }
                     }
                 }

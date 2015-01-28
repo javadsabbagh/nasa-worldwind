@@ -18,7 +18,6 @@ define([
         '../geom/Matrix',
         '../navigate/NavigatorState',
         '../pick/PickedObjectList',
-        '../pick/PickSupport',
         '../geom/Position',
         '../geom/Rectangle',
         '../geom/Sector',
@@ -36,7 +35,6 @@ define([
               Matrix,
               NavigatorState,
               PickedObjectList,
-              PickSupport,
               Position,
               Rectangle,
               Sector,
@@ -163,16 +161,18 @@ define([
             this.pickTerrainOnly = false;
 
             /**
+             * Indicates that picking will return only one picked item plus the picked terrain, if any. Setting this
+             * flag to <code>true</code> may increase picking performance when the scene contains very many shapes.
+             * @type {boolean}
+             * @default false
+             */
+            this.singlePickMode = false;
+
+            /**
              * A unique color variable to use during picking.
              * @type {Color}
              */
             this.pickColor = new Color(0, 0, 0, 1);
-
-            /**
-             * A pick support instance for use by shapes during picking.
-             * @type {PickSupport}
-             */
-            this.pickSupport = new PickSupport();
 
             /**
              * The objects at the current pick point.
@@ -400,6 +400,29 @@ define([
             }
 
             return Color.colorFromBytes(colorBytes);
+        };
+
+        /**
+         * Determines whether a specified picked object is under the pick point, and if it is adds it to this draw
+         * context's list of picked objects. This method should be called by shapes during ordered rendering
+         * after the shape is drawn. If this draw context is in single-picking mode, the specified pickable object
+         * is added to the list of picked objects whether or not it is under the pick point.
+         * @param pickableObject
+         * @returns {null}
+         */
+        DrawContext.prototype.resolvePick = function (pickableObject) {
+            if (this.singlePickMode) {
+                this.addPickedObject(pickableObject);
+            } else {
+                var color = this.readPickColor(this.pickPoint);
+                if (!color) { // getPickColor returns null if the pick point selects the clear color
+                    return null;
+                }
+
+                if (pickableObject.color.equals(color)) {
+                    this.addPickedObject(pickableObject);
+                }
+            }
         };
 
         /**

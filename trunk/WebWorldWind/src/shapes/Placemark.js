@@ -12,7 +12,6 @@ define([
         '../util/Logger',
         '../geom/Matrix',
         '../pick/PickedObject',
-        '../pick/PickSupport',
         '../shapes/PlacemarkAttributes',
         '../render/Renderable',
         '../geom/Vec2',
@@ -24,7 +23,6 @@ define([
               Logger,
               Matrix,
               PickedObject,
-              PickSupport,
               PlacemarkAttributes,
               Renderable,
               Vec2,
@@ -186,7 +184,9 @@ define([
             this.drawOrderedPlacemark(dc);
 
             if (dc.pickingMode) {
-                dc.pickSupport.resolvePick(dc);
+                dc.resolvePick(new PickedObject(this.pickColor.copy(), dc.pickPoint,
+                    this.pickDelegate ? this.pickDelegate : this,
+                    this.position, this.layer, false));
             }
         };
 
@@ -374,7 +374,6 @@ define([
         Placemark.prototype.doDrawOrderedPlacemark = function (dc) {
             var gl = dc.currentGlContext,
                 program = dc.currentProgram,
-                color,
                 textureBound;
 
             // Compute and specify the MVP matrix.
@@ -385,9 +384,8 @@ define([
 
             // Set the pick color for picking or the color, opacity and texture if not picking.
             if (dc.pickingMode) {
-                color = dc.uniquePickColor();
-                dc.pickSupport.addPickableObject(this.createPickedObject(dc, color));
-                program.loadPickColor(gl, color);
+                this.pickColor = dc.uniquePickColor();
+                program.loadPickColor(gl, this.pickColor);
             } else {
                 program.loadColor(gl, this.activeAttributes.imageColor);
                 program.loadOpacity(gl, this.layer.opacity);
@@ -403,12 +401,6 @@ define([
 
             // Draw the placemark's quad.
             gl.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 4);
-        };
-
-        // Internal. Intentionally not documented.
-        Placemark.prototype.createPickedObject = function (dc, color) {
-            return new PickedObject(color, dc.pickPoint, this.pickDelegate ? this.pickDelegate : this,
-                this.position, this.layer, false);
         };
 
         return Placemark;
