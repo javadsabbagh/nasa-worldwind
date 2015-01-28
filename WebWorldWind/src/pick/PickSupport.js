@@ -57,7 +57,7 @@ define([],
                 dc.addPickedObject(pickedObject);
             }
 
-            this.pickableObjects = []; // clear the pick list to avoid dangling references
+            this.pickableObjects = {}; // clear the pick list to avoid dangling references
 
             return pickedObject;
         };

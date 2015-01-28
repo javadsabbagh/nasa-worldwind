@@ -59,9 +59,9 @@ define(['../util/Logger',
          * Renders this ordered renderable.
          * @param {DrawContext} dc The current draw context.
          */
-        OrderedRenderable.prototype.render = function (dc) {
+        OrderedRenderable.prototype.renderOrdered = function (dc) {
             throw new UnsupportedOperationError(
-                Logger.logMessage(Logger.LEVEL_SEVERE, "OrderedRenderable", "render", "abstractInvocation"));
+                Logger.logMessage(Logger.LEVEL_SEVERE, "OrderedRenderable", "renderOrdered", "abstractInvocation"));
         };
 
         return OrderedRenderable;
