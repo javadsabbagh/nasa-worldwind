@@ -27,39 +27,19 @@ define([
              */
             this.scale = 1;
 
-            /**
-             *
-             * @type {number}
-             * @protected
-             */
+            // Internal use only. Intentionally not documented.
             this.scaleOffset = 1;
 
-            /**
-             *
-             * @type {number}
-             * @protected
-             */
+            // Internal use only. Intentionally not documented.
             this.threshold = 10;
 
-            /**
-             *
-             * @type {number}
-             * @protected
-             */
+            // Internal use only. Intentionally not documented.
             this.distance = 0;
 
-            /**
-             *
-             * @type {number}
-             * @protected
-             */
+            // Internal use only. Intentionally not documented.
             this.startDistance = 0;
 
-            /**
-             *
-             * @type {Array}
-             * @protected
-             */
+            // Internal use only. Intentionally not documented.
             this.touchIds = [];
         };
 
@@ -83,13 +63,25 @@ define([
          * @param event
          * @protected
          */
+        PinchGestureRecognizer.prototype.mouseDown = function (event) {
+            GestureRecognizer.prototype.mouseDown.call(this, event);
+
+            if (this.state == GestureRecognizer.POSSIBLE) {
+                this.transitionToState(GestureRecognizer.FAILED); // pinch does not recognize mouse input
+            }
+        };
+
+        /**
+         *
+         * @param event
+         * @protected
+         */
         PinchGestureRecognizer.prototype.touchStart = function (event) {
             GestureRecognizer.prototype.touchStart.call(this, event);
 
             if (this.touchIds.length < 2) {
-                var touchesDown = event.changedTouches;
-                for (var i = 0; i < touchesDown.length && this.touchIds.length < 2; i++) {
-                    this.touchIds.push(touchesDown.item(i).identifier);
+                for (var i = 0; i < event.changedTouches.length && this.touchIds.length < 2; i++) {
+                    this.touchIds.push(event.changedTouches.item(i).identifier);
                 }
 
                 if (this.touchIds.length == 2) {
@@ -131,47 +123,22 @@ define([
          * @param event
          * @protected
          */
-        PinchGestureRecognizer.prototype.touchEnd = function (event) {
-            GestureRecognizer.prototype.touchEnd.call(this, event);
+        PinchGestureRecognizer.prototype.touchEndOrCancel = function (event) {
+            GestureRecognizer.prototype.touchEndOrCancel.call(this, event);
 
             // Remove touch identifier entries for the touches that ended or cancelled.
-            this.removeTouchIds(event.changedTouches);
+            for (var i = 0, count = event.changedTouches.length; i < count; i++) {
+                var touch = event.changedTouches.item(i),
+                    index = this.touchIds.indexOf(touch.identifier);
+                if (index != -1) {
+                    this.touchIds.splice(index, 1);
+                }
+            }
 
             if (event.targetTouches.length == 0) { // last touches ended
                 if (this.state == GestureRecognizer.BEGAN || this.state == GestureRecognizer.CHANGED) {
-                    this.transitionToState(GestureRecognizer.ENDED);
-                }
-            }
-        };
-
-        /**
-         *
-         * @param event
-         * @protected
-         */
-        PinchGestureRecognizer.prototype.touchCancel = function (event) {
-            GestureRecognizer.prototype.touchCancel.call(this, event);
-
-            // Remove touch identifier entries for the touches that ended or cancelled.
-            this.removeTouchIds(event.changedTouches);
-
-            if (event.targetTouches.length == 0) { // last touches cancelled
-                if (this.state == GestureRecognizer.BEGAN || this.state == GestureRecognizer.CHANGED) {
-                    this.transitionToState(GestureRecognizer.CANCELLED);
-                }
-            }
-        };
-
-        /**
-         *
-         * @param touchList
-         * @protected
-         */
-        PinchGestureRecognizer.prototype.removeTouchIds = function (touchList) {
-            for (var i = 0, count = touchList.length; i < count; i++) {
-                var index = this.touchIds.indexOf(touchList.item(i).identifier);
-                if (index != -1) {
-                    this.touchIds.splice(index, 1);
+                    this.transitionToState(event.type == "touchend" ?
+                        GestureRecognizer.ENDED : GestureRecognizer.CANCELLED);
                 }
             }
         };

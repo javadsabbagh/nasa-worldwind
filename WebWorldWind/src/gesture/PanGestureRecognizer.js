@@ -42,42 +42,25 @@ define([
             this.maximumNumberOfTouches = Number.MAX_VALUE;
 
             /**
-             * The gesture's translation relative to the window's viewport. For mouse gestures this indicates the cursor
-             * translation since the first button press. For touch gestures this indicates the translation of the touch
-             * centroid since the first touch, adjusted to remove changes in the centroid due to touches starting or
-             * ending. Applications must not modify this object.
+             * The gesture's translation in the window's coordinate system. This indicates the translation of the
+             * touches since the gesture began.
              * @type {Vec2}
-             * @protected
              */
-            this.clientTranslation = new Vec2(0, 0);
+            this.translation = new Vec2(0, 0);
 
-            /**
-             *
-             * @type {number}
-             * @protected
-             */
+            // Internal use only. Intentionally not documented.
             this.threshold = 10;
         };
 
         PanGestureRecognizer.prototype = Object.create(GestureRecognizer.prototype);
 
-        //noinspection JSUnusedLocalSymbols
         /**
-         * Returns gesture's translation relative to the coordinate system of the specified element.
-         * @param element
-         * @returns {Vec2}
+         * @protected
          */
-        PanGestureRecognizer.prototype.translationInElement = function (element) {
-            // Currently, the element argument is intentionally unused. This argument is intended to provide a flexible
-            // interface that enables this implementation to adjust the translation for a scaled or rotated coordinate
-            // system.
-            return this.clientTranslation;
-        };
-
         PanGestureRecognizer.prototype.reset = function () {
             GestureRecognizer.prototype.reset.call(this);
 
-            this.clientTranslation.set(0, 0);
+            this.translation.set(0, 0);
         };
 
         /**
@@ -90,7 +73,7 @@ define([
 
             var buttonBit = (1 << event.button);
             if (buttonBit == this.buttonMask) { // first button down
-                this.clientTranslation.set(0, 0);
+                this.translation.set(0, 0);
             }
         };
 
@@ -102,8 +85,8 @@ define([
         PanGestureRecognizer.prototype.mouseMove = function (event) {
             GestureRecognizer.prototype.mouseMove.call(this, event);
 
-            this.clientTranslation.copy(this.clientLocation);
-            this.clientTranslation.subtract(this.clientStartLocation);
+            this.translation.copy(this.clientLocation);
+            this.translation.subtract(this.clientStartLocation);
 
             if (this.state == GestureRecognizer.POSSIBLE) {
                 if (this.shouldInterpretMouse()) {
@@ -139,8 +122,8 @@ define([
          * @protected
          */
         PanGestureRecognizer.prototype.shouldInterpretMouse = function () {
-            var distance = this.clientTranslation.magnitude();
-            return distance > this.threshold;
+            var distance = this.translation.magnitude();
+            return distance > this.threshold; // interpret mouse movement when the cursor moves far enough
         };
 
         /**
@@ -161,7 +144,7 @@ define([
             GestureRecognizer.prototype.touchStart.call(this, event);
 
             if (event.touches.length == event.changedTouches.length) { // first touches started
-                this.clientTranslation.set(0, 0);
+                this.translation.set(0, 0);
             }
         };
 
@@ -173,9 +156,9 @@ define([
         PanGestureRecognizer.prototype.touchMove = function (event) {
             GestureRecognizer.prototype.touchMove.call(this, event);
 
-            this.clientTranslation.copy(this.clientLocation);
-            this.clientTranslation.subtract(this.clientStartLocation);
-            this.clientTranslation.add(this.touchCentroidShift);
+            this.translation.copy(this.clientLocation);
+            this.translation.subtract(this.clientStartLocation);
+            this.translation.add(this.touchCentroidShift);
 
             if (this.state == GestureRecognizer.POSSIBLE) {
                 if (this.shouldInterpretTouches()) {
@@ -195,27 +178,13 @@ define([
          * @param event
          * @protected
          */
-        PanGestureRecognizer.prototype.touchEnd = function (event) {
-            GestureRecognizer.prototype.touchEnd.call(this, event);
-
-            if (event.targetTouches.length == 0) { // last touches ended
-                if (this.state == GestureRecognizer.BEGAN || this.state == GestureRecognizer.CHANGED) {
-                    this.transitionToState(GestureRecognizer.ENDED);
-                }
-            }
-        };
-
-        /**
-         *
-         * @param event
-         * @protected
-         */
-        PanGestureRecognizer.prototype.touchCancel = function (event) {
-            GestureRecognizer.prototype.touchCancel.call(this, event);
+        PanGestureRecognizer.prototype.touchEndOrCancel = function (event) {
+            GestureRecognizer.prototype.touchEndOrCancel.call(this, event);
 
             if (event.targetTouches.length == 0) { // last touches cancelled
                 if (this.state == GestureRecognizer.BEGAN || this.state == GestureRecognizer.CHANGED) {
-                    this.transitionToState(GestureRecognizer.CANCELLED);
+                    this.transitionToState(event.type == "touchend" ?
+                        GestureRecognizer.ENDED : GestureRecognizer.CANCELLED);
                 }
             }
         };
@@ -226,8 +195,8 @@ define([
          * @protected
          */
         PanGestureRecognizer.prototype.shouldInterpretTouches = function () {
-            var distance = this.clientTranslation.magnitude();
-            return distance > this.threshold;
+            var distance = this.translation.magnitude();
+            return distance > this.threshold; // interpret touches when the touch centroid moves far enough
         };
 
         /**
