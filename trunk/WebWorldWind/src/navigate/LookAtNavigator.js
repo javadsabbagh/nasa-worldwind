@@ -17,6 +17,7 @@ define([
         '../gesture/PinchGestureRecognizer',
         '../geom/Position',
         '../gesture/RotationGestureRecognizer',
+        '../gesture/TiltGestureRecognizer',
         '../geom/Vec2',
         '../util/WWMath'
     ],
@@ -30,6 +31,7 @@ define([
               PinchGestureRecognizer,
               Position,
               RotationGestureRecognizer,
+              TiltGestureRecognizer,
               Vec2,
               WWMath) {
         "use strict";
@@ -104,6 +106,17 @@ define([
                 self.handleRotation(gestureRecognizer);
             });
 
+            /** 
+             * A gesture recognizer configured to look for two finger tilt gestures, which initiates navigator tilting
+             * while the gesture is occurring.
+             * @type {PanGestureRecognizer}
+             * @protected
+             */
+            this.tiltRecognizer = new TiltGestureRecognizer(worldWindow.canvas);
+            this.tiltRecognizer.addGestureListener(function (gestureRecognizer) {
+                self.handleTilt(gestureRecognizer);
+            });
+
             // Establish the dependencies between gesture recognizers. The pan, pinch and rotate gesture may recognize
             // simultaneously with each other.
             this.panRecognizer.recognizeWith(this.pinchRecognizer);
@@ -112,6 +125,12 @@ define([
             this.pinchRecognizer.recognizeWith(this.rotationRecognizer);
             this.rotationRecognizer.recognizeWith(this.panRecognizer);
             this.rotationRecognizer.recognizeWith(this.pinchRecognizer);
+            // Since the tilt gesture is a subset of the pan gesture, pan will typically recognize before tilt,
+            // effectively suppressing tilt. Establish a dependency between the other touch gestures and tilt to provide
+            // tilt an opportunity to recognize.
+            this.panRecognizer.requireFailure(this.tiltRecognizer);
+            this.pinchRecognizer.requireFailure(this.tiltRecognizer);
+            this.rotationRecognizer.requireFailure(this.tiltRecognizer);
 
             // Internal. Intentionally not documented.
             this.lastPanTranslation = new Vec2(0, 0);
@@ -159,7 +178,7 @@ define([
          */
         LookAtNavigator.prototype.handlePan = function (gestureRecognizer) {
             var state = gestureRecognizer.state,
-                translation = gestureRecognizer.translationInElement(this.worldWindow.canvas),
+                translation = gestureRecognizer.translation,
                 viewport = this.worldWindow.viewport,
                 globe = this.worldWindow.globe,
                 globeRadius = WWMath.max(globe.equatorialRadius, globe.polarRadius),
@@ -215,7 +234,7 @@ define([
          */
         LookAtNavigator.prototype.handleSecondaryPan = function (gestureRecognizer) {
             var state = gestureRecognizer.state,
-                translation = gestureRecognizer.translationInElement(this.worldWindow.canvas),
+                translation = gestureRecognizer.translation,
                 viewport = this.worldWindow.viewport,
                 headingPixels, tiltPixels,
                 headingDegrees, tiltDegrees;
@@ -223,7 +242,7 @@ define([
             if (state == GestureRecognizer.BEGAN) {
                 this.beginHeading = this.heading;
                 this.beginTilt = this.tilt;
-            } if (state == GestureRecognizer.CHANGED) {
+            } else if (state == GestureRecognizer.CHANGED) {
                 // Compute the current translation in screen coordinates.
                 headingPixels = translation[0];
                 tiltPixels = translation[1];
@@ -288,6 +307,38 @@ define([
                 this.heading = Angle.normalizedDegrees(this.heading);
 
                 // Send an event to request a redraw.
+                this.sendRedrawEvent();
+            }
+        };
+
+        /** 
+         * Performs navigation changes in response to two finger tilt gestures. 
+         *
+         * @param gestureRecognizer The gesture recognizer that identified the gesture. 
+         */
+        LookAtNavigator.prototype.handleTilt = function (gestureRecognizer) {
+            var state = gestureRecognizer.state,
+                translation = gestureRecognizer.translation,
+                viewport = this.worldWindow.viewport,
+                pixels,
+                degrees;
+
+            if (state == GestureRecognizer.BEGAN) {
+                this.beginTilt = this.tilt;
+            } else if (state == GestureRecognizer.CHANGED) {
+                // Compute the current translation in screen coordinates. 
+                pixels = -translation[1];
+
+                // Convert the translation from screen coordinates to degrees. Use the viewport dimensions as a metric 
+                // for converting the gesture translation to a fraction of an angle. 
+                degrees = 90 * pixels / viewport.height;
+
+                // Apply the change in heading and tilt to this navigator's corresponding properties. Limit the new tilt 
+                // to the range (0, 90) in order to prevent the navigator from achieving an upside down orientation. 
+                this.tilt = this.beginTilt + degrees;
+                this.tilt = WWMath.clamp(this.tilt, 0, 90);
+
+                // Send an event to request a redraw. 
                 this.sendRedrawEvent();
             }
         };

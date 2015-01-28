@@ -45,80 +45,34 @@ define([
              */
             this.enabled = true;
 
-            /**
-             * The listeners associated with this gesture recognizer. Applications must not modify this object.
-             * @type {Array}
-             * @protected
-             */
+            // Internal use only. Intentionally not documented.
             this.listeners = [];
 
-            /**
-             * The gesture recognizers that can recognize simultaneously with this gesture. Applications must not modify
-             * this object.
-             * @type {Array}
-             * @protected
-             */
+            // Internal use only. Intentionally not documented.
             this.recognizeWithList = [];
 
-            /**
-             * The gesture recognizers this gesture depends on either recognizing or failing in order to interpret
-             * gesture events. Applications must not modify this object.
-             * @type {Array}
-             * @protected
-             */
+            // Internal use only. Intentionally not documented.
             this.dependancies = [];
 
-            /**
-             * The gesture recognizers that are dependent on this gesture either recognizing or failing in order to
-             * interpret gesture events. Applications must not modify this object.
-             * @type {Array}
-             * @protected
-             */
+            // Internal use only. Intentionally not documented.
             this.dependants = [];
 
-            /**
-             *
-             * @type {boolean}
-             */
+            // Internal use only. Intentionally not documented.
             this.pendingState = -1;
 
-            /**
-             * Applications must not modify this object.
-             * @type {number}
-             * @protected
-             */
+            // Internal use only. Intentionally not documented.
             this.buttonMask = 0;
 
-            /**
-             * Applications must not modify this object.
-             * @type {Array}
-             * @protected
-             */
+            // Internal use only. Intentionally not documented.
             this.touches = [];
 
-            /**
-             * The gesture's location relative to the window's viewport. For mouse gestures this indicates the cursor's
-             * location. For touch gestures this indicates the touch centroid's location. Applications must not modify
-             * this object.
-             * @type {number}
-             * @protected
-             */
+            // Internal use only. Intentionally not documented.
             this.clientLocation = new Vec2(0, 0);
 
-            /**
-             * The gesture's starting location relative to the window's viewport. For mouse gestures this indicates the
-             * location of the first button press. For touch gestures this indicates the location of the first touch.
-             * Applications must not modify this object.
-             * @type {Vec2}
-             * @protected
-             */
+            // Internal use only. Intentionally not documented.
             this.clientStartLocation = new Vec2(0, 0);
 
-            /**
-             * Applications must not modify this object.
-             * @type {Vec2}
-             * @protected
-             */
+            // Internal use only. Intentionally not documented.
             this.touchCentroidShift = new Vec2(0, 0);
 
             GestureRecognizer.registerMouseEventListeners(this, target);
@@ -167,34 +121,18 @@ define([
          */
         GestureRecognizer.RECOGNIZED = "recognized";
 
-        /**
-         * Applications must not modify this object.
-         * @type {Array}
-         * @protected
-         */
+        // Internal use only. Intentionally not documented.
         GestureRecognizer.recognizedGestures = [];
 
-        /**
-         * Applications must not modify this object.
-         * @type {Array}
-         * @protected
-         */
+        // Internal use only. Intentionally not documented.
         GestureRecognizer.listenerStates = [GestureRecognizer.BEGAN, GestureRecognizer.CHANGED,
             GestureRecognizer.ENDED, GestureRecognizer.RECOGNIZED];
 
-        /**
-         * Applications must not modify this object.
-         * @type {Array}
-         * @protected
-         */
+        // Internal use only. Intentionally not documented.
         GestureRecognizer.dependantStates = [GestureRecognizer.BEGAN, GestureRecognizer.FAILED,
             GestureRecognizer.RECOGNIZED];
 
-        /**
-         * Applications must not modify this object.
-         * @type {Array}
-         * @protected
-         */
+        // Internal use only. Intentionally not documented.
         GestureRecognizer.terminalStates = [GestureRecognizer.ENDED, GestureRecognizer.CANCELLED,
             GestureRecognizer.FAILED, GestureRecognizer.RECOGNIZED];
 
@@ -345,14 +283,15 @@ define([
          */
         GestureRecognizer.prototype.notifyDependants = function (newState) {
             for (var i = 0, count = this.dependants.length; i < count; i++) {
-                var entry = this.dependants[i];
+                var entry = this.dependants[i],
+                    pendingState = entry.pendingState;
 
                 if (newState == GestureRecognizer.RECOGNIZED || newState == GestureRecognizer.BEGAN) {
                     entry.transitionToState(GestureRecognizer.FAILED);
                 } else if (newState == GestureRecognizer.FAILED) {
-                    if (entry.pendingState != -1) {
-                        entry.transitionToState(entry.pendingState);
-                        entry.pendingState = -1;
+                    if (pendingState != -1) {
+                        entry.pendingState = -1; // pending state may be written to in transitionToState
+                        entry.transitionToState(pendingState); // attempt to transition to the pending state
                     }
                 }
             }
@@ -686,7 +625,7 @@ define([
          */
         GestureRecognizer.prototype.touchEnd = function (event) {
             // Remove touch list entries for touches that ended.
-            this.touchesEndOrCancel(event);
+            this.touchEndOrCancel(event);
         };
 
         /**
@@ -696,7 +635,7 @@ define([
          */
         GestureRecognizer.prototype.touchCancel = function (event) {
             // Remove touch list entries for cancelled touches.
-            this.touchesEndOrCancel(event);
+            this.touchEndOrCancel(event);
         };
 
         /**
@@ -704,7 +643,7 @@ define([
          * @param event
          * @protected
          */
-        GestureRecognizer.prototype.touchesEndOrCancel = function (event) {
+        GestureRecognizer.prototype.touchEndOrCancel = function (event) {
             // Remove touch list entries for ended or cancelled touches.
             for (var i = 0, count = event.changedTouches.length; i < count; i++) {
                 var touch = event.changedTouches.item(i).identifier,
