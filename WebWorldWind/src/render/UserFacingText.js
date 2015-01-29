@@ -14,8 +14,9 @@ define([
         '../util/Logger',
         '../geom/Matrix',
         '../error/NotYetImplementedError',
+        '../geom/Rectangle',
         '../render/Renderable',
-        '../render/TextRenderer'
+        '../geom/Vec3'
     ],
     function (ArgumentError,
               Color,
@@ -24,8 +25,9 @@ define([
               Logger,
               Matrix,
               NotYetImplementedError,
+              Rectangle,
               Renderable,
-              TextRenderer) {
+              Vec3) {
         "use strict";
 
         /**
@@ -54,7 +56,9 @@ define([
             this.position = position;
             this.font = font || new Font(32);
 
-            this.textRenderer = new TextRenderer(this.text, this.font, this.position, 1, false);
+            this.point = new Vec3(0, 0, 0);
+
+            this.bounds = new Rectangle(0, 0, 0, 0);
         };
 
         UserFacingText.prototype = Object.create(Renderable.prototype);
@@ -64,7 +68,12 @@ define([
                 return;
             }
 
-            this.textRenderer.render(dc);
+            this.point = dc.globe.computePointFromPosition(this.position.latitude,
+                this.position.longitude,
+                this.position.altitude,
+                this.point);
+
+            dc.textRenderer.render(dc, this.point, this.text, this.font, 1, false, this.bounds);
         };
 
         return UserFacingText;

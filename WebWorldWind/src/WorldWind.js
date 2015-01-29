@@ -63,6 +63,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './geom/Sector',
         './shapes/ShapeAttributes',
         './layer/ShowTessellationLayer',
+        './error/SingletonError',
         './shapes/SurfaceImage',
         './shapes/SurfaceCircle',
         './shapes/SurfaceEllipse',
@@ -78,6 +79,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './globe/TerrainTile',
         './globe/TerrainTileList',
         './globe/Tessellator',
+        './render/TextRenderer',
         './render/Texture',
         './render/TextureTile',
         './util/Tile',
@@ -150,6 +152,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               Sector,
               ShapeAttributes,
               ShowTessellationLayer,
+              SingletonError,
               SurfaceImage,
               SurfaceCircle,
               SurfaceEllipse,
@@ -165,6 +168,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               TerrainTile,
               TerrainTileList,
               Tessellator,
+              TextRenderer,
               Texture,
               TextureTile,
               Tile,
@@ -331,6 +335,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['Sector'] = Sector;
         WorldWind['ShapeAttributes'] = ShapeAttributes;
         WorldWind['ShowTessellationLayer'] = ShowTessellationLayer;
+        WorldWind['SingletonError'] = SingletonError;
         WorldWind['SurfaceImage'] = SurfaceImage;
         WorldWind['SurfaceCircle'] = SurfaceCircle;
         WorldWind['SurfaceEllipse'] = SurfaceEllipse;
@@ -346,6 +351,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['TerrainTile'] = TerrainTile;
         WorldWind['TerrainTileList'] = TerrainTileList;
         WorldWind['Tessellator'] = Tessellator;
+        WorldWind['TextRenderer'] = TextRenderer;
         WorldWind['Texture'] = Texture;
         WorldWind['TextureTile'] = TextureTile;
         WorldWind['Tile'] = Tile;

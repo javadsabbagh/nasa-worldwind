@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 United States Government as represented by the Administrator of the
+ * Copyright (C) 2015 United States Government as represented by the Administrator of the
  * National Aeronautics and Space Administration. All Rights Reserved.
  */
 /**
@@ -60,6 +60,10 @@ define([
         };
 
         Object.defineProperties(Font.prototype, {
+            /**
+             * The font size.
+             * @memberof Font
+             */
             size: {
                 get: function() {
                     return this._size;
@@ -69,6 +73,10 @@ define([
                     this._size = value;
                 }
             },
+            /**
+             * The font style (e.g., normal, bold, italic).
+             * @memberof Font
+             */
             style: {
                 get: function() {
                     return this._style;
@@ -78,6 +86,10 @@ define([
                     this._style = value;
                 }
             },
+            /**
+             * The font variant (e.g., normal, small caps).
+             * @memberof Font
+             */
             variant: {
                 get: function() {
                     return this._variant;
@@ -87,6 +99,10 @@ define([
                     this._variant = value;
                 }
             },
+            /**
+             * The font weight (e.g., normal, bold, 100..900).
+             * @memberof Font
+             */
             weight: {
                 get: function() {
                     return this._weight;
@@ -96,6 +112,10 @@ define([
                     this._weight = value;
                 }
             },
+            /**
+             * The font face family (e.g., serif, sans-serif, monospace, cursive, fantasy).
+             * @memberof Font
+             */
             family: {
                 get: function() {
                     return this._family;
@@ -105,6 +125,10 @@ define([
                     this._family = value;
                 }
             },
+            /**
+             * The color of the font.
+             * @memberof Font
+             */
             color: {
                 get: function() {
                     return this._color;
@@ -114,6 +138,10 @@ define([
                     this._color = value;
                 }
             },
+            /**
+             * The background color of the font.
+             * @memberof Font
+             */
             backgroundColor: {
                 get: function() {
                     return this._backgroundColor;
@@ -123,6 +151,10 @@ define([
                     this._backgroundColor = value;
                 }
             },
+            /**
+             * The horizontal alignment of the font (e.g., left, center, right).
+             * @memberof Font
+             */
             horizontalAlignment: {
                 get: function() {
                     return this._horizontalAlignment;
@@ -132,6 +164,10 @@ define([
                     this._horizontalAlignment = value;
                 }
             },
+            /**
+             * The vertical alignment of the font (e.g., top, middle, bottom).
+             * @memberof Font
+             */
             verticalAlignment: {
                 get: function() {
                     return this._verticalAlignment;
@@ -141,6 +177,10 @@ define([
                     this._verticalAlignment = value;
                 }
             },
+            /**
+             * The hash key for the font. It is lazily computed to captured the most recent font properties.
+             * @memberof Font
+             */
             hashKey: {
                 get: function() {
                     // If hash key doesn't exist yet, generate it.
@@ -162,6 +202,10 @@ define([
             }
         });
 
+        /**
+         * The set of supported font styles.
+         * @type {{default: string, normal: string, italic: string, oblique: string}}
+         */
         Font.styles = {
             'default': "normal",
             'normal': "normal",
@@ -169,12 +213,20 @@ define([
             'oblique': "oblique"
         };
 
+        /**
+         * The set of supported font variants.
+         * @type {{default: string, normal: string, small-caps: string}}
+         */
         Font.variants = {
             'default': "normal",
             'normal': "normal",
             'small-caps': "small-caps"
         };
 
+        /**
+         * The set of supported font weights.
+         * @type {{default: string, normal: string, bold: string, 100: string, 200: string, 300: string, 400: string, 500: string, 600: string, 700: string, 800: string, 900: string}}
+         */
         Font.weights = {
             'default': "normal",
             'normal': "normal",
@@ -190,16 +242,24 @@ define([
             '900': "900"
         };
 
+        /**
+         * The set of supported font families.
+         * @type {{default: string, monospace: string, serif: string, sans_serif: string, sans-serif: string, cursive: string, fantasy: string}}
+         */
         Font.families = {
             'default': "monospace",
+            'monospace': "monospace",
             'serif': "serif",
             'sans_serif': "sans-serif", // '-' is not a valid character in a variable name.
             'sans-serif': "sans-serif", // But you can still access it as a property.
             'cursive': "cursive",
-            'fantasy': "fantasy",
-            'monospace': "monospace"
+            'fantasy': "fantasy"
         };
 
+        /**
+         * The set of supported font horizontal alignments.
+         * @type {{default: string, start: string, left: string, center: string, right: string, end: string}}
+         */
         Font.horizontalAlignments = {
             'default': "left",
             'start': "start",
@@ -209,8 +269,12 @@ define([
             'end': "end"
         };
 
+        /**
+         * The set of supported font vertical alignments.
+         * @type {{default: string, bottom: string, alphabetic: string, middle: string, hanging: string, top: string}}
+         */
         Font.verticalAlignments = {
-            'default': 'alphabetic',
+            'default': "alphabetic",
             'bottom': "bottom",
             'alphabetic': "alphabetic",
             'middle': "middle",

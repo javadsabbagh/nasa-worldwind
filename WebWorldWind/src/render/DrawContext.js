@@ -24,6 +24,7 @@ define([
         '../geom/Rectangle',
         '../geom/Sector',
         '../render/SurfaceTileRenderer',
+        '../render/TextRenderer',
         '../geom/Vec2',
         '../geom/Vec3'
     ],
@@ -44,6 +45,7 @@ define([
               Rectangle,
               Sector,
               SurfaceTileRenderer,
+              TextRenderer,
               Vec2,
               Vec3) {
         "use strict";
@@ -227,6 +229,12 @@ define([
              * @type {string}
              */
             this.unitQuadKey = "DrawContextUnitQuadKey";
+
+            /**
+             * The singleton text renderer which is on the WorldWindow prototype.
+             * @type {TextRenderer}
+             */
+            this.textRenderer = null;
         };
 
         /**
