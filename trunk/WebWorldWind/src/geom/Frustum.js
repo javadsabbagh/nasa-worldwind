@@ -168,5 +168,70 @@ define([
             return new Frustum(left, right, bottom, top, near, far);
         };
 
+        Frustum.prototype.containsPoint = function (point) {
+            if (!point) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Frustum", "containsPoint", "missingPoint"));
+            }
+
+            // See if the point is entirely within the frustum. The dot product of the point with each plane's vector
+            // provides a distance to each plane. If this distance is less than 0, the point is clipped by that plane and
+            // neither intersects nor is contained by the space enclosed by this Frustum.
+
+            if (this.far.dot(point) <= 0)
+                return false;
+            if (this.left.dot(point) <= 0)
+                return false;
+            if (this.right.dot(point) <= 0)
+                return false;
+            if (this.top.dot(point) <= 0)
+                return false;
+            if (this.bottom.dot(point) <= 0)
+                return false;
+            if (this.near.dot(point) <= 0)
+                return false;
+
+            return true;
+        };
+
+        /**
+         * Determines whether a line segment intersects this frustum.
+         *
+         * @param {Vec3} pointA One end of the segment.
+         * @param {Vec3} pointB The other end of the segment.
+         *
+         * @return {boolean} <code>true</code> if the segment intersects or is contained in this frustum,
+         * otherwise <code>false</code>.
+         *
+         * @throws {ArgumentError} If either point is null or undefined.
+         */
+        Frustum.prototype.intersectsSegment = function (pointA, pointB) {
+            if (!pointA || !pointB) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Frustum", "containsPoint", "missingPoint"));
+            }
+
+            // First do a trivial accept test.
+            if (this.contains(pointA) || this.contains(pointB))
+                return true;
+
+            if (pointA.equals(pointB))
+                return false;
+
+            var planes = [this.left, this.right, this.top, this.bottom, this.near, this.far];
+            for (var i = 0, len = planes.length; i < len; i++) {
+
+                // See if both points are behind the plane and therefore not in the frustum.
+                if (planes[i].onSameSide(pointA, pointB) < 0)
+                    return false;
+
+                // See if the segment intersects the plane.
+                if (planes[i].clip(pointA, pointB) != null)
+                    return true;
+            }
+
+            return false; // segment does not intersect frustum
+        };
+
         return Frustum;
     });

@@ -61,6 +61,16 @@ define([
         };
 
         /**
+         * Computes the distance between this plane and a point.
+         * @param {Vec3} point The point whose distance to compute.
+         * @returns {Number} The computed distance.
+         * @throws {ArgumentError} If the specified point is null or undefined.
+         */
+        Plane.prototype.distanceToPoint = function (point) {
+            return this.dot(point);
+        };
+
+        /**
          * Transforms this plane by a specified matrix.
          * @param {Matrix} matrix The matrix to apply to this plane.
          * @returns {Plane} This plane transformed by the specified matrix.
@@ -108,7 +118,7 @@ define([
          * @param {Vec3} endPoint2 The second end point of the line segment.
          * @returns {boolean} <code>true</code> If the line segment intersects this plane, otherwise <code>false</code>.
          */
-        Plane.prototype.isIntersecting = function(endPoint1, endPoint2) {
+        Plane.prototype.intersectsSegment = function(endPoint1, endPoint2) {
             var distance1 = this.dot(endPoint1),
                 distance2 = this.dot(endPoint2);
 
@@ -123,7 +133,7 @@ define([
          * @param {Vec3} result A variable in which to return the intersection point of the line segment with this plane.
          * @returns {boolean} <code>true</code> If the line segment intersects this plane, otherwise <code>false</code>.
          */
-        Plane.prototype.intersectsAt = function (endPoint1, endPoint2, result) {
+        Plane.prototype.intersectsSegmentAt = function (endPoint1, endPoint2, result) {
             // Compute the distance from the end-points.
             var distance1 = this.dot(endPoint1),
                 distance2 = this.dot(endPoint2);
@@ -150,6 +160,35 @@ define([
             result[2] = weight1 * endPoint1[2] + weight2 * endPoint2[2];
 
             return distance1 * distance2 <= 0;
+        };
+
+        /**
+         * Determines whether two points are on the same side of this plane.
+         *
+         * @param {Vec3} pointA the first point.
+         * @param {Vec3} pointB the second point.
+         *
+         * @return {number} -1 if both points are on the negative side of this plane, +1 if both points are on the
+         * positive side of this plane, 0 if the points are on opposite sides of this plane.
+         *
+         * @throws {ArgumentError} if either point is null or undefined.
+         */
+        Plane.prototype.onSameSide = function (pointA, pointB) {
+            if (!pointA || !pointB) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Plane", "onSameSide", "missingPoint"));
+            }
+
+            var da = this.distanceToPoint(pointA),
+                db = this.distanceToPoint(pointB);
+
+            if (da < 0 && db < 0)
+                return -1;
+
+            if (da > 0 && db > 0)
+                return 1;
+
+            return 0;
         };
 
         return Plane;

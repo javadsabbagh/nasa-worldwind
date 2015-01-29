@@ -67,6 +67,15 @@ define([
         };
 
         /**
+         * Indicates whether this vector is identical to a specified vector.
+         * @param {Vec2} vector The vector to test.
+         * @returns {boolean} <code>true</code> if this vector is equal to the specified one, otherwise <code>false</code>.
+         */
+        Vec3.prototype.equals = function (vector) {
+            return this[0] === vector[0] && this[1] === vector[1];
+        };
+
+        /**
          * Computes the average of a specified array of points.
          * @param {Vec2[]} points The points whose average to compute.
          * @param {Vec2} result A pre-allocated Vec2 in which to return the computed average.
@@ -286,6 +295,13 @@ define([
             return this;
         };
 
+        /**
+         * Returns a string representation of this vector.
+         * @returns {string} A string representation of this vector, in the form "(x, y)".
+         */
+        Vec2.prototype.toString = function () {
+            return "(" + this[0] + ", " + this[1] + ")";
+        };
 
         return Vec2;
     });

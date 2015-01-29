@@ -10,6 +10,7 @@ define([
         '../error/ArgumentError',
         '../util/Color',
         '../util/FrameStatistics',
+        '../geom/Frustum',
         '../globe/Globe',
         '../shaders/GpuProgram',
         '../cache/GpuResourceCache',
@@ -18,15 +19,18 @@ define([
         '../geom/Matrix',
         '../navigate/NavigatorState',
         '../pick/PickedObjectList',
+        '../geom/Plane',
         '../geom/Position',
         '../geom/Rectangle',
         '../geom/Sector',
         '../render/SurfaceTileRenderer',
-        '../geom/Vec2'
+        '../geom/Vec2',
+        '../geom/Vec3'
     ],
     function (ArgumentError,
               Color,
               FrameStatistics,
+              Frustum,
               Globe,
               GpuProgram,
               GpuResourceCache,
@@ -35,11 +39,13 @@ define([
               Matrix,
               NavigatorState,
               PickedObjectList,
+              Plane,
               Position,
               Rectangle,
               Sector,
               SurfaceTileRenderer,
-              Vec2) {
+              Vec2,
+              Vec3) {
         "use strict";
 
         /**
@@ -152,6 +158,13 @@ define([
              * @type {Vec2}
              */
             this.pickPoint = null;
+
+            /**
+             * The current pick frustum, created anew each picking frame.
+             * @type {Frustum}
+             * @readonly
+             */
+            this.pickFrustum = null;
 
             /**
              * If <code>true</code>, indicates that only terrain is picked, otherwise terrain and pickable shapes are
@@ -446,6 +459,102 @@ define([
             var color = this.pickColor.nextColor();
 
             return color.equals(this.clearColor) ? color.nextColor() : color;
+        };
+
+        /**
+         * Creates a pick frustum for the current pick point and stores it in this draw context.
+         */
+        DrawContext.prototype.makePickFrustum = function () {
+            if (!this.pickPoint) {
+                this.pickFrustum = null;
+                return;
+            }
+
+            var lln, llf, lrn, lrf, uln, ulf, urn, urf, // corner points of frustum
+                nl, nr, nt, nb, nn, nf, // normal vectors of frustum planes
+                l, r, t, b, n, f, // frustum planes
+                va, vb = new Vec3(0, 0, 0), // vectors formed by the corner points
+                apertureRadius = 2, // radius of pick window in screen coordinates
+                screenPoint = new Vec3(0, 0, 0),
+                pickPoint = this.navigatorState.convertPointToViewport(this.pickPoint, new Vec2(0, 0));
+
+            screenPoint[0] = pickPoint[0] - apertureRadius;
+            screenPoint[1] = pickPoint[1] - apertureRadius;
+            screenPoint[2] = 0;
+            this.navigatorState.unProject(screenPoint, lln = new Vec3(0, 0, 0));
+
+            screenPoint[0] = pickPoint[0] - apertureRadius;
+            screenPoint[1] = pickPoint[1] - apertureRadius;
+            screenPoint[2] = 1;
+            this.navigatorState.unProject(screenPoint, llf = new Vec3(0, 0, 0));
+
+            screenPoint[0] = pickPoint[0] + apertureRadius;
+            screenPoint[1] = pickPoint[1] - apertureRadius;
+            screenPoint[2] = 0;
+            this.navigatorState.unProject(screenPoint, lrn = new Vec3(0, 0, 0));
+
+            screenPoint[0] = pickPoint[0] + apertureRadius;
+            screenPoint[1] = pickPoint[1] - apertureRadius;
+            screenPoint[2] = 1;
+            this.navigatorState.unProject(screenPoint, lrf = new Vec3(0, 0, 0));
+
+            screenPoint[0] = pickPoint[0] - apertureRadius;
+            screenPoint[1] = pickPoint[1] + apertureRadius;
+            screenPoint[2] = 0;
+            this.navigatorState.unProject(screenPoint, uln = new Vec3(0, 0, 0));
+
+            screenPoint[0] = pickPoint[0] - apertureRadius;
+            screenPoint[1] = pickPoint[1] + apertureRadius;
+            screenPoint[2] = 1;
+            this.navigatorState.unProject(screenPoint, ulf = new Vec3(0, 0, 0));
+
+            screenPoint[0] = pickPoint[0] + apertureRadius;
+            screenPoint[1] = pickPoint[1] + apertureRadius;
+            screenPoint[2] = 0;
+            this.navigatorState.unProject(screenPoint, urn = new Vec3(0, 0, 0));
+
+            screenPoint[0] = pickPoint[0] + apertureRadius;
+            screenPoint[1] = pickPoint[1] + apertureRadius;
+            screenPoint[2] = 1;
+            this.navigatorState.unProject(screenPoint, urf = new Vec3(0, 0, 0));
+
+            va = new Vec3(ulf[0] - lln[0], ulf[1] - lln[1], ulf[2] - lln[2]);
+            vb.set(uln[0] - llf[0], uln[1] - llf[1], uln[2] - llf[2]);
+            nl = va.cross(vb);
+            l = new Plane(nl[0], nl[1], nl[2], -nl.dot(lln));
+            l.normalize();
+
+            va = new Vec3(urn[0] - lrf[0], urn[1] - lrf[1], urn[2] - lrf[2]);
+            vb.set(urf[0] - lrn[0], urf[1] - lrn[1], urf[2] - lrn[2]);
+            nr = va.cross(vb);
+            r = new Plane(nr[0], nr[1], nr[2], -nr.dot(lrn));
+            r.normalize();
+
+            va = new Vec3(ulf[0] - urn[0], ulf[1] - urn[1], ulf[2] - urn[2]);
+            vb.set(urf[0] - uln[0], urf[1] - uln[1], urf[2] - uln[2]);
+            nt = va.cross(vb);
+            t = new Plane(nt[0], nt[1], nt[2], -nt.dot(uln));
+            t.normalize();
+
+            va = new Vec3(lrf[0] - lln[0], lrf[1] - lln[1], lrf[2] - lln[2]);
+            vb.set(llf[0] - lrn[0], llf[1] - lrn[1], llf[2] - lrn[2]);
+            nb = va.cross(vb);
+            b = new Plane(nb[0], nb[1], nb[2], -nb.dot(lrn));
+            b.normalize();
+
+            va = new Vec3(uln[0] - lrn[0], uln[1] - lrn[1], uln[2] - lrn[2]);
+            vb.set(urn[0] - lln[0], urn[1] - lln[1], urn[2] - lln[2]);
+            nn = va.cross(vb);
+            n = new Plane(nn[0], nn[1], nn[2], -nn.dot(lln));
+            n.normalize();
+
+            va = new Vec3(urf[0] - llf[0], urf[1] - llf[1], urf[2] - llf[2]);
+            vb.set(ulf[0] - lrf[0], ulf[1] - lrf[1], ulf[2] - lrf[2]);
+            nf = va.cross(vb);
+            f = new Plane(nf[0], nf[1], nf[2], -nf.dot(llf));
+            f.normalize();
+
+            this.pickFrustum = new Frustum(l, r, b, t, n, f);
         };
 
         /**

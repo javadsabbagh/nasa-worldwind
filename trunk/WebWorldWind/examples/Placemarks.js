@@ -47,8 +47,8 @@ requirejs(['../src/WorldWind',
             placemarkAttributes = new WorldWind.PlacemarkAttributes(null),
             highlightAttributes,
             placemarkLayer = new WorldWind.RenderableLayer(),
-            latitude = 46,
-            longitude = -122;
+            latitude = 47.684444,
+            longitude = -122.129722;
 
         placemarkAttributes.imageScale = 1;
         placemarkAttributes.imageOffset = new WorldWind.Offset(
@@ -57,7 +57,7 @@ requirejs(['../src/WorldWind',
         placemarkAttributes.imageColor = WorldWind.Color.WHITE;
 
         for (var i = 0, len = images.length; i < len; i++) {
-            placemark = new WorldWind.Placemark(new WorldWind.Position(latitude, longitude + i, 1e3));
+            placemark = new WorldWind.Placemark(new WorldWind.Position(latitude, longitude + i, 1e2));
             placemarkAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
             placemarkAttributes.imagePath = pinLibrary + images[i];
             highlightAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
