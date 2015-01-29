@@ -313,6 +313,7 @@ define([
                 this.createTerrain(this.drawContext);
                 this.clearFrame(this.drawContext);
                 if (this.drawContext.pickingMode) {
+                    this.drawContext.makePickFrustum();
                     this.doPick(this.drawContext);
                 } else {
                     this.doDraw(this.drawContext);

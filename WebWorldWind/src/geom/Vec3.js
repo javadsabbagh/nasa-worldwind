@@ -106,6 +106,15 @@ define([
         };
 
         /**
+         * Indicates whether this vector is identical to a specified vector.
+         * @param {Vec3} vector The vector to test.
+         * @returns {boolean} <code>true</code> if this vector is equal to the specified one, otherwise <code>false</code>.
+         */
+        Vec3.prototype.equals = function (vector) {
+            return this[0] === vector[0] && this[1] === vector[1] && this[2] === vector[2];
+        };
+
+        /**
          * Add a vector to this vector.
          * @param {Vec3} addend The vector to add.
          * @returns {Vec3} this vector after adding the specified vector to it.
@@ -344,6 +353,14 @@ define([
             that[2] = tmp;
 
             return this;
+        };
+
+        /**
+         * Returns a string representation of this vector.
+         * @returns {string} A string representation of this vector, in the form "(x, y, z)".
+         */
+        Vec3.prototype.toString = function () {
+            return "(" + this[0] + ", " + this[1] + ", " + this[2] + ")";
         };
 
         return Vec3;

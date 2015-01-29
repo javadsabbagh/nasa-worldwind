@@ -110,6 +110,7 @@ define(function () {
             missingPoint: "The specified point is null or undefined.",
             missingPosition: "The specified position is null or undefined.",
             missingProgram: "The specified program is null or undefined.",
+            missingRectangle: "The specified rectangle is null or undefined.",
             missingRenderable: "The specified renderable is null or undefined.",
             missingResource: "The specified resource is null or undefined.",
             missingResult: "The specified result variable is null or undefined.",
