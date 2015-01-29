@@ -50,6 +50,20 @@ define([
         };
 
         /**
+         * Fill in a pre-existing rectangle.
+         * @param {Number} x The X coordinate of the rectangle's origin.
+         * @param {Number} y The Y coordinate of the rectangle's origin.
+         * @param {Number} width The rectangle's width.
+         * @param {Number} height The rectangle's height.
+         */
+        Rectangle.prototype.set = function(x, y, width, height) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+        };
+
+        /**
          * Returns the minimum X value of this rectangle.
          * @returns {Number} The rectangle's minimum X value.
          */

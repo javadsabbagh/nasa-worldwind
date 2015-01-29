@@ -14,7 +14,7 @@ define([
         '../geom/Matrix',
         '../geom/Position',
         '../geom/Rectangle',
-        '../render/Renderable',
+        '../error/SingletonError',
         '../shaders/TextRendererProgram',
         '../geom/Vec3'
     ],
@@ -25,66 +25,66 @@ define([
               Matrix,
               Position,
               Rectangle,
-              Renderable,
+              SingletonError,
               TextRendererProgram,
               Vec3) {
         "use strict";
 
         /**
-         * Render text at a position in the world using a font that describes its appearance.
-         * Multi-line text is supported by recognizing the newline character as a line separator.
-         * @param {string} text The Text to be rendered.
-         * @param {Font} font The font that describes the appearance of the text.
-         * @param {Position} position The position of the text in the world.
-         * @param {number} scale (optional) A factor to resize the text.
-         * @param {boolean} enableDepthTest (optional) Control whether the text gets obscured by other objects previously drawn.
+         * A text renderer. This singleton class provides a utility method that renders text.
          * @alias TextRenderer
          * @constructor
-         * @augments {Renderable}
          * @classdesc Provides a mechanism for rendering text.
          */
-        var TextRenderer = function(text, font, position, scale, enableDepthTest) {
-            if (!text) {
-                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "TextRenderer", "constructor",
-                    "missingText"));
-            }
-            if (!font) {
-                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "TextRenderer", "constructor",
-                    "missingFont"));
-            }
-            if (!position) {
-                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "TextRenderer", "constructor",
-                    "missingPosition"));
-            }
-
-            Renderable.call(this);
-            this.displayName = "Text Renderer";
-
-            this.text = text;
-            this.font = font;
-            this.position = position;
-
-            // Assign a default value for the optional scale parameter.
-            if (!scale) {
-                this.scale = 1;
+        var TextRenderer = function() {
+            if (this.exists) {
+                throw new SingletonError("TextRenderer");
             }
             else {
-                this.scale = scale;
+                this.exists = true;
             }
 
-            // Assign a default value for the optional enableDepthTest parameter.
-            if (!enableDepthTest) {
-                this.enableDepthTest = false;
-            }
-            else {
-                this.enableDepthTest = enableDepthTest;
-            }
+            /*
+             * The following properties are transient.
+             * They are filled in every time the render() method gets called.
+             * They are also cleared when the render() method returns to avoid memory leaks.
+             */
+
+            /**
+             * Text as input in the render() method.
+             * @type {string}
+             */
+            this.text = null;
+
+            /**
+             * Font descriptor as input in the render() method.
+             * @type {Font}
+             */
+            this.font = null;
+
+            /**
+             * The point where the text is located in cartesian coordinates.
+             * @type {Vec3}
+             */
+            this.point = null;
+
+            /**
+             * The text resizing factor.
+             * @type {number}
+             */
+            this.scale = 1;
+
+            /**
+             * Determines whether depth testing is enabled.
+             * @type {boolean}
+             */
+            this.enableDepthTest = false;
 
             /**
              * Text broken into separate lines. "\n" is treated as the line separator.
              * @type {string[]}
              */
-            this.lines = this.text.split('\n');
+            this.lines = null;
 
             /**
              * The width of a texture map in pixels.
@@ -140,14 +140,8 @@ define([
             this.y = 0;
 
             /**
-             * Bounding rectangle of text in screen coordinates.
-             * @type {Rectangle}
-             */
-            this.bounds = null;
-
-            /**
              * The texture map created to display the text.
-             * @type {Texture}
+             * @type {WebGLTexture}
              */
             this.texture = null;
 
@@ -163,33 +157,64 @@ define([
             this.vec3Scratch = new Vec3(0, 0, 0);
         };
 
-        TextRenderer.prototype = Object.create(Renderable.prototype);
+        /**
+         * A flag that indicates that the TextRenderer singleton has already been created.
+         * @type {boolean}
+         */
+        TextRenderer.exists = false;
 
-        TextRenderer.prototype.render = function(dc) {
-            // Bail out early if the text wasn't enabled.
-            if (!this.enabled) {
-                return;
+        /**
+         * Render text.
+         * @param {DrawContext} dc The draw context.
+         * @param {Vec3} point The point where the text is rendered.
+         * @param {string} text the text render.
+         * @param {Font} font The font descriptor.
+         * @param {number} scale The scale factor of the text.
+         * @param {boolean} enableDepthTest The flag to enable depth testing.
+         * @param {Rectangle} bounds The bounding rectangle of the rendered text in screen space.
+         */
+        TextRenderer.prototype.render = function(dc, point, text, font, scale, enableDepthTest, bounds) {
+            if (!point) {
+                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "TextRenderer", "render",
+                    "missingPoint"));
             }
+            if (!text) {
+                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "TextRenderer", "render",
+                    "missingText"));
+            }
+            if (!font) {
+                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "TextRenderer", "render",
+                    "missingFont"));
+            }
+            if (!scale) {
+                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "TextRenderer", "render",
+                    "missingScale"));
+            }
+
+            // Capture input data for subsequent dissemination within render().
+            this.point = point;
+            this.text = text;
+            this.font = font;
+            this.scale = scale;
+            this.enableDepthTest = enableDepthTest;
+            this.vec3Scratch.copy(point);
+            this.lines = text.split('\n');
 
             var gl = dc.currentGlContext;
 
-            this.updatePosition(dc);
+            // Compute the width and height of the text.
+            this.measureText(dc);
+
+            this.updateMvpMatrix(dc);
 
             // Bail out early if the text isn't visible on the screen.
             if (!this.isVisible) {
                 return;
             }
 
-            this.applyState(dc);
+            this.preRender(dc);
 
-            // Query the previous depth test enabled state and then disable it.
-            var saveDepthTestEnabled = gl.isEnabled(WebGLRenderingContext.DEPTH_TEST);
-            if (this.enableDepthTest) {
-                gl.enable(WebGLRenderingContext.DEPTH_TEST);
-            }
-            else {
-                gl.disable(WebGLRenderingContext.DEPTH_TEST);
-            }
+            var savedEnableDepthTest = this.saveEnableDepthTest(dc, enableDepthTest);
 
             gl.drawElements(
                 WebGLRenderingContext.TRIANGLE_STRIP,
@@ -197,39 +222,117 @@ define([
                 WebGLRenderingContext.UNSIGNED_SHORT,
                 0);
 
-            // Restore the previous depth test enable state.
-            if (saveDepthTestEnabled) {
-                gl.enable(WebGLRenderingContext.DEPTH_TEST);
-            }
-            else {
-                gl.disable(WebGLRenderingContext.DEPTH_TEST);
-            }
+            this.restoreEnableDepthTest(dc, savedEnableDepthTest);
 
-            gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, null);
-            gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, null);
-
-            dc.bindProgram(gl, null);
+            this.postRender(dc);
 
             // Update the bounding rectangle based on where the text was drawn.
             var viewport = dc.navigatorState.viewport;
-
-            // Save the bounding box of the text that was rendered.
-            this.bounds = new Rectangle(
+            bounds.set(
                 0.5 * (1 + this.mvpMatrix[3]) * viewport.width, 0.5 * (1  + this.mvpMatrix[7]) * viewport.height,
                 this.width, this.height);
+
+            // Clean up on exit to make sure that no data is accidentally retained, which would cause a memory leak.
+            this.point = null;
+            this.text = null;
+            this.font = null;
+            this.lines = null;
+            this.texture = null;
+
+            return bounds;
         };
 
         /*
          * All methods beyond this point are considered internal and are not intended for use other than by TextRenderer.
          */
 
-        TextRenderer.prototype.applyState = function (dc) {
+        TextRenderer.prototype.measureText = function(dc) {
+            var ctx2D = dc.ctx2D;
+
+            this.height = this.font.size * this.lines.length * this.lineSpacing;
+
+            ctx2D.font = this.font.size.toString() + "px " + this.font.family;
+
+            // Compute the total height of the text.
+            this.width = 0;
+            for (var idx = 0, len = this.lines.length; idx < len; idx += 1) {
+                this.width = Math.max(this.width, ctx2D.measureText(this.lines[idx]).width);
+            }
+
+            // Add one pixel padding around all sides.
+            this.width += 2;
+            this.height += 2;
+
+            this.texWidth = this.getPowerOfTwo(this.width);
+            this.texHeight = this.getPowerOfTwo(this.height);
+        };
+
+        TextRenderer.prototype.updateMvpMatrix = function(dc) {
+            // Compute normalized screen position.
+            this.vec3Scratch.multiplyByMatrix(dc.navigatorState.modelviewProjection);
+
+            // Update visibility based on normalized screen position.
+            this.isVisible = (Math.abs(this.vec3Scratch[0]) <= 1) &&
+            (Math.abs(this.vec3Scratch[1]) <= 1) &&
+            this.vec3Scratch[2] > 0 &&
+            this.vec3Scratch[2] < 1;
+
+            if (!this.isVisible) {
+                return;
+            }
+
+            this.x = this.vec3Scratch[0];
+            this.y = this.vec3Scratch[1];
+
+            var xAlign, yAlign; // Offset scale factors for alignment.
+
+            // Account for horizontal alignment.
+            if (this.font.horizontalAlignment === Font.horizontalAlignments.start ||
+                this.font.horizontalAlignment === Font.horizontalAlignments.left) {
+                xAlign = 0.5 * (this.texWidth - this.width); //0;
+            }
+            else if (this.font.horizontalAlignment === Font.horizontalAlignments.end ||
+                this.font.horizontalAlignment === Font.horizontalAlignments.right) {
+                xAlign = this.texWidth - 0.5 * (this.texWidth - this.width); //1;
+            }
+            else { // this.font.horizontalAlignment === Font.horizontalAlignments.center
+                xAlign = 0.5 * this.texWidth;
+            }
+
+            // Account for vertical alignment.
+            if (this.font.verticalAlignment === Font.verticalAlignments.top ||
+                this.font.verticalAlignment === Font.verticalAlignments.hanging) {
+                yAlign = this.texHeight - 0.5 * (this.texHeight - this.height); //1;
+            }
+            else if (this.font.verticalAlignment === Font.verticalAlignments.alphabetic ||
+                this.font.verticalAlignment === Font.verticalAlignments.bottom) {
+                yAlign = 0.5 * (this.texHeight - this.height); //0;
+            }
+            else { // this.font.verticalAlignment === Font.verticalAlignments.middle
+                yAlign = 0.5 * this.texHeight;
+            }
+
+            // Update the MVP transformation to correctly map a unit square.
+            var viewport = dc.navigatorState.viewport,
+                xScale = this.scale * this.texWidth / viewport.width,
+                yScale = this.scale * this.texHeight / viewport.height,
+                xOffset = this.x - xAlign / viewport.width,
+                yOffset = this.y - yAlign / viewport.height,
+                zOffset = this.vec3Scratch[2];
+
+            this.mvpMatrix.set(
+                xScale, 0, 0, xOffset,
+                0, yScale, 0, yOffset,
+                0, 0, 0, zOffset,
+                0, 0, 0, 1
+            );
+        };
+
+        TextRenderer.prototype.preRender = function (dc) {
             var gl = dc.currentGlContext,
                 program = dc.findAndBindProgram(gl, TextRendererProgram);
 
-            if (!this.texture) {
-                this.texture = this.createTexture(dc);
-            }
+            this.getTexture(dc);
             gl.bindTexture(WebGLRenderingContext.TEXTURE_2D, this.texture);
 
             program.loadTexSampler(gl, WebGLRenderingContext.TEXTURE0);
@@ -250,11 +353,25 @@ define([
             program.loadTexSamplerMatrix(gl, this.texSamplerMatrix);
         };
 
+        TextRenderer.prototype.getTexture = function(dc) {
+            var gl = dc.currentGlContext,
+                gpuResourceCache = dc.gpuResourceCache,
+                hashKey = this.text + this.font.hashKey;
+
+            this.texture = gpuResourceCache.textureForKey(hashKey);
+
+            if (!this.texture) {
+                this.texture = this.createTexture(dc);
+
+                gpuResourceCache.putResource(gl, hashKey, this.texture, WorldWind.GPU_TEXTURE, this.texWidth * this.texHeight * 4);
+            }
+        };
+
         /**
          * Create a texture map that captures the text.
          * This texture map has the contents of the text centered in the middle of the texture map. This avoids boundary
          * effects that appear to be present in WebGL and that introduce undesirable visual artifacts.
-         * @param dc
+         * @param {DrawContext} dc The drawing context.
          * @returns {WebGLTexture}
          */
         TextRenderer.prototype.createTexture = function(dc) {
@@ -262,28 +379,11 @@ define([
                 canvas2D = dc.canvas2D,
                 ctx2D = dc.ctx2D;
 
-            this.height = this.font.size * this.lines.length * this.lineSpacing;
-            var fontString = this.font.size.toString() + "px " + this.font.family;
-
-            ctx2D.font = fontString;
-
-            // Compute the total height of the text.
-            this.width = 0;
-            for (var idx = 0, len = this.lines.length; idx < len; idx += 1) {
-                this.width = Math.max(this.width, ctx2D.measureText(this.lines[idx]).width);
-            }
-
-            // Add one pixel padding around all sides.
-            this.width += 2;
-            this.height += 2;
-
-            this.texWidth = this.getPowerOfTwo(this.width);
-            this.texHeight = this.getPowerOfTwo(this.height);
-
+            // Set the canvas size EARLY, because it loses properties after resizing!!!
             canvas2D.width = this.texWidth;
             canvas2D.height = this.texHeight;
 
-            ctx2D.font = fontString;
+            ctx2D.font = this.font.size.toString() + "px " + this.font.family;
 
             // Use middle for verticalAlignment, since it makes line placement cleaner.
             // Rendering of the texture box still honors verticalALignment.
@@ -292,21 +392,21 @@ define([
 
             var x,  // Horizontal position for drawing text.
                 y,  // Vertical position for drawing text.
-                yStep = this.font.size * this.lineSpacing,
-                xMiddle = this.texWidth / 2,
+                dyLine = this.font.size * this.lineSpacing;
+
+            var xMiddle = this.texWidth / 2,
                 yMiddle = this.texHeight / 2,
                 xLeft = xMiddle - this.width / 2,
                 xRight = xMiddle + this.width / 2,
-                yTop = yMiddle - this.height / 2,
-                yBottom = yMiddle + this.height / 2;;
+                yTop = yMiddle - this.height / 2;
 
             // Apply horizontal alignment to the starting position.
-            if (this.font.horizontalAlignment == Font.horizontalAlignments.start ||
-                this.font.horizontalAlignment == Font.horizontalAlignments.left) {
+            if (this.font.horizontalAlignment === Font.horizontalAlignments.start ||
+                this.font.horizontalAlignment === Font.horizontalAlignments.left) {
                 x = xLeft + 1;
             }
-            else if (this.font.horizontalAlignment == Font.horizontalAlignments.end ||
-                     this.font.horizontalAlignment == Font.horizontalAlignments.right) {
+            else if (this.font.horizontalAlignment === Font.horizontalAlignments.end ||
+                     this.font.horizontalAlignment === Font.horizontalAlignments.right) {
                 x = xRight - 1;
             }
             else {
@@ -315,7 +415,7 @@ define([
 
             // Account for forcing middle vertical alignment while creating the texture.
             y = yTop + 1;
-            y += yStep / 2;
+            y += dyLine / 2;
 
             // TODO: determine how to expose this functionality
             // Draw the text on a solid background rectangle.
@@ -335,7 +435,7 @@ define([
                 ctx2D.fillText(this.lines[idx], x, y);
                 ctx2D.strokeText(this.lines[idx], x, y);
 
-                y += yStep;
+                y += dyLine;
             }
 
             gl.pixelStorei(WebGLRenderingContext.UNPACK_FLIP_Y_WEBGL, true);
@@ -425,77 +525,6 @@ define([
             }
         };
 
-        TextRenderer.prototype.updatePosition = function(dc) {
-            this.vec3Scratch = dc.globe.computePointFromPosition(this.position.latitude,
-                this.position.longitude,
-                this.position.altitude,
-                this.vec3Scratch);
-
-            // Bail out early if no texture exists yet.
-            if (this.width < 0 && this.height < 0) {
-                return;
-            }
-
-            // Compute normalized screen position.
-            this.vec3Scratch.multiplyByMatrix(dc.navigatorState.modelviewProjection);
-
-            // Update visibility based on normalized screen position.
-            this.isVisible = (Math.abs(this.vec3Scratch[0]) <= 1) &&
-                (Math.abs(this.vec3Scratch[1]) <= 1) &&
-                this.vec3Scratch[2] > 0 &&
-                this.vec3Scratch[2] < 1;
-
-            if (!this.isVisible) {
-                return;
-            }
-
-            this.x = this.vec3Scratch[0];
-            this.y = this.vec3Scratch[1];
-
-            var xAlign, yAlign; // Offset scale factors for alignment.
-
-            // Account for horizontal alignment.
-            if (this.font.horizontalAlignment == Font.horizontalAlignments.start ||
-                this.font.horizontalAlignment == Font.horizontalAlignments.left) {
-                xAlign = 0.5 * (this.texWidth - this.width); //0;
-            }
-            else if (this.font.horizontalAlignment == Font.horizontalAlignments.end ||
-                this.font.horizontalAlignment == Font.horizontalAlignments.right) {
-                xAlign = this.texWidth - 0.5 * (this.texWidth - this.width); //1;
-            }
-            else { // this.font.horizontalAlignment == Font.horizontalAlignments.center
-                xAlign = 0.5 * this.texWidth;
-            }
-
-            // Account for vertical alignment.
-            if (this.font.verticalAlignment == Font.verticalAlignments.top ||
-                this.font.verticalAlignment == Font.verticalAlignments.hanging) {
-                yAlign = this.texHeight - 0.5 * (this.texHeight - this.height); //1;
-            }
-            else if (this.font.verticalAlignment == Font.verticalAlignments.alphabetic ||
-                     this.font.verticalAlignment == Font.verticalAlignments.bottom) {
-                yAlign = 0.5 * (this.texHeight - this.height); //0;
-            }
-            else { // this.font.verticalAlignment == Font.verticalAlignments.middle
-                yAlign = 0.5 * this.texHeight;
-            }
-
-            // Update the MVP transformation to correctly map a unit square.
-            var viewport = dc.navigatorState.viewport,
-                xScale = this.scale * this.texWidth / viewport.width,
-                yScale = this.scale * this.texHeight / viewport.height,
-                xOffset = this.x - xAlign / viewport.width,
-                yOffset = this.y - yAlign / viewport.height,
-                zOffset = this.vec3Scratch[2];
-
-            this.mvpMatrix.set(
-                xScale, 0, 0, xOffset,
-                0, yScale, 0, yOffset,
-                0, 0, 0, zOffset,
-                0, 0, 0, 1
-            );
-        };
-
         TextRenderer.prototype.getPowerOfTwo = function(value) {
             var pow = 1;
             while (pow < value) {
@@ -504,5 +533,44 @@ define([
             return pow;
         };
 
+        TextRenderer.prototype.postRender = function(dc) {
+            var gl = dc.currentGlContext;
+
+            gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, null);
+            gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, null);
+
+            dc.bindProgram(gl, null);
+        };
+
+        TextRenderer.prototype.saveEnableDepthTest = function(dc, enableDepthTest) {
+            var gl = dc.currentGlContext;
+
+            // Query the previous depth test enable state.
+            var savedEnableDepthTest = gl.isEnabled(WebGLRenderingContext.DEPTH_TEST);
+
+            // Set the new depth test enable state.
+            if (this.enableDepthTest) {
+                gl.enable(WebGLRenderingContext.DEPTH_TEST);
+            }
+            else {
+                gl.disable(WebGLRenderingContext.DEPTH_TEST);
+            }
+
+            return savedEnableDepthTest;
+        };
+
+        TextRenderer.prototype.restoreEnableDepthTest = function(dc, savedEnableDepthTest) {
+            var gl = dc.currentGlContext;
+
+            // Restore the previous depth test enable state.
+            if (savedEnableDepthTest) {
+                gl.enable(WebGLRenderingContext.DEPTH_TEST);
+            }
+            else {
+                gl.disable(WebGLRenderingContext.DEPTH_TEST);
+            }
+        };
+
         return TextRenderer;
-});
+    }
+);
