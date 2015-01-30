@@ -177,19 +177,21 @@ define([
             this.pickFrustum = null;
 
             /**
-             * Indicates that picking will return only one picked item plus the picked terrain, if any. Setting this
-             * flag to <code>true</code> may increase picking performance when the scene contains very many shapes.
+             * Indicates that picking will return all objects at the pick point, if any. The top-most object will have
+             * its <code>isOnTop</code> flag set to <code>true</code>.
+             * If deep picking is <code>false</code>, the default, only the top-most object is returned, plus
+             * the picked-terrain object if the pick point is over the terrain.
              * @type {boolean}
              * @default false
              */
-            this.singlePickMode = false;
+            this.deepPicking = false;
 
             /**
              * Indicates that the current picking operation is in support of region picking.
              * @type {boolean}
              * @default false
              */
-            this.regionPickingMode = false;
+            this.regionPicking = false;
 
             /**
              * A unique color variable to use during picking.
@@ -477,10 +479,7 @@ define([
         DrawContext.prototype.resolvePick = function (pickableObject) {
             pickableObject.pickPoint = this.pickPoint;
 
-            if (this.singlePickMode || this.regionPickingMode) {
-                // Don't resolve. Just add the object to the pick list. It will be resolved later.
-                this.addPickedObject(pickableObject);
-            } else {
+            if (this.deepPicking && !this.regionPicking) {
                 var color = this.readPickColor(this.pickPoint);
                 if (!color) { // getPickColor returns null if the pick point selects the clear color
                     return null;
@@ -489,6 +488,9 @@ define([
                 if (pickableObject.color.equals(color)) {
                     this.addPickedObject(pickableObject);
                 }
+            } else {
+                // Don't resolve. Just add the object to the pick list. It will be resolved later.
+                this.addPickedObject(pickableObject);
             }
         };
 
