@@ -66,8 +66,8 @@ define([
         PinchGestureRecognizer.prototype.mouseDown = function (event) {
             GestureRecognizer.prototype.mouseDown.call(this, event);
 
-            if (this.state == GestureRecognizer.POSSIBLE) {
-                this.transitionToState(GestureRecognizer.FAILED); // pinch does not recognize mouse input
+            if (this.state == WorldWind.POSSIBLE) {
+                this.transitionToState(WorldWind.FAILED); // pinch does not recognize mouse input
             }
         };
 
@@ -108,12 +108,12 @@ define([
                 this.distance = this.touchDistance(index0, index1);
                 this.scale = this.computeScale();
 
-                if (this.state == GestureRecognizer.POSSIBLE) {
+                if (this.state == WorldWind.POSSIBLE) {
                     if (this.shouldRecognize()) {
-                        this.transitionToState(GestureRecognizer.BEGAN);
+                        this.transitionToState(WorldWind.BEGAN);
                     }
-                } else if (this.state == GestureRecognizer.BEGAN || this.state == GestureRecognizer.CHANGED) {
-                    this.transitionToState(GestureRecognizer.CHANGED);
+                } else if (this.state == WorldWind.BEGAN || this.state == WorldWind.CHANGED) {
+                    this.transitionToState(WorldWind.CHANGED);
                 }
             }
         };
@@ -136,9 +136,8 @@ define([
             }
 
             if (event.targetTouches.length == 0) { // last touches ended
-                if (this.state == GestureRecognizer.BEGAN || this.state == GestureRecognizer.CHANGED) {
-                    this.transitionToState(event.type == "touchend" ?
-                        GestureRecognizer.ENDED : GestureRecognizer.CANCELLED);
+                if (this.state == WorldWind.BEGAN || this.state == WorldWind.CHANGED) {
+                    this.transitionToState(event.type == "touchend" ? WorldWind.ENDED : WorldWind.CANCELLED);
                 }
             }
         };

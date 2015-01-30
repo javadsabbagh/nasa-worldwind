@@ -37,7 +37,7 @@ define([
             /**
              * @readonly
              */
-            this.state = GestureRecognizer.POSSIBLE;
+            this.state = WorldWind.POSSIBLE;
 
             /**
              *
@@ -77,64 +77,33 @@ define([
 
             GestureRecognizer.registerMouseEventListeners(this);
             GestureRecognizer.registerTouchEventListeners(this);
+
+            if (!GestureRecognizer.listenerStates) {
+                GestureRecognizer.listenerStates = [WorldWind.BEGAN, WorldWind.CHANGED, WorldWind.ENDED,
+                    WorldWind.RECOGNIZED];
+            }
+
+            if (!GestureRecognizer.dependantStates) {
+                GestureRecognizer.dependantStates = [WorldWind.BEGAN, WorldWind.FAILED, WorldWind.RECOGNIZED];
+            }
+
+            if (!GestureRecognizer.terminalStates) {
+                GestureRecognizer.terminalStates = [WorldWind.ENDED, WorldWind.CANCELLED, WorldWind.FAILED,
+                    WorldWind.RECOGNIZED]
+            }
         };
-
-        /**
-         *
-         * @type {string}
-         */
-        GestureRecognizer.POSSIBLE = "possible";
-
-        /**
-         *
-         * @type {string}
-         */
-        GestureRecognizer.BEGAN = "began";
-
-        /**
-         *
-         * @type {string}
-         */
-        GestureRecognizer.CHANGED = "changed";
-
-        /**
-         *
-         * @type {string}
-         */
-        GestureRecognizer.ENDED = "ended";
-
-        /**
-         *
-         * @type {string}
-         */
-        GestureRecognizer.CANCELLED = "cancelled";
-
-        /**
-         *
-         * @type {string}
-         */
-        GestureRecognizer.FAILED = "failed";
-
-        /**
-         *
-         * @type {string}
-         */
-        GestureRecognizer.RECOGNIZED = "recognized";
 
         // Internal use only. Intentionally not documented.
         GestureRecognizer.recognizedGestures = [];
 
         // Internal use only. Intentionally not documented.
-        GestureRecognizer.listenerStates = [GestureRecognizer.BEGAN, GestureRecognizer.CHANGED,
-            GestureRecognizer.ENDED, GestureRecognizer.RECOGNIZED];
+        GestureRecognizer.listenerStates = null;
 
         // Internal use only. Intentionally not documented.
-        GestureRecognizer.dependantStates = [GestureRecognizer.BEGAN, GestureRecognizer.FAILED,
-            GestureRecognizer.RECOGNIZED];
+        GestureRecognizer.dependantStates = null;
 
         // Internal use only. Intentionally not documented.
-        GestureRecognizer.terminalStates = [GestureRecognizer.ENDED, GestureRecognizer.CANCELLED,
-            GestureRecognizer.FAILED, GestureRecognizer.RECOGNIZED];
+        GestureRecognizer.terminalStates = null;
 
         /**
          * @returns {Vec2}
@@ -264,9 +233,9 @@ define([
                 var entry = this.dependants[i],
                     pendingState = entry.pendingState;
 
-                if (newState == GestureRecognizer.RECOGNIZED || newState == GestureRecognizer.BEGAN) {
-                    entry.transitionToState(GestureRecognizer.FAILED);
-                } else if (newState == GestureRecognizer.FAILED) {
+                if (newState == WorldWind.RECOGNIZED || newState == WorldWind.BEGAN) {
+                    entry.transitionToState(WorldWind.FAILED);
+                } else if (newState == WorldWind.FAILED) {
                     if (pendingState != -1) {
                         entry.pendingState = -1; // pending state may be written to in transitionToState
                         entry.transitionToState(pendingState); // attempt to transition to the pending state
@@ -300,7 +269,7 @@ define([
             var recognized = GestureRecognizer.recognizedGestures,
                 i, count;
 
-            if (newState == GestureRecognizer.RECOGNIZED || newState == GestureRecognizer.BEGAN) {
+            if (newState == WorldWind.RECOGNIZED || newState == WorldWind.BEGAN) {
                 for (i = 0, count = recognized.length; i < count; i++) {
                     if (!recognized[i].canRecognizeWith(this)) {
                         return false; // unable to recognize simultaneously with currently recognized gesture
@@ -308,7 +277,7 @@ define([
                 }
 
                 for (i = 0, count = this.dependancies.length; i < count; i++) {
-                    if (this.dependancies[i].state != GestureRecognizer.FAILED) {
+                    if (this.dependancies[i].state != WorldWind.FAILED) {
                         this.pendingState = newState;
                         return false; // waiting for other gesture to fail
                     }
@@ -327,11 +296,11 @@ define([
             // Keep track of the continuous gestures that are currently in a recognized state.
             var recognized = GestureRecognizer.recognizedGestures,
                 index = recognized.indexOf(this);
-            if (newState == GestureRecognizer.BEGAN) {
+            if (newState == WorldWind.BEGAN) {
                 if (index == -1) {
                     recognized.push(this);
                 }
-            } else if (newState == GestureRecognizer.ENDED || newState == GestureRecognizer.CANCELLED) {
+            } else if (newState == WorldWind.ENDED || newState == WorldWind.CANCELLED) {
                 if (index != -1) {
                     recognized.splice(index, 1);
                 }
@@ -358,7 +327,7 @@ define([
             var inTerminalState = GestureRecognizer.terminalStates.indexOf(this.state) != -1;
             if (inTerminalState && this.buttonMask == 0 && this.touchCount() == 0) {
                 this.reset();
-                this.transitionToState(GestureRecognizer.POSSIBLE);
+                this.transitionToState(WorldWind.POSSIBLE);
             }
         };
 
@@ -454,7 +423,7 @@ define([
             var inTerminalState = GestureRecognizer.terminalStates.indexOf(this.state) != -1;
             if (inTerminalState && this.buttonMask == 0) {
                 this.reset();
-                this.transitionToState(GestureRecognizer.POSSIBLE);
+                this.transitionToState(WorldWind.POSSIBLE);
             }
         };
 
@@ -552,7 +521,7 @@ define([
             var inTerminalState = GestureRecognizer.terminalStates.indexOf(this.state) != -1;
             if (inTerminalState && this.touchCount() == 0) {
                 this.reset();
-                this.transitionToState(GestureRecognizer.POSSIBLE);
+                this.transitionToState(WorldWind.POSSIBLE);
             }
         };
 

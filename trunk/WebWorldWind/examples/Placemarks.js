@@ -113,17 +113,15 @@ requirejs(['../src/WorldWind',
             var redrawRequired = highlightedItems.length > 0;
             unHighlight();
 
-            if (recognizer.state == WorldWind.GestureRecognizer.RECOGNIZED) {
-                var location = recognizer.location(),
-                    pickList = wwd.pick(wwd.canvasCoordinates(location[0], location[1]));
-                if (pickList.objects.length > 0) {
-                    redrawRequired = true;
-                }
-                highlight(pickList);
+            var location = recognizer.location(),
+                pickList = wwd.pick(wwd.canvasCoordinates(location[0], location[1]));
+            if (pickList.objects.length > 0) {
+                redrawRequired = true;
+            }
+            highlight(pickList);
 
-                if (redrawRequired) {
-                    wwd.redraw();
-                }
+            if (redrawRequired) {
+                wwd.redraw();
             }
         });
 
