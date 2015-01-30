@@ -76,16 +76,16 @@ define([
             this.translation.copy(this.clientLocation);
             this.translation.subtract(this.clientStartLocation);
 
-            if (this.state == GestureRecognizer.POSSIBLE) {
+            if (this.state == WorldWind.POSSIBLE) {
                 if (this.shouldInterpret()) {
                     if (this.shouldRecognize()) {
-                        this.transitionToState(GestureRecognizer.BEGAN);
+                        this.transitionToState(WorldWind.BEGAN);
                     } else {
-                        this.transitionToState(GestureRecognizer.FAILED);
+                        this.transitionToState(WorldWind.FAILED);
                     }
                 }
-            } else if (this.state == GestureRecognizer.BEGAN || this.state == GestureRecognizer.CHANGED) {
-                this.transitionToState(GestureRecognizer.CHANGED);
+            } else if (this.state == WorldWind.BEGAN || this.state == WorldWind.CHANGED) {
+                this.transitionToState(WorldWind.CHANGED);
             }
         };
 
@@ -98,8 +98,8 @@ define([
             GestureRecognizer.prototype.mouseUp.call(this, event);
 
             if (this.buttonMask == 0) { // last button up
-                if (this.state == GestureRecognizer.BEGAN || this.state == GestureRecognizer.CHANGED) {
-                    this.transitionToState(GestureRecognizer.ENDED);
+                if (this.state == WorldWind.BEGAN || this.state == WorldWind.CHANGED) {
+                    this.transitionToState(WorldWind.ENDED);
                 }
             }
         };
@@ -131,8 +131,8 @@ define([
         DragGestureRecognizer.prototype.touchStart = function (event) {
             GestureRecognizer.prototype.touchStart.call(this, event);
 
-            if (this.state == GestureRecognizer.POSSIBLE) {
-                this.transitionToState(GestureRecognizer.FAILED); // drag does not recognize touch input
+            if (this.state == WorldWind.POSSIBLE) {
+                this.transitionToState(WorldWind.FAILED); // drag does not recognize touch input
             }
         };
 

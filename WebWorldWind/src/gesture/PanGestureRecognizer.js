@@ -65,8 +65,8 @@ define([
         PanGestureRecognizer.prototype.mouseDown = function (event) {
             GestureRecognizer.prototype.mouseDown.call(this, event);
 
-            if (this.state == GestureRecognizer.POSSIBLE) {
-                this.transitionToState(GestureRecognizer.FAILED); // pan does not recognize mouse input
+            if (this.state == WorldWind.POSSIBLE) {
+                this.transitionToState(WorldWind.FAILED); // pan does not recognize mouse input
             }
         };
 
@@ -94,16 +94,16 @@ define([
             this.translation.subtract(this.clientStartLocation);
             this.translation.add(this.touchCentroidShift);
 
-            if (this.state == GestureRecognizer.POSSIBLE) {
+            if (this.state == WorldWind.POSSIBLE) {
                 if (this.shouldInterpret()) {
                     if (this.shouldRecognize()) {
-                        this.transitionToState(GestureRecognizer.BEGAN);
+                        this.transitionToState(WorldWind.BEGAN);
                     } else {
-                        this.transitionToState(GestureRecognizer.FAILED);
+                        this.transitionToState(WorldWind.FAILED);
                     }
                 }
-            } else if (this.state == GestureRecognizer.BEGAN || this.state == GestureRecognizer.CHANGED) {
-                this.transitionToState(GestureRecognizer.CHANGED);
+            } else if (this.state == WorldWind.BEGAN || this.state == WorldWind.CHANGED) {
+                this.transitionToState(WorldWind.CHANGED);
             }
         };
 
@@ -116,9 +116,8 @@ define([
             GestureRecognizer.prototype.touchEndOrCancel.call(this, event);
 
             if (event.targetTouches.length == 0) { // last touches cancelled
-                if (this.state == GestureRecognizer.BEGAN || this.state == GestureRecognizer.CHANGED) {
-                    this.transitionToState(event.type == "touchend" ?
-                        GestureRecognizer.ENDED : GestureRecognizer.CANCELLED);
+                if (this.state == WorldWind.BEGAN || this.state == WorldWind.CHANGED) {
+                    this.transitionToState(event.type == "touchend" ? WorldWind.ENDED : WorldWind.CANCELLED);
                 }
             }
         };

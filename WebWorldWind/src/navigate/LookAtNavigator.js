@@ -172,10 +172,10 @@ define([
                 forwardDegrees, sideDegrees,
                 sinHeading, cosHeading;
 
-            if (state == GestureRecognizer.BEGAN) {
+            if (state == WorldWind.BEGAN) {
                 this.lastPanTranslation = new Vec2(0, 0);
                 this.lastPanTranslation.copy(translation);
-            } else if (state == GestureRecognizer.CHANGED) {
+            } else if (state == WorldWind.CHANGED) {
                 // Compute the current translation in screen coordinates.
                 forwardPixels = translation[1] - this.lastPanTranslation[1];
                 sidePixels = translation[0] - this.lastPanTranslation[0];
@@ -222,10 +222,10 @@ define([
                 headingPixels, tiltPixels,
                 headingDegrees, tiltDegrees;
 
-            if (state == GestureRecognizer.BEGAN) {
+            if (state == WorldWind.BEGAN) {
                 this.beginHeading = this.heading;
                 this.beginTilt = this.tilt;
-            } else if (state == GestureRecognizer.CHANGED) {
+            } else if (state == WorldWind.CHANGED) {
                 // Compute the current translation in screen coordinates.
                 headingPixels = translation[0];
                 tiltPixels = translation[1];
@@ -256,9 +256,9 @@ define([
             var state = gestureRecognizer.state,
                 scale = gestureRecognizer.scale;
 
-            if (state == GestureRecognizer.BEGAN) {
+            if (state == WorldWind.BEGAN) {
                 this.beginRange = this.range;
-            } else if (state == GestureRecognizer.CHANGED) {
+            } else if (state == WorldWind.CHANGED) {
                 if (scale != 0) {
                     // Apply the change in pinch scale to this navigator's range, relative to the range when the gesture
                     // began. Limit the new range to positive values in order to prevent degenerating to a first-person
@@ -281,9 +281,9 @@ define([
             var state = gestureRecognizer.state,
                 rotation = gestureRecognizer.rotation;
 
-            if (state == GestureRecognizer.BEGAN) {
+            if (state == WorldWind.BEGAN) {
                 this.beginHeading = this.heading;
-            } else if (state == GestureRecognizer.CHANGED) {
+            } else if (state == WorldWind.CHANGED) {
                 // Apply the change in gesture rotation o this navigator's heading, relative to the heading when the
                 // gesture began.
                 this.heading = this.beginHeading - rotation;
@@ -306,9 +306,9 @@ define([
                 pixels,
                 degrees;
 
-            if (state == GestureRecognizer.BEGAN) {
+            if (state == WorldWind.BEGAN) {
                 this.beginTilt = this.tilt;
-            } else if (state == GestureRecognizer.CHANGED) {
+            } else if (state == WorldWind.CHANGED) {
                 // Compute the current translation in screen coordinates. 
                 pixels = -translation[1];
 

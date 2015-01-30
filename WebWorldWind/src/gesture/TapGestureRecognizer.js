@@ -92,8 +92,8 @@ define([
         TapGestureRecognizer.prototype.mouseDown = function (event) {
             GestureRecognizer.prototype.mouseDown.call(this, event);
 
-            if (this.state == GestureRecognizer.POSSIBLE) {
-                this.transitionToState(GestureRecognizer.FAILED); // tap does not recognize mouse input
+            if (this.state == WorldWind.POSSIBLE) {
+                this.transitionToState(WorldWind.FAILED); // tap does not recognize mouse input
             }
         };
 
@@ -104,12 +104,12 @@ define([
         TapGestureRecognizer.prototype.touchStart = function (event) {
             GestureRecognizer.prototype.touchStart.call(this, event);
 
-            if (this.state != GestureRecognizer.POSSIBLE) {
+            if (this.state != WorldWind.POSSIBLE) {
                 return;
             }
 
             if (this.touchCount() > this.numberOfTouches) {
-                this.transitionToState(GestureRecognizer.FAILED);
+                this.transitionToState(WorldWind.FAILED);
             } else {
                 if (this.touchCount() == event.changedTouches.length) { // first touches down
                     this.tapStart();
@@ -127,7 +127,7 @@ define([
         TapGestureRecognizer.prototype.touchMove = function (event) {
             GestureRecognizer.prototype.touchMove.call(this, event);
 
-            if (this.state != GestureRecognizer.POSSIBLE) {
+            if (this.state != WorldWind.POSSIBLE) {
                 return;
             }
 
@@ -137,7 +137,7 @@ define([
             translation.add(this.touchCentroidShift);
 
             if (translation.magnitude() > this.threshold) {
-                this.transitionToState(GestureRecognizer.FAILED);
+                this.transitionToState(WorldWind.FAILED);
             }
         };
 
@@ -149,7 +149,7 @@ define([
         TapGestureRecognizer.prototype.touchEnd = function (event) {
             GestureRecognizer.prototype.touchEnd.call(this, event);
 
-            if (this.state != GestureRecognizer.POSSIBLE) {
+            if (this.state != WorldWind.POSSIBLE) {
                 return;
             }
 
@@ -166,8 +166,8 @@ define([
         TapGestureRecognizer.prototype.touchCancel = function (event) {
             GestureRecognizer.prototype.touchCancel.call(this, event);
 
-            if (this.state == GestureRecognizer.POSSIBLE) {
-                this.transitionToState(GestureRecognizer.FAILED);
+            if (this.state == WorldWind.POSSIBLE) {
+                this.transitionToState(WorldWind.FAILED);
             }
         };
 
@@ -203,9 +203,9 @@ define([
                 tap = this.taps[tapCount - 1];
 
             if (tap.touchCount != this.numberOfTouches) {
-                this.transitionToState(GestureRecognizer.FAILED);
+                this.transitionToState(WorldWind.FAILED);
             } else if (tapCount == this.numberOfTaps) {
-                this.transitionToState(GestureRecognizer.RECOGNIZED);
+                this.transitionToState(WorldWind.RECOGNIZED);
             } else {
                 this.failAfterDelay(this.tapInterval); // fail if another tap doesn't start soon enough
             }
@@ -222,7 +222,7 @@ define([
 
             self.timeout = window.setTimeout(function() {
                 self.timeout = null;
-                self.transitionToState(GestureRecognizer.FAILED);
+                self.transitionToState(WorldWind.FAILED);
             }, delay);
         };
 
