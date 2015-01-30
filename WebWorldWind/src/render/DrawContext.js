@@ -26,7 +26,8 @@ define([
         '../render/SurfaceTileRenderer',
         '../render/TextRenderer',
         '../geom/Vec2',
-        '../geom/Vec3'
+        '../geom/Vec3',
+        '../util/WWMath'
     ],
     function (ArgumentError,
               Color,
@@ -47,7 +48,8 @@ define([
               SurfaceTileRenderer,
               TextRenderer,
               Vec2,
-              Vec3) {
+              Vec3,
+              WWMath) {
         "use strict";
 
         /**
@@ -160,6 +162,12 @@ define([
              * @type {Vec2}
              */
             this.pickPoint = null;
+
+            /**
+             * The current pick rectangle, in WebGL (lower-left origin) screen coordinates.
+             * @type {Rectangle}
+             */
+            this.pickRectangle = null;
 
             /**
              * The current pick frustum, created anew each picking frame.
@@ -470,12 +478,18 @@ define([
         };
 
         /**
-         * Creates a pick frustum for the current pick point and stores it in this draw context.
+         * Creates a pick frustum for the current pick point and stores it in this draw context. If this context's
+         * pick rectangle is null or undefined then a pick rectangle is also computed and assigned to this context.
+         * If the existing pick rectangle extends beyond the viewport then it is truncated by this method to fit
+         * within the viewport.
+         * This method assumes that this draw context's pick point or pick rectangle has been set. It returns
+         * <code>false</code> if neither one of these exists.
+         *
+         * @returns {boolean} <code>true</code> if the pick frustum could be created, otherwise <code>false</code>.
          */
         DrawContext.prototype.makePickFrustum = function () {
-            if (!this.pickPoint) {
-                this.pickFrustum = null;
-                return;
+            if (!this.pickPoint && !this.pickRectangle) {
+                return false;
             }
 
             var lln, llf, lrn, lrf, uln, ulf, urn, urf, // corner points of frustum
@@ -484,45 +498,76 @@ define([
                 va, vb = new Vec3(0, 0, 0), // vectors formed by the corner points
                 apertureRadius = 2, // radius of pick window in screen coordinates
                 screenPoint = new Vec3(0, 0, 0),
-                pickPoint = this.navigatorState.convertPointToViewport(this.pickPoint, new Vec2(0, 0));
+                pickPoint,
+                pickRectangle = this.pickRectangle,
+                viewport = this.navigatorState.viewport;
 
-            screenPoint[0] = pickPoint[0] - apertureRadius;
-            screenPoint[1] = pickPoint[1] - apertureRadius;
+            // Compute the pick rectangle if necessary.
+            if (!pickRectangle) {
+                pickPoint = this.navigatorState.convertPointToViewport(this.pickPoint, new Vec2(0, 0));
+                pickRectangle = new Rectangle(
+                    pickPoint[0] - apertureRadius,
+                    pickPoint[1] - apertureRadius,
+                    2 * apertureRadius,
+                    2 * apertureRadius);
+            }
+
+            // Clamp the pick rectangle to the viewport.
+
+            var xl = pickRectangle.x,
+                xr = pickRectangle.x + pickRectangle.width,
+                yb = pickRectangle.y,
+                yt = pickRectangle.y + pickRectangle.height;
+
+            if (xr < 0 || yt < 0 || xl > viewport.x + viewport.width || yb > viewport.y + viewport.height) {
+                return false; // pick rectangle is outside the viewport.
+            }
+
+            pickRectangle.x = WWMath.clamp(xl, viewport.x, viewport.x + viewport.width);
+            pickRectangle.y = WWMath.clamp(yb, viewport.y, viewport.y + viewport.height);
+            pickRectangle.width = WWMath.clamp(xr, viewport.x, viewport.x + viewport.width) - pickRectangle.x;
+            pickRectangle.height = WWMath.clamp(yt, viewport.y, viewport.y + viewport.height) - pickRectangle. y;
+            this.pickRectangle = pickRectangle;
+
+            // Compute the pick frustum.
+
+            screenPoint[0] = pickRectangle.x;
+            screenPoint[1] = pickRectangle.y;
             screenPoint[2] = 0;
             this.navigatorState.unProject(screenPoint, lln = new Vec3(0, 0, 0));
 
-            screenPoint[0] = pickPoint[0] - apertureRadius;
-            screenPoint[1] = pickPoint[1] - apertureRadius;
+            screenPoint[0] = pickRectangle.x;
+            screenPoint[1] = pickRectangle.y;
             screenPoint[2] = 1;
             this.navigatorState.unProject(screenPoint, llf = new Vec3(0, 0, 0));
 
-            screenPoint[0] = pickPoint[0] + apertureRadius;
-            screenPoint[1] = pickPoint[1] - apertureRadius;
+            screenPoint[0] = pickRectangle.x + pickRectangle.width;
+            screenPoint[1] = pickRectangle.y;
             screenPoint[2] = 0;
             this.navigatorState.unProject(screenPoint, lrn = new Vec3(0, 0, 0));
 
-            screenPoint[0] = pickPoint[0] + apertureRadius;
-            screenPoint[1] = pickPoint[1] - apertureRadius;
+            screenPoint[0] = pickRectangle.x + pickRectangle.width;
+            screenPoint[1] = pickRectangle.y;
             screenPoint[2] = 1;
             this.navigatorState.unProject(screenPoint, lrf = new Vec3(0, 0, 0));
 
-            screenPoint[0] = pickPoint[0] - apertureRadius;
-            screenPoint[1] = pickPoint[1] + apertureRadius;
+            screenPoint[0] = pickRectangle.x;
+            screenPoint[1] = pickRectangle.y + pickRectangle.height;
             screenPoint[2] = 0;
             this.navigatorState.unProject(screenPoint, uln = new Vec3(0, 0, 0));
 
-            screenPoint[0] = pickPoint[0] - apertureRadius;
-            screenPoint[1] = pickPoint[1] + apertureRadius;
+            screenPoint[0] = pickRectangle.x;
+            screenPoint[1] = pickRectangle.y + pickRectangle.height;
             screenPoint[2] = 1;
             this.navigatorState.unProject(screenPoint, ulf = new Vec3(0, 0, 0));
 
-            screenPoint[0] = pickPoint[0] + apertureRadius;
-            screenPoint[1] = pickPoint[1] + apertureRadius;
+            screenPoint[0] = pickRectangle.x + pickRectangle.width;
+            screenPoint[1] = pickRectangle.y + pickRectangle.height;
             screenPoint[2] = 0;
             this.navigatorState.unProject(screenPoint, urn = new Vec3(0, 0, 0));
 
-            screenPoint[0] = pickPoint[0] + apertureRadius;
-            screenPoint[1] = pickPoint[1] + apertureRadius;
+            screenPoint[0] = pickRectangle.x + pickRectangle.width;
+            screenPoint[1] = pickRectangle.y + pickRectangle.height;
             screenPoint[2] = 1;
             this.navigatorState.unProject(screenPoint, urf = new Vec3(0, 0, 0));
 
@@ -563,6 +608,8 @@ define([
             f.normalize();
 
             this.pickFrustum = new Frustum(l, r, b, t, n, f);
+
+            return true;
         };
 
         /**

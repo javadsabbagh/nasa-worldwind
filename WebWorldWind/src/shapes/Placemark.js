@@ -138,10 +138,7 @@ define([
         };
 
         // Internal use only. Intentionally not documented.
-        Placemark.point = new Vec3(0, 0, 0); // scratch variable
-
-        // Internal use only. Intentionally not documented.
-        Placemark.glPickPoint = new Vec3(0, 0, 0); // scratch variable
+        Placemark.screenPoint = new Vec3(0, 0, 0); // scratch variable
 
         // Internal use only. Intentionally not documented.
         Placemark.matrix = Matrix.fromIdentity(); // scratch variable
@@ -217,7 +214,7 @@ define([
             // terrain. When a placemark is displayed near the terrain portions of its geometry are often behind the terrain,
             // yet as a screen element the placemark is expected to be visible. We adjust its depth values rather than moving
             // the placemark itself to avoid obscuring its actual position.
-            if (!dc.navigatorState.projectWithDepth(this.placePoint, this.depthOffset, Placemark.point)) {
+            if (!dc.navigatorState.projectWithDepth(this.placePoint, this.depthOffset, Placemark.screenPoint)) {
                 return null;
             }
 
@@ -232,9 +229,9 @@ define([
                 offset = this.activeAttributes.imageOffset.offsetForSize(w, h);
 
                 this.imageTransform.setTranslation(
-                    Placemark.point[0] - offset[0] * s,
-                    Placemark.point[1] - offset[1] * s,
-                    Placemark.point[2]);
+                    Placemark.screenPoint[0] - offset[0] * s,
+                    Placemark.screenPoint[1] - offset[1] * s,
+                    Placemark.screenPoint[2]);
 
                 this.imageTransform.setScale(w * s, h * s, 1);
 
@@ -245,9 +242,9 @@ define([
                 offset = this.activeAttributes.imageOffset.offsetForSize(s, s);
 
                 this.imageTransform.setTranslation(
-                    Placemark.point[0] - offset[0],
-                    Placemark.point[1] - offset[1],
-                    Placemark.point[2]);
+                    Placemark.screenPoint[0] - offset[0],
+                    Placemark.screenPoint[1] - offset[1],
+                    Placemark.screenPoint[2]);
 
                 this.imageTransform.setScale(s, s, 1);
 
@@ -279,9 +276,7 @@ define([
         // Internal. Intentionally not documented.
         Placemark.prototype.isVisible = function (dc) {
             if (dc.pickingMode) {
-                // Convert the pick point to OpenGL screen coordinates.
-                dc.navigatorState.convertPointToViewport(dc.pickPoint, Placemark.glPickPoint);
-                return this.imageBounds.containsPoint(Placemark.glPickPoint);
+                return dc.pickRectangle && this.imageBounds.intersects(dc.pickRectangle);
             } else {
                 return this.imageBounds.intersects(dc.navigatorState.viewport);
             }
