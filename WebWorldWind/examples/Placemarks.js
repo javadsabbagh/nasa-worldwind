@@ -97,4 +97,21 @@ requirejs(['../src/WorldWind',
                 wwd.redraw(); // redraw to make the highlighting changes take effect on the screen
             }
         }, false);
+
+        var tapRecognizer = new WorldWind.TapGestureRecognizer(canvas);
+        tapRecognizer.addGestureListener(function (recognizer) {
+            if (recognizer.state == WorldWind.GestureRecognizer.RECOGNIZED) {
+                var location = recognizer.location(),
+                    pickList = wwd.pick(wwd.canvasCoordinates(location[0], location[1]));
+
+                for (var i = 0, len = pickList.objects.length; i < len; i++) {
+                    var object = pickList.objects[i].userObject;
+                    object.highlighted = !object.highlighted;
+                }
+
+                if (pickList.objects.length > 0) {
+                    wwd.redraw();
+                }
+            }
+        });
     });
