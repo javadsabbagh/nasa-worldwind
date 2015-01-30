@@ -18,7 +18,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './layer/BMNGRestLayer',
         './geom/BoundingBox',
         './util/Color',
-        './gesture/DragGestureRecognizer',
+        './gesture/DragRecognizer',
         './render/DrawContext',
         './globe/EarthElevationModel',
         './globe/EarthRestElevationModel',
@@ -47,10 +47,10 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './navigate/NavigatorState',
         './error/NotYetImplementedError',
         './util/Offset',
-        './gesture/PanGestureRecognizer',
+        './gesture/PanRecognizer',
         './pick/PickedObject',
         './pick/PickedObjectList',
-        './gesture/PinchGestureRecognizer',
+        './gesture/PinchRecognizer',
         './shapes/Placemark',
         './shapes/PlacemarkAttributes',
         './layer/PlacenameLayer',
@@ -59,7 +59,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './geom/Rectangle',
         './render/Renderable',
         './layer/RenderableLayer',
-        './gesture/RotationGestureRecognizer',
+        './gesture/RotationRecognizer',
         './geom/Sector',
         './shapes/ShapeAttributes',
         './layer/ShowTessellationLayer',
@@ -75,7 +75,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './render/SurfaceTile',
         './render/SurfaceTileRenderer',
         './shaders/SurfaceTileRendererProgram',
-        './gesture/TapGestureRecognizer',
+        './gesture/TapRecognizer',
         './globe/Terrain',
         './globe/TerrainTile',
         './globe/TerrainTileList',
@@ -86,7 +86,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './util/Tile',
         './layer/TiledImageLayer',
         './util/TileFactory',
-        './gesture/TiltGestureRecognizer',
+        './gesture/TiltRecognizer',
         './error/UnsupportedOperationError',
         './render/UserFacingText',
         './geom/Vec2',
@@ -108,7 +108,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               BMNGRestLayer,
               BoundingBox,
               Color,
-              DragGestureRecognizer,
+              DragRecognizer,
               DrawContext,
               EarthElevationModel,
               EarthRestElevationModel,
@@ -137,10 +137,10 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               NavigatorState,
               NotYetImplementedError,
               Offset,
-              PanGestureRecognizer,
+              PanRecognizer,
               PickedObject,
               PickedObjectList,
-              PinchGestureRecognizer,
+              PinchRecognizer,
               Placemark,
               PlacemarkAttributes,
               PlacenameLayer,
@@ -149,7 +149,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               Rectangle,
               Renderable,
               RenderableLayer,
-              RotationGestureRecognizer,
+              RotationRecognizer,
               Sector,
               ShapeAttributes,
               ShowTessellationLayer,
@@ -165,7 +165,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               SurfaceTile,
               SurfaceTileRenderer,
               SurfaceTileRendererProgram,
-              TapGestureRecognizer,
+              TapRecognizer,
               Terrain,
               TerrainTile,
               TerrainTileList,
@@ -176,7 +176,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               Tile,
               TiledImageLayer,
               TileFactory,
-              TiltGestureRecognizer,
+              TiltRecognizer,
               UnsupportedOperationError,
               UserFacingText,
               Vec2,
@@ -342,7 +342,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['BMNGRestLayer'] = BMNGRestLayer;
         WorldWind['BoundingBox'] = BoundingBox;
         WorldWind['Color'] = Color;
-        WorldWind['DragGestureRecognizer'] = DragGestureRecognizer;
+        WorldWind['DragRecognizer'] = DragRecognizer;
         WorldWind['DrawContext'] = DrawContext;
         WorldWind['EarthElevationModel'] = EarthElevationModel;
         WorldWind['EarthRestElevationModel'] = EarthRestElevationModel;
@@ -371,10 +371,10 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['NavigatorState'] = NavigatorState;
         WorldWind['NotYetImplementedError'] = NotYetImplementedError;
         WorldWind['Offset'] = Offset;
-        WorldWind['PanGestureRecognizer'] = PanGestureRecognizer;
+        WorldWind['PanRecognizer'] = PanRecognizer;
         WorldWind['PickedObject'] = PickedObject;
         WorldWind['PickedObjectList'] = PickedObjectList;
-        WorldWind['PinchGestureRecognizer'] = PinchGestureRecognizer;
+        WorldWind['PinchRecognizer'] = PinchRecognizer;
         WorldWind['Placemark'] = Placemark;
         WorldWind['PlacemarkAttributes'] = PlacemarkAttributes;
         WorldWind['PlacenameLayer'] = PlacenameLayer;
@@ -383,7 +383,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['Rectangle'] = Rectangle;
         WorldWind['Renderable'] = Renderable;
         WorldWind['RenderableLayer'] = RenderableLayer;
-        WorldWind['RotationGestureRecognizer'] = RotationGestureRecognizer;
+        WorldWind['RotationRecognizer'] = RotationRecognizer;
         WorldWind['Sector'] = Sector;
         WorldWind['ShapeAttributes'] = ShapeAttributes;
         WorldWind['ShowTessellationLayer'] = ShowTessellationLayer;
@@ -399,7 +399,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['SurfaceTile'] = SurfaceTile;
         WorldWind['SurfaceTileRenderer'] = SurfaceTileRenderer;
         WorldWind['SurfaceTileRendererProgram'] = SurfaceTileRendererProgram;
-        WorldWind['TapGestureRecognizer'] = TapGestureRecognizer;
+        WorldWind['TapRecognizer'] = TapRecognizer;
         WorldWind['Terrain'] = Terrain;
         WorldWind['TerrainTile'] = TerrainTile;
         WorldWind['TerrainTileList'] = TerrainTileList;
@@ -410,7 +410,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['Tile'] = Tile;
         WorldWind['TiledImageLayer'] = TiledImageLayer;
         WorldWind['TileFactory'] = TileFactory;
-        WorldWind['TiltGestureRecognizer'] = TiltGestureRecognizer;
+        WorldWind['TiltRecognizer'] = TiltRecognizer;
         WorldWind['UnsupportedOperationError'] = UnsupportedOperationError;
         WorldWind['UserFacingText'] = UserFacingText;
         WorldWind['Vec2'] = Vec2;

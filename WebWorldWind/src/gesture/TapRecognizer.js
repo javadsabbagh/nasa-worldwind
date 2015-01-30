@@ -3,7 +3,7 @@
  * National Aeronautics and Space Administration. All Rights Reserved.
  */
 /**
- * @exports TapGestureRecognizer
+ * @exports TapRecognizer
  * @version $Id$
  */
 define([
@@ -16,11 +16,11 @@ define([
 
         /**
          * Constructs a tap gesture recognizer.
-         * @alias TapGestureRecognizer
+         * @alias TapRecognizer
          * @constructor
          * @classdesc A concrete gesture recognizer subclass that looks for single or multiple taps.
          */
-        var TapGestureRecognizer = function (target) {
+        var TapRecognizer = function (target) {
             GestureRecognizer.call(this, target);
 
             /**
@@ -51,12 +51,12 @@ define([
             this.taps = [];
         };
 
-        TapGestureRecognizer.prototype = Object.create(GestureRecognizer.prototype);
+        TapRecognizer.prototype = Object.create(GestureRecognizer.prototype);
 
         /**
          * @returns {Vec2}
          */
-        TapGestureRecognizer.prototype.location = function () {
+        TapRecognizer.prototype.location = function () {
             return this.taps.length > 0 ? this.taps[0].location : null;
         };
 
@@ -65,7 +65,7 @@ define([
          * @param state
          * @protected
          */
-        TapGestureRecognizer.prototype.didTransitionToState = function (state) {
+        TapRecognizer.prototype.didTransitionToState = function (state) {
             GestureRecognizer.prototype.didTransitionToState.call(this, state);
 
             var inTerminalState = GestureRecognizer.terminalStates.indexOf(this.state) != -1;
@@ -77,7 +77,7 @@ define([
         /**
          * @protected
          */
-        TapGestureRecognizer.prototype.reset = function () {
+        TapRecognizer.prototype.reset = function () {
             GestureRecognizer.prototype.reset.call(this);
 
             this.cancelFailAfterDelay();
@@ -89,7 +89,7 @@ define([
          * @param event
          * @protected
          */
-        TapGestureRecognizer.prototype.mouseDown = function (event) {
+        TapRecognizer.prototype.mouseDown = function (event) {
             GestureRecognizer.prototype.mouseDown.call(this, event);
 
             if (this.state == WorldWind.POSSIBLE) {
@@ -101,7 +101,7 @@ define([
          *
          * @param event
          */
-        TapGestureRecognizer.prototype.touchStart = function (event) {
+        TapRecognizer.prototype.touchStart = function (event) {
             GestureRecognizer.prototype.touchStart.call(this, event);
 
             if (this.state != WorldWind.POSSIBLE) {
@@ -124,7 +124,7 @@ define([
          * @param event
          * @protected
          */
-        TapGestureRecognizer.prototype.touchMove = function (event) {
+        TapRecognizer.prototype.touchMove = function (event) {
             GestureRecognizer.prototype.touchMove.call(this, event);
 
             if (this.state != WorldWind.POSSIBLE) {
@@ -146,7 +146,7 @@ define([
          * @param event
          * @protected
          */
-        TapGestureRecognizer.prototype.touchEnd = function (event) {
+        TapRecognizer.prototype.touchEnd = function (event) {
             GestureRecognizer.prototype.touchEnd.call(this, event);
 
             if (this.state != WorldWind.POSSIBLE) {
@@ -163,7 +163,7 @@ define([
          * @param event
          * @protected
          */
-        TapGestureRecognizer.prototype.touchCancel = function (event) {
+        TapRecognizer.prototype.touchCancel = function (event) {
             GestureRecognizer.prototype.touchCancel.call(this, event);
 
             if (this.state == WorldWind.POSSIBLE) {
@@ -174,7 +174,7 @@ define([
         /**
          *
          */
-        TapGestureRecognizer.prototype.tapStart = function () {
+        TapRecognizer.prototype.tapStart = function () {
             var tap = {
                 touchCount: this.touchCount(),
                 location: new Vec2(this.clientLocation[0], this.clientLocation[1])
@@ -187,7 +187,7 @@ define([
         /**
          * @protected
          */
-        TapGestureRecognizer.prototype.tapChange = function () {
+        TapRecognizer.prototype.tapChange = function () {
             var tap = this.taps[this.taps.length - 1];
             if (tap.touchCount < this.touchCount()) {
                 tap.touchCount = this.touchCount(); // max number of simultaneous touches
@@ -198,7 +198,7 @@ define([
         /**
          * @protected
          */
-        TapGestureRecognizer.prototype.tapEnd = function () {
+        TapRecognizer.prototype.tapEnd = function () {
             var tapCount = this.taps.length,
                 tap = this.taps[tapCount - 1];
 
@@ -214,7 +214,7 @@ define([
         /**
          * @protected
          */
-        TapGestureRecognizer.prototype.failAfterDelay = function (delay) {
+        TapRecognizer.prototype.failAfterDelay = function (delay) {
             var self = this;
             if (self.timeout) {
                 window.clearTimeout(self.timeout);
@@ -229,7 +229,7 @@ define([
         /**
          * @protected
          */
-        TapGestureRecognizer.prototype.cancelFailAfterDelay = function () {
+        TapRecognizer.prototype.cancelFailAfterDelay = function () {
             var self = this;
             if (self.timeout) {
                 window.clearTimeout(self.timeout);
@@ -237,5 +237,5 @@ define([
             }
         };
 
-        return TapGestureRecognizer;
+        return TapRecognizer;
     });

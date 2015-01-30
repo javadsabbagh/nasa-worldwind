@@ -124,25 +124,23 @@ requirejs(['../src/WorldWind',
             }
         }, false);
 
-        var tapRecognizer = new WorldWind.TapGestureRecognizer(canvas);
+        var tapRecognizer = new WorldWind.TapRecognizer(canvas);
         tapRecognizer.addGestureListener(function (recognizer) {
             var redrawRequired = highlightedItems.length > 0;
             unHighlight();
 
-            if (recognizer.state == WorldWind.GestureRecognizer.RECOGNIZED) {
-                var location = recognizer.location(),
-                    pickRectangle = makePickRectangle(location[0], location[1]),
-                    pickList;
+            var location = recognizer.location(),
+                pickRectangle = makePickRectangle(location[0], location[1]),
+                pickList;
 
-                pickList = wwd.pickShapesInRegion(pickRectangle);
-                if (pickList.objects.length > 0) {
-                    redrawRequired = true;
-                }
-                highlight(pickList);
+            pickList = wwd.pickShapesInRegion(pickRectangle);
+            if (pickList.objects.length > 0) {
+                redrawRequired = true;
+            }
+            highlight(pickList);
 
-                if (redrawRequired) {
-                    wwd.redraw();
-                }
+            if (redrawRequired) {
+                wwd.redraw();
             }
         });
 

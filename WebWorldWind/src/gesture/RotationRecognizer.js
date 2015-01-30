@@ -3,7 +3,7 @@
  * National Aeronautics and Space Administration. All Rights Reserved.
  */
 /**
- * @exports RotationGestureRecognizer
+ * @exports RotationRecognizer
  * @version $Id$
  */
 define([
@@ -18,11 +18,11 @@ define([
 
         /**
          * Constructs a rotation gesture recognizer.
-         * @alias RotationGestureRecognizer
+         * @alias RotationRecognizer
          * @constructor
          * @classdesc A concrete gesture recognizer subclass that looks for two finger rotation gestures.
          */
-        var RotationGestureRecognizer = function (target) {
+        var RotationRecognizer = function (target) {
             GestureRecognizer.call(this, target);
 
             /**
@@ -47,12 +47,12 @@ define([
             this.touchIds = [];
         };
 
-        RotationGestureRecognizer.prototype = Object.create(GestureRecognizer.prototype);
+        RotationRecognizer.prototype = Object.create(GestureRecognizer.prototype);
 
         /**
          * @protected
          */
-        RotationGestureRecognizer.prototype.reset = function () {
+        RotationRecognizer.prototype.reset = function () {
             GestureRecognizer.prototype.reset.call(this);
 
             this.rotation = 0;
@@ -67,7 +67,7 @@ define([
          * @param event
          * @protected
          */
-        RotationGestureRecognizer.prototype.mouseDown = function (event) {
+        RotationRecognizer.prototype.mouseDown = function (event) {
             GestureRecognizer.prototype.mouseDown.call(this, event);
 
             if (this.state == WorldWind.POSSIBLE) {
@@ -80,7 +80,7 @@ define([
          * @param event
          * @protected
          */
-        RotationGestureRecognizer.prototype.touchStart = function (event) {
+        RotationRecognizer.prototype.touchStart = function (event) {
             GestureRecognizer.prototype.touchStart.call(this, event);
 
             if (this.touchIds.length < 2) {
@@ -104,7 +104,7 @@ define([
          * @param event
          * @protected
          */
-        RotationGestureRecognizer.prototype.touchMove = function (event) {
+        RotationRecognizer.prototype.touchMove = function (event) {
             GestureRecognizer.prototype.touchMove.call(this, event);
 
             if (this.touchIds.length == 2) {
@@ -128,7 +128,7 @@ define([
          * @param event
          * @protected
          */
-        RotationGestureRecognizer.prototype.touchEndOrCancel = function (event) {
+        RotationRecognizer.prototype.touchEndOrCancel = function (event) {
             GestureRecognizer.prototype.touchEndOrCancel.call(this, event);
 
             // Remove touch identifier entries for the touches that ended or cancelled.
@@ -152,7 +152,7 @@ define([
          * @returns {boolean}
          * @protected
          */
-        RotationGestureRecognizer.prototype.shouldRecognize = function () {
+        RotationRecognizer.prototype.shouldRecognize = function () {
             return Math.abs(this.slope[0] - this.beginSlope[0]) > this.threshold
                 || Math.abs(this.slope[1] - this.beginSlope[1]) > this.threshold;
         };
@@ -164,7 +164,7 @@ define([
          * @returns {number}
          * @protected
          */
-        RotationGestureRecognizer.prototype.touchSlope = function (indexA, indexB) {
+        RotationRecognizer.prototype.touchSlope = function (indexA, indexB) {
             var pointA = this.touches[indexA].clientLocation,
                 pointB = this.touches[indexB].clientLocation;
             return new Vec2(pointA[0] - pointB[0], pointA[1] - pointB[1]);
@@ -176,7 +176,7 @@ define([
          * @returns {number}
          * @protected
          */
-        RotationGestureRecognizer.prototype.angleForSlope = function (slope) {
+        RotationRecognizer.prototype.angleForSlope = function (slope) {
             var radians = Math.atan2(slope[1], slope[0]);
             return radians * Angle.RADIANS_TO_DEGREES;
         };
@@ -186,12 +186,12 @@ define([
          * @returns {number}
          * @protected
          */
-        RotationGestureRecognizer.prototype.computeRotation = function () {
+        RotationRecognizer.prototype.computeRotation = function () {
             var angle = this.angleForSlope(this.slope),
                 beginAngle = this.angleForSlope(this.beginSlope),
                 rotation = angle - beginAngle + this.rotationOffset;
             return Angle.normalizedDegrees(rotation);
         };
 
-        return RotationGestureRecognizer;
+        return RotationRecognizer;
     });

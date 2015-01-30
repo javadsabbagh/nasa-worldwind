@@ -108,7 +108,7 @@ requirejs(['../src/WorldWind',
             }
         }, false);
 
-        var tapRecognizer = new WorldWind.TapGestureRecognizer(canvas);
+        var tapRecognizer = new WorldWind.TapRecognizer(canvas);
         tapRecognizer.addGestureListener(function (recognizer) {
             var redrawRequired = highlightedItems.length > 0;
             unHighlight();
