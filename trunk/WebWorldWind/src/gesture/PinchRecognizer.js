@@ -3,7 +3,7 @@
  * National Aeronautics and Space Administration. All Rights Reserved.
  */
 /**
- * @exports PinchGestureRecognizer
+ * @exports PinchRecognizer
  * @version $Id$
  */
 define([
@@ -14,11 +14,11 @@ define([
 
         /**
          * Constructs a pinch gesture recognizer.
-         * @alias PinchGestureRecognizer
+         * @alias PinchRecognizer
          * @constructor
          * @classdesc A concrete gesture recognizer subclass that looks for two finger pinch gestures.
          */
-        var PinchGestureRecognizer = function (target) {
+        var PinchRecognizer = function (target) {
             GestureRecognizer.call(this, target);
 
             /**
@@ -43,12 +43,12 @@ define([
             this.touchIds = [];
         };
 
-        PinchGestureRecognizer.prototype = Object.create(GestureRecognizer.prototype);
+        PinchRecognizer.prototype = Object.create(GestureRecognizer.prototype);
 
         /**
          * @protected
          */
-        PinchGestureRecognizer.prototype.reset = function () {
+        PinchRecognizer.prototype.reset = function () {
             GestureRecognizer.prototype.reset.call(this);
 
             this.scale = 1;
@@ -63,7 +63,7 @@ define([
          * @param event
          * @protected
          */
-        PinchGestureRecognizer.prototype.mouseDown = function (event) {
+        PinchRecognizer.prototype.mouseDown = function (event) {
             GestureRecognizer.prototype.mouseDown.call(this, event);
 
             if (this.state == WorldWind.POSSIBLE) {
@@ -76,7 +76,7 @@ define([
          * @param event
          * @protected
          */
-        PinchGestureRecognizer.prototype.touchStart = function (event) {
+        PinchRecognizer.prototype.touchStart = function (event) {
             GestureRecognizer.prototype.touchStart.call(this, event);
 
             if (this.touchIds.length < 2) {
@@ -99,7 +99,7 @@ define([
          * @param event
          * @protected
          */
-        PinchGestureRecognizer.prototype.touchMove = function (event) {
+        PinchRecognizer.prototype.touchMove = function (event) {
             GestureRecognizer.prototype.touchMove.call(this, event);
 
             if (this.touchIds.length == 2) {
@@ -123,7 +123,7 @@ define([
          * @param event
          * @protected
          */
-        PinchGestureRecognizer.prototype.touchEndOrCancel = function (event) {
+        PinchRecognizer.prototype.touchEndOrCancel = function (event) {
             GestureRecognizer.prototype.touchEndOrCancel.call(this, event);
 
             // Remove touch identifier entries for the touches that ended or cancelled.
@@ -147,7 +147,7 @@ define([
          * @returns {boolean}
          * @protected
          */
-        PinchGestureRecognizer.prototype.shouldRecognize = function () {
+        PinchRecognizer.prototype.shouldRecognize = function () {
             return Math.abs(this.distance - this.startDistance) > this.threshold
         };
 
@@ -158,7 +158,7 @@ define([
          * @returns {number}
          * @protected
          */
-        PinchGestureRecognizer.prototype.touchDistance = function (indexA, indexB) {
+        PinchRecognizer.prototype.touchDistance = function (indexA, indexB) {
             var pointA = this.touches[indexA].clientLocation,
                 pointB = this.touches[indexB].clientLocation;
             return pointA.distanceTo(pointB);
@@ -169,9 +169,9 @@ define([
          * @returns {number}
          * @protected
          */
-        PinchGestureRecognizer.prototype.computeScale = function() {
+        PinchRecognizer.prototype.computeScale = function() {
             return (this.distance / this.startDistance) * this.scaleOffset;
         };
 
-        return PinchGestureRecognizer;
+        return PinchRecognizer;
     });

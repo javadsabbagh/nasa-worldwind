@@ -3,7 +3,7 @@
  * National Aeronautics and Space Administration. All Rights Reserved.
  */
 /**
- * @exports DragGestureRecognizer
+ * @exports DragRecognizer
  * @version $Id$
  */
 define([
@@ -16,11 +16,11 @@ define([
 
         /**
          * Constructs a drag gesture recognizer.
-         * @alias DragGestureRecognizer
+         * @alias DragRecognizer
          * @constructor
          * @classdesc A concrete gesture recognizer subclass that looks for mouse drag gestures.
          */
-        var DragGestureRecognizer = function (target) {
+        var DragRecognizer = function (target) {
             GestureRecognizer.call(this, target);
 
             /**
@@ -40,12 +40,12 @@ define([
             this.threshold = 10;
         };
 
-        DragGestureRecognizer.prototype = Object.create(GestureRecognizer.prototype);
+        DragRecognizer.prototype = Object.create(GestureRecognizer.prototype);
 
         /**
          * @protected
          */
-        DragGestureRecognizer.prototype.reset = function () {
+        DragRecognizer.prototype.reset = function () {
             GestureRecognizer.prototype.reset.call(this);
 
             this.translation.set(0, 0);
@@ -56,7 +56,7 @@ define([
          * @param event
          * @protected
          */
-        DragGestureRecognizer.prototype.mouseDown = function (event) {
+        DragRecognizer.prototype.mouseDown = function (event) {
             GestureRecognizer.prototype.mouseDown.call(this, event);
 
             var buttonBit = (1 << event.button);
@@ -70,7 +70,7 @@ define([
          * @param event
          * @protected
          */
-        DragGestureRecognizer.prototype.mouseMove = function (event) {
+        DragRecognizer.prototype.mouseMove = function (event) {
             GestureRecognizer.prototype.mouseMove.call(this, event);
 
             this.translation.copy(this.clientLocation);
@@ -94,7 +94,7 @@ define([
          * @param event
          * @protected
          */
-        DragGestureRecognizer.prototype.mouseUp = function (event) {
+        DragRecognizer.prototype.mouseUp = function (event) {
             GestureRecognizer.prototype.mouseUp.call(this, event);
 
             if (this.buttonMask == 0) { // last button up
@@ -109,7 +109,7 @@ define([
          * @returns {boolean}
          * @protected
          */
-        DragGestureRecognizer.prototype.shouldInterpret = function () {
+        DragRecognizer.prototype.shouldInterpret = function () {
             var distance = this.translation.magnitude();
             return distance > this.threshold; // interpret mouse movement when the cursor moves far enough
         };
@@ -119,7 +119,7 @@ define([
          * @returns {boolean}
          * @protected
          */
-        DragGestureRecognizer.prototype.shouldRecognize = function () {
+        DragRecognizer.prototype.shouldRecognize = function () {
             var buttonMask = this.buttonMask;
             return buttonMask != 0 && buttonMask == this.buttons;
         };
@@ -128,7 +128,7 @@ define([
          *
          * @param event
          */
-        DragGestureRecognizer.prototype.touchStart = function (event) {
+        DragRecognizer.prototype.touchStart = function (event) {
             GestureRecognizer.prototype.touchStart.call(this, event);
 
             if (this.state == WorldWind.POSSIBLE) {
@@ -136,5 +136,5 @@ define([
             }
         };
 
-        return DragGestureRecognizer;
+        return DragRecognizer;
     });

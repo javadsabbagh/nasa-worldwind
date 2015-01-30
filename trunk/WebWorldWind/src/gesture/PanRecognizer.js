@@ -3,7 +3,7 @@
  * National Aeronautics and Space Administration. All Rights Reserved.
  */
 /**
- * @exports PanGestureRecognizer
+ * @exports PanRecognizer
  * @version $Id$
  */
 define([
@@ -16,11 +16,11 @@ define([
 
         /**
          * Constructs a pan gesture recognizer.
-         * @alias PanGestureRecognizer
+         * @alias PanRecognizer
          * @constructor
          * @classdesc A concrete gesture recognizer subclass that looks for touch panning gestures.
          */
-        var PanGestureRecognizer = function (target) {
+        var PanRecognizer = function (target) {
             GestureRecognizer.call(this, target);
 
             /**
@@ -46,12 +46,12 @@ define([
             this.threshold = 10;
         };
 
-        PanGestureRecognizer.prototype = Object.create(GestureRecognizer.prototype);
+        PanRecognizer.prototype = Object.create(GestureRecognizer.prototype);
 
         /**
          * @protected
          */
-        PanGestureRecognizer.prototype.reset = function () {
+        PanRecognizer.prototype.reset = function () {
             GestureRecognizer.prototype.reset.call(this);
 
             this.translation.set(0, 0);
@@ -62,7 +62,7 @@ define([
          * @param event
          * @protected
          */
-        PanGestureRecognizer.prototype.mouseDown = function (event) {
+        PanRecognizer.prototype.mouseDown = function (event) {
             GestureRecognizer.prototype.mouseDown.call(this, event);
 
             if (this.state == WorldWind.POSSIBLE) {
@@ -74,7 +74,7 @@ define([
          *
          * @param event
          */
-        PanGestureRecognizer.prototype.touchStart = function (event) {
+        PanRecognizer.prototype.touchStart = function (event) {
             GestureRecognizer.prototype.touchStart.call(this, event);
 
             if (event.touches.length == event.changedTouches.length) { // first touches started
@@ -87,7 +87,7 @@ define([
          * @param event
          * @protected
          */
-        PanGestureRecognizer.prototype.touchMove = function (event) {
+        PanRecognizer.prototype.touchMove = function (event) {
             GestureRecognizer.prototype.touchMove.call(this, event);
 
             this.translation.copy(this.clientLocation);
@@ -112,7 +112,7 @@ define([
          * @param event
          * @protected
          */
-        PanGestureRecognizer.prototype.touchEndOrCancel = function (event) {
+        PanRecognizer.prototype.touchEndOrCancel = function (event) {
             GestureRecognizer.prototype.touchEndOrCancel.call(this, event);
 
             if (event.targetTouches.length == 0) { // last touches cancelled
@@ -127,7 +127,7 @@ define([
          * @returns {boolean}
          * @protected
          */
-        PanGestureRecognizer.prototype.shouldInterpret = function () {
+        PanRecognizer.prototype.shouldInterpret = function () {
             var distance = this.translation.magnitude();
             return distance > this.threshold; // interpret touches when the touch centroid moves far enough
         };
@@ -137,12 +137,12 @@ define([
          * @returns {boolean}
          * @protected
          */
-        PanGestureRecognizer.prototype.shouldRecognize = function () {
+        PanRecognizer.prototype.shouldRecognize = function () {
             var touchCount = this.touchCount();
             return touchCount != 0
                 && touchCount >= this.minimumNumberOfTouches
                 && touchCount <= this.maximumNumberOfTouches
         };
 
-        return PanGestureRecognizer;
+        return PanRecognizer;
     });
