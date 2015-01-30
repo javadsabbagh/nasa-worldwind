@@ -75,8 +75,8 @@ define([
             // Internal use only. Intentionally not documented.
             this.touchCentroidShift = new Vec2(0, 0);
 
-            GestureRecognizer.registerMouseEventListeners(this, target);
-            GestureRecognizer.registerTouchEventListeners(this, target);
+            GestureRecognizer.registerMouseEventListeners(this);
+            GestureRecognizer.registerTouchEventListeners(this);
         };
 
         /**
@@ -136,7 +136,6 @@ define([
         GestureRecognizer.terminalStates = [GestureRecognizer.ENDED, GestureRecognizer.CANCELLED,
             GestureRecognizer.FAILED, GestureRecognizer.RECOGNIZED];
 
-        //noinspection JSUnusedGlobalSymbols
         /**
          * @returns {Vec2}
          */
@@ -349,6 +348,18 @@ define([
             if (notifyDependants) {
                 this.notifyDependants(newState);
             }
+
+            // TODO Modify GestureRecognizer and all concrete subclasses to reset and transition to the possible state
+            // TODO upon transitioning to any terminal state, regardless of the input state. That change makes
+            // TODO GestureRecognizer more flexible, and eliminates the need for resetting in multiple places.
+            // TODO See didHandleMouseEvent and didHandleTouchEvent.
+            // Reset the gesture and transition to the possible state when the all input is done and the gesture is in a
+            // terminal state: recognized/ended, cancelled, or failed.
+            var inTerminalState = GestureRecognizer.terminalStates.indexOf(this.state) != -1;
+            if (inTerminalState && this.buttonMask == 0 && this.touchCount() == 0) {
+                this.reset();
+                this.transitionToState(GestureRecognizer.POSSIBLE);
+            }
         };
 
         /**
@@ -485,7 +496,7 @@ define([
         GestureRecognizer.registerTouchEventListeners = function (recognizer) {
             if (!recognizer) {
                 throw new ArgumentError(
-                    Logger.getMessage(Logger.LEVEL_SEVERE, "GestureRecognizer", "registerTouchEventListeners",
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GestureRecognizer", "registerTouchEventListeners",
                         "The specified recognizer is null or undefined"));
             }
 
@@ -636,7 +647,7 @@ define([
             // centroid shift is zero. When subsequent touches end the centroid shift is incremented by the difference
             // between the previous centroid and the current centroid.
             if (event.targetTouches.length == 0) {
-                this.touchCentroid(this.clientLocation);
+                this.clientLocation.set(0, 0);
                 this.touchCentroidShift.set(0, 0);
             } else {
                 this.touchCentroidShift.add(this.clientLocation);
