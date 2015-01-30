@@ -61,8 +61,8 @@ define([
             this.maximumSubdivisionDepth = 15; // baseline: 15
 
             // tileWidth, tileHeight - the number of subdivisions a single tile has; this determines the sampling grid.
-            this.tileWidth = 32; // baseline: 32
-            this.tileHeight = 32; // baseline: 32
+            this.tileWidth = 8; // baseline: 32
+            this.tileHeight = 8; // baseline: 32
 
             // detailHintOrigin - a parameter that describes the size of the sampling grid when fully zoomed in.
             // The size of the tile sampling grid when fully zoomed in is related to the logarithm base 10 of this parameter.
@@ -270,8 +270,6 @@ define([
             var gl = dc.currentGlContext,
                 gpuResourceCache = dc.gpuResourceCache;
 
-            gl.frontFace(WebGLRenderingContext.CW);
-
             // Keep track of the program's attribute locations. The tessellator does not know which program the caller has
             // bound, and therefore must look up the location of attributes by name.
             this.vertexPointLocation = program.attributeLocation(gl, "vertexPoint");
@@ -304,8 +302,6 @@ define([
             }
 
             var gl = dc.currentGlContext;
-
-            gl.frontFace(WebGLRenderingContext.CCW);
 
             gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, null);
             gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, null);
@@ -404,6 +400,7 @@ define([
             var gl = dc.currentGlContext,
                 gpuResourceCache = dc.gpuResourceCache,
                 prim = WebGLRenderingContext.TRIANGLE_STRIP; // replace TRIANGLE_STRIP with LINE_STRIP to debug borders
+                //prim = WebGLRenderingContext.LINE_STRIP; // replace TRIANGLE_STRIP with LINE_STRIP to debug borders
 
             var indicesVbo = gpuResourceCache.resourceForKey(this.indicesVboCacheKey);
             gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, indicesVbo);
@@ -1003,6 +1000,8 @@ define([
         };
 
         Tessellator.prototype.buildIndices = function (tileWidth, tileHeight) {
+            var vertexIndex; // The index of the vertex in the sample grid.
+
             // The number of vertices in each dimension is 1 more than the number of cells.
             var numLatVertices = tileHeight + 1,
                 numLonVertices = tileWidth + 1,
@@ -1018,28 +1017,26 @@ define([
             // Inset core by one round of sub-tiles. Full grid is numLatVertices x numLonVertices. This must be used
             // to address vertices in the core as well.
             var index = 0;
-            for (var latIndex = 1; latIndex < numLatVertices - 2; latIndex += 1) {
-                var vertexIndex; // The index of the vertex in the sample grid.
-                for (var lonIndex = 1; lonIndex < numLonVertices - 1; lonIndex += 1) {
+            for (var lonIndex = 1; lonIndex < numLonVertices - 2; lonIndex += 1) {
+                for (var latIndex = 1; latIndex < numLatVertices - 1; latIndex += 1) {
                     vertexIndex = lonIndex + latIndex * numLonVertices;
 
-                    // Create a triangle strip joining each adjacent row of vertices, starting in the top left corner and
-                    // proceeding downward. The first vertex starts with the upper row of vertices and moves down to create a
-                    // clockwise winding order.
-                    indices[index] = vertexIndex;
-                    indices[index + 1] = vertexIndex + numLonVertices;
-                    index += 2;
+                    // Create a triangle strip joining each adjacent column of vertices, starting in the top left corner and
+                    // proceeding to the right. The first vertex starts with the left row of vertices and moves right to create a
+                    // counterclockwise winding order.
+                    indices[index++] = vertexIndex;
+                    indices[index++] = vertexIndex + 1;
                 }
 
                 // Insert indices to create 2 degenerate triangles:
                 //      one for the end of the current row, and
                 //      one for the beginning of the next row.
-                indices[index] = vertexIndex + numLonVertices;
-                indices[index + 1] = vertexIndex + 3; // Skip over two border vertices and advance to the next vertex.
-                index += 2;
+                indices[index++] = vertexIndex + 1;
+                vertexIndex = (lonIndex + 1) + 1 * numLonVertices;
+                indices[index++] = vertexIndex;
             }
 
-            // assert(indices.length == numIndices);
+            // assert(index == numIndices);
             this.indices = indices;
             this.numIndices = numIndices;
 
@@ -1072,130 +1069,110 @@ define([
              *  with neighboring tiles that are at the same level of detail.
              */
             // North border.
-            numIndices = 2 * numLonVertices - 1;
+            numIndices = 2 * numLonVertices - 2;
             indices = new Int16Array(numIndices);
 
             index = 0;
             latIndex = numLatVertices - 1;
-            for (lonIndex = numLonVertices - 1; lonIndex > lonIndexMid; lonIndex -= 1) {
+
+            // Corner vertex.
+            lonIndex = numLonVertices - 1;
+            vertexIndex = lonIndex + latIndex * numLonVertices;
+            indices[index++] = vertexIndex;
+
+            for (lonIndex = numLonVertices - 2; lonIndex > 0; lonIndex -= 1) {
                 vertexIndex = lonIndex + latIndex * numLonVertices;
-
-                indices[index] = vertexIndex;
-                indices[index + 1] = vertexIndex - numLonVertices - 1;
-
-                index += 2;
+                indices[index++] = vertexIndex;
+                indices[index++] = vertexIndex - numLonVertices;
             }
 
-            // Insert a single vertical edge in the middle.
-            indices[index] = vertexIndex - 1;
-            index += 1;
+            // Corner vertex.
+            lonIndex = 0;
+            vertexIndex = lonIndex + latIndex * numLonVertices;
+            indices[index++] = vertexIndex;
 
-            for (lonIndex = lonIndexMid - 1; lonIndex >= 0; lonIndex -= 1) {
-                vertexIndex = lonIndex + latIndex * numLonVertices;
-
-                indices[index] = vertexIndex - numLonVertices + 1;
-                indices[index + 1] = vertexIndex;
-
-                index += 2;
-            }
-
-            // assert(indices.length == numIndices);
+            // assert(index == numIndices);
             this.indicesNorth = indices;
             this.numIndicesNorth = numIndices;
 
             // South border.
-            numIndices = 2 * numLonVertices - 1;
+            numIndices = 2 * numLonVertices - 2;
             indices = new Int16Array(numIndices);
 
             index = 0;
             latIndex = 0;
-            for (lonIndex = 0; lonIndex < lonIndexMid; lonIndex += 1) {
+
+            // Corner vertex.
+            lonIndex = 0;
+            vertexIndex = lonIndex + latIndex * numLonVertices;
+            indices[index++] = vertexIndex;
+
+            for (lonIndex = 1; lonIndex < numLonVertices - 1; lonIndex += 1) {
                 vertexIndex = lonIndex + latIndex * numLonVertices;
-
-                indices[index] = vertexIndex;
-                indices[index + 1] = vertexIndex + numLonVertices + 1;
-
-                index += 2;
+                indices[index++] = vertexIndex;
+                indices[index++] = vertexIndex + numLonVertices;
             }
 
-            // Insert a single vertical edge in the middle.
-            indices[index] = vertexIndex + 1;
-            index += 1;
+            // Corner vertex.
+            lonIndex = numLonVertices - 1;
+            vertexIndex = lonIndex + latIndex * numLonVertices;
+            indices[index++] = vertexIndex;
 
-            for (lonIndex = lonIndexMid + 1; lonIndex < numLonVertices; lonIndex += 1) {
-                vertexIndex = lonIndex + latIndex * numLonVertices;
-
-                indices[index] = vertexIndex + numLonVertices - 1;
-                indices[index + 1] = vertexIndex;
-
-                index += 2;
-            }
-
-            // assert(indices.length == numIndices);
+            // assert(index == numIndices);
             this.indicesSouth = indices;
             this.numIndicesSouth = numIndices;
 
             // West border.
-            numIndices = 2 * numLatVertices - 1;
+            numIndices = 2 * numLatVertices - 2;
             indices = new Int16Array(numIndices);
 
             index = 0;
             lonIndex = 0;
-            for (latIndex = numLatVertices - 1; latIndex > latIndexMid; latIndex -= 1) {
+
+            // Corner vertex.
+            latIndex = numLatVertices - 1;
+            vertexIndex = lonIndex + latIndex * numLonVertices;
+            indices[index++] = vertexIndex;
+
+            for (latIndex = numLatVertices - 2; latIndex > 0; latIndex -= 1) {
                 vertexIndex = lonIndex + latIndex * numLonVertices;
-
-                indices[index] = vertexIndex;
-                indices[index + 1] = vertexIndex - numLonVertices + 1;
-
-                index += 2;
+                indices[index++] = vertexIndex;
+                indices[index++] = vertexIndex + 1;
             }
 
-            // Insert a single vertical edge in the middle.
-            indices[index] = vertexIndex - numLonVertices;
-            index += 1;
+            // Corner vertex.
+            latIndex = 0;
+            vertexIndex = lonIndex + latIndex * numLonVertices;
+            indices[index++] = vertexIndex;
 
-            for (latIndex = latIndexMid - 1; latIndex >= 0; latIndex -= 1) {
-                vertexIndex = lonIndex + latIndex * numLonVertices;
-
-                indices[index] = vertexIndex + numLonVertices + 1;
-                indices[index + 1] = vertexIndex;
-
-                index += 2;
-            }
-
-            // assert(indices.length == numIndices);
+            // assert(index == numIndices);
             this.indicesWest = indices;
             this.numIndicesWest = numIndices;
 
             // East border.
-            numIndices = 2 * numLatVertices - 1;
+            numIndices = 2 * numLatVertices - 2;
             indices = new Int16Array(numIndices);
 
             index = 0;
             lonIndex = numLonVertices - 1;
-            for (latIndex = 0; latIndex < latIndexMid; latIndex += 1) {
+
+            // Corner vertex.
+            latIndex = 0;
+            vertexIndex = lonIndex + latIndex * numLonVertices;
+            indices[index++] = vertexIndex;
+
+            for (latIndex = 1; latIndex < numLatVertices - 1; latIndex += 1) {
                 vertexIndex = lonIndex + latIndex * numLonVertices;
-
-                indices[index] = vertexIndex;
-                indices[index + 1] = vertexIndex + numLonVertices - 1;
-
-                index += 2;
+                indices[index++] = vertexIndex;
+                indices[index++] = vertexIndex - 1;
             }
 
-            // Insert a single vertical edge in the middle.
-            indices[index] = vertexIndex + numLonVertices;
-            index += 1;
+            // Corner vertex.
+            latIndex = numLatVertices - 1;
+            vertexIndex = lonIndex + latIndex * numLonVertices;
+            indices[index++] = vertexIndex;
 
-            for (latIndex = latIndexMid + 1; latIndex < numLatVertices; latIndex += 1) {
-                vertexIndex = lonIndex + latIndex * numLonVertices;
-
-                indices[index] = vertexIndex - numLonVertices - 1;
-                indices[index + 1] = vertexIndex;
-
-                index += 2;
-            }
-
-            // assert(indices.length == numIndices);
+            // assert(index == numIndices);
             this.indicesEast = indices;
             this.numIndicesEast = numIndices;
 
@@ -1207,158 +1184,126 @@ define([
              *  To generate the boundary meshes, force the use of only even boundary vertex indices.
              */
             // North border.
-            numIndices = 2 * numLonVertices - 1;
+            numIndices = 2 * numLonVertices - 2;
             indices = new Int16Array(numIndices);
 
             index = 0;
             latIndex = numLatVertices - 1;
-            for (lonIndex = numLonVertices - 1; lonIndex > lonIndexMid; lonIndex -= 1) {
-                // Exterior, rounded up to nearest even index.
+
+            // Corner vertex.
+            lonIndex = numLonVertices - 1;
+            vertexIndex = lonIndex + latIndex * numLonVertices;
+            indices[index++] = vertexIndex;
+
+            for (lonIndex = numLonVertices - 2; lonIndex > 0; lonIndex -= 1) {
+                // Exterior vertex rounded up to even index.
                 vertexIndex = ((lonIndex + 1) & ~1) + latIndex * numLonVertices;
-                indices[index] = vertexIndex;
+                indices[index++] = vertexIndex;
 
-                // Interior diagonal.
-                vertexIndex = (lonIndex - 1) + (latIndex - 1) * numLonVertices;
-                indices[index + 1] = vertexIndex;
-
-                index += 2;
+                // Interior vertex.
+                vertexIndex = lonIndex + (latIndex - 1) * numLonVertices;
+                indices[index++] = vertexIndex;
             }
 
-            // Insert a single vertical edge in the middle.
-            vertexIndex = (lonIndexMid & ~1) + latIndex * numLonVertices;
-            indices[index] = vertexIndex;
-            index += 1;
+            // Corner vertex.
+            lonIndex = 0;
+            vertexIndex = lonIndex + latIndex * numLonVertices;
+            indices[index++] = vertexIndex;
 
-            for (lonIndex = lonIndexMid - 1; lonIndex >= 0; lonIndex -= 1) {
-                // Interior diagonal.
-                vertexIndex = (lonIndex + 1) + (latIndex - 1) * numLonVertices;
-                indices[index] = vertexIndex;
-
-                // Exterior, rounded down to nearest even index.
-                vertexIndex = (lonIndex & ~1) + latIndex * numLonVertices;
-                indices[index + 1] = vertexIndex;
-
-                index += 2;
-            }
-
-            // assert(indices.length == numIndices);
+            // assert(index == numIndices);
             this.indicesLoresNorth = indices;
             this.numIndicesLoresNorth = numIndices;
 
             // South border.
-            numIndices = 2 * numLonVertices - 1;
+            numIndices = 2 * numLonVertices - 2;
             indices = new Int16Array(numIndices);
 
             index = 0;
             latIndex = 0;
-            for (lonIndex = 0; lonIndex < lonIndexMid; lonIndex += 1) {
-                // Exterior, rounded down to nearest even vertex.
+
+            // Corner vertex.
+            lonIndex = 0;
+            vertexIndex = lonIndex + latIndex * numLonVertices;
+            indices[index++] = vertexIndex;
+
+            for (lonIndex = 1; lonIndex < numLonVertices - 1; lonIndex += 1) {
+                // Exterior Vertex rounded down to even index.
                 vertexIndex = (lonIndex & ~1) + latIndex * numLonVertices;
-                indices[index] = vertexIndex;
+                indices[index++] = vertexIndex;
 
-                // Interior diagonal.
-                vertexIndex = (lonIndex + 1) + (latIndex + 1) * numLonVertices;
-                indices[index + 1] = vertexIndex;
-
-                index += 2;
+                // Interior vertex.
+                vertexIndex = lonIndex + (latIndex + 1) * numLonVertices;
+                indices[index++] = vertexIndex;
             }
 
-            // Insert a single vertical edge in the middle.
-            vertexIndex = lonIndexMid + latIndex * numLonVertices;
-            indices[index] = vertexIndex;
-            index += 1;
+            // Corner vertex.
+            lonIndex = numLonVertices - 1;
+            vertexIndex = lonIndex + latIndex * numLonVertices;
+            indices[index++] = vertexIndex;
 
-            for (lonIndex = lonIndexMid + 1; lonIndex < numLonVertices; lonIndex += 1) {
-                // Interior diagonal.
-                vertexIndex = (lonIndex - 1) + (latIndex + 1) * numLonVertices;
-                indices[index] = vertexIndex;
-
-                // Exterior, rounded up to nearest even index.
-                vertexIndex = ((lonIndex + 1) & ~1) + latIndex * numLonVertices;
-                indices[index + 1] = vertexIndex;
-
-                index += 2;
-            }
-
-            // assert(indices.length == numIndices);
+            // assert(index == numIndices);
             this.indicesLoresSouth = indices;
             this.numIndicesLoresSouth = numIndices;
 
             // West border.
-            numIndices = 2 * numLatVertices - 1;
+            numIndices = 2 * numLatVertices - 2;
             indices = new Int16Array(numIndices);
 
             index = 0;
             lonIndex = 0;
-            for (latIndex = numLatVertices - 1; latIndex > latIndexMid; latIndex -= 1) {
-                // Exterior, rounded up to nearest even index.
+
+            // Corner vertex.
+            latIndex = numLatVertices - 1;
+            vertexIndex = lonIndex + latIndex * numLonVertices;
+            indices[index++] = vertexIndex;
+
+            for (latIndex = numLatVertices - 2; latIndex > 0; latIndex -= 1) {
+                // Exterior Vertex rounded up to even index.
                 vertexIndex = lonIndex + ((latIndex + 1) & ~1) * numLonVertices;
-                indices[index] = vertexIndex;
+                indices[index++] = vertexIndex;
 
-                // Interior diagonal.
-                vertexIndex = (lonIndex + 1) + (latIndex - 1) * numLonVertices;
-                indices[index + 1] = vertexIndex;
-
-                index += 2;
+                // Interior vertex.
+                vertexIndex = (lonIndex + 1) + latIndex * numLonVertices;
+                indices[index++] = vertexIndex;
             }
 
-            // Insert a single horizontal edge in the middle.
-            vertexIndex = lonIndex + (latIndexMid & ~1) * numLonVertices;
-            indices[index] = vertexIndex;
-            index += 1;
+            // Corner vertex.
+            latIndex = 0;
+            vertexIndex = lonIndex + latIndex * numLonVertices;
+            indices[index++] = vertexIndex;
 
-            for (latIndex = latIndexMid - 1; latIndex >= 0; latIndex -= 1) {
-                // Interior diagonal.
-                vertexIndex = (lonIndex + 1) + (latIndex + 1) * numLonVertices;
-                indices[index] = vertexIndex;
-
-                // Exterior, rounded down to nearest even index.
-                vertexIndex = lonIndex + (latIndex & ~1) * numLonVertices;
-                indices[index + 1] = vertexIndex;
-
-                index += 2;
-            }
-
-            // assert(indices.length == numIndices);
+            // assert(index == numIndices);
             this.indicesLoresWest = indices;
             this.numIndicesLoresWest = numIndices;
 
             // East border.
-            numIndices = 2 * numLatVertices - 1;
+            numIndices = 2 * numLatVertices - 2;
             indices = new Int16Array(numIndices);
 
             index = 0;
             lonIndex = numLonVertices - 1;
-            for (latIndex = 0; latIndex < latIndexMid; latIndex += 1) {
-                // Exterior, rounded down to nearest even index.
+
+            // Corner vertex.
+            latIndex = 0;
+            vertexIndex = lonIndex + latIndex * numLonVertices;
+            indices[index++] = vertexIndex;
+
+            for (latIndex = 1; latIndex < numLatVertices - 1; latIndex += 1) {
+                // Exterior vertex rounded down to even index.
                 vertexIndex = lonIndex + (latIndex & ~1) * numLonVertices;
-                indices[index] = vertexIndex;
+                indices[index++] = vertexIndex;
 
-                // Interior diagonal.
-                vertexIndex = (lonIndex - 1) + (latIndex + 1) * numLonVertices;
-                indices[index + 1] = vertexIndex;
-
-                index += 2;
+                // Interior vertex.
+                vertexIndex = (lonIndex - 1) + latIndex * numLonVertices;
+                indices[index++] = vertexIndex;
             }
 
-            // Insert a single horizontal edge in the middle.
-            vertexIndex = lonIndex + (latIndexMid & ~1) * numLonVertices;
-            indices[index] = vertexIndex;
-            index += 1;
+            // Corner vertex.
+            latIndex = numLatVertices - 1;
+            vertexIndex = lonIndex + latIndex * numLonVertices;
+            indices[index++] = vertexIndex;
 
-            for (latIndex = latIndexMid + 1; latIndex < numLatVertices; latIndex += 1) {
-                // Interior diagonal.
-                vertexIndex = (lonIndex - 1) + (latIndex - 1) * numLonVertices;
-                indices[index] = vertexIndex;
-
-                // Exterior, rounded up to nearest even index.
-                vertexIndex = lonIndex + ((latIndex + 1) & ~1) * numLonVertices;
-                indices[index + 1] = vertexIndex;
-
-                index += 2;
-            }
-
-            // assert(indices.length == numIndices);
+            // assert(index == numIndices);
             this.indicesLoresEast = indices;
             this.numIndicesLoresEast = numIndices;
         };
