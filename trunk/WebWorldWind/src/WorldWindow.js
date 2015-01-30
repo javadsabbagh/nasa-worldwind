@@ -125,12 +125,14 @@ define([
             this.verticalExaggeration = 1;
 
             /**
-             * Indicates that picking will return only one picked item plus the picked terrain, if any. Setting this
-             * flag to <code>true</code> may increase picking performance when the scene contains very many shapes.
+             * Indicates that picking will return all objects at the pick point, if any. The top-most object will have
+             * its <code>isOnTop</code> flag set to <code>true</code>.
+             * If deep picking is <code>false</code>, the default, only the top-most object is returned, plus
+             * the picked-terrain object if the pick point is over the terrain.
              * @type {boolean}
              * @default false
              */
-            this.singlePickMode = false;
+            this.deepPicking = false;
 
             /**
              * Performance statistics for this WorldWindow.
@@ -224,9 +226,9 @@ define([
 
             this.resetDrawContext();
             this.drawContext.pickingMode = true;
-            this.drawContext.regionPickingMode = false;
-            this.drawContext.pickPoint = pickPoint;
+            this.drawContext.regionPicking = false;
             this.pickTerrainOnly = false;
+            this.drawContext.pickPoint = pickPoint;
             this.drawFrame();
 
             return this.drawContext.objectsAtPickPoint;
@@ -252,9 +254,9 @@ define([
 
             this.resetDrawContext();
             this.drawContext.pickingMode = true;
-            this.drawContext.regionPickingMode = false;
-            this.drawContext.pickPoint = pickPoint;
+            this.drawContext.regionPicking = false;
             this.pickTerrainOnly = true;
+            this.drawContext.pickPoint = pickPoint;
             this.drawFrame();
 
             return this.drawContext.objectsAtPickPoint;
@@ -274,7 +276,7 @@ define([
 
             this.resetDrawContext();
             this.drawContext.pickingMode = true;
-            this.drawContext.regionPickingMode = true;
+            this.drawContext.regionPicking = true;
             this.pickTerrainOnly = false;
             this.drawContext.pickRectangle =
                 new Rectangle(rectangle.x, this.canvas.height - rectangle.y, rectangle.width, rectangle.height);
@@ -293,7 +295,7 @@ define([
             dc.navigatorState = this.navigator.currentState();
             dc.verticalExaggeration = this.verticalExaggeration;
             dc.frameStatistics = this.frameStatistics;
-            dc.singlePickMode = this.singlePickMode;
+            dc.deepPicking = this.deepPicking;
             dc.update();
         };
 
@@ -421,7 +423,7 @@ define([
                 this.drawOrderedRenderables();
             }
 
-            if (this.drawContext.regionPickingMode) {
+            if (this.drawContext.regionPicking) {
                 this.resolveRegionPick();
             } else {
                 this.resolveTopPick();
@@ -600,7 +602,7 @@ define([
                     }
 
                     // In single-pick mode provide only the top-most object and the terrain object, if any.
-                    if (this.drawContext.singlePickMode) {
+                    if (!this.drawContext.deepPicking) {
                         pickedObjects.clear();
                         if (topObject) {
                             pickedObjects.add(topObject);
