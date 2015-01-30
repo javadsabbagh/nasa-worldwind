@@ -224,8 +224,9 @@ define([
 
             this.resetDrawContext();
             this.drawContext.pickingMode = true;
+            this.drawContext.regionPickingMode = false;
             this.drawContext.pickPoint = pickPoint;
-            this.drawContext.pickTerrainOnly = false;
+            this.pickTerrainOnly = false;
             this.drawFrame();
 
             return this.drawContext.objectsAtPickPoint;
@@ -251,8 +252,9 @@ define([
 
             this.resetDrawContext();
             this.drawContext.pickingMode = true;
+            this.drawContext.regionPickingMode = false;
             this.drawContext.pickPoint = pickPoint;
-            this.drawContext.pickTerrainOnly = true;
+            this.pickTerrainOnly = true;
             this.drawFrame();
 
             return this.drawContext.objectsAtPickPoint;
@@ -272,6 +274,8 @@ define([
 
             this.resetDrawContext();
             this.drawContext.pickingMode = true;
+            this.drawContext.regionPickingMode = true;
+            this.pickTerrainOnly = false;
             this.drawContext.pickRectangle =
                 new Rectangle(rectangle.x, this.canvas.height - rectangle.y, rectangle.width, rectangle.height);
             this.drawFrame();
@@ -290,9 +294,6 @@ define([
             dc.verticalExaggeration = this.verticalExaggeration;
             dc.frameStatistics = this.frameStatistics;
             dc.singlePickMode = this.singlePickMode;
-            dc.pickPoint = null;
-            dc.pickRectangle = null;
-            dc.pickTerrainOnly = false;
             dc.update();
         };
 
@@ -353,8 +354,10 @@ define([
                 this.beginFrame(this.drawContext, this.viewport);
                 this.createTerrain(this.drawContext);
                 this.clearFrame(this.drawContext);
-                if (this.drawContext.pickingMode && this.drawContext.makePickFrustum()) {
-                    this.doPick(this.drawContext);
+                if (this.drawContext.pickingMode) {
+                    if (this.drawContext.makePickFrustum()) {
+                        this.doPick(this.drawContext);
+                    }
                 } else {
                     this.doDraw(this.drawContext);
                 }
@@ -413,12 +416,16 @@ define([
         WorldWindow.prototype.doPick = function (dc) {
             dc.terrain.pick(dc);
 
-            if (!dc.pickTerrainOnly) {
+            if (!this.pickTerrainOnly) {
                 this.drawLayers();
                 this.drawOrderedRenderables();
             }
 
-            this.resolveTopPick();
+            if (this.drawContext.regionPickingMode) {
+                this.resolveRegionPick();
+            } else {
+                this.resolveTopPick();
+            }
         };
 
         // Internal function. Intentionally not documented.
@@ -602,6 +609,28 @@ define([
                             pickedObjects.add(terrainObject);
                         }
                     }
+                }
+            }
+        };
+
+        // Internal. Intentionally not documented.
+        WorldWindow.prototype.resolveRegionPick = function () {
+            if (this.drawContext.objectsAtPickPoint.objects.length == 0) {
+                return;
+            }
+
+            // Mark every picked object with a color in the pick buffer as "on top".
+
+            var pickedObjects = this.drawContext.objectsAtPickPoint,
+                uniquePickColors = this.drawContext.readPickColors(this.drawContext.pickRectangle),
+                po,
+                color;
+
+            for (var i = 0, len = pickedObjects.objects.length; i < len; i++) {
+                po = pickedObjects.objects[i];
+                color = uniquePickColors[po.color.toByteString()];
+                if (color) {
+                    po.isOnTop = true;
                 }
             }
         };

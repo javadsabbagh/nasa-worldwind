@@ -153,29 +153,26 @@ define([
             return array;
         };
 
-        Color.colorFromBytes = function (bytes) {
+        /**
+         * Construct a color from an array of color components expressed as byte values.
+         * @param {Uint8Array} bytes A four-element array containing the red, green, blue and alpha color components each in
+         * the range [0, 255];
+         * @returns {Color} The constructed color.
+         */
+        Color.colorFromByteArray = function (bytes) {
             return new Color(bytes[0] / 255, bytes[1] / 255, bytes[2] / 255, bytes[3] / 255);
         };
 
         /**
-         * Converts a color expressed in bytes to a number.
-         * @param {Number} r The color's red component in the range [0, 255).
-         * @param {Number} g The color's green component in the range [0, 255).
-         * @param {Number} b The color's blue component in the range [0, 255).
-         * @param {Number} a The color's alpha component in the range [0, 255).
-         * @returns {number} A number representing the specified color components.
+         * Construct a color from specified color components expressed as byte values.
+         * @param {number} redByte The red component in the range [0, 255].
+         * @param {number} greenByte The green component in the range [0, 255].
+         * @param {number} blueByte The blue component in the range [0, 255].
+         * @param {number} alphaByte The alpha component in the range [0, 255].
+         * @returns {Color} The constructed color.
          */
-        Color.makeColorIntFromBytes = function (r, g, b) {
-            return r << 16 | g << 8 | b;
-        };
-
-        /**
-         * Converts a color to a number.
-         * @param {Color} color The color to convert.
-         * @returns {number} A number representing the specified color.
-         */
-        Color.makeColorIntFromColor = function (color) {
-            return Color.makeColorIntFromBytes(Math.round(color.red * 255), Math.round(color.green * 255), Math.round(color.blue * 255));
+        Color.colorFromBytes = function (redByte, greenByte, blueByte, alphaByte) {
+            return new Color(redByte / 255, greenByte / 255, blueByte / 255, alphaByte / 255);
         };
 
         /**
@@ -248,13 +245,12 @@ define([
                 ab = Math.round(this.alpha * 255);
 
             return "(" + rb + "," + gb + "," + bb + "," + ab + ")";
-            return Color.makeColorIntFromBytes(color.red * 255, color.green * 255, color.blue * 255, color.alpha * 255);
         };
 
         /**
          * Create a hex color string that CSS and SVG can use. Optionally, inhibit capturing alpha,
          * because some uses don't like a four-component color specification.
-         * @param isUsingAlpha Enable the use of an alpha component.
+         * @param {boolean} isUsingAlpha Enable the use of an alpha component.
          * @returns {string} A color string suitable for CSS and SVG.
          */
         Color.prototype.toHexString = function(isUsingAlpha) {

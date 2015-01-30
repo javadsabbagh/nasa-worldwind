@@ -177,19 +177,19 @@ define([
             this.pickFrustum = null;
 
             /**
-             * If <code>true</code>, indicates that only terrain is picked, otherwise terrain and pickable shapes are
-             * pick candidates.
-             * @type {boolean}
-             */
-            this.pickTerrainOnly = false;
-
-            /**
              * Indicates that picking will return only one picked item plus the picked terrain, if any. Setting this
              * flag to <code>true</code> may increase picking performance when the scene contains very many shapes.
              * @type {boolean}
              * @default false
              */
             this.singlePickMode = false;
+
+            /**
+             * Indicates that the current picking operation is in support of region picking.
+             * @type {boolean}
+             * @default false
+             */
+            this.regionPickingMode = false;
 
             /**
              * A unique color variable to use during picking.
@@ -258,6 +258,9 @@ define([
             this.orderedRenderablesCounter = 0;
             this.pickColor = new Color(0, 0, 0, 1);
             this.pickingMode = false;
+            this.pickPoint = null;
+            this.pickRectangle = null;
+            this.pickFrustum = null;
             this.objectsAtPickPoint.clear();
         };
 
@@ -411,11 +414,10 @@ define([
         };
 
         /**
-         * Reads the color from the frame buffer at a specified point. Used during picking to identify the item most
+         * Reads the color from the current render buffer at a specified point. Used during picking to identify the item most
          * recently affecting the pixel at the specified point.
          * @param {Vec2} pickPoint The current pick point.
-         * @returns {number} A number identifying the color at the pick point. The number contains the R, G, B and
-         * alpha values, each in the range [0, 255]. See [Color.makeColorInt]{@link Color#makeColorIntFromBytes}.
+         * @returns {Color} The color at the pick point.
          */
         DrawContext.prototype.readPickColor = function (pickPoint) {
             var glPickPoint = this.navigatorState.convertPointToViewport(pickPoint, new Vec2(0, 0, 0)),
@@ -428,7 +430,40 @@ define([
                 return null;
             }
 
-            return Color.colorFromBytes(colorBytes);
+            return Color.colorFromByteArray(colorBytes);
+        };
+
+        /**
+         * Reads the current render buffer colors in a specified rectangle. Used during region picking to identify
+         * the items not occluded.
+         * @param {Rectangle} pickRectangle The rectangle for which to read the colors.
+         * @returns {{}} An object containing the unique colors in the specified rectangle, excluding the current
+         * clear color. The colors are referenced by their byte string
+         * (see [Color.toByteString]{@link Color#toByteString}.
+         */
+        DrawContext.prototype.readPickColors = function (pickRectangle) {
+            var gl = this.currentGlContext,
+                colorBytes = new Uint8Array(pickRectangle.width * pickRectangle.height * 4),
+                uniqueColors = {},
+                color,
+                blankColor = new Color(0, 0, 0, 0),
+                packAlignment = gl.getParameter(WebGLRenderingContext.PACK_ALIGNMENT);
+
+            gl.pixelStorei(WebGLRenderingContext.PACK_ALIGNMENT, 1); // read byte aligned
+            this.currentGlContext.readPixels(pickRectangle.x, pickRectangle.y,
+                pickRectangle.width, pickRectangle.height,
+                WebGLRenderingContext.RGBA, WebGLRenderingContext.UNSIGNED_BYTE, colorBytes);
+            gl.pixelStorei(WebGLRenderingContext.PACK_ALIGNMENT, packAlignment); // restore the pack alignment
+
+            for (var i = 0, len = pickRectangle.width * pickRectangle.height; i < len; i++) {
+                var k = i * 4;
+                color = Color.colorFromBytes(colorBytes[k], colorBytes[k + 1], colorBytes[k + 2], colorBytes[k + 3]);
+                if (color.equals(this.clearColor) || color.equals(blankColor))
+                    continue;
+                uniqueColors[color.toByteString()] = color;
+            }
+
+            return uniqueColors;
         };
 
         /**
@@ -442,7 +477,8 @@ define([
         DrawContext.prototype.resolvePick = function (pickableObject) {
             pickableObject.pickPoint = this.pickPoint;
 
-            if (this.singlePickMode) {
+            if (this.singlePickMode || this.regionPickingMode) {
+                // Don't resolve. Just add the object to the pick list. It will be resolved later.
                 this.addPickedObject(pickableObject);
             } else {
                 var color = this.readPickColor(this.pickPoint);
@@ -526,7 +562,7 @@ define([
             pickRectangle.x = WWMath.clamp(xl, viewport.x, viewport.x + viewport.width);
             pickRectangle.y = WWMath.clamp(yb, viewport.y, viewport.y + viewport.height);
             pickRectangle.width = WWMath.clamp(xr, viewport.x, viewport.x + viewport.width) - pickRectangle.x;
-            pickRectangle.height = WWMath.clamp(yt, viewport.y, viewport.y + viewport.height) - pickRectangle. y;
+            pickRectangle.height = WWMath.clamp(yt, viewport.y, viewport.y + viewport.height) - pickRectangle.y;
             this.pickRectangle = pickRectangle;
 
             // Compute the pick frustum.
