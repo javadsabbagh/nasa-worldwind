@@ -207,15 +207,21 @@ define([
         };
 
         /**
-         * Request the World Wind objects at a point in the receiver's local coordinate system.
+         * Requests the World Wind objects displayed at a specified screen-coordinate point.
          *
          * If the point intersects the terrain, the returned list contains an object identifying the associated geographic
          * position. This returns an empty list when nothing in the World Wind scene intersects the specified point.
          *
-         * @param pickPoint The point to examine in this World Window's local coordinate system.
+         * @param pickPoint The point to examine in this World Window's screen coordinates.
          * @returns {PickedObjectList} A list of picked World Wind objects at the specified pick point.
+         * @throws {ArgumentError} If the specified pick point is undefined.
          */
         WorldWindow.prototype.pick = function (pickPoint) {
+            if (!pickPoint) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "WorldWindow", "pick", "missingPoint"));
+            }
+
             this.resetDrawContext();
             this.drawContext.pickingMode = true;
             this.drawContext.pickPoint = pickPoint;
@@ -226,21 +232,48 @@ define([
         };
 
         /**
-         * Requests the position of the World Wind terrain at a point in the receiver's local coordinate system.
+         * Requests the position of the World Wind terrain at a specified screen-coordinate point..
          *
          * If the point intersects the terrain, the returned list contains a single object identifying the associated geographic
          * position. Otherwise this returns an empty list.
          *
-         * @param pickPoint The point to examine in this World Window's local coordinate system.
+         * @param pickPoint The point to examine in this World Window's screen coordinates.
          *
          * @returns {PickedObjectList} A list containing the picked World Wind terrain position at the specified point,
          * or an empty list if the point does not intersect the terrain.
+         * @throws {ArgumentError} If the specified pick point is undefined.
          */
         WorldWindow.prototype.pickTerrain = function (pickPoint) {
+            if (!pickPoint) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "WorldWindow", "pickTerrain", "missingPoint"));
+            }
+
             this.resetDrawContext();
             this.drawContext.pickingMode = true;
             this.drawContext.pickPoint = pickPoint;
             this.drawContext.pickTerrainOnly = true;
+            this.drawFrame();
+
+            return this.drawContext.objectsAtPickPoint;
+        };
+
+        /**
+         * Requests the World Wind objects displayed within a specified screen-coordinate region.
+         * @param {Rectangle} rectangle The screen coordinate rectangle identifying the region to search.
+         * @returns {PickedObjectList} A list of visible World Wind objects within the specified region.
+         * @throws {ArgumentError} If the specified rectangle is null or undefined.
+         */
+        WorldWindow.prototype.pickShapesInRegion = function (rectangle) {
+            if (!rectangle) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "WorldWindow", "pickShapesInRegion", "missingRectangle"));
+            }
+
+            this.resetDrawContext();
+            this.drawContext.pickingMode = true;
+            this.drawContext.pickRectangle =
+                new Rectangle(rectangle.x, this.canvas.height - rectangle.y, rectangle.width, rectangle.height);
             this.drawFrame();
 
             return this.drawContext.objectsAtPickPoint;
@@ -257,6 +290,9 @@ define([
             dc.verticalExaggeration = this.verticalExaggeration;
             dc.frameStatistics = this.frameStatistics;
             dc.singlePickMode = this.singlePickMode;
+            dc.pickPoint = null;
+            dc.pickRectangle = null;
+            dc.pickTerrainOnly = false;
             dc.update();
         };
 
@@ -317,8 +353,7 @@ define([
                 this.beginFrame(this.drawContext, this.viewport);
                 this.createTerrain(this.drawContext);
                 this.clearFrame(this.drawContext);
-                if (this.drawContext.pickingMode) {
-                    this.drawContext.makePickFrustum();
+                if (this.drawContext.pickingMode && this.drawContext.makePickFrustum()) {
                     this.doPick(this.drawContext);
                 } else {
                     this.doDraw(this.drawContext);
@@ -551,7 +586,7 @@ define([
                             po.isOnTop = true;
                             topObject = po;
 
-                            if (terrainObject){
+                            if (terrainObject) {
                                 break; // no need to search for more than the top object and the terrain object
                             }
                         }
