@@ -76,22 +76,32 @@ requirejs(['../src/WorldWind',
 
         var canvas = document.getElementById("canvasOne"),
             highlightedItems = [];
-        canvas.addEventListener("mousemove", function (e) {
-            var redrawRequired = highlightedItems.length > 0;
 
+        var unHighlight = function () {
             for (var h = 0, lenh = highlightedItems.length; h < lenh; h++) {
                 highlightedItems[h].highlighted = false;
             }
             highlightedItems = [];
+        };
 
-            var pickList = wwd.pick(wwd.canvasCoordinates(e.clientX, e.clientY));
+        var highlight = function (pickList) {
             if (pickList.objects.length > 0) {
-                redrawRequired = true;
                 for (var i = 0, len = pickList.objects.length; i < len; i++) {
                     pickList.objects[i].userObject.highlighted = true;
                     highlightedItems.push(pickList.objects[i].userObject);
                 }
             }
+        };
+
+        canvas.addEventListener("mousemove", function (e) {
+            var redrawRequired = highlightedItems.length > 0;
+            unHighlight();
+
+            var pickList = wwd.pick(wwd.canvasCoordinates(e.clientX, e.clientY));
+            if (pickList.objects.length > 0) {
+                redrawRequired = true;
+            }
+            highlight(pickList);
 
             if (redrawRequired) {
                 wwd.redraw(); // redraw to make the highlighting changes take effect on the screen
@@ -100,18 +110,22 @@ requirejs(['../src/WorldWind',
 
         var tapRecognizer = new WorldWind.TapGestureRecognizer(canvas);
         tapRecognizer.addGestureListener(function (recognizer) {
+            var redrawRequired = highlightedItems.length > 0;
+            unHighlight();
+
             if (recognizer.state == WorldWind.GestureRecognizer.RECOGNIZED) {
                 var location = recognizer.location(),
                     pickList = wwd.pick(wwd.canvasCoordinates(location[0], location[1]));
-
-                for (var i = 0, len = pickList.objects.length; i < len; i++) {
-                    var object = pickList.objects[i].userObject;
-                    object.highlighted = !object.highlighted;
-                }
-
                 if (pickList.objects.length > 0) {
+                    redrawRequired = true;
+                }
+                highlight(pickList);
+
+                if (redrawRequired) {
                     wwd.redraw();
                 }
             }
         });
+
+
     });
