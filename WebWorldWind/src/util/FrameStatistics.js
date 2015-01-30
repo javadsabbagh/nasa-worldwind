@@ -106,7 +106,7 @@ define([],
          * Initializes this frame statistics with initial values.
          */
         FrameStatistics.prototype.beginFrame = function () {
-            this.frameTime = new Date().getTime();
+            this.frameTime = Date.now();
             this.tessellationTime = 0;
             this.layerRenderingTime = 0;
             this.orderedRenderingTime = 0;
@@ -124,7 +124,7 @@ define([],
          * Computes the statistics for the most recent frame.
          */
         FrameStatistics.prototype.endFrame = function () {
-            var now = new Date().getTime();
+            var now = Date.now();
             this.frameTime = now - this.frameTime;
             this.frameTimeCumulative += this.frameTime;
 
