@@ -400,7 +400,6 @@ define([
             var gl = dc.currentGlContext,
                 gpuResourceCache = dc.gpuResourceCache,
                 prim = WebGLRenderingContext.TRIANGLE_STRIP; // replace TRIANGLE_STRIP with LINE_STRIP to debug borders
-                //prim = WebGLRenderingContext.LINE_STRIP; // replace TRIANGLE_STRIP with LINE_STRIP to debug borders
 
             var indicesVbo = gpuResourceCache.resourceForKey(this.indicesVboCacheKey);
             gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, indicesVbo);
