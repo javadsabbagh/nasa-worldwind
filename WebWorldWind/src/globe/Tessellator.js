@@ -61,8 +61,8 @@ define([
             this.maximumSubdivisionDepth = 15; // baseline: 15
 
             // tileWidth, tileHeight - the number of subdivisions a single tile has; this determines the sampling grid.
-            this.tileWidth = 8; // baseline: 32
-            this.tileHeight = 8; // baseline: 32
+            this.tileWidth = 32; // baseline: 32
+            this.tileHeight = 32; // baseline: 32
 
             // detailHintOrigin - a parameter that describes the size of the sampling grid when fully zoomed in.
             // The size of the tile sampling grid when fully zoomed in is related to the logarithm base 10 of this parameter.
