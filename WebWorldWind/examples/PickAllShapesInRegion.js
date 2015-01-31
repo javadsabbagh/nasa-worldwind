@@ -80,68 +80,48 @@ requirejs(['../src/WorldWind',
         var canvas = document.getElementById("canvasOne"),
             highlightedItems = [];
 
-        var unHighlight = function () {
-            for (var h = 0, lenh = highlightedItems.length; h < lenh; h++) {
-                highlightedItems[h].highlighted = false;
-            }
-            highlightedItems = [];
-        };
-
-        var highlight = function (pickList) {
-            if (pickList.objects.length > 0) {
-                for (var i = 0, len = pickList.objects.length; i < len; i++) {
-                    if (pickList.objects[i].isOnTop) {
-                        pickList.objects[i].userObject.highlighted = true;
-                        highlightedItems.push(pickList.objects[i].userObject);
-                    }
-                }
-            }
-        };
-
-        var makePickRectangle = function (x, y) {
-            var rectRadius = 50,
-                pickPoint = wwd.canvasCoordinates(x, y);
-
-            return new WorldWind.Rectangle(
-                pickPoint[0] - rectRadius, pickPoint[1] + rectRadius, 2 * rectRadius, 2 * rectRadius);
-        };
-
         canvas.addEventListener("mousemove", function (e) {
-            var redrawRequired = highlightedItems.length > 0;
-            unHighlight();
-
-            var pickRectangle = makePickRectangle(e.clientX, e.clientY),
-                pickList;
-
-            pickList = wwd.pickShapesInRegion(pickRectangle);
-            if (pickList.objects.length > 0) {
-                redrawRequired = true;
-            }
-            highlight(pickList);
-
-            if (redrawRequired) {
-                wwd.redraw(); // redraw to make the highlighting changes take effect on the screen
-            }
+            handlePick(e.clientX, e.clientY);
         }, false);
 
         var tapRecognizer = new WorldWind.TapRecognizer(canvas);
         tapRecognizer.addGestureListener(function (recognizer) {
+            var location = recognizer.location();
+            handlePick(location[0], location[1]);
+        });
+
+        var handlePick = function (x, y) {
             var redrawRequired = highlightedItems.length > 0;
-            unHighlight();
 
-            var location = recognizer.location(),
-                pickRectangle = makePickRectangle(location[0], location[1]),
-                pickList;
+            // De-highlight any highlighted placemarks.
+            for (var h = 0; h < highlightedItems.length; h++) {
+                highlightedItems[h].highlighted = false;
+            }
+            highlightedItems = [];
 
-            pickList = wwd.pickShapesInRegion(pickRectangle);
+            // Perform the pick.
+            var rectRadius = 50,
+                pickPoint = wwd.canvasCoordinates(x, y),
+                pickRectangle = new WorldWind.Rectangle(pickPoint[0] - rectRadius, pickPoint[1] + rectRadius,
+                    2 * rectRadius, 2 * rectRadius);
+
+            var pickList = wwd.pickShapesInRegion(pickRectangle);
             if (pickList.objects.length > 0) {
                 redrawRequired = true;
             }
-            highlight(pickList);
 
+            // Highlight the items picked.
+            if (pickList.objects.length > 0) {
+                for (var p = 0; p < pickList.objects.length; p++) {
+                    pickList.objects[p].userObject.highlighted = true;
+                    highlightedItems.push(pickList.objects[p].userObject);
+                }
+            }
+
+            // Update the window if we changed anything.
             if (redrawRequired) {
                 wwd.redraw();
             }
-        });
+        };
 
     });
