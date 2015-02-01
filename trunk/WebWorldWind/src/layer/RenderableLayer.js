@@ -83,8 +83,14 @@ define([
         };
 
         RenderableLayer.prototype.doRender = function (dc) {
+            var numOrderedRenderablesAtStart = dc.orderedRenderables.length;
+
             for (var i = 0, len = this.renderables.length; i < len; i++) {
                 this.renderables[i].render(dc);
+            }
+
+            if (dc.orderedRenderables.length > numOrderedRenderablesAtStart) {
+                this.inCurrentFrame = true;
             }
         };
 
