@@ -55,9 +55,16 @@ requirejs(['../src/WorldWind',
             WorldWind.OFFSET_FRACTION, 0.5,
             WorldWind.OFFSET_FRACTION, 0.0);
         placemarkAttributes.imageColor = WorldWind.Color.WHITE;
+        placemarkAttributes.labelAttributes.offset = new WorldWind.Offset(
+            WorldWind.OFFSET_FRACTION, 0.5,
+            WorldWind.OFFSET_FRACTION, 1.0);
+        placemarkAttributes.labelAttributes.color = WorldWind.Color.YELLOW;
 
         for (var i = 0, len = images.length; i < len; i++) {
             placemark = new WorldWind.Placemark(new WorldWind.Position(latitude, longitude + i, 1e2));
+            placemark.label = "Placemark " + i.toString() + "\n"
+            + "Lat " + latitude.toPrecision(4).toString() + "\n"
+            + "Lon " + longitude.toPrecision(5).toString();
             placemarkAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
             placemarkAttributes.imagePath = pinLibrary + images[i];
             highlightAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
@@ -107,6 +114,10 @@ requirejs(['../src/WorldWind',
                 for (var p = 0; p < pickList.objects.length; p++) {
                     pickList.objects[p].userObject.highlighted = true;
                     highlightedItems.push(pickList.objects[p].userObject);
+
+                    if (pickList.objects[p].labelPicked) {
+                        console.log("Label picked");
+                    }
                 }
             }
 

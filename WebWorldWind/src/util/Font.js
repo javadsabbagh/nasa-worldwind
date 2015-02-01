@@ -32,7 +32,7 @@ define([
          * @constructor
          * @classdesc A font descriptor.
          */
-        var Font = function(size, style, variant, weight, family, color, backgroundColor, horizontalAlignment, verticalAlignment) {
+        var Font = function (size, style, variant, weight, family, color, backgroundColor, horizontalAlignment, verticalAlignment) {
             /*
              * All properties of Font are intended to be private and must be accessed via public getters and setters.
              */
@@ -52,7 +52,7 @@ define([
             this.style = style || Font.styles.default;
             this.variant = variant || Font.variants.default;
             this.weight = weight || Font.weights.default;
-            this.family = family || Font.families.default;
+            this.family = family || Font.families.default; // TODO: Is "family" the correct name?
             this.color = color || Color.WHITE;
             this.backgroundColor = backgroundColor || Color.TRANSPARENT;
             this.horizontalAlignment = horizontalAlignment || Font.horizontalAlignments.default;
@@ -65,11 +65,12 @@ define([
              * @memberof Font
              */
             size: {
-                get: function() {
+                get: function () {
                     return this._size;
                 },
-                set: function(value) {
+                set: function (value) {
                     this._hashKey = null;
+                    this._fontString = null;
                     this._size = value;
                 }
             },
@@ -78,11 +79,12 @@ define([
              * @memberof Font
              */
             style: {
-                get: function() {
+                get: function () {
                     return this._style;
                 },
-                set: function(value) {
+                set: function (value) {
                     this._hashKey = null;
+                    this._fontString = null;
                     this._style = value;
                 }
             },
@@ -91,11 +93,12 @@ define([
              * @memberof Font
              */
             variant: {
-                get: function() {
+                get: function () {
                     return this._variant;
                 },
-                set: function(value) {
+                set: function (value) {
                     this._hashKey = null;
+                    this._fontString = null;
                     this._variant = value;
                 }
             },
@@ -104,11 +107,12 @@ define([
              * @memberof Font
              */
             weight: {
-                get: function() {
+                get: function () {
                     return this._weight;
                 },
-                set: function(value) {
+                set: function (value) {
                     this._hashKey = null;
+                    this._fontString = null;
                     this._weight = value;
                 }
             },
@@ -117,11 +121,12 @@ define([
              * @memberof Font
              */
             family: {
-                get: function() {
+                get: function () {
                     return this._family;
                 },
-                set: function(value) {
+                set: function (value) {
                     this._hashKey = null;
+                    this._fontString = null;
                     this._family = value;
                 }
             },
@@ -130,10 +135,10 @@ define([
              * @memberof Font
              */
             color: {
-                get: function() {
+                get: function () {
                     return this._color;
                 },
-                set: function(value) {
+                set: function (value) {
                     this._hashKey = null;
                     this._color = value;
                 }
@@ -143,10 +148,10 @@ define([
              * @memberof Font
              */
             backgroundColor: {
-                get: function() {
+                get: function () {
                     return this._backgroundColor;
                 },
-                set: function(value) {
+                set: function (value) {
                     this._hashKey = null;
                     this._backgroundColor = value;
                 }
@@ -156,10 +161,10 @@ define([
              * @memberof Font
              */
             horizontalAlignment: {
-                get: function() {
+                get: function () {
                     return this._horizontalAlignment;
                 },
-                set: function(value) {
+                set: function (value) {
                     this._hashKey = null;
                     this._horizontalAlignment = value;
                 }
@@ -169,10 +174,10 @@ define([
              * @memberof Font
              */
             verticalAlignment: {
-                get: function() {
+                get: function () {
                     return this._verticalAlignment;
                 },
-                set: function(value) {
+                set: function (value) {
                     this._hashKey = null;
                     this._verticalAlignment = value;
                 }
@@ -182,27 +187,45 @@ define([
              * @memberof Font
              */
             hashKey: {
-                get: function() {
+                get: function () {
                     // If hash key doesn't exist yet, generate it.
                     if (!this._hashKey) {
                         this._hashKey = "Font:{" +
-                            "size:" + this._size.toString() + "," +
-                            "style:" + this._style + "," +
-                            "variant:" + this._variant + "," +
-                            "weight:" + this._weight + "," +
-                            "family:" + this._family + "," +
-                            "color:" + this._color.toHexString(false) + "," +
-                            "backgroundColor:" + this._backgroundColor.toHexString(false) + "," +
-                            "horizontalALignment:" + this._horizontalAlignment + "," +
-                            "verticalALignment:" + this._verticalAlignment +
-                            "}";
+                        "size:" + this._size.toString() + "," +
+                        "style:" + this._style + "," +
+                        "variant:" + this._variant + "," +
+                        "weight:" + this._weight + "," +
+                        "family:" + this._family + "," +
+                        "color:" + this._color.toHexString(false) + "," +
+                        "backgroundColor:" + this._backgroundColor.toHexString(false) + "," +
+                        "horizontalALignment:" + this._horizontalAlignment + "," +
+                        "verticalALignment:" + this._verticalAlignment +
+                        "}";
                     }
                     return this._hashKey;
+                }
+            },
+
+            /**
+             * A string representing this font's style, weight, size and family properties, suitable for
+             * passing directly to a 2D canvas context.
+             * @memberof Font
+             */
+            fontString: {
+                get: function () {
+                    if (!this._fontString) {
+                        this._fontString =
+                            this._style + " " +
+                            this._weight + " " +
+                            this._size.toString() + "px " +
+                            this._family;
+                    }
+                    return this._fontString;
                 }
             }
         });
 
-        /**
+        /*
          * The set of supported font styles.
          * @type {{default: string, normal: string, italic: string, oblique: string}}
          */
@@ -213,7 +236,7 @@ define([
             'oblique': "oblique"
         };
 
-        /**
+        /*
          * The set of supported font variants.
          * @type {{default: string, normal: string, small-caps: string}}
          */
@@ -223,7 +246,7 @@ define([
             'small-caps': "small-caps"
         };
 
-        /**
+        /*
          * The set of supported font weights.
          * @type {{default: string, normal: string, bold: string, 100: string, 200: string, 300: string, 400: string, 500: string, 600: string, 700: string, 800: string, 900: string}}
          */
@@ -242,12 +265,12 @@ define([
             '900': "900"
         };
 
-        /**
+        /*
          * The set of supported font families.
          * @type {{default: string, monospace: string, serif: string, sans_serif: string, sans-serif: string, cursive: string, fantasy: string}}
          */
         Font.families = {
-            'default': "monospace",
+            'default': "sans-serif",
             'monospace': "monospace",
             'serif': "serif",
             'sans_serif': "sans-serif", // '-' is not a valid character in a variable name.
@@ -256,7 +279,7 @@ define([
             'fantasy': "fantasy"
         };
 
-        /**
+        /*
          * The set of supported font horizontal alignments.
          * @type {{default: string, start: string, left: string, center: string, right: string, end: string}}
          */
@@ -269,7 +292,7 @@ define([
             'end': "end"
         };
 
-        /**
+        /*
          * The set of supported font vertical alignments.
          * @type {{default: string, bottom: string, alphabetic: string, middle: string, hanging: string, top: string}}
          */
