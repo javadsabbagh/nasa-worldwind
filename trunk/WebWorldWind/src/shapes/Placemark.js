@@ -9,6 +9,8 @@
 define([
         '../error/ArgumentError',
         '../shaders/BasicTextureProgram',
+        '../util/Color',
+        '../util/Font',
         '../util/Logger',
         '../geom/Matrix',
         '../pick/PickedObject',
@@ -20,6 +22,8 @@ define([
     ],
     function (ArgumentError,
               BasicTextureProgram,
+              Color,
+              Font,
               Logger,
               Matrix,
               PickedObject,
@@ -53,13 +57,6 @@ define([
             Renderable.call(this);
 
             /**
-             * The placemark's display name and label text.
-             * @type {string}
-             * @default Placemark
-             */
-            this.displayName = "Placemark";
-
-            /**
              * The placemark's attributes. If null and this placemark is not highlighted, this placemark is not
              * drawn.
              * @type {PlacemarkAttributes}
@@ -68,10 +65,10 @@ define([
             this.attributes = new PlacemarkAttributes(null);
 
             /**
-             * The attributes used when this placemark's 'highlighted' flag is <code>true</code>. If null and the
+             * The attributes used when this placemark's highlighted flag is true. If null and the
              * highlighted flag is true, this placemark's normal attributes are used. If they, too, are null, this
              * placemark is not drawn.
-             * @type {ShapeAttributes}
+             * @type {PlacemarkAttributes}
              * @default null
              */
             this.highlightAttributes = null;
@@ -97,20 +94,38 @@ define([
             this.position = position;
 
             /**
+             * This placemark's textual label. If null, no label is drawn.
+             * @type {String}
+             * @default null
+             */
+            this.label = null;
+
+            /**
              * This placemark's altitude mode. May be one of
-             * [WorldWind.ABSOLUTE]{@link WorldWind#ABSOLUTE},
-             * [WorldWind.RELATIVE_TO_GROUND]{@link WorldWind#RELATIVE_TO_GROUND},
-             * or [WorldWind.CLAMP_TO_GROUND]{@link WorldWind#CLAMP_TO_GROUND}.
+             * <ul>
+             *  <li>[WorldWind.ABSOLUTE]{@link WorldWind#ABSOLUTE}</li>
+             *  <li>[WorldWind.RELATIVE_TO_GROUND]{@link WorldWind#RELATIVE_TO_GROUND}</li>
+             *  <li>[WorldWind.CLAMP_TO_GROUND]{@link WorldWind#CLAMP_TO_GROUND}</li>
+             * </ul>
              * @type WorldWind.ABSOLUTE
              */
             this.altitudeMode = WorldWind.ABSOLUTE;
 
             /**
-             * Indicates the object to return as the owner of this placemark when picked.
+             * Indicates the object to return as the <code>userObject</code> of this placemark when picked. If null,
+             * then this placemark is returned as the <code>userObject</code>.
              * @type {Object}
              * @default null
+             * @see  [PickedObject.userObject]{@link PickedObject#userObject}
              */
             this.pickDelegate = null;
+
+            /**
+             * Indicates whether this placemark has visual priority over other shapes in the scene.
+             * @type {boolean}
+             * @default false
+             */
+            this.alwaysOnTop = false;
 
             // Internal use only. Intentionally not documented.
             this.activeAttributes = null;
@@ -119,10 +134,16 @@ define([
             this.activeTexture = null;
 
             // Internal use only. Intentionally not documented.
-            this.placePoint = new Vec3(0, 0, 0);
+            this.labelTexture = null;
+
+            // Internal use only. Intentionally not documented.
+            this.placePoint = new Vec3(0, 0, 0); // Cartesian point corresponding to this placemark's geographic position
 
             // Internal use only. Intentionally not documented.
             this.imageTransform = Matrix.fromIdentity();
+
+            // Internal use only. Intentionally not documented.
+            this.labelTransform = Matrix.fromIdentity();
 
             // Internal use only. Intentionally not documented.
             this.texCoordMatrix = Matrix.fromIdentity();
@@ -139,9 +160,8 @@ define([
 
         // Internal use only. Intentionally not documented.
         Placemark.screenPoint = new Vec3(0, 0, 0); // scratch variable
-
-        // Internal use only. Intentionally not documented.
         Placemark.matrix = Matrix.fromIdentity(); // scratch variable
+        Placemark.glPickPoint = new Vec3(0, 0, 0); // scratch variable
 
         Placemark.prototype = Object.create(Renderable.prototype);
 
@@ -149,7 +169,6 @@ define([
          * Renders this placemark. This method is typically not called by applications but is called by
          * [RenderableLayer]{@link RenderableLayer} during rendering. For this shape this method creates and
          * enques an ordered renderable with the draw context and does not actually draw the placemark.
-         * @protected
          * @param {DrawContext} dc The current draw context.
          */
         Placemark.prototype.render = function (dc) {
@@ -172,22 +191,29 @@ define([
         };
 
         /**
-         * Draws this shape as an ordered renderable. Applications do not call this function. It is called by the
-         * World Window during rendering.
-         * @protected
+         * Draws this shape as an ordered renderable. Applications do not call this function. It is called by
+         * [WorldWindow]{@link WorldWindow} during rendering.
          * @param {DrawContext} dc The current draw context.
          */
         Placemark.prototype.renderOrdered = function (dc) {
             this.drawOrderedPlacemark(dc);
 
             if (dc.pickingMode) {
-                dc.resolvePick(new PickedObject(this.pickColor.copy(),
-                    this.pickDelegate ? this.pickDelegate : this,
-                    this.position, this.layer, false));
+                var po = new PickedObject(this.pickColor.copy(), this.pickDelegate ? this.pickDelegate : this,
+                    this.position, this.layer, false);
+
+                if (dc.pickPoint && this.mustDrawLabel()) {
+                    if (this.labelBounds.containsPoint(
+                        dc.navigatorState.convertPointToViewport(dc.pickPoint, Placemark.glPickPoint)))
+                    {
+                        po.labelPicked = true;
+                    }
+                }
+                dc.resolvePick(po);
             }
         };
 
-        /**
+        /* INTENTIONALLY NOT DOCUMENTED
          * Creates an ordered renderable for this shape.
          * @protected
          * @param {DrawContext} dc The current draw context.
@@ -207,7 +233,7 @@ define([
             dc.terrain.surfacePointForMode(this.position.latitude, this.position.longitude, this.position.altitude,
                 this.altitudeMode, this.placePoint);
 
-            this.eyeDistance = dc.navigatorState.eyePoint.distanceTo(this.placePoint);
+            this.eyeDistance = this.alwaysOnTop ? 0 : dc.navigatorState.eyePoint.distanceTo(this.placePoint);
 
             // Compute the placemark's screen point in the OpenGL coordinate system of the WorldWindow by projecting its model
             // coordinate point onto the viewport. Apply a depth offset in order to cause the placemark to appear above nearby
@@ -234,9 +260,6 @@ define([
                     Placemark.screenPoint[2]);
 
                 this.imageTransform.setScale(w * s, h * s, 1);
-
-                this.texCoordMatrix.setToIdentity();
-                this.texCoordMatrix.multiplyByTextureTransform(this.activeTexture);
             } else {
                 s = this.activeAttributes.imageScale;
                 offset = this.activeAttributes.imageOffset.offsetForSize(s, s);
@@ -247,11 +270,38 @@ define([
                     Placemark.screenPoint[2]);
 
                 this.imageTransform.setScale(s, s, 1);
-
-                this.texCoordMatrix.setToIdentity();
             }
 
             this.imageBounds = WWMath.boundingRectForUnitQuad(this.imageTransform);
+
+            // If there's a label, perform these same operations for the label texture, creating that texture if it
+            // doesn't already exist.
+
+            if (this.mustDrawLabel()) {
+                var labelFont = this.activeAttributes.labelAttributes.font,
+                    labelKey = this.label + labelFont.fontString;
+
+                this.labelTexture = dc.gpuResourceCache.textureForKey(labelKey);
+                if (!this.labelTexture) {
+                    this.labelTexture = dc.textSupport.createTexture(dc, this.label, labelFont);
+                    dc.gpuResourceCache.putResource(dc.currentGlContext, labelKey, this.labelTexture,
+                        WorldWind.GPU_TEXTURE, this.labelTexture.size);
+                }
+
+                w = this.labelTexture.imageWidth;
+                h = this.labelTexture.imageHeight;
+                s = this.activeAttributes.labelAttributes.scale;
+                offset = this.activeAttributes.labelAttributes.offset.offsetForSize(w, h);
+
+                this.labelTransform.setTranslation(
+                    Placemark.screenPoint[0] - offset[0] * s,
+                    Placemark.screenPoint[1] - offset[1] * s,
+                    Placemark.screenPoint[2]);
+
+                this.labelTransform.setScale(w * s, h * s, 1);
+
+                this.labelBounds = WWMath.boundingRectForUnitQuad(this.labelTransform);
+            }
 
             return this;
         };
@@ -276,9 +326,11 @@ define([
         // Internal. Intentionally not documented.
         Placemark.prototype.isVisible = function (dc) {
             if (dc.pickingMode) {
-                return dc.pickRectangle && this.imageBounds.intersects(dc.pickRectangle);
+                return dc.pickRectangle && (this.imageBounds.intersects(dc.pickRectangle)
+                    || (this.label && this.labelBounds.intersects(dc.pickRectangle)));
             } else {
-                return this.imageBounds.intersects(dc.navigatorState.viewport);
+                return this.imageBounds.intersects(dc.navigatorState.viewport)
+                    || (this.label && this.labelBounds.intersects(dc.navigatorState.viewport));
             }
         };
 
@@ -323,10 +375,14 @@ define([
 
             dc.findAndBindProgram(gl, BasicTextureProgram);
 
-            // Configure GL to use the draw context's unit quad VBO for both model coordinates and texture coordinates.
+            // Configure GL to use the draw context's unit quad VBOs for both model coordinates and texture coordinates.
+            // Most browsers can share the same buffer for vertex and texture coordinates, but Internet Explorer requires
+            // that they be in separate buffers, so the code below uses the 3D buffer for vertex coords and the 2D
+            // buffer for texture coords.
             program = dc.currentProgram;
+            gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, dc.unitQuadBuffer3());
+            gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, 0, 0);
             gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, dc.unitQuadBuffer());
-            gl.vertexAttribPointer(program.vertexPointLocation, 2, WebGLRenderingContext.FLOAT, false, 0, 0);
             gl.vertexAttribPointer(program.vertexTexCoordLocation, 2, WebGLRenderingContext.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(program.vertexPointLocation);
             gl.enableVertexAttribArray(program.vertexTexCoordLocation);
@@ -334,13 +390,18 @@ define([
             // Tell the program which texture unit to use.
             program.loadTextureUnit(gl, WebGLRenderingContext.TEXTURE0);
 
-            // Turn off texturing if in picking mode.
+            // Turn off texturing in picking mode.
             if (dc.pickingMode) {
                 program.loadTextureEnabled(gl, false);
             }
 
-            // Suppress depth-buffer writes.
-            gl.depthMask(false);
+            if (!this.activeAttributes.depthTest) {
+                // Suppress depth testing entirely.
+                gl.disable(WebGLRenderingContext.DEPTH_TEST, false);
+            } else {
+                // Suppress only depth-buffer writes.
+                gl.depthMask(false);
+            }
 
             // The currentTexture field is used to avoid re-specifying textures unnecessarily. Clear it to start.
             Placemark.currentTexture = null;
@@ -359,7 +420,12 @@ define([
             dc.bindProgram(gl, null);
             gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, null);
             gl.bindTexture(WebGLRenderingContext.TEXTURE_2D, null);
-            gl.depthMask(true);
+
+            if (!this.activeAttributes.depthTest) {
+                gl.disable(WebGLRenderingContext.DEPTH_TEST, true);
+            } else {
+                gl.depthMask(true);
+            }
 
             // Avoid keeping a dangling reference to the current texture.
             Placemark.currentTexture = null;
@@ -375,27 +441,67 @@ define([
             Placemark.matrix.setToMatrix(dc.screenProjection);
             Placemark.matrix.multiplyMatrix(this.imageTransform);
             program.loadModelviewProjection(gl, Placemark.matrix);
-            program.loadTextureMatrix(gl, this.texCoordMatrix);
 
             // Set the pick color for picking or the color, opacity and texture if not picking.
             if (dc.pickingMode) {
                 this.pickColor = dc.uniquePickColor();
                 program.loadPickColor(gl, this.pickColor);
+                program.loadTextureEnabled(gl, false);
             } else {
                 program.loadColor(gl, this.activeAttributes.imageColor);
                 program.loadOpacity(gl, this.layer.opacity);
 
-                if (!this.activeTexture) {
-                    //program.loadTextureEnabled(gl, false); // TODO: is this clause necessary?
-                } else if (Placemark.currentTexture != this.activeTexture) { // avoid unnecessary texture state changes
+                this.texCoordMatrix.setToIdentity();
+                if (this.activeTexture) {
+                    this.texCoordMatrix.multiplyByTextureTransform(this.activeTexture);
+                }
+                program.loadTextureMatrix(gl, this.texCoordMatrix);
+
+                if (this.activeTexture && this.activeTexture != Placemark.currentTexture) { // avoid unnecessary texture state changes
                     textureBound = this.activeTexture.bind(dc); // returns false if active texture is null or cannot be bound
                     program.loadTextureEnabled(gl, textureBound);
                     Placemark.currentTexture = this.activeTexture;
                 }
             }
 
-            // Draw the placemark's quad.
+            // Draw the placemark's image quad.
             gl.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 4);
+
+            // Draw the placemark's label if it has one.
+
+            if (this.mustDrawLabel()) {
+                Placemark.matrix.setToMatrix(dc.screenProjection);
+                Placemark.matrix.multiplyMatrix(this.labelTransform);
+                program.loadModelviewProjection(gl, Placemark.matrix);
+
+                if (!dc.pickingMode && this.labelTexture) {
+                    this.texCoordMatrix.setToIdentity();
+                    this.texCoordMatrix.multiplyByTextureTransform(this.labelTexture);
+
+                    program.loadTextureMatrix(gl, this.texCoordMatrix);
+                    program.loadColor(gl, this.activeAttributes.labelAttributes.color);
+                    program.loadOpacity(gl, this.layer.opacity);
+
+                    textureBound = this.labelTexture.bind(dc);
+                    program.loadTextureEnabled(gl, textureBound);
+                    Placemark.currentTexture = this.labelTexture;
+                }
+
+                // Turn off depth testing for the label unless it's been requested.
+                if (!this.activeAttributes.labelAttributes.depthTest) {
+                    gl.disable(WebGLRenderingContext.DEPTH_TEST, false);
+                }
+                gl.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 4);
+                if (!this.activeAttributes.labelAttributes.depthTest) {
+                    // Turn depth testing back on.
+                    gl.disable(WebGLRenderingContext.DEPTH_TEST, true);
+                }
+            }
+        };
+
+        // Internal. Intentionally not documented.
+        Placemark.prototype.mustDrawLabel = function () {
+            return this.label && this.label.length > 0 && this.activeAttributes.labelAttributes;
         };
 
         return Placemark;

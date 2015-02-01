@@ -8,22 +8,24 @@
  */
 define([
         '../util/Color',
-        '../util/Offset'
+        '../util/Font',
+        '../util/Offset',
+        '../shapes/TextAttributes'
     ],
     function (Color,
-              Offset) {
+              Font,
+              Offset,
+              TextAttributes) {
         "use strict";
 
         /**
          * Constructs a placemark attributes bundle.
-         * The defaults indicate a placemark displayed as a white 1x1 square centered on the placemark's geographic position.
+         * The defaults indicate a placemark displayed as a white 1x1 pixel square centered on the placemark's
+         * geographic position.
          * @alias PlacemarkAttributes
          * @constructor
          * @classdesc Holds attributes applied to [Placemark]{@link Placemark} shapes.
-         * <p>
-         * Placemarks may be drawn either as an image or as a square with a specified size. When the placemark attributes
-         * have a valid image path the placemark's image is drawn as a screen rectangle in the image's original dimensions, scaled
-         * by the image scale. Otherwise, the placemark is drawn as a screen square with width and height equal to image scale.
+         *
          * @param {PlacemarkAttributes} attributes Attributes to initialize this attributes instance to. May be null,
          * in which case the new instance contains default attributes.
          */
@@ -32,21 +34,18 @@ define([
             /**
              * The image color.
              * When this attribute bundle has a valid image path the placemark's image is multiplied by this image
-             * color to achieve the final placemark color. Otherwise the placemark is drawn in this color.
+             * color to achieve the final placemark color. Otherwise the placemark is drawn in this color. The color
+             * white, the default, causes the image to be drawn in its native colors.
              * @type {Color}
              * @default White (1, 1, 1, 1)
              */
             this.imageColor = (attributes && attributes.imageColor) ? attributes.imageColor : new Color(1, 1, 1, 1);
 
             /**
-             * Indicates a location within the placemark's image or square that is placed at the placemark's geographic
-             * position.
-             * When this attribute bundle has a valid image path the offset is relative to the image dimensions. Otherwise, the
-             * offset is relative to a square with width and height equal to imageScale. The offset has its origin at the image or
-             * square's bottom-left corner and has axes that extend up and to the right from the origin point. May be null to
-             * indicate that the image or square's bottom-left corner should be placed at the geographic position.
+             * Indicates the location within the placemark's image to align with the placemark's geographic position.
+             * May be null, in which case the image's bottom-left corner is placed at the geographic position.
              * @type {Offset}
-             * @default 0.5, 0.5, fractional
+             * @default 0.5, 0.5, both fractional (Centers the image on the geographic position.)
              */
             this.imageOffset = (attributes && attributes.imageOffset) ? attributes.imageOffset
                 : new Offset(WorldWind.OFFSET_FRACTION, 0.5, WorldWind.OFFSET_FRACTION, 0.5);
@@ -54,19 +53,39 @@ define([
             /**
              * Indicates the amount to scale the placemark's image.
              * When this attribute bundle has a valid image path the scale is applied to the image's dimensions. Otherwise, the
-             * scale indicates the dimensions of a square drawn at the point placemark's geographic position. Setting imageScale to
-             * 0 causes the placemark to disappear.
+             * scale indicates the dimensions in pixels of a square drawn at the point placemark's geographic position.
+             * A scale of 0 causes the placemark to disappear; however, the placemark's label, if any, is still drawn.
              * @type {Number}
              * @default 1
              */
             this.imageScale = (attributes && attributes.imageScale) ? attributes.imageScale : 1;
 
             /**
-             * The image URL.
+             * The URL of the placemark's image.
              * @type {String}
              * @default null
              */
             this.imagePath = (attributes && attributes.imagePath) ? attributes.imagePath : null;
+
+            /**
+             * Indicates whether the placemark should be depth-tested against other objects in the scene. If true,
+             * the placemark may be occluded by terrain and other objects in certain viewing situations. If false,
+             * the placemark will not be occluded by terrain and other objects. If this value is true, the placemark's
+             * label, if any, has an independent depth-testing control.
+             * See [TextAttributes.depthTest]{@link TextAttributes#depthTest}.
+             * @type {boolean}
+             * @default
+             */
+            this.depthTest = true;
+
+            /**
+             * Indicates the attributes to apply to the placemark's label, if any. If null, the placemark's label is
+             * not drawn.
+             * @type {TextAttributes}
+             * @default The defaults of TextAttributes.
+             */
+            this.labelAttributes = (attributes && attributes.labelAttributes) ? attributes.labelAttributes
+                : new TextAttributes(null);
         };
 
         return PlacemarkAttributes;

@@ -25,6 +25,7 @@ define([
         '../geom/Sector',
         '../render/SurfaceTileRenderer',
         '../render/TextRenderer',
+        '../render/TextSupport',
         '../geom/Vec2',
         '../geom/Vec3',
         '../util/WWMath'
@@ -47,6 +48,7 @@ define([
               Sector,
               SurfaceTileRenderer,
               TextRenderer,
+              TextSupport,
               Vec2,
               Vec3,
               WWMath) {
@@ -235,17 +237,21 @@ define([
             this.orderedRenderablesCounter = 0;
 
             /**
-             * A string used to identify this draw context's unit quad VBO in the GPU resource cache.
-             * @type {string}
-             */
-            this.unitQuadKey = "DrawContextUnitQuadKey";
-
-            /**
              * The singleton text renderer which is on the WorldWindow prototype.
              * @type {TextRenderer}
              */
             this.textRenderer = null;
+
+            /**
+             * A shared TextSupport instance.
+             * @type {TextSupport}
+             */
+            this.textSupport = new TextSupport();
         };
+
+        // Internal use. Intentionally not documented.
+        DrawContext.unitQuadKey = "DrawContextUnitQuadKey";
+        DrawContext.unitQuadKey3 = "DrawContextUnitQuadKey3";
 
         /**
          * Prepare this draw context for the drawing of a new frame.
@@ -651,13 +657,13 @@ define([
         };
 
         /**
-         * Returns the VBO ID of a buffer containing a unit quadrilateral expressed as four vertices at (0, 1), (0, 0),
+         * Returns the VBO ID of a buffer containing a unit quadrilateral expressed as four 2D vertices at (0, 1), (0, 0),
          * (1, 1) and (1, 0). The four vertices are in the order required by a triangle strip. The buffer is created
          * on first use and cached. Subsequent calls to this method return the cached buffer.
          * @returns {Object} The VBO ID identifying the vertex buffer.
          */
         DrawContext.prototype.unitQuadBuffer = function () {
-            var vboId = this.gpuResourceCache.resourceForKey(this.unitQuadKey);
+            var vboId = this.gpuResourceCache.resourceForKey(DrawContext.unitQuadKey);
 
             if (!vboId) {
                 var gl = this.currentGlContext,
@@ -677,7 +683,46 @@ define([
                 gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, points, WebGLRenderingContext.STATIC_DRAW);
                 gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, null);
 
-                this.gpuResourceCache.putResource(gl, this.unitQuadKey, vboId, WorldWind.GPU_BUFFER, points.length * 4);
+                this.gpuResourceCache.putResource(gl, DrawContext.unitQuadKey, vboId, WorldWind.GPU_BUFFER, points.length * 4);
+            }
+
+            return vboId;
+        };
+
+        /**
+         * Returns the VBO ID of a buffer containing a unit quadrilateral expressed as four 3D vertices at (0, 1, 0),
+         * (0, 0, 0), (1, 1, 0) and (1, 0, 0).
+         * The four vertices are in the order required by a triangle strip. The buffer is created
+         * on first use and cached. Subsequent calls to this method return the cached buffer.
+         * @returns {Object} The VBO ID identifying the vertex buffer.
+         */
+        DrawContext.prototype.unitQuadBuffer3 = function () {
+            var vboId = this.gpuResourceCache.resourceForKey(DrawContext.unitQuadKey3);
+
+            if (!vboId) {
+                var gl = this.currentGlContext,
+                    points = new Float32Array(12);
+
+                points[0] = 0; // upper left corner
+                points[1] = 1;
+                points[2] = 0;
+                points[3] = 0; // lower left corner
+                points[4] = 0;
+                points[5] = 0;
+                points[6] = 1; // upper right corner
+                points[7] = 1;
+                points[8] = 0;
+                points[9] = 1; // lower right corner
+                points[10] = 0;
+                points[11] = 0;
+
+                vboId = gl.createBuffer();
+                gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, vboId);
+                gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, points, WebGLRenderingContext.STATIC_DRAW);
+                gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, null);
+
+                this.gpuResourceCache.putResource(gl, DrawContext.unitQuadKey3, vboId, WorldWind.GPU_BUFFER,
+                    points.length * 4);
             }
 
             return vboId;

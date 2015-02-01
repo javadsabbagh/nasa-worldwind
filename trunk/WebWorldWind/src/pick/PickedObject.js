@@ -38,7 +38,7 @@ define([],
             this.pickPoint = null;
 
             /**
-             * An optional object associated with this picked object.
+             * The picked shape.
              * @type {Object}
              */
             this.userObject = userObject;
