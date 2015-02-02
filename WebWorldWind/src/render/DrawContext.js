@@ -24,7 +24,6 @@ define([
         '../geom/Rectangle',
         '../geom/Sector',
         '../render/SurfaceTileRenderer',
-        '../render/TextRenderer',
         '../render/TextSupport',
         '../geom/Vec2',
         '../geom/Vec3',
@@ -47,7 +46,6 @@ define([
               Rectangle,
               Sector,
               SurfaceTileRenderer,
-              TextRenderer,
               TextSupport,
               Vec2,
               Vec3,
@@ -235,12 +233,6 @@ define([
              * @type {number}
              */
             this.orderedRenderablesCounter = 0;
-
-            /**
-             * The singleton text renderer which is on the WorldWindow prototype.
-             * @type {TextRenderer}
-             */
-            this.textRenderer = null;
 
             /**
              * A shared TextSupport instance.

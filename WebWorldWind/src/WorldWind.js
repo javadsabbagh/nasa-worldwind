@@ -54,7 +54,6 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './gesture/PinchRecognizer',
         './shapes/Placemark',
         './shapes/PlacemarkAttributes',
-        './layer/PlacenameLayer',
         './geom/Plane',
         './geom/Position',
         './geom/Rectangle',
@@ -84,7 +83,6 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './globe/Tessellator',
         './shapes/Text',
         './shapes/TextAttributes',
-        './render/TextRenderer',
         './render/TextSupport',
         './render/Texture',
         './render/TextureTile',
@@ -93,7 +91,6 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './util/TileFactory',
         './gesture/TiltRecognizer',
         './error/UnsupportedOperationError',
-        './render/UserFacingText',
         './geom/Vec2',
         './geom/Vec3',
         './util/WmsUrlBuilder',
@@ -149,7 +146,6 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               PinchRecognizer,
               Placemark,
               PlacemarkAttributes,
-              PlacenameLayer,
               Plane,
               Position,
               Rectangle,
@@ -179,7 +175,6 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               Tessellator,
               Text,
               TextAttributes,
-              TextRenderer,
               TextSupport,
               Texture,
               TextureTile,
@@ -188,7 +183,6 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               TileFactory,
               TiltRecognizer,
               UnsupportedOperationError,
-              UserFacingText,
               Vec2,
               Vec3,
               WmsUrlBuilder,
@@ -388,7 +382,6 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['PinchRecognizer'] = PinchRecognizer;
         WorldWind['Placemark'] = Placemark;
         WorldWind['PlacemarkAttributes'] = PlacemarkAttributes;
-        WorldWind['PlacenameLayer'] = PlacenameLayer;
         WorldWind['Plane'] = Plane;
         WorldWind['Position'] = Position;
         WorldWind['Rectangle'] = Rectangle;
@@ -418,7 +411,6 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['Tessellator'] = Tessellator;
         WorldWind['Text'] = Text;
         WorldWind['TextAttributes'] = TextAttributes;
-        WorldWind['TextRenderer'] = TextRenderer;
         WorldWind['TextSupport'] = TextSupport;
         WorldWind['Texture'] = Texture;
         WorldWind['TextureTile'] = TextureTile;
@@ -427,7 +419,6 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['TileFactory'] = TileFactory;
         WorldWind['TiltRecognizer'] = TiltRecognizer;
         WorldWind['UnsupportedOperationError'] = UnsupportedOperationError;
-        WorldWind['UserFacingText'] = UserFacingText;
         WorldWind['Vec2'] = Vec2;
         WorldWind['Vec3'] = Vec3;
         WorldWind['WmsUrlBuilder'] = WmsUrlBuilder;

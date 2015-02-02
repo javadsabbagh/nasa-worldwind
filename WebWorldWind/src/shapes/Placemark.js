@@ -280,7 +280,7 @@ define([
 
             if (this.mustDrawLabel()) {
                 var labelFont = this.activeAttributes.labelAttributes.font,
-                    labelKey = this.label + labelFont.fontString;
+                    labelKey = this.label + labelFont.toString();
 
                 this.labelTexture = dc.gpuResourceCache.textureForKey(labelKey);
                 if (!this.labelTexture) {

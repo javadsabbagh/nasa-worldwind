@@ -203,7 +203,7 @@ define([
             this.computeScreenPointAndEyeDistance(dc);
 
             var labelFont = this.activeAttributes.font,
-                textureKey = this.text + labelFont.fontString;
+                textureKey = this.text + labelFont.toString();
 
             this.activeTexture = dc.gpuResourceCache.textureForKey(textureKey);
             if (!this.activeTexture) {

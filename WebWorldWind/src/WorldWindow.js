@@ -20,7 +20,6 @@ define([
         './geom/Sector',
         './globe/Terrain',
         './globe/Tessellator',
-        './render/TextRenderer',
         './geom/Vec2'],
     function (ArgumentError,
               DrawContext,
@@ -35,7 +34,6 @@ define([
               Sector,
               Terrain,
               Tessellator,
-              TextRenderer,
               Vec2) {
         "use strict";
 
@@ -153,9 +151,6 @@ define([
             // Internal. Intentionally not documented.
             this.drawContext = new DrawContext();
             this.drawContext.canvas = this.canvas;
-
-            // Internal. Intentionally not documented.
-            this.drawContext.textRenderer = WorldWindow.textRender;
 
             // Internal. Intentionally not documented.
             this.pickingFrameBuffer = null;
@@ -636,9 +631,6 @@ define([
                 }
             }
         };
-
-        // Construct the text renderer singleton and make it a property of the WorldWindow class.
-        WorldWindow.textRender = new TextRenderer();
 
         return WorldWindow;
     }
