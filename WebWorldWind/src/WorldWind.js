@@ -26,6 +26,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './util/Font',
         './util/FrameStatistics',
         './geom/Frustum',
+        './shapes/GeographicText',
         './gesture/GestureRecognizer',
         './globe/Globe',
         './shaders/GpuProgram',
@@ -60,6 +61,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './render/Renderable',
         './layer/RenderableLayer',
         './gesture/RotationRecognizer',
+        './shapes/ScreenText',
         './geom/Sector',
         './shapes/ShapeAttributes',
         './layer/ShowTessellationLayer',
@@ -80,7 +82,10 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './globe/TerrainTile',
         './globe/TerrainTileList',
         './globe/Tessellator',
+        './shapes/Text',
+        './shapes/TextAttributes',
         './render/TextRenderer',
+        './render/TextSupport',
         './render/Texture',
         './render/TextureTile',
         './util/Tile',
@@ -116,6 +121,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               Font,
               FrameStatistics,
               Frustum,
+              GeographicText,
               GestureRecognizer,
               Globe,
               GpuProgram,
@@ -150,6 +156,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               Renderable,
               RenderableLayer,
               RotationRecognizer,
+              ScreenText,
               Sector,
               ShapeAttributes,
               ShowTessellationLayer,
@@ -170,7 +177,10 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               TerrainTile,
               TerrainTileList,
               Tessellator,
+              Text,
+              TextAttributes,
               TextRenderer,
+              TextSupport,
               Texture,
               TextureTile,
               Tile,
@@ -350,6 +360,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['Font'] = Font;
         WorldWind['FrameStatistics'] = FrameStatistics;
         WorldWind['Frustum'] = Frustum;
+        WorldWind['GeographicText'] = GeographicText;
         WorldWind['GestureRecognizer'] = GestureRecognizer;
         WorldWind['Globe'] = Globe;
         WorldWind['GpuProgram'] = GpuProgram;
@@ -384,6 +395,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['Renderable'] = Renderable;
         WorldWind['RenderableLayer'] = RenderableLayer;
         WorldWind['RotationRecognizer'] = RotationRecognizer;
+        WorldWind['ScreenText'] = ScreenText;
         WorldWind['Sector'] = Sector;
         WorldWind['ShapeAttributes'] = ShapeAttributes;
         WorldWind['ShowTessellationLayer'] = ShowTessellationLayer;
@@ -404,7 +416,10 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['TerrainTile'] = TerrainTile;
         WorldWind['TerrainTileList'] = TerrainTileList;
         WorldWind['Tessellator'] = Tessellator;
+        WorldWind['Text'] = Text;
+        WorldWind['TextAttributes'] = TextAttributes;
         WorldWind['TextRenderer'] = TextRenderer;
+        WorldWind['TextSupport'] = TextSupport;
         WorldWind['Texture'] = Texture;
         WorldWind['TextureTile'] = TextureTile;
         WorldWind['Tile'] = Tile;
