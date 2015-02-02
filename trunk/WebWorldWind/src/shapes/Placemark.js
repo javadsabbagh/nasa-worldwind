@@ -47,6 +47,7 @@ define([
          * by the image scale attribute. Otherwise, the placemark is drawn as a square with width and height equal to the
          * value of the image scale attribute, in pixels.
          * @param {Position} position The placemark's geographic position.
+         * @throws {ArgumentError} If the specified position is null or undefined.
          */
         var Placemark = function (position) {
             if (!position) {
