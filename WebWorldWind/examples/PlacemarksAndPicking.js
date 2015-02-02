@@ -51,7 +51,7 @@ requirejs(['../src/WorldWind',
             "castshadow-white.png"
         ];
 
-        var pinLibrary = "http://worldwindserver.net/webworldwind/images/pushpins/", // location of the image files
+        var pinLibrary = WorldWind.WWUtil.currentUrlSansFilePart() + "/../images/pushpins/", // location of the image files
             placemark,
             placemarkAttributes = new WorldWind.PlacemarkAttributes(null),
             highlightAttributes,
