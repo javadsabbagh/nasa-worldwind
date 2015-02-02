@@ -41,7 +41,6 @@ define([
              * @default Those of [Font]{@link Font}, but with size of 14px and center justification.
              */
             this.font = (attributes && attributes.font) ? attributes.font : new Font(14);
-            this.font.horizontalAlignment = "center";
 
             /**
              * Indicates the location of the text relative to its geographic position.
