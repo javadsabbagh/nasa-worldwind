@@ -94,7 +94,7 @@ define([
              * @type {number}
              * @default 1.0
              */
-            this.imageScale = attributes ? attributes.imageScale : null;
+            this.imageScale = attributes ? attributes.imageScale : 1.0;
 
             /**
              * Indicates the reference point within the associated shape's image at which to locate the image on the
