@@ -108,7 +108,7 @@ define([
              *  <li>[WorldWind.RELATIVE_TO_GROUND]{@link WorldWind#RELATIVE_TO_GROUND}</li>
              *  <li>[WorldWind.CLAMP_TO_GROUND]{@link WorldWind#CLAMP_TO_GROUND}</li>
              * </ul>
-             * @type WorldWind.ABSOLUTE
+             * @default WorldWind.ABSOLUTE
              */
             this.altitudeMode = WorldWind.ABSOLUTE;
 
