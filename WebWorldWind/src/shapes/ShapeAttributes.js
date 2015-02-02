@@ -40,7 +40,7 @@ define([
             this.drawOutline = attributes ? attributes.drawOutline : true;
 
             /**
-             * Indicates whether lighting is applied to the associatd shape.
+             * Indicates whether lighting is applied to the associated shape.
              * @type {boolean}
              * @default false
              */
@@ -79,7 +79,7 @@ define([
              * @type {number}
              * @default 0xF0F0
              */
-            this.outlineStipplePattern = attributes ? attributes.outlineStippleFactor : 0xF0F0;
+            this.outlineStipplePattern = attributes ? attributes.outlineStipplePattern : 0xF0F0;
 
             /**
              * Indicates the associated shape's image source, a URL string. May be null, in which case no image is
