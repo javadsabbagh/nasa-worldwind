@@ -68,14 +68,24 @@ define([
             this.outlineWidth = attributes ? attributes. outlineWidth : 1.0;
 
             /**
-             * Indicates the associated shape's outline stipple factor.
+             * Indicates the associated shape's outline stipple factor. Specifies the number of times each bit in the
+             * outline stipple pattern is repeated before the next bit is used. For example, if the outline stipple
+             * factor is 3, each bit is repeated three times before using the next bit. The specified factor must be
+             * either 0 or an integer greater than 0. A stipple factor of 0 indicates no stippling.
              * @type {number}
              * @default 0
              */
             this.outlineStippleFactor = attributes ? attributes.outlineStippleFactor : 0;
 
             /**
-             * Indicates the associated shape's outline stipple pattern.
+             * Indicates the associated shape's outline stipple pattern. Specifies a number whose lower 16 bits
+             * define a pattern of which pixels in the outline are rendered and which are suppressed. Each bit
+             * corresponds to a pixel in the shape's outline, and the pattern repeats after every n*16 pixels, where
+             * n is the [stipple factor]{@link ShapeAttributes#outlineStippleFactor}. For example, if the outline
+             * stipple factor is 3, each bit in the stipple pattern is repeated three times before using the next bit.
+             * <p>
+             * To disable outline stippling, either specify a stipple factor of 0 or specify a stipple pattern of
+             * all 1 bits, i.e., 0xFFFF.
              * @type {number}
              * @default 0xF0F0
              */
