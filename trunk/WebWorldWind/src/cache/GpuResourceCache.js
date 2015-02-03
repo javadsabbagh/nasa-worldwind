@@ -7,12 +7,14 @@
  * @version $Id$
  */
 define([
+        '../util/AbsentResourceList',
         '../error/ArgumentError',
         '../util/Logger',
         '../cache/MemoryCache',
         '../render/Texture'
     ],
-    function (ArgumentError,
+    function (AbsentResourceList,
+              ArgumentError,
               Logger,
               MemoryCache,
               Texture) {
@@ -45,6 +47,7 @@ define([
             this.entries.addCacheListener(this);
 
             this.currentRetrievals = {};
+            this.absentResourceList = new AbsentResourceList(3, 60e3);
         };
 
         /**
@@ -243,7 +246,7 @@ define([
          * @param {String} imageUrl The URL of the image.
          */
         GpuResourceCache.prototype.retrieveTexture = function (gl, imageUrl) {
-            if (!imageUrl || this.currentRetrievals[imageUrl]) {
+            if (!imageUrl || this.currentRetrievals[imageUrl] || this.absentResourceList.isResourceAbsent(imageUrl)) {
                 return;
             }
 
@@ -258,6 +261,7 @@ define([
                 cache.putResource(imageUrl, texture, WorldWind.GPU_TEXTURE, texture.size);
 
                 delete cache.currentRetrievals[imageUrl];
+                cache.absentResourceList.unmarkResourceAbsent(imageUrl);
 
                 // Send an event to request a redraw.
                 var e = document.createEvent('Event');
@@ -267,6 +271,7 @@ define([
 
             image.onerror = function () {
                 delete cache.currentRetrievals[imageUrl];
+                cache.absentResourceList.markResourceAbsent(imageUrl);
                 Logger.log(Logger.LEVEL_WARNING, "Image retrieval failed: " + imageUrl);
             };
 

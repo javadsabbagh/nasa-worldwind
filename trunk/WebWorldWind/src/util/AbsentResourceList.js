@@ -60,7 +60,7 @@ define([],
                 return false;
             }
 
-            var timeSinceLastMark = new Date().getTime() - entry.timeOfLastMark;
+            var timeSinceLastMark = Date.now() - entry.timeOfLastMark;
 
             if (timeSinceLastMark > this.tryAgainInterval) {
                 delete this.possiblyAbsent[resourceId];
@@ -81,14 +81,14 @@ define([],
 
             if (!entry) {
                 entry = {
-                    timeOfLastMark: new Date().getTime(),
+                    timeOfLastMark: Date.now(),
                     numTrys: 0
                 };
                 this.possiblyAbsent[resourceId] = entry;
             }
 
             entry.numTrys = entry.numTrys + 1;
-            entry.timeOfLastMark = new Date().getTime();
+            entry.timeOfLastMark = Date.now();
         };
 
         /**
