@@ -275,7 +275,7 @@ define([
                 image.onload = function () {
                     Logger.log(Logger.LEVEL_INFO, "Image retrieval succeeded: " + url);
                     var texture = new Texture(gl, image);
-                    cache.putResource(imagePath, texture, WorldWind.GPU_TEXTURE, texture.size);
+                    cache.putResource(imagePath, texture, texture.size);
 
                     layer.removeFromCurrentRetrievals(imagePath);
                     layer.currentTilesInvalid = true;

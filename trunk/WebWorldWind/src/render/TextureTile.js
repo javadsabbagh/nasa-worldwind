@@ -68,7 +68,7 @@ define([
          * @returns {boolean} <code>true</code> if the texture was bound successfully, otherwise <code>false</code>.
          */
         TextureTile.prototype.bind = function (dc) {
-            var texture = dc.gpuResourceCache.textureForKey(this.imagePath);
+            var texture = dc.gpuResourceCache.resourceForKey(this.imagePath);
             if (texture) {
                 return texture.bind(dc);
             }
@@ -86,7 +86,7 @@ define([
          * @param {Matrix} matrix The matrix to apply the transform to.
          */
         TextureTile.prototype.applyInternalTransform = function (dc, matrix) {
-            if (this.fallbackTile && !(dc.gpuResourceCache.textureForKey(this.imagePath))) {
+            if (this.fallbackTile && !(dc.gpuResourceCache.resourceForKey(this.imagePath))) {
                 // Must apply a texture transform to map the tile's sector into its fallback's image.
                 this.applyFallbackTransform(matrix);
             }

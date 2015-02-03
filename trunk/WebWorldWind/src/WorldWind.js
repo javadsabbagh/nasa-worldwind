@@ -253,21 +253,6 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
             FAILED: "failed",
 
             /**
-             * Indicates a GPU program resource.
-             */
-            GPU_PROGRAM: "gpuProgram",
-
-            /**
-             * Indicates a GPU texture resource.
-             */
-            GPU_TEXTURE: "gpuTexture",
-
-            /**
-             * Indicates a GPU buffer resource.
-             */
-            GPU_BUFFER: "gpuBuffer",
-
-            /**
              * Indicates a great circle path.
              * @constant
              */

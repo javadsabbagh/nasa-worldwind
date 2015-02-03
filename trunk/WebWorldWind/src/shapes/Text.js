@@ -205,11 +205,10 @@ define([
             var labelFont = this.activeAttributes.font,
                 textureKey = this.text + labelFont.toString();
 
-            this.activeTexture = dc.gpuResourceCache.textureForKey(textureKey);
+            this.activeTexture = dc.gpuResourceCache.resourceForKey(textureKey);
             if (!this.activeTexture) {
                 this.activeTexture = dc.textSupport.createTexture(dc, this.text, labelFont);
-                dc.gpuResourceCache.putResource(textureKey, this.activeTexture,
-                    WorldWind.GPU_TEXTURE, this.activeTexture.size);
+                dc.gpuResourceCache.putResource(textureKey, this.activeTexture, this.activeTexture.size);
             }
 
             w = this.activeTexture.imageWidth;
