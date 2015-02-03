@@ -10,11 +10,13 @@ define([
         '../util/Color',
         '../util/Font',
         '../util/Offset',
+        '../shapes/ShapeAttributes',
         '../shapes/TextAttributes'
     ],
     function (Color,
               Font,
               Offset,
+              ShapeAttributes,
               TextAttributes) {
         "use strict";
 
@@ -86,6 +88,20 @@ define([
              */
             this.labelAttributes = (attributes && attributes.labelAttributes) ? attributes.labelAttributes
                 : new TextAttributes(null);
+
+            /**
+             * Indicates whether to draw a line from the placemark's geographical position to the ground.
+             * @type {boolean}
+             * @default false
+             */
+            this.drawLeaderline = false;
+
+            /**
+             * The attributes to apply to the leader line.
+             * @type {ShapeAttributes}
+             * @default See {@link ShapeAttributes}
+             */
+            this.leaderLineAttributes = new ShapeAttributes(null);
         };
 
         return PlacemarkAttributes;
