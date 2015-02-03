@@ -80,7 +80,7 @@ define([
 
                 image.onload = function () {
                     var texture = new Texture(gl, image);
-                    cache.putResource(gl, imagePath, texture, WorldWind.GPU_TEXTURE, texture.size);
+                    cache.putResource(imagePath, texture, WorldWind.GPU_TEXTURE, texture.size);
 
                     surfaceImage.retrievalInProgress = false;
 

@@ -208,7 +208,7 @@ define([
             this.activeTexture = dc.gpuResourceCache.textureForKey(textureKey);
             if (!this.activeTexture) {
                 this.activeTexture = dc.textSupport.createTexture(dc, this.text, labelFont);
-                dc.gpuResourceCache.putResource(dc.currentGlContext, textureKey, this.activeTexture,
+                dc.gpuResourceCache.putResource(textureKey, this.activeTexture,
                     WorldWind.GPU_TEXTURE, this.activeTexture.size);
             }
 
