@@ -99,7 +99,8 @@ requirejs(['../src/WorldWind',
             }
             highlightedItems = [];
 
-            // Perform the pick.
+            // Perform the pick. Must first convert from window coordinates to canvas coordinates, which are
+            // relative to the upper left corner of the canvas rather than the upper left corner of the page.
             var rectRadius = 50,
                 pickPoint = wwd.canvasCoordinates(x, y),
                 pickRectangle = new WorldWind.Rectangle(pickPoint[0] - rectRadius, pickPoint[1] + rectRadius,
