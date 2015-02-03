@@ -118,7 +118,7 @@ define([
              * The GPU resource cache, which tracks WebGL resources.
              * @type {GpuResourceCache}
              */
-            this.gpuResourceCache = new GpuResourceCache();
+            this.gpuResourceCache = null;
 
             /**
              * The current eye position.

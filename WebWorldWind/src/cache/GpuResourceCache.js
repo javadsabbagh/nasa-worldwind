@@ -29,16 +29,16 @@ define([
          * @throws {ArgumentError} If the specified capacity is 0 or negative or the low-water value is negative.
          */
         var GpuResourceCache = function (capacity, lowWater) {
-            if (capacity < 1) {
+            if (!capacity || capacity < 1) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "GpuResourceCache", "constructor",
-                        "Specified cache capacity is 0 or negative."));
+                        "Specified cache capacity is undefined, 0 or negative."));
             }
 
-            if (lowWater < 0) {
+            if (!lowWater || lowWater < 0) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "GpuResourceCache", "constructor",
-                        "Specified cache low-water value is negative."));
+                        "Specified cache low-water value is undefined or negative."));
             }
 
             this.entries = new MemoryCache(capacity, lowWater);
