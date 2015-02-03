@@ -604,7 +604,7 @@ define([
                         if (topObject) {
                             pickedObjects.add(topObject);
                         }
-                        if (terrainObject) {
+                        if (terrainObject && terrainObject != topObject) {
                             pickedObjects.add(terrainObject);
                         }
                     }
