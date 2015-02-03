@@ -427,7 +427,9 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['WorldWindow'] = WorldWindow;
         WorldWind['ZeroElevationModel'] = ZeroElevationModel;
 
-        WorldWind.configuration = {};
+        WorldWind.configuration = {
+            gpuCacheSize: 250e6
+        };
 
         window.WorldWind = WorldWind;
 

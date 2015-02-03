@@ -146,11 +146,13 @@ define([
             this.redrawCallbacks = [];
 
             // Internal. Intentionally not documented.
-            this.gpuResourceCache = new GpuResourceCache();
+            this.gpuResourceCache = new GpuResourceCache(WorldWind.configuration.gpuCacheSize,
+                0.8 * WorldWind.configuration.gpuCacheSize);
 
             // Internal. Intentionally not documented.
             this.drawContext = new DrawContext();
             this.drawContext.canvas = this.canvas;
+            this.drawContext.gpuResourceCache = this.gpuResourceCache;
 
             // Internal. Intentionally not documented.
             this.pickingFrameBuffer = null;
