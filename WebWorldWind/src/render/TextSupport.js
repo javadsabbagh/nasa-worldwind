@@ -41,7 +41,7 @@ define([
             this.ctx2D = this.canvas2D.getContext("2d");
 
             // Internal use only. Intentionally not documented.
-            this.lineSpacing = 0.25; // fraction of font size
+            this.lineSpacing = 0.15; // fraction of font size
         };
 
         /**
@@ -58,7 +58,7 @@ define([
             this.ctx2D.font = font.fontString;
 
             var lines = text.split("\n"),
-                height = font.size +  (lines.length - 1) * (font.size * (1 + this.lineSpacing)),
+                height = lines.length * (font.size * (1 + this.lineSpacing)),
                 maxWidth = 0;
 
             for (var i = 0; i < lines.length; i++) {
