@@ -66,7 +66,7 @@ define([
         SurfaceImage.prototype = Object.create(SurfaceTile.prototype);
 
         SurfaceImage.prototype.bind = function (dc) {
-            var texture = dc.gpuResourceCache.textureForKey(this.imagePath);
+            var texture = dc.gpuResourceCache.resourceForKey(this.imagePath);
             if (texture) {
                 return texture.bind(dc);
             }
@@ -80,7 +80,7 @@ define([
 
                 image.onload = function () {
                     var texture = new Texture(gl, image);
-                    cache.putResource(imagePath, texture, WorldWind.GPU_TEXTURE, texture.size);
+                    cache.putResource(imagePath, texture, texture.size);
 
                     surfaceImage.retrievalInProgress = false;
 

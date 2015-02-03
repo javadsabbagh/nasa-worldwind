@@ -282,11 +282,10 @@ define([
                 var labelFont = this.activeAttributes.labelAttributes.font,
                     labelKey = this.label + labelFont.toString();
 
-                this.labelTexture = dc.gpuResourceCache.textureForKey(labelKey);
+                this.labelTexture = dc.gpuResourceCache.resourceForKey(labelKey);
                 if (!this.labelTexture) {
                     this.labelTexture = dc.textSupport.createTexture(dc, this.label, labelFont);
-                    dc.gpuResourceCache.putResource(labelKey, this.labelTexture,
-                        WorldWind.GPU_TEXTURE, this.labelTexture.size);
+                    dc.gpuResourceCache.putResource(labelKey, this.labelTexture, this.labelTexture.size);
                 }
 
                 w = this.labelTexture.imageWidth;
@@ -316,7 +315,7 @@ define([
             }
 
             if (this.activeAttributes && this.activeAttributes.imagePath) {
-                this.activeTexture = dc.gpuResourceCache.textureForKey(this.activeAttributes.imagePath);
+                this.activeTexture = dc.gpuResourceCache.resourceForKey(this.activeAttributes.imagePath);
 
                 if (!this.activeTexture) {
                     dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, this.activeAttributes.imagePath);
