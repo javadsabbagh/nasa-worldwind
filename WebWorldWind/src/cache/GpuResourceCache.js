@@ -48,18 +48,12 @@ define([
         };
 
         /**
-         * Function called when a resource is removed from the underlying memory cache. This function disposes of the
-         * associated WebGL resource.
+         * Function called when a resource is removed from the underlying memory cache.
          * @param {String} key The resource's key.
          * @param {Object} entry The memory cache entry removed.
          * @protected
          */
         GpuResourceCache.prototype.entryRemoved = function (key, entry) { // MemoryCacheListener method
-            if (typeof entry.resource.dispose === 'function') {
-                entry.resource.dispose(entry.gl);
-            } else if (entry.resourceType === WorldWind.GPU_BUFFER) {
-                entry.gl.deleteBuffer(entry.resource);
-            }
         };
 
         /**
@@ -139,7 +133,6 @@ define([
         /**
          * Adds a specified resource to this cache. Replaces the existing resource for the specified key if the
          * cache currently contains a resource for that key.
-         * @param {WebGLRenderingContext} gl The current WebGL context.
          * @param {String} key The key of the resource to add.
          * @param {Object} resource The resource to add to the cache.
          * @param {String} resourceType The type of resource. Recognized values are
@@ -150,7 +143,7 @@ define([
          * @throws {ArgumentError} If any of the key, resource or resource-type arguments is null or undefined
          * or the specified size is less than 1.
          */
-        GpuResourceCache.prototype.putResource = function (gl, key, resource, resourceType, size) {
+        GpuResourceCache.prototype.putResource = function (key, resource, resourceType, size) {
             if (!key) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "GpuResourceCache", "putResource", "missingKey."));
@@ -174,7 +167,6 @@ define([
             }
 
             var entry = {
-                gl: gl,
                 resource: resource,
                 resourceType: resourceType
             };
@@ -263,7 +255,7 @@ define([
 
                 var texture = new Texture(gl, image);
 
-                cache.putResource(gl, imageUrl, texture, WorldWind.GPU_TEXTURE, texture.size);
+                cache.putResource(imageUrl, texture, WorldWind.GPU_TEXTURE, texture.size);
 
                 delete cache.currentRetrievals[imageUrl];
 

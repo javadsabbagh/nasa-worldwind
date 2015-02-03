@@ -322,7 +322,7 @@ define([
                 try {
                     program = new programConstructor(gl);
                     this.bindProgram(gl, program);
-                    this.gpuResourceCache.putResource(gl, programConstructor, program, WorldWind.GPU_PROGRAM, program.size);
+                    this.gpuResourceCache.putResource(programConstructor, program, WorldWind.GPU_PROGRAM, program.size);
                 } catch (e) {
                     Logger.log(Logger.LEVEL_SEVERE, "Error attempting to create GPU program.")
                 }
@@ -675,7 +675,7 @@ define([
                 gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, points, WebGLRenderingContext.STATIC_DRAW);
                 gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, null);
 
-                this.gpuResourceCache.putResource(gl, DrawContext.unitQuadKey, vboId, WorldWind.GPU_BUFFER, points.length * 4);
+                this.gpuResourceCache.putResource(DrawContext.unitQuadKey, vboId, WorldWind.GPU_BUFFER, points.length * 4);
             }
 
             return vboId;
@@ -713,7 +713,7 @@ define([
                 gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, points, WebGLRenderingContext.STATIC_DRAW);
                 gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, null);
 
-                this.gpuResourceCache.putResource(gl, DrawContext.unitQuadKey3, vboId, WorldWind.GPU_BUFFER,
+                this.gpuResourceCache.putResource(DrawContext.unitQuadKey3, vboId, WorldWind.GPU_BUFFER,
                     points.length * 4);
             }
 

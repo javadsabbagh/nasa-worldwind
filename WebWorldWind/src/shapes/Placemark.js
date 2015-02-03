@@ -285,7 +285,7 @@ define([
                 this.labelTexture = dc.gpuResourceCache.textureForKey(labelKey);
                 if (!this.labelTexture) {
                     this.labelTexture = dc.textSupport.createTexture(dc, this.label, labelFont);
-                    dc.gpuResourceCache.putResource(dc.currentGlContext, labelKey, this.labelTexture,
+                    dc.gpuResourceCache.putResource(labelKey, this.labelTexture,
                         WorldWind.GPU_TEXTURE, this.labelTexture.size);
                 }
 
