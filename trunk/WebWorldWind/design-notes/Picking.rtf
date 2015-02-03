@@ -4,10 +4,11 @@
 \margl1440\margr1440\vieww14720\viewh15360\viewkind0
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
 
-\f0\fs24 \cf0 2/1/15 \
+\f0\fs24 \cf0 2/3/15 \
 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural
 
-\fs28 Picking is the operation of informing the application of the shapes and terrain position at or near a specified screen location. The location is typically the cursor position or, in the case of touch screen devices, a tap position.\
+\fs28 \cf0 Picking is the operation of informing the application of the shapes and terrain position at or near a specified screen location. The location is typically the cursor position or, in the case of touch screen devices, a tap position.\
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
 \cf0 \
 World Wind provides three types of picking:\
@@ -25,6 +26,8 @@ Picking utilizes the GPU to determine which objects are at the pick point. Durin
 In the case of top-most picking, all shapes intersecting the pick frustum are collected during off-screen rendering. When they have all been rendered, the frame buffer is read and the color there matched against the collected shapes. The shape matching the color is returned as the picked shape.\
 \
 Terrain intersecting the pick frustum is also drawn in a unique pick color per terrain triangle, after determining the terrain tile that must be sampled. The triangle at the pick point is determined by matching the color read from the frame buffer. Further calculation determines the geographic position in that triangle corresponding to the pick point.\
+\
+In top-most picking, the picked terrain position is returned along with the picked shape, unless the terrain occludes all shapes at the pick point, in which case only the picked terrain position is returned. In deep picking, the terrain position is returned along with all shapes at the pick position, and marked as the top-most object if it occludes all shapes. In region picking no terrain position is returned.\
 \
 In the case of deep picking, each shape is rendered in a unique color and the frame buffer is read immediately to determine if the shape affected the screen at the pick point. If so, it is added to the list of picked shapes. Once all shapes so determined are collected, a final read of the frame buffer produces a color that is matched to the picked shapes to determine which of them is top-most. Terrain is picked as described for the previous case, and it, too, is considered in this final top-most determination. The terrain may be top-most.\
 \
