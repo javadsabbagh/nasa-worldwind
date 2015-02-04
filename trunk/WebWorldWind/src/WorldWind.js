@@ -414,9 +414,9 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
 
         /**
          * Holds configuration parameters for World Wind. Applications may modify these parameters prior to creating
-         * any World Wind objects. Configuration properties are:
+         * their first World Wind objects. Configuration properties are:
          * <ul>
-         *     <li><code>gpuCacheSize</code> A number indicating the size in bytes to allocate from GPU memory for
+         *     <li><code>gpuCacheSize</code>: A number indicating the size in bytes to allocate from GPU memory for
          *     resources such as textures, GLSL programs and buffer objects. Default is 250e6 (250 MB).
          * </ul>
          * @type {{gpuCacheSize: number}}
