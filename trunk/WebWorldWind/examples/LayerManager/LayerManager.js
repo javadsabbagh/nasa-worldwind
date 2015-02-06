@@ -48,7 +48,7 @@ define(function () {
             selections = ["3D", "Equirectangular", "Mercator", "North Polar", "South Polar"],
             form, div, label, option;
 
-        // If no globe div, create one.
+        // If no projection div, create one.
         if (!projectionDiv) {
             lm.className = "layerManager";
 
@@ -94,6 +94,8 @@ define(function () {
             var projection = this.wwd.globe.projection;
             if (projection instanceof WorldWind.ProjectionEquirectangular) {
                 this.projectionSelect.selectedIndex = selections.indexOf("Equirectangular");
+            } else if (projection instanceof WorldWind.ProjectionMercator) {
+                this.projectionSelect.selectedIndex = selections.indexOf("Mercator");
             }
         } else {
             this.roundGlobe = this.wwd.globe;
@@ -222,6 +224,8 @@ define(function () {
 
             if (projectionName === "Equirectangular") {
                 this.flatGlobe.projection = new WorldWind.ProjectionEquirectangular();
+            } else if (projectionName === "Mercator") {
+                this.flatGlobe.projection = new WorldWind.ProjectionMercator();
             }
 
             if (this.wwd.globe !== this.flatGlobe) {

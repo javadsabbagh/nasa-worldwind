@@ -10,14 +10,12 @@ define([
         '../geom/Angle',
         '../error/ArgumentError',
         '../projections/GeographicProjection',
-        '../util/Logger',
-        '../geom/Vec3'
+        '../util/Logger'
     ],
     function (Angle,
               ArgumentError,
               GeographicProjection,
-              Logger,
-              Vec3) {
+              Logger) {
         "use strict";
 
         /**
@@ -35,7 +33,8 @@ define([
         ProjectionEquirectangular.prototype = Object.create(GeographicProjection.prototype);
 
         // Documented in base class.
-        ProjectionEquirectangular.prototype.geographicToCartesian = function (globe, latitude, longitude, elevation, offset, result) {
+        ProjectionEquirectangular.prototype.geographicToCartesian = function (globe, latitude, longitude, elevation,
+                                                                              offset, result) {
             if (!globe) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "ProjectionEquirectangular",
                     "geographicToCartesian", "missingGlobe"));
@@ -109,7 +108,7 @@ define([
                         lon = maxLon;
 
                     x = eqr * lon - referenceCenter[0];
-                    z = elevations[pos] - referenceCenter[2];
+                    z = elevations[pos++] - referenceCenter[2];
 
                     result[k++] = x;
                     result[k++] = y;
@@ -132,8 +131,8 @@ define([
                     "cartesianToGeographic", "missingResult"));
             }
 
-            result.latitude = y / globe.equatorialRadius;
-            result.longitude = (x - (offset ? offset[0] : 0)) / globe.equatorialRadius;
+            result.latitude = (y / globe.equatorialRadius) * Angle.RADIANS_TO_DEGREES;
+            result.longitude = ((x - (offset ? offset[0] : 0)) / globe.equatorialRadius) * Angle.RADIANS_TO_DEGREES;
             result.altitude = z;
 
             return result;
