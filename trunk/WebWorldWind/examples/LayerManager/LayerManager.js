@@ -32,24 +32,106 @@ define(function () {
             layerManger.update();
         });
 
-        // Initially populate the layer manager.
+        // Initially populate the controls.
         this.update();
+    };
+
+    LayerManager.prototype.update = function () {
+        this.updateProjection();
+        this.updateLayers();
+    };
+
+    LayerManager.prototype.updateProjection = function () {
+        var layerManager = this,
+            lm = document.querySelector('#' + this.layerManagerName),
+            projectionDiv = lm.querySelector("#projectionDiv"),
+            selections = ["3D", "Equirectangular", "Mercator", "North Polar", "South Polar"],
+            form, div, label, option;
+
+        // If no globe div, create one.
+        if (!projectionDiv) {
+            lm.className = "layerManager";
+
+            projectionDiv = document.createElement('div');
+            projectionDiv.id = "projectionDiv";
+            projectionDiv.className = "projectionDivOuter";
+            lm.appendChild(projectionDiv);
+
+            form = document.createElement('form');
+            form.className = "projectionForm";
+            projectionDiv.appendChild(form);
+
+            div = document.createElement("div");
+            div.className = "projectionDivInner";
+            form.appendChild(div);
+
+            label = document.createElement("label");
+            label.for = "projection";
+            label.innerHTML = "Projection";
+            label.className = "projectionLabel";
+            div.appendChild(label);
+
+            this.projectionSelect = document.createElement("select");
+            this.projectionSelect.id = "projection";
+            div.appendChild(this.projectionSelect);
+
+            for (var s = 0; s < selections.length; s++) {
+                option = document.createElement("option");
+                option.value = selections[s];
+                option.innerHTML = option.value;
+                this.projectionSelect.appendChild(option);
+            }
+
+            this.projectionSelect.addEventListener("change", function (e) {
+                layerManager.onProjectionChange(e);
+            }, false);
+        }
+
+        var currentGlobe = this.wwd.globe;
+
+        if (currentGlobe instanceof WorldWind.Globe2D) {
+            this.flatGlobe = this.wwd.globe;
+            var projection = this.wwd.globe.projection;
+            if (projection instanceof WorldWind.ProjectionEquirectangular) {
+                this.projectionSelect.selectedIndex = selections.indexOf("Equirectangular");
+            }
+        } else {
+            this.roundGlobe = this.wwd.globe;
+            this.projectionSelect.selectedIndex = selections.indexOf("3D");
+        }
     };
 
     /**
      * Synchronizes this layer manager with its associated World Window. This method should be called whenever the
      * World Window's layer list changes as well as after each rendering frame.
      */
-    LayerManager.prototype.update = function () {
+    LayerManager.prototype.updateLayers = function () {
         var layerManager = this,
             layerList = this.wwd.layers,
             lm = document.querySelector('#' + this.layerManagerName),
-            ul = lm.querySelector('ul');
+            layersDiv = document.querySelector("#layersDiv"),
+            ul, form, fieldset, legend;
 
-        // If !ul then create one. This occurs the first time this method is called.
-        if (!ul) {
+        // If no layers div, create one.
+        if (!layersDiv) {
+            layersDiv = document.createElement('div');
+            layersDiv.id = "layersDiv";
+            lm.appendChild(layersDiv);
+
+            form = document.createElement('form');
+            layersDiv.appendChild(form);
+
+            fieldset = document.createElement('fieldset');
+            fieldset.className = "layersFieldset";
+            form.appendChild(fieldset);
+
+            legend = document.createElement('legend');
+            //legend.innerHTML = "Layers";
+            fieldset.appendChild(legend);
+
+            // Create the layer list.
             ul = document.createElement('ul');
-            lm.appendChild(ul);
+            fieldset.appendChild(ul);
         }
 
         // Get all the li nodes in the ul.
@@ -72,7 +154,7 @@ define(function () {
             } else {
                 li = document.createElement('li');
                 li.addEventListener('click', function (event) {
-                    layerManager.onClick(event);
+                    layerManager.onLayerClick(event);
                 });
                 isNewNode = true;
             }
@@ -108,7 +190,7 @@ define(function () {
      * Event handler for click events on this layer manager's list items.
      * @param {Event} event The click event that occurred.
      */
-    LayerManager.prototype.onClick = function (event) {
+    LayerManager.prototype.onLayerClick = function (event) {
         var layerName = event.target.firstChild.nodeValue;
 
         // Update the layer state for each layer in the current layer list.
@@ -120,6 +202,35 @@ define(function () {
                 this.wwd.redraw();
             }
         }
+    };
+
+    LayerManager.prototype.onProjectionChange = function (event) {
+        var projectionName = event.target.value;
+
+        if (projectionName === "3D") {
+            if (!this.roundGlobe) {
+                this.roundGlobe = new WorldWind.Globe(new WorldWind.EarthElevationModel());
+            }
+
+            if (this.wwd.globe !== this.roundGlobe) {
+                this.wwd.globe = this.roundGlobe;
+            }
+        } else {
+            if (!this.flatGlobe) {
+                this.flatGlobe = new WorldWind.Globe2D();
+            }
+
+            if (projectionName === "Equirectangular") {
+                this.flatGlobe.projection = new WorldWind.ProjectionEquirectangular();
+            }
+
+            if (this.wwd.globe !== this.flatGlobe) {
+                this.wwd.globe = this.flatGlobe;
+            }
+        }
+
+        this.updateProjection();
+        this.wwd.redraw();
     };
 
     return LayerManager;

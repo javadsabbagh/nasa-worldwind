@@ -29,6 +29,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './shapes/GeographicText',
         './gesture/GestureRecognizer',
         './globe/Globe',
+        './globe/Globe2D',
         './shaders/GpuProgram',
         './cache/GpuResourceCache',
         './shaders/GpuShader',
@@ -56,6 +57,8 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './shapes/PlacemarkAttributes',
         './geom/Plane',
         './geom/Position',
+        './projections/ProjectionEquirectangular',
+        './projections/ProjectionMercator',
         './geom/Rectangle',
         './render/Renderable',
         './layer/RenderableLayer',
@@ -121,6 +124,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               GeographicText,
               GestureRecognizer,
               Globe,
+              Globe2D,
               GpuProgram,
               GpuResourceCache,
               GpuShader,
@@ -148,6 +152,8 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               PlacemarkAttributes,
               Plane,
               Position,
+              ProjectionEquirectangular,
+              ProjectionMercator,
               Rectangle,
               Renderable,
               RenderableLayer,
@@ -342,6 +348,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['GeographicText'] = GeographicText;
         WorldWind['GestureRecognizer'] = GestureRecognizer;
         WorldWind['Globe'] = Globe;
+        WorldWind['Globe2D'] = Globe2D;
         WorldWind['GpuProgram'] = GpuProgram;
         WorldWind['GpuResourceCache'] = GpuResourceCache;
         WorldWind['GpuShader'] = GpuShader;
@@ -369,6 +376,8 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['PlacemarkAttributes'] = PlacemarkAttributes;
         WorldWind['Plane'] = Plane;
         WorldWind['Position'] = Position;
+        WorldWind['ProjectionEquirectangular'] = ProjectionEquirectangular;
+        WorldWind['ProjectionMercator'] = ProjectionMercator;
         WorldWind['Rectangle'] = Rectangle;
         WorldWind['Renderable'] = Renderable;
         WorldWind['RenderableLayer'] = RenderableLayer;
