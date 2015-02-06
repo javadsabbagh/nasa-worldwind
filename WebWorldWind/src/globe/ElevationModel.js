@@ -122,7 +122,7 @@ define([
              * @readonly
              * @default Date.getTime() at construction
              */
-            this.timestamp = new Date().getTime();
+            this.timestamp = Date.now();
 
             /**
              * This elevation model's minimum elevation
@@ -508,7 +508,7 @@ define([
 
         // Intentionally not documented.
         ElevationModel.prototype.isTileImageExpired = function (tile) {
-            return !(!this.expiration || this.expiration > new Date().getTime);
+            return !(!this.expiration || this.expiration > Date.now());
         };
 
         // Intentionally not documented.
@@ -625,7 +625,7 @@ define([
             if (elevationImage.imageData) {
                 elevationImage.findMinAndMaxElevation();
                 this.imageCache.putEntry(tile.imagePath, elevationImage, elevationImage.size);
-                this.timestamp = new Date().getTime();
+                this.timestamp = new Date.now();
             }
         };
 
