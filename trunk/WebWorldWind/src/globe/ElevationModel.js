@@ -165,27 +165,21 @@ define([
         /**
          * Returns the minimum and maximum elevations within a specified sector.
          * @param {Sector} sector The sector for which to determine extreme elevations.
-         * @param {Number[]} result A pre-allocated array in which to return the extreme elevations.
-         * @returns {Number[]} The specified result argument containing, respectively, the minimum and maximum
-         * elevations within the specified sector.
-         * @throws {ArgumentError} If the specified sector or result array is null or undefined.
+         * @returns {Number[]} An array containing the minimum and maximum elevations within the specified sector,
+         * or null if the specified sector is outside this elevation model's coverage area.
+         * @throws {ArgumentError} If the specified sector is null or undefined.
          */
-        ElevationModel.prototype.minAndMaxElevationsForSector = function (sector, result) {
+        ElevationModel.prototype.minAndMaxElevationsForSector = function (sector) {
             if (!sector) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "ElevationModel", "minAndMaxElevationsForSector", "missingSector"));
-            }
-
-            if (!result) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "ElevationModel", "minAndMaxElevationsForSector", "missingResult"));
             }
 
             var level = this.levels.levelForTexelSize(sector.deltaLatitude() * Angle.DEGREES_TO_RADIANS / 64);
             this.assembleTiles(level, sector, false);
 
             if (this.currentTiles.length == 0) {
-                return result; // Sector is outside the elevation model's coverage area. Do not modify the result array.
+                return null; // Sector is outside the elevation model's coverage area. Do not modify the result array.
             }
 
             // Assign the output extreme elevations to the largest and smallest double values, respectively. This has the effect
@@ -196,7 +190,8 @@ define([
                 max = -min,
                 image,
                 imageMin,
-                imageMax;
+                imageMax,
+                result = [];
 
             for (var i = 0, len = this.currentTiles.length; i < len; i++) {
                 image = this.currentTiles[i].image();

@@ -36,15 +36,13 @@ define([
          * @classdesc Represents an ellipsoidal globe. The default configuration represents Earth but may be changed.
          * To configure for another planet, set the globe's equatorial and polar radii properties and its
          * eccentricity-squared property.
-         * <p>
-         * A globe is used to generate terrain.
-         * <p>
+         * <p/>
          * A globe uses a Cartesian coordinate system in which the Y axis points to the north pole,
          * the Z axis points to the intersection of the prime meridian and the equator,
          * and the X axis completes a right-handed coordinate system, is in the equatorial plane and 90 degree east of the Z
          * axis. The origin of the coordinate system lies at the center of the globe.
 
-         * @param {ElevationModel} elevationModel The elevation model to use for the constructed globe.
+         * @param {ElevationModel} elevationModel The elevation model to use for the globe.
          * @throws {ArgumentError} If the specified elevation model is null or undefined.
          */
         var Globe = function (elevationModel) {
@@ -84,6 +82,37 @@ define([
             this.scratchPosition = new Position(0, 0, 0);
         };
 
+        Object.defineProperties(Globe.prototype, {
+            /**
+             * An object identifying this 2D globe's current state. Used to compare states during rendering to
+             * determine whether globe-state dependent cached values must be updated. Applications typically do not
+             * interact with this property.
+             * @memberof Globe.prototype
+             * @readonly
+             * @see [sameState]{@link Globe#sameState}
+             */
+            stateKey: {
+                get: function () {
+                    return {
+                        globe: this,
+                        elevationModel: this.elevationModel
+                    };
+                }
+            }
+        });
+
+        /**
+         * Indicates whether a specified state key represents the current state of this globe.
+         * @param {{}} stateKey A state key previously acquired from the [stateKey]{@link Globe#stateKey}
+         * property.
+         * @returns {boolean} true if the state matches, otherwise false.
+         */
+        Globe.prototype.sameState = function (stateKey) {
+            return stateKey
+                && this === stateKey.globe
+                && this.elevationModel === stateKey.elevationModel;
+        };
+
         /**
          * Computes a Cartesian point from a specified position.
          * See this class' Overview section for a description of the Cartesian coordinate system used.
@@ -115,43 +144,35 @@ define([
         };
 
         /**
-         * Computes a grid of Cartesian points within a specified sector and relative to a specified Cartesian offset.
+         * Computes a grid of Cartesian points within a specified sector and relative to a specified Cartesian
+         * reference point.
          * <p>
          * This method is used to compute a collection of points within a sector. It is used by tessellators to
          * efficiently generate a tile's interior points. The number of points to generate is indicated by the tileWidth
-         * and tileHeight parameters, which specify respectively the number of points to generate in the latitudinal and
-         * longitudinal directions. In addition to the specified tileWidth and tileHeight points, this method generates an
-         * additional row and column of points along the sector's outer edges. These border points have the same
-         * latitude and longitude as the points on the sector's outer edges, but use the constant borderElevation
-         * instead of values from the array of elevations.
+         * and tileHeight parameters but is one more in each direction. Width refers to the longitudinal direction,
+         * height to the latitudinal.
          * <p>
          * For each implied position within the sector, an elevation value is specified via an array of elevations. The
-         * calculation at each position incorporates the associated elevation. The array of elevations need not supply
-         * elevations for the border points, which use the constant borderElevation.
+         * calculation at each position incorporates the associated elevation.
+         * There must be (tileWidth + 1) x (tileHeight + 1) elevations in the array.
          *
          * @param {Sector} sector The sector in which to compute the points.
-         * @param {Number} tileWidth The number of latitudinal section a tile is broken into.
+         * @param {Number} tileWidth The number of latitudinal sections a tile is broken into.
          * @param {Number} tileHeight The number of longitudinal sections a tile is broken into.
          * @param {Number[]} elevations An array of elevations to incorporate in the point calculations. There must be
-         * one elevation value in the array for each generated point - ignoring border points - so there must be
-         * tileWidth x tileHeight elements in the array. Elevations are in meters.
-         * @param {Number} borderElevation The constant elevation assigned to border points, in meters.
-         * @param {Vec3} offset The X, Y and Z Cartesian coordinates to subtract from the computed coordinates. This
-         * makes the computed coordinates relative to the specified offset.
+         * one elevation value in the array for each generated point. Elevations are in meters.
+         * There must be (tileWidth + 1) x (tileHeight + 1) elevations in the array.
+         * @param {Vec3} referencePoint The X, Y and Z Cartesian coordinates to subtract from the computed coordinates.
+         * This makes the computed coordinates relative to the specified point.
          * @param {Float32Array} resultPoints A typed array to hold the computed coordinates. It must be at least of
-         * size ((tileWidth + 1) x (tileHeight + 1) x stride).
+         * size (tileWidth + 1) x (tileHeight + 1).
          * The points are returned in row major order, beginning with the row of minimum latitude.
-         * @param {Number} stride The number of floats between successive points in the output array. Specifying a
-         * stride of 3 indicates that the points are tightly packed in the output array.
-         * @param {Float32Array} resultElevations A typed array to hold the elevation for each computed point. This
-         * elevation has vertical exaggeration applied. It must be at least of size ((tileWidth + 1) x (tileHeight + 1).
          * @returns {Float32Array} The specified resultPoints argument.
-         * @throws {ArgumentError} if the specified sector, elevations array or results arrays are null or undefined, if
-         * the lengths of any of the results arrays are insufficient, or if the specified stride is less than 3.
+         * @throws {ArgumentError} if the specified sector, elevations array or results arrays are null or undefined, or
+         * if the lengths of any of the results arrays are insufficient.
          */
-        Globe.prototype.computePointsFromPositions = function (sector, tileWidth, tileHeight, elevations,
-                                                               borderElevation, offset, resultPoints,
-                                                               stride, resultElevations) {
+        Globe.prototype.computePointsForSector = function (sector, tileWidth, tileHeight, elevations,
+                                                           referencePoint, resultPoints) {
             if (!sector) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "Globe",
                     "computePointsFromPositions", "missingSector"));
@@ -167,28 +188,18 @@ define([
                     "Elevations array is null, undefined or insufficient length."));
             }
 
-            if (!resultPoints || resultPoints.length < (tileWidth + 1) * (tileHeight + 1) * stride) {
+            if (!resultPoints || resultPoints.length < (tileWidth + 1) * (tileHeight + 1)) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "Globe", "computePointsFromPositions",
                     "Result points array is null, undefined or insufficient length."));
-            }
-
-            if (stride < 3) {
-                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "Globe", "computePointsFromPositions",
-                    "Stride is less than 3."));
-            }
-
-            if (!resultElevations || resultElevations.length < (tileWidth + 1) * (tileHeight + 1)) {
-                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "Globe", "computePointsFromPositions",
-                    "Result elevations array is null, undefined or insufficient length."));
             }
 
             var minLat = sector.minLatitude * Angle.DEGREES_TO_RADIANS,
                 maxLat = sector.maxLatitude * Angle.DEGREES_TO_RADIANS,
                 minLon = sector.minLongitude * Angle.DEGREES_TO_RADIANS,
                 maxLon = sector.maxLongitude * Angle.DEGREES_TO_RADIANS,
-                offsetX = offset[0],
-                offsetY = offset[1],
-                offsetZ = offset[2],
+                offsetX = referencePoint[0],
+                offsetY = referencePoint[1],
+                offsetZ = referencePoint[2],
                 numLatPoints = tileHeight + 1,
                 numLonPoints = tileWidth + 1,
                 vertexOffset = 0,
@@ -234,12 +245,10 @@ define([
                     elev = elevations[elevOffset];
                     elevOffset += 1;
 
-                    resultElevations[vertexOffset / stride] = elev;
-
                     resultPoints[vertexOffset] = (rpm + elev) * cosLat[latIndex] * sinLon[lonIndex] - offsetX;
                     resultPoints[vertexOffset + 1] = (rpm * (1.0 - this.eccentricitySquared) + elev) * sinLat[latIndex] - offsetY;
                     resultPoints[vertexOffset + 2] = (rpm + elev) * cosLat[latIndex] * cosLon[lonIndex] - offsetZ;
-                    vertexOffset += stride;
+                    vertexOffset += 3;
                 }
             }
 
@@ -484,6 +493,34 @@ define([
         };
 
         /**
+         * Indicates whether this globe intersects a specified frustum.
+         * @param {Frustum} frustum The frustum to test.
+         * @returns {boolean} true if this globe intersects the frustum, otherwise false.
+         * @throws {ArgumentError} If the specified frustum is null or undefined.
+         */
+        Globe.prototype.intersectsFrustum = function (frustum) {
+            if (!frustum) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Globe", "intersectsFrustum", "missingFrustum"));
+            }
+
+            if (frustum.far.distance <= this.equatorialRadius)
+                return false;
+            if (frustum.left.distance <= this.equatorialRadius)
+                return false;
+            if (frustum.right.distance <= this.equatorialRadius)
+                return false;
+            if (frustum.top.distance <= this.equatorialRadius)
+                return false;
+            if (frustum.bottom.distance <= this.equatorialRadius)
+                return false;
+            if (frustum.near.distance <= this.equatorialRadius)
+                return false;
+
+            return true;
+        };
+
+        /**
          * Computes the first intersection of this globe with a specified line. The line is interpreted as a ray;
          * intersection points behind the line's origin are ignored.
          * @param {Line} line The line to intersect with this globe.
@@ -491,14 +528,14 @@ define([
          * @returns {boolean} <code>true</code> If the ray intersects the globe, otherwise <code>false</code>.
          * @throws {ArgumentError} If the specified line or result is null or undefined.
          */
-        Globe.prototype.intersectWithRay = function (line, result) {
+        Globe.prototype.intersectsLine = function (line, result) {
             if (!line) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Globe", "intersectWithRay", "missingLine"));
             }
 
             if (!result) {
-                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "Globe", "intersectWithRay", "missingResult"));
+                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "Globe", "intersectsLine", "missingResult"));
             }
 
             return WWMath.computeEllipsoidalGlobeIntersection(line, this.equatorialRadius, this.polarRadius, result);
@@ -506,7 +543,7 @@ define([
 
         /**
          * Returns the time at which any elevations associated with this globe last changed.
-         * @returns {number} The time in milliseconds relative to the Epoch of the most recent elevation change.
+         * @returns {Number} The time in milliseconds relative to the Epoch of the most recent elevation change.
          */
         Globe.prototype.elevationTimestamp = function () {
             return this.elevationModel.timestamp;
@@ -514,7 +551,7 @@ define([
 
         /**
          * Returns this globe's minimum elevation.
-         * @returns {number} This globe's minimum elevation.
+         * @returns {Number} This globe's minimum elevation.
          */
         Globe.prototype.minElevation = function () {
             return this.elevationModel.minElevation
@@ -522,7 +559,7 @@ define([
 
         /**
          * Returns this globe's maximum elevation.
-         * @returns {number} This globe's maximum elevation.
+         * @returns {Number} This globe's maximum elevation.
          */
         Globe.prototype.minElevation = function () {
             return this.elevationModel.maxElevation
@@ -531,23 +568,17 @@ define([
         /**
          * Returns the minimum and maximum elevations within a specified sector of this globe.
          * @param {Sector} sector The sector for which to determine extreme elevations.
-         * @param {Number[]} result A pre-allocated array in which to return the minimum and maximum elevations.
-         * @returns {Number[]} The specified result argument containing, respectively, the minimum and maximum elevations.
-         * @throws {ArgumentError} If the specified sector or result array is null or undefined.
+         * @returns {Number[]} The An array containing the minimum and maximum elevations.
+         * @throws {ArgumentError} If the specified sector is null or undefined.
          */
-        Globe.prototype.minAndMaxElevationsForSector = function (sector, result) {
+        Globe.prototype.minAndMaxElevationsForSector = function (sector) {
             if (!sector) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Globe", "minAndMaxElevationsForSector",
                         "missingSector"));
             }
 
-            if (!result) {
-                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "Globe", "minAndMaxElevationsForSector",
-                    "missingResult"));
-            }
-
-            return this.elevationModel.minAndMaxElevationsForSector(sector, result);
+            return this.elevationModel.minAndMaxElevationsForSector(sector);
         };
 
         Globe.prototype.elevationAtLocation = function (latitude, longitude) {

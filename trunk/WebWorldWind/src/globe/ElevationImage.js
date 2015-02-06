@@ -172,20 +172,17 @@ define([
         /**
          * Returns the minimum and maximum elevations within a specified sector.
          * @param {Sector} sector The sector of interest.
-         * @param {Number[]} result An array in which to return the minimum and maximum elevations, respectively,
-         * within the sector.
+         * @returns {Number[]} An array containing the minimum and maximum elevations with the specified sector,
+         * or null if the specified sector does not include this elevation image's coverage sector.
          * @throws {ArgumentError} If either the specified sector or result argument is null or undefined.
          */
-        ElevationImage.prototype.minAndMaxElevationsForSector = function (sector, result) {
+        ElevationImage.prototype.minAndMaxElevationsForSector = function (sector) {
             if (!sector) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "ElevationImage", "minAndMaxElevationsForSector", "missingSector"));
             }
 
-            if (!result) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "ElevationImage", "minAndMaxElevationsForSector", "missingResult"));
-            }
+            var result = [];
 
             if (sector.contains(this.sector)) { // The specified sector completely contains this image; return the image min and max.
                 if (result[0] > this.minElevation) {
@@ -243,6 +240,8 @@ define([
                     result[1] = max;
                 }
             }
+
+            return result;
         };
 
         /**

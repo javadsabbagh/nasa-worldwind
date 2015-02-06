@@ -97,8 +97,6 @@ define([
             this.vertexElevationLocation = -1;
             this.modelViewProjectionMatrixLocation = -1;
 
-            this.elevationShadingEnabled = false;
-
             this.texCoords = undefined;
             this.numTexCoords = undefined;
             this.texCoordVboCacheKey = 'global_tex_coords';
@@ -169,8 +167,7 @@ define([
 
             var lastElevationsChange = dc.globe.elevationTimestamp();
             if (this.currentTiles &&
-                this.elevationTimestamp == lastElevationsChange &&
-                !this.lastModelViewProjection &&
+                this.elevationTimestamp == lastElevationsChange && !this.lastModelViewProjection &&
                 dc.navigatorState.modelviewProjection.equals(this.lastModelViewProjection)) {
                 return this.currentTiles;
             }
@@ -205,15 +202,15 @@ define([
             this.finishTessellating();
 
             /*
-            var terrain = new Terrain();
-            terrain.surfaceGeometry = this.currentTiles.tileArray;
-            terrain.globe = globe;
-            terrain.tessellator = this;
-            terrain.verticalExaggeration = dc.verticalExaggeration;
-            terrain.sector = Sector.FULL_SPHERE;
+             var terrain = new Terrain();
+             terrain.surfaceGeometry = this.currentTiles.tileArray;
+             terrain.globe = globe;
+             terrain.tessellator = this;
+             terrain.verticalExaggeration = dc.verticalExaggeration;
+             terrain.sector = Sector.FULL_SPHERE;
 
-            return terrain;
-            */
+             return terrain;
+             */
 
             return this.currentTiles;
         };
@@ -227,7 +224,7 @@ define([
          * @throws {ArgumentError} If the specified sector or level is null or undefined or the row or column arguments
          * are less than zero.
          */
-        Tessellator.prototype.createTile = function(tileSector, level, row, column) {
+        Tessellator.prototype.createTile = function (tileSector, level, row, column) {
             if (!tileSector) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Tile", "constructor", "missingSector"));
@@ -278,10 +275,6 @@ define([
             this.modelViewProjectionMatrixLocation = program.uniformLocation(gl, "mvpMatrix");
             gl.enableVertexAttribArray(this.vertexPointLocation);
 
-            if (this.elevationShadingEnabled && this.vertexElevationLocation >= 0) {
-                gl.enableVertexAttribArray(this.vertexElevationLocation);
-            }
-
             if (this.vertexTexCoordLocation >= 0) { // location of vertexTexCoord attribute is -1 when the basic program is bound
                 var texCoordVbo = gpuResourceCache.resourceForKey(this.texCoordVboCacheKey);
                 gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, texCoordVbo);
@@ -310,8 +303,6 @@ define([
             if (this.vertexPointLocation >= 0) {
                 gl.disableVertexAttribArray(this.vertexPointLocation);
             }
-            if (this.elevationShadingEnabled && this.vertexElevationLocation >= 0)
-                gl.disableVertexAttribArray(this.vertexElevationLocation);
 
             if (this.vertexTexCoordLocation >= 0) { // location of vertexTexCoord attribute is -1 when the basic program is bound
                 gl.disableVertexAttribArray(this.vertexTexCoordLocation);
@@ -359,15 +350,6 @@ define([
             }
 
             gl.vertexAttribPointer(this.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, 0, 0);
-            if (this.elevationShadingEnabled && this.vertexElevationLocation >= 0) {
-                gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, null);
-                gl.vertexAttribPointer(this.vertexElevationLocation,
-                    1,
-                    WebGLRenderingContext.FLOAT,
-                    false,
-                    0,
-                    terrainTile.elevations);
-            }
         };
 
         /**
@@ -582,7 +564,7 @@ define([
             this.addTileDescendants(dc, tile);
         };
 
-        Tessellator.prototype.addTileDescendants = function(dc, tile) {
+        Tessellator.prototype.addTileDescendants = function (dc, tile) {
             var nextLevel = tile.level.nextLevel();
             var subTiles = tile.subdivideToCache(nextLevel, this, this.tileCache);
             for (var index = 0; index < subTiles.length; index += 1) {
@@ -653,7 +635,7 @@ define([
             }
         };
 
-        Tessellator.prototype.refineNeighbors = function(dc) {
+        Tessellator.prototype.refineNeighbors = function (dc) {
             var tileRefinementSet = {};
 
             for (var idx = 0, len = this.tiles.length; idx < len; idx += 1) {
@@ -786,7 +768,7 @@ define([
             }
         };
 
-        Tessellator.prototype.finishTessellating = function() {
+        Tessellator.prototype.finishTessellating = function () {
             for (var idx = 0, len = this.tiles.length; idx < len; idx += 1) {
                 var tile = this.tiles[idx];
 
@@ -808,7 +790,7 @@ define([
             }
         };
 
-        Tessellator.prototype.setNeighbors = function(tile) {
+        Tessellator.prototype.setNeighbors = function (tile) {
             var sector = tile.sector;
 
             // Corners of the tile.
@@ -871,7 +853,7 @@ define([
         };
 
         Tessellator.prototype.isTileVisible = function (dc, tile) {
-            var isVisible =  tile.extent.intersectsFrustum(dc.navigatorState.frustumInModelCoordinates);
+            var isVisible = tile.extent.intersectsFrustum(dc.navigatorState.frustumInModelCoordinates);
             return isVisible;
         };
 
@@ -901,8 +883,7 @@ define([
 
             // The number of vertices in each dimension is 1 more than the number of cells.
             var numLatVertices = tile.tileWidth + 1,
-                numLonVertices = tile.tileHeight + 1,
-                vertexStride = 3;
+                numLonVertices = tile.tileHeight + 1;
 
             // Retrieve the elevations for all vertices in the tile. The returned elevations will already have vertical
             // exaggeration applied.
@@ -916,39 +897,14 @@ define([
                 numPoints = -1;
             if (!points) {
                 numPoints = numLatVertices * numLonVertices;
-                points = new Float32Array(numPoints * vertexStride);
+                points = new Float32Array(numPoints * 3);
                 tile.numPoints = numPoints;
                 tile.points = points;
             }
 
-            var elevations = tile.elevations;
-            if (!elevations) {
-                elevations = new Float32Array(tile.numPoints);
-                tile.elevations = elevations;
-            }
-
-            // Compute the tile's Cartesian vertices. The tile's min elevation is used to determine the necessary depth of the
-            // tile border. Use the tile's min elevation instead of the global min elevation in order to reduce tile border
-            // height. As of SVN revision 1768 this change reduces worst-case frame time for terrain rendering by ~20 ms.
-            var borderElevation = tile.minElevation * ve;
-            dc.globe.computePointsFromPositions(
-                sector,
-                tile.tileWidth,
-                tile.tileHeight,
-                this.tileElevations,
-                borderElevation,
-                refCenter,
-                points,
-                vertexStride,
-                elevations);
-
-            if (ve != 1.0) {
-                // Need to back out vertical exaggeration from the elevations computed above.
-                numPoints = tile.numPoints;
-                for (var i = 0; i < numPoints; i += 1) {
-                    elevations[i] /= ve;
-                }
-            }
+            // Compute the tile's Cartesian vertices.
+            dc.globe.computePointsForSector(sector, tile.tileWidth, tile.tileHeight, this.tileElevations, refCenter,
+                points);
         };
 
         Tessellator.prototype.buildSharedGeometry = function (tile) {
@@ -958,7 +914,7 @@ define([
             this.buildTexCoords(tile.tileWidth, tile.tileHeight);
 
             // TODO: put all indices into a single buffer
-            
+
             // Build the surface-tile indices.
             this.buildIndices(tile.tileWidth, tile.tileHeight);
 
