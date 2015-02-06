@@ -625,7 +625,7 @@ define([
             if (elevationImage.imageData) {
                 elevationImage.findMinAndMaxElevation();
                 this.imageCache.putEntry(tile.imagePath, elevationImage, elevationImage.size);
-                this.timestamp = new Date.now();
+                this.timestamp = Date.now();
             }
         };
 
