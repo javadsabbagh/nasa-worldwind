@@ -9,10 +9,14 @@
 define([
         '../error/ArgumentError',
         '../globe/ElevationModel',
-        '../util/Logger'],
+        '../geom/Location',
+        '../util/Logger',
+        '../geom/Sector'],
     function (ArgumentError,
               ElevationModel,
-              Logger) {
+              Location,
+              Logger,
+              Sector) {
         "use strict";
 
         /**
@@ -23,7 +27,7 @@ define([
          * @augments ElevationModel
          */
         var ZeroElevationModel = function () {
-            ElevationModel.call(this);
+            ElevationModel.call(this, Sector.FULL_SPHERE, new Location(45, 45), 1, " ", " ", 150, 150);
 
             /**
              * Indicates this elevation model's display name.
@@ -40,7 +44,7 @@ define([
              * @default Date.getTime() at construction
              * @readonly
              */
-            this.timestamp = new Date().getTime();
+            this.timestamp = Date.now();
 
             /**
              * This elevation model's minimum elevation, which is always zero.
@@ -104,8 +108,8 @@ define([
          * to hold numLatitude x numLongitude values.
          */
         ZeroElevationModel.prototype.elevationsForSector = function (sector, numLatitude, numLongitude,
-                                                                        targetResolution, verticalExaggeration,
-                                                                        result) {
+                                                                     targetResolution, verticalExaggeration,
+                                                                     result) {
             if (!sector) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "ZeroElevationModel", "elevationsForSector", "missingSector"));
