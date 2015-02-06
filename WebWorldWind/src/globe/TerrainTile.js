@@ -61,12 +61,6 @@ define([
             this.points = null;
 
             /**
-             * The elevations corresponding to the tile's model coordinate points.
-             * @type {null}
-             */
-            this.elevations = null;
-
-            /**
              * Indicates the date and time at which this tile's terrain geometry was computed.
              * This is used to invalidate the terrain geometry when the globe's elevations change.
              * @type {number}

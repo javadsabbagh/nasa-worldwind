@@ -317,8 +317,9 @@ define([
                 this.extentVerticalExaggeration != verticalExaggeration) {
                 // Compute the minimum and maximum elevations for this tile's sector, or use zero if the globe has no elevations
                 // in this tile's coverage area. In the latter case the globe does not modify the result parameter.
-                var extremes = [0, 0];
-                globe.minAndMaxElevationsForSector(this.sector, extremes);
+                var extremes = globe.minAndMaxElevationsForSector(this.sector);
+                if (extremes === null)
+                    extremes = [0, 0];
                 this.minElevation = extremes[0];
                 this.maxElevation = extremes[1];
 

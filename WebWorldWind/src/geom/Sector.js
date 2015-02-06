@@ -10,12 +10,14 @@ define([
         '../geom/Angle',
         '../error/ArgumentError',
         '../geom/Location',
-        '../util/Logger'
+        '../util/Logger',
+        '../geom/Vec3'
     ],
     function (Angle,
               ArgumentError,
               Location,
-              Logger) {
+              Logger,
+              Vec3) {
         "use strict";
 
         /**
@@ -64,6 +66,29 @@ define([
          * @type {Sector}
          */
         Sector.FULL_SPHERE = new Sector(-90, 90, -180, 180);
+
+        Sector.computeBoundingBox = function (globe, verticalExaggeration, sector, minElevation, maxElevation) {
+            var min = minElevation * verticalExaggeration,
+                max = maxElevation * verticalExaggeration;
+
+            // Ensure that the top and bottom heights are not equal.
+            if (min === max) {
+                max = min + 10;
+            }
+
+            // Create an array for a 3x5 grid of elevations. Use min height at the corners and max height elsewhere.
+            var elevations = [
+                min, max, max, max, min,
+                max, max, max, max, max,
+                min, max, max, max, min
+            ];
+
+            // Compute the Cartesian points for a 3x5 geographic grid. This grid captures enough detail to bound the
+            // sector.
+            var points = new Float32Array(24 * 3),
+                elevationsOut = new Float32Array(24 * 3);
+            globe.computePointsForSector(sector, 3, 5, elevations, new Vec3(0, 0, 0), points, elevationsOut);
+        };
 
         /**
          * Sets this sector's latitudes and longitudes to those of a specified sector.
