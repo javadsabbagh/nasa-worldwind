@@ -105,6 +105,13 @@ define([
             this.opacityLocation = this.uniformLocation(gl, "opacity");
         };
 
+        /**
+         * A string that uniquely identifies this program.
+         * @type {string}
+         * @readonly
+         */
+        BasicTextureProgram.key = "WorldWindGpuBasicTextureProgram";
+
         // Inherit from GpuProgram.
         BasicTextureProgram.prototype = Object.create(GpuProgram.prototype);
 

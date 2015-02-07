@@ -119,6 +119,13 @@ define([
             this.vertexPointLocation = -1;
         };
 
+        /**
+         * A string that uniquely identifies this program.
+         * @type {string}
+         * @readonly
+         */
+        SurfaceTileRendererProgram.key = "WorldWindGpuSurfaceTileRenderingProgram";
+
         SurfaceTileRendererProgram.prototype = Object.create(GpuProgram.prototype);
 
         /**

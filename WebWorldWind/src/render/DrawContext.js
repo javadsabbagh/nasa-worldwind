@@ -315,14 +315,14 @@ define([
                         "The specified program constructor is null or undefined."));
             }
 
-            var program = this.gpuResourceCache.resourceForKey(programConstructor);
+            var program = this.gpuResourceCache.resourceForKey(programConstructor.key);
             if (program) {
                 this.bindProgram(gl, program);
             } else {
                 try {
                     program = new programConstructor(gl);
                     this.bindProgram(gl, program);
-                    this.gpuResourceCache.putResource(programConstructor, program, program.size);
+                    this.gpuResourceCache.putResource(programConstructor.key, program, program.size);
                 } catch (e) {
                     Logger.log(Logger.LEVEL_SEVERE, "Error attempting to create GPU program.")
                 }
