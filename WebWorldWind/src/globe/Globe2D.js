@@ -15,6 +15,7 @@ define([
         '../globe/Globe',
         '../util/Logger',
         '../geom/Sector',
+        '../globe/Tessellator',
         '../geom/Vec3',
         '../globe/ZeroElevationModel'
     ],
@@ -26,6 +27,7 @@ define([
               Globe,
               Logger,
               Sector,
+              Tessellator,
               Vec3,
               ZeroElevationModel) {
         "use strict";
@@ -84,6 +86,10 @@ define([
                     if (!projection) {
                         throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "Globe2D",
                             "projection", "missingProjection"));
+                    }
+
+                    if (this.projection != projection) {
+                        this.tessellator = new Tessellator();
                     }
                     this._projection = projection;
                 }

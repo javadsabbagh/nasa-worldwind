@@ -37,11 +37,11 @@ define(function () {
     };
 
     LayerManager.prototype.update = function () {
-        this.updateProjection();
+        this.updateProjectionControl();
         this.updateLayers();
     };
 
-    LayerManager.prototype.updateProjection = function () {
+    LayerManager.prototype.updateProjectionControl = function () {
         var layerManager = this,
             lm = document.querySelector('#' + this.layerManagerName),
             projectionDiv = lm.querySelector("#projectionDiv"),
@@ -96,6 +96,12 @@ define(function () {
                 this.projectionSelect.selectedIndex = selections.indexOf("Equirectangular");
             } else if (projection instanceof WorldWind.ProjectionMercator) {
                 this.projectionSelect.selectedIndex = selections.indexOf("Mercator");
+            } else if (projection instanceof WorldWind.ProjectionPolarEquidistant) {
+                if (projection.pole === "North") {
+                    this.projectionSelect.selectedIndex = selections.indexOf("North Polar");
+                } else if (projection.pole === "South") {
+                    this.projectionSelect.selectedIndex = selections.indexOf("South Polar");
+                }
             }
         } else {
             this.roundGlobe = this.wwd.globe;
@@ -226,6 +232,10 @@ define(function () {
                 this.flatGlobe.projection = new WorldWind.ProjectionEquirectangular();
             } else if (projectionName === "Mercator") {
                 this.flatGlobe.projection = new WorldWind.ProjectionMercator();
+            } else if (projectionName === "North Polar") {
+                this.flatGlobe.projection = new WorldWind.ProjectionPolarEquidistant("North");
+            } else if (projectionName === "South Polar") {
+                this.flatGlobe.projection = new WorldWind.ProjectionPolarEquidistant("South");
             }
 
             if (this.wwd.globe !== this.flatGlobe) {
@@ -233,7 +243,7 @@ define(function () {
             }
         }
 
-        this.updateProjection();
+        this.updateProjectionControl();
         this.wwd.redraw();
     };
 
