@@ -19,7 +19,8 @@ define([
         "use strict";
 
         /**
-         * Constructs an equirectangular geographic projection.
+         * Constructs an Equirectangular geographic projection, also known as Equidistant Cylindrical, Plate Carree and
+         * Rectangular. The projected globe is spherical, not ellipsoidal.
          * @alias ProjectionEquirectangular
          * @constructor
          * @augments GeographicProjection
