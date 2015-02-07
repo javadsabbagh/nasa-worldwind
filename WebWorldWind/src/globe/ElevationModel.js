@@ -160,7 +160,27 @@ define([
             this.imageCache = new MemoryCache(10000000, 8000000); // for the elevations, themselves
             this.currentRetrievals = []; // Identifies elevation retrievals in progress
             this.absentResourceList = new AbsentResourceList(3, 5e3);
+            this.id = ++ElevationModel.idPool;
+            this._stateKey = "elevationModel " + this.id.toString() + " ";
         };
+
+        ElevationModel.idPool = 0; // Used to assign unique IDs to elevation models for use in their state key.
+
+        Object.defineProperties(ElevationModel.prototype, {
+            /**
+             * A string identifying this elevation model's current state. Used to compare states during rendering to
+             * determine whether globe-state dependent cached values must be updated. Applications typically do not
+             * interact with this property.
+             * @memberof ElevationModel.prototype
+             * @readonly
+             * @type {String}
+             */
+            stateKey: {
+                get: function () {
+                    return this._stateKey;
+                }
+            }
+        });
 
         /**
          * Returns the minimum and maximum elevations within a specified sector.

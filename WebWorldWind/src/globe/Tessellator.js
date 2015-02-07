@@ -331,13 +331,14 @@ define([
             this.scratchMatrix.setToMultiply(dc.navigatorState.modelviewProjection, terrainTile.transformationMatrix);
             GpuProgram.loadUniformMatrix(gl, this.scratchMatrix, this.modelViewProjectionMatrixLocation);
 
-            var vbo = gpuResourceCache.resourceForKey(terrainTile.geometryVboCacheKey);
+            var vboCacheKey = dc.globe.stateKey + terrainTile.geometryVboCacheKey,
+                vbo = gpuResourceCache.resourceForKey(vboCacheKey);
             if (!vbo) {
                 vbo = gl.createBuffer();
                 gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, vbo);
                 gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, terrainTile.points, WebGLRenderingContext.STATIC_DRAW);
                 dc.frameStatistics.incrementVboLoadCount(1);
-                gpuResourceCache.putResource(terrainTile.geometryVboCacheKey, vbo, terrainTile.points.length * 3 * 4);
+                gpuResourceCache.putResource(vboCacheKey, vbo, terrainTile.points.length * 3 * 4);
                 terrainTile.geometryVboTimestamp = terrainTile.geometryTimestamp;
             }
             else if (terrainTile.geometryVboTimestamp != terrainTile.geometryTimestamp) {
