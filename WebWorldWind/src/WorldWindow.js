@@ -19,7 +19,6 @@ define([
         './geom/Rectangle',
         './geom/Sector',
         './globe/Terrain',
-        './globe/Tessellator',
         './geom/Vec2'],
     function (ArgumentError,
               DrawContext,
@@ -33,7 +32,6 @@ define([
               Rectangle,
               Sector,
               Terrain,
-              Tessellator,
               Vec2) {
         "use strict";
 
@@ -109,12 +107,6 @@ define([
              * @default [LookAtNavigator]{@link LookAtNavigator}
              */
             this.navigator = new LookAtNavigator(this);
-
-            /**
-             * The tessellator used to create the globe's terrain.
-             * @type {Tessellator}
-             */
-            this.tessellator = new Tessellator();
 
             /**
              * The vertical exaggeration to apply to the terrain.
@@ -431,9 +423,9 @@ define([
         WorldWindow.prototype.createTerrain = function (dc) {
             // TODO: Implement Tessellator to return a Terrain rather than synthesizing this copy here.
             dc.terrain = new Terrain(); // TODO: have Tessellator.tessellate() return a filled out one of these
-            dc.terrain.surfaceGeometry = this.tessellator.tessellate(dc).tileArray;
+            dc.terrain.surfaceGeometry = this.globe.tessellator.tessellate(dc).tileArray;
             dc.terrain.globe = dc.globe;
-            dc.terrain.tessellator = this.tessellator;
+            dc.terrain.tessellator = this.globe.tessellator;
             dc.terrain.verticalExaggeration = dc.verticalExaggeration;
             dc.terrain.sector = Sector.FULL_SPHERE;
 
