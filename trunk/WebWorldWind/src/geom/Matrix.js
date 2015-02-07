@@ -10,7 +10,6 @@
 define([
         '../geom/Angle',
         '../error/ArgumentError',
-        '../globe/Globe',
         '../util/Logger',
         '../geom/Plane',
         '../geom/Rectangle',
@@ -20,7 +19,6 @@ define([
     ],
     function (Angle,
               ArgumentError,
-              Globe,
               Logger,
               Plane,
               Rectangle,

@@ -9,7 +9,6 @@
 define([
         '../error/ArgumentError',
         '../geom/Frustum',
-        '../globe/Globe',
         '../util/Logger',
         '../error/NotYetImplementedError',
         '../geom/Plane',
@@ -19,7 +18,6 @@ define([
     ],
     function (ArgumentError,
               Frustum,
-              GLobe,
               Logger,
               NotYetImplementedError,
               Plane,

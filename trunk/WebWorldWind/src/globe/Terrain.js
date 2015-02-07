@@ -130,8 +130,8 @@ define([
          * @param {DrawContext} dc The current draw context.
          */
         Terrain.prototype.beginRendering = function (dc) {
-            if (this.tessellator) {
-                this.tessellator.beginRendering(dc);
+            if (this.globe && this.globe.tessellator) {
+                this.globe.tessellator.beginRendering(dc);
             }
         };
 
@@ -140,8 +140,8 @@ define([
          * @param {DrawContext} dc The current draw context.
          */
         Terrain.prototype.endRendering = function (dc) {
-            if (this.tessellator) {
-                this.tessellator.endRendering(dc);
+            if (this.globe && this.globe.tessellator) {
+                this.globe.tessellator.endRendering(dc);
             }
         };
 
@@ -157,8 +157,8 @@ define([
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Terrain", "beginRenderingTile", "missingTile"));
             }
 
-            if (this.tessellator) {
-                this.tessellator.beginRenderingTile(dc, terrainTile);
+            if (this.globe && this.globe.tessellator) {
+                this.globe.tessellator.beginRenderingTile(dc, terrainTile);
             }
         };
 
@@ -185,8 +185,8 @@ define([
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Terrain", "renderTile", "missingTile"));
             }
 
-            if (this.tessellator) {
-                this.tessellator.renderTile(dc, terrainTile);
+            if (this.globe && this.globe.tessellator) {
+                this.globe.tessellator.renderTile(dc, terrainTile);
             }
         };
 

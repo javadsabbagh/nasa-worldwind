@@ -15,6 +15,7 @@ define([
         '../util/Logger',
         '../geom/Position',
         '../geom/Sector',
+        '../globe/Tessellator',
         '../geom/Vec3',
         '../util/WWMath'],
     function (Angle,
@@ -25,6 +26,7 @@ define([
               Logger,
               Position,
               Sector,
+              Tessellator,
               Vec3,
               WWMath) {
         "use strict";
@@ -77,6 +79,12 @@ define([
              * @default 0.00669437999013
              */
             this.eccentricitySquared = 0.00669437999013;
+
+            /**
+             * The tessellator used to create this globe's terrain.
+             * @type {Tessellator}
+             */
+            this.tessellator = new Tessellator();
 
             // Used internally to eliminate the need to create new positions for certain calculations.
             this.scratchPosition = new Position(0, 0, 0);
