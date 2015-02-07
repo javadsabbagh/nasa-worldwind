@@ -19,17 +19,19 @@ define([
         "use strict";
 
         /**
-         * Constructs an equirectangular geographic projection.
+         * Constructs a polar equidistant geographic projection.
          * @alias ProjectionPolarEquidistant
          * @constructor
          * @augments GeographicProjection
-         * @classdesc Represents an equirectangular geographic projection.
-         * @param {String} pole Indicates the north or south aspect. Speciry "North" for the north aspect or "South"
+         * @classdesc Represents an polar equidistant geographic projection.
+         * @param {String} pole Indicates the north or south aspect. Specify "North" for the north aspect or "South"
          * for the south aspect.
          */
         var ProjectionPolarEquidistant = function (pole) {
 
             GeographicProjection.call(this, "Polar", false, null);
+
+            this.pole = pole;
 
             this.north = !(pole === "South");
 
