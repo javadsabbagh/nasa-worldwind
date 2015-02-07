@@ -68,6 +68,13 @@ define([
             this.colorLocation = this.uniformLocation(gl, "color");
         };
 
+        /**
+         * A string that uniquely identifies this program.
+         * @type {string}
+         * @readonly
+         */
+        BasicProgram.key = "WorldWindGpuBasicProgram";
+
         // Inherit from GpuProgram.
         BasicProgram.prototype = Object.create(GpuProgram.prototype);
 
