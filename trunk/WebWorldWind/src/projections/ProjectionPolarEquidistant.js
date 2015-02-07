@@ -29,16 +29,55 @@ define([
          */
         var ProjectionPolarEquidistant = function (pole) {
 
-            GeographicProjection.call(this, "Polar", false, null);
+            GeographicProjection.call(this, "Polar Equidistant", false, null);
 
-            this.pole = pole;
+            // Internal. Intentionally not documented. See "pole" property accessor below for public interface.
+            this._pole = pole;
 
+            // Internal. Intentionally not documented.
             this.north = !(pole === "South");
 
+            // Documented in superclass.
             this.displayName = this.north ? "North Polar" : "South Polar";
+
+            // Internal. Intentionally not documented. See "stateKey" property accessor below for public interface.
+            this._stateKey = "projection polar equidistant " + this._pole + " ";
         };
 
         ProjectionPolarEquidistant.prototype = Object.create(GeographicProjection.prototype);
+
+        Object.defineProperties(ProjectionPolarEquidistant.prototype, {
+
+            /**
+             * Indicates the north or south aspect. Specify "North" or "South".
+             * @memberof ProjectionPolarEquidistant.prototype
+             * @type {String}
+             */
+            pole: {
+                get: function () {
+                    return this._pole;
+                },
+                set: function (pole) {
+                    this._pole = pole;
+                    this.north = !(this._pole === "South");
+                    this._stateKey = "projection polar equidistant " + this._pole + " ";
+                }
+            },
+
+            /**
+             * A string identifying this projection's current state. Used to compare states during rendering to
+             * determine whether globe-state dependent cached values must be updated. Applications typically do not
+             * interact with this property.
+             * @memberof ProjectionPolarEquidistant.prototype
+             * @readonly
+             * @type {String}
+             */
+            stateKey: {
+                get: function () {
+                    return this._stateKey;
+                }
+            }
+        });
 
         // Documented in base class.
         ProjectionPolarEquidistant.prototype.geographicToCartesian = function (globe, latitude, longitude, elevation,

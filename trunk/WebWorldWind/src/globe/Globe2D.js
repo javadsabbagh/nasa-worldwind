@@ -113,34 +113,20 @@ define([
             },
 
             /**
-             * An object identifying this globe's current state. Used to compare states during rendering to
+             * A string identifying this globe's current state. Used to compare states during rendering to
              * determine whether globe-state dependent cached values must be updated. Applications typically do not
              * interact with this property.
              * @memberof Globe2D.prototype
              * @readonly
-             * @type {{}}
-             * @see [sameState]{@link Globe2D#sameState}
+             * @type {String}
              */
             stateKey: {
                 get: function () {
-                    return {
-                        globe: this,
-                        elevationModel: this.elevationModel,
-                        projection: this.projection,
-                        offset: this.offset
-                    };
+                    return this._stateKey + this.elevationModel.stateKey + "offset " + this.offset.toString() + " "
+                        + this.projection.stateKey;
                 }
             }
         });
-
-        // Documented in superclass.
-        Globe2D.prototype.sameState = function (stateKey) {
-            return stateKey
-                && this === stateKey.globe
-                && this.elevationModel === stateKey.elevationModel
-                && this._projection == stateKey.projection
-                && this._offset === stateKey.offset;
-        };
 
         /**
          * Computes a Cartesian point from a specified position.

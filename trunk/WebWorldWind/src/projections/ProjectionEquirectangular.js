@@ -32,6 +32,22 @@ define([
 
         ProjectionEquirectangular.prototype = Object.create(GeographicProjection.prototype);
 
+        Object.defineProperties(ProjectionEquirectangular.prototype, {
+            /**
+             * A string identifying this projection's current state. Used to compare states during rendering to
+             * determine whether globe-state dependent cached values must be updated. Applications typically do not
+             * interact with this property.
+             * @memberof ProjectionEquirectangular.prototype
+             * @readonly
+             * @type {String}
+             */
+            stateKey: {
+                get: function () {
+                    return "projection equirectangular ";
+                }
+            }
+        });
+
         // Documented in base class.
         ProjectionEquirectangular.prototype.geographicToCartesian = function (globe, latitude, longitude, elevation,
                                                                               offset, result) {

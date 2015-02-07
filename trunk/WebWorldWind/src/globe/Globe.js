@@ -88,38 +88,29 @@ define([
 
             // Used internally to eliminate the need to create new positions for certain calculations.
             this.scratchPosition = new Position(0, 0, 0);
+
+            this.id = ++Globe.idPool;
+
+            this._stateKey = "globe " + this.id.toString() + " ";
         };
+
+        Globe.idPool = 0; // Used to assign unique IDs to globes for use in their state keys.
 
         Object.defineProperties(Globe.prototype, {
             /**
-             * An object identifying this 2D globe's current state. Used to compare states during rendering to
+             * A string identifying this globe's current state. Used to compare states during rendering to
              * determine whether globe-state dependent cached values must be updated. Applications typically do not
              * interact with this property.
              * @memberof Globe.prototype
              * @readonly
-             * @see [sameState]{@link Globe#sameState}
+             * @type {String}
              */
             stateKey: {
                 get: function () {
-                    return {
-                        globe: this,
-                        elevationModel: this.elevationModel
-                    };
+                    return this._stateKey + this.elevationModel.stateKey;
                 }
             }
         });
-
-        /**
-         * Indicates whether a specified state key represents the current state of this globe.
-         * @param {{}} stateKey A state key previously acquired from the [stateKey]{@link Globe#stateKey}
-         * property.
-         * @returns {boolean} true if the state matches, otherwise false.
-         */
-        Globe.prototype.sameState = function (stateKey) {
-            return stateKey
-                && this === stateKey.globe
-                && this.elevationModel === stateKey.elevationModel;
-        };
 
         /**
          * Computes a Cartesian point from a specified position.
