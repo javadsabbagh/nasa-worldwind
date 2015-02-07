@@ -112,13 +112,13 @@ define([
                 pi_2 = Math.PI / 2,
                 pos = 0, k = 0,
                 cosLon = [], sinLon = [],
-                lat, lon, a, x, y;
+                lat, lon, a;
 
             // Iterate over the longitude coordinates in the specified sector and compute the cosine and sine of each
             // longitude value required to compute Cartesian points for the specified sector. This eliminates the need to
             // re-compute the same cosine and sine results for each row of constant latitude (and varying longitude).
             lon = minLon;
-            for (var l = 0; l < numLon + 1; l++) {
+            for (var l = 0; l < numLon + 1; l++, lon += deltaLon) {
                 if (l === numLon){
                     lon = maxLon;
                 }
@@ -165,7 +165,7 @@ define([
             // Formulae taken from "Map Projections -- A Working Manual", Snyder, USGS paper 1395, pg. 196.
 
             var rho = Math.sqrt(x * x + y * y),
-                c = rho * globe.equatorialRadius;
+                c = rho / globe.equatorialRadius;
 
             if (rho < 1.0e-4) {
                 result.latitude = this.north ? 90 : -90;
@@ -173,7 +173,7 @@ define([
                 result.altitude = z;
             } else {
                 if (c > Math.PI) {
-                    c = Math.PI;
+                    c = Math.PI; // map cartesian points beyond the projection's radius to the edge of the projection
                 }
 
                 result.latitude = Math.asin(Math.cos(c) * this.north ? 1 : -1);
