@@ -204,22 +204,24 @@ define([
             // Formulae taken from "Map Projections -- A Working Manual", Snyder, USGS paper 1395, pg. 196.
 
             var rho = Math.sqrt(x * x + y * y),
-                c = rho / globe.equatorialRadius;
+                c;
 
             if (rho < 1.0e-4) {
                 result.latitude = this.north ? 90 : -90;
                 result.longitude = 0;
                 result.altitude = z;
             } else {
+                c = rho / globe.equatorialRadius;
                 if (c > Math.PI) {
                     c = Math.PI; // map cartesian points beyond the projection's radius to the edge of the projection
                 }
 
-                result.latitude = Math.asin(Math.cos(c) * this.north ? 1 : -1);
-                result.longitude = Math.atan2(x, y * this.north ? -1 : 1); // use atan2(x,y) instead of atan(x/y)
+                result.latitude = Math.asin(Math.cos(c) * (this.north ? 1 : -1)) * Angle.RADIANS_TO_DEGREES;
+                result.longitude = Math.atan2(x, y * (this.north ? -1 : 1)) * Angle.RADIANS_TO_DEGREES; // use atan2(x,y) instead of atan(x/y)
                 result.altitude = z;
             }
 
+            //console.log(x + ", " + y + ", " + z + " --> " + result.toString());
             return result;
         };
 
