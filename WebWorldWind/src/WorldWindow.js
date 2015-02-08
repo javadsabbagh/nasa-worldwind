@@ -12,6 +12,7 @@ define([
         './globe/EarthElevationModel',
         './util/FrameStatistics',
         './globe/Globe',
+        './globe/Globe2D',
         './cache/GpuResourceCache',
         './util/Logger',
         './navigate/LookAtNavigator',
@@ -25,6 +26,7 @@ define([
               EarthElevationModel,
               FrameStatistics,
               Globe,
+              Globe2D,
               GpuResourceCache,
               Logger,
               LookAtNavigator,
@@ -343,14 +345,10 @@ define([
 
             try {
                 this.beginFrame(this.drawContext, this.viewport);
-                this.createTerrain(this.drawContext);
-                this.clearFrame(this.drawContext);
-                if (this.drawContext.pickingMode) {
-                    if (this.drawContext.makePickFrustum()) {
-                        this.doPick(this.drawContext);
-                    }
+                if (this.drawContext.globe instanceof Globe2D && this.drawContext.globe.continuous) {
+                    this.do2DContiguousRepaint(this.drawContext);
                 } else {
-                    this.doDraw(this.drawContext);
+                    this.doNormalRepaint(this.drawContext);
                 }
             } finally {
                 this.endFrame(this.drawContext);
@@ -358,6 +356,30 @@ define([
                     gl.bindFramebuffer(WebGLRenderingContext.FRAMEBUFFER, null);
                 }
                 this.drawContext.frameStatistics.endFrame();
+            }
+        };
+
+        WorldWindow.prototype.doNormalRepaint = function (dc) {
+            this.createTerrain(this.drawContext);
+            this.clearFrame(this.drawContext);
+            if (this.drawContext.pickingMode) {
+                if (this.drawContext.makePickFrustum()) {
+                    this.doPick(this.drawContext);
+                }
+            } else {
+                this.doDraw(this.drawContext);
+            }
+        };
+
+        WorldWindow.prototype.do2DContiguousRepaint = function (dc) {
+            this.createTerrain(this.drawContext);
+            this.clearFrame(this.drawContext);
+            if (this.drawContext.pickingMode) {
+                if (this.drawContext.makePickFrustum()) {
+                    this.doPick(this.drawContext);
+                }
+            } else {
+                this.doDraw(this.drawContext);
             }
         };
 
@@ -421,13 +443,7 @@ define([
 
         // Internal function. Intentionally not documented.
         WorldWindow.prototype.createTerrain = function (dc) {
-            // TODO: Implement Tessellator to return a Terrain rather than synthesizing this copy here.
-            dc.terrain = new Terrain(); // TODO: have Tessellator.tessellate() return a filled out one of these
-            dc.terrain.surfaceGeometry = this.globe.tessellator.tessellate(dc).tileArray;
-            dc.terrain.globe = dc.globe;
-            dc.terrain.tessellator = this.globe.tessellator;
-            dc.terrain.verticalExaggeration = dc.verticalExaggeration;
-            dc.terrain.sector = Sector.FULL_SPHERE;
+            dc.terrain = this.globe.tessellator.tessellate(dc);
 
             dc.frameStatistics.setTerrainTileCount(
                 this.drawContext.terrain && this.drawContext.terrain.surfaceGeometry ?

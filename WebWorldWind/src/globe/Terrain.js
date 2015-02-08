@@ -32,39 +32,37 @@ define([
          * @constructor
          * @classdesc Represents terrain and provides functions for computing points on or relative to the terrain.
          */
-        var Terrain = function () {
+        var Terrain = function (globe, tessellator, surfaceGeometry, verticalExaggeration, sector) {
 
             /**
              * The globe associated with this terrain.
              * @type {Globe}
-             * @default null
              */
-            this.globe = null;
+            this.globe = globe;
 
             /**
              * The vertical exaggeration of this terrain.
              * @type {Number}
-             * @default 1
              */
-            this.verticalExaggeration = 1;
+            this.verticalExaggeration = verticalExaggeration;
 
             /**
              * The sector spanned by this terrain.
              * @type {Sector}
              */
-            this.sector = null;
+            this.sector = sector;
 
             /**
              * The tessellator used to generate this terrain.
              * @type {Tessellator}
              */
-            this.tessellator = null;
+            this.tessellator = tessellator;
 
             /**
              * The surface geometry for this terrain
              * @type {TerrainTile[]}
              */
-            this.surfaceGeometry = null;
+            this.surfaceGeometry = surfaceGeometry;
         };
 
         /**
