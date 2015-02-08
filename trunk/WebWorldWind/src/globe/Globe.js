@@ -55,7 +55,6 @@ define([
             /**
              * This globe's elevation model.
              * @type {ElevationModel}
-             * @default {@link ZeroElevationModel}
              */
             this.elevationModel = elevationModel;
 
