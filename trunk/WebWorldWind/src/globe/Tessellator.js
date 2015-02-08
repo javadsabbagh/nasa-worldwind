@@ -169,7 +169,8 @@ define([
             if (this.currentTiles &&
                 this.elevationTimestamp == lastElevationsChange && !this.lastModelViewProjection &&
                 dc.navigatorState.modelviewProjection.equals(this.lastModelViewProjection)) {
-                return this.currentTiles;
+                return new Terrain(dc.globe, this, this.currentTiles.tileArray, dc.verticalExaggeration,
+                    this.currentTiles.sector);
             }
 
             var navigatorState = dc.navigatorState;
@@ -201,18 +202,8 @@ define([
 
             this.finishTessellating();
 
-            /*
-             var terrain = new Terrain();
-             terrain.surfaceGeometry = this.currentTiles.tileArray;
-             terrain.globe = globe;
-             terrain.tessellator = this;
-             terrain.verticalExaggeration = dc.verticalExaggeration;
-             terrain.sector = Sector.FULL_SPHERE;
-
-             return terrain;
-             */
-
-            return this.currentTiles;
+            return new Terrain(dc.globe, this, this.currentTiles.tileArray, dc.verticalExaggeration,
+                this.currentTiles.sector);
         };
 
         /**

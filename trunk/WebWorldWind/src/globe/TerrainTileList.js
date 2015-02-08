@@ -7,10 +7,12 @@
  * @version $Id$
  */
 define(['../error/ArgumentError',
-        '../util/Logger'
+        '../util/Logger',
+        '../geom/Sector'
     ],
     function (ArgumentError,
-              Logger) {
+              Logger,
+              Sector) {
         "use strict";
 
         /**
@@ -28,7 +30,7 @@ define(['../error/ArgumentError',
                     Logger.logMessage(Logger.LEVEL_SEVERE, "TerrainTileList", "TerrainTileList", "missingTessellator"));
             }
             this.tessellator = tessellator;
-            this.sector = undefined;
+            this.sector = null;
             this.tileArray = [];
         };
 
@@ -46,11 +48,19 @@ define(['../error/ArgumentError',
 
             if (this.tileArray.indexOf(tile) == -1) {
                 this.tileArray.push(tile);
+
+                if (!this.sector) {
+                    this.sector = new Sector(0, 0, 0, 0);
+                    this.sector.copy(tile.sector);
+                } else {
+                    this.sector.union(tile.sector);
+                }
             }
         };
 
         TerrainTileList.prototype.removeAllTiles = function () {
             this.tileArray = [];
+            this.sector = null;
         };
 
         return TerrainTileList;
