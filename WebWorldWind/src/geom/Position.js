@@ -191,5 +191,10 @@ define([
             return result;
         };
 
+        Position.prototype.toString = function () {
+            return "(" + this.latitude.toString() + "\u00b0, " + this.longitude.toString() + "\u00b0, "
+                + this.altitude.toString();
+        };
+
         return Position;
     });
