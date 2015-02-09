@@ -281,6 +281,7 @@ define([
             var dc = this.drawContext;
 
             dc.reset();
+            this.globe.offset = 0;
             dc.globe = this.globe;
             dc.layers = this.layers;
             dc.navigatorState = this.navigator.currentState();
@@ -346,7 +347,7 @@ define([
             try {
                 this.beginFrame(this.drawContext, this.viewport);
                 if (this.drawContext.globe instanceof Globe2D && this.drawContext.globe.continuous) {
-                    this.doNormalRepaint(this.drawContext);
+                    this.do2DContiguousRepaint(this.drawContext);
                 } else {
                     this.doNormalRepaint(this.drawContext);
                 }
