@@ -80,7 +80,7 @@ define([
                 this.tileWidth,
                 this.tileHeight);
 
-            this.topLevelTiles = undefined;
+            this.topLevelTiles = {};
             this.currentTiles = new TerrainTileList(this);
 
             this.tileCache = new MemoryCache(5000000, 4000000); // Holds 316 32x32 tiles.
@@ -181,15 +181,15 @@ define([
 
             this.currentTiles.removeAllTiles();
 
-            if (!this.topLevelTiles || this.topLevelTiles.length == 0) {
-                this.createTopLevelTiles();
+            if (!this.topLevelTiles[dc.globe.stateKey] || this.topLevelTiles[dc.globe.stateKey].length == 0) {
+                this.createTopLevelTiles(dc);
             }
 
             this.corners = {};
             this.tiles = [];
 
-            for (var index = 0; index < this.topLevelTiles.length; index += 1) {
-                var tile = this.topLevelTiles[index];
+            for (var index = 0, len = this.topLevelTiles[dc.globe.stateKey].length; index < len; index += 1) {
+                var tile = this.topLevelTiles[dc.globe.stateKey][index];
 
                 tile.update(dc);
 
@@ -545,8 +545,8 @@ define([
          ***********************************************************************/
 
         Tessellator.prototype.createTopLevelTiles = function (dc) {
-            this.topLevelTiles = [];
-            Tile.createTilesForLevel(this.levels.firstLevel(), this, this.topLevelTiles);
+            this.topLevelTiles[dc.globe.stateKey] = [];
+            Tile.createTilesForLevel(this.levels.firstLevel(), this, this.topLevelTiles[dc.globe.stateKey]);
         };
 
         Tessellator.prototype.addTileOrDescendants = function (dc, tile) {

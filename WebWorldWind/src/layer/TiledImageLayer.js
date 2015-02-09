@@ -131,13 +131,15 @@ define([
             if (this.expiration && (new Date().getTime() > this.expiration.getTime()))
                 this.currentTilesInvalid = true;
 
-            if (this.currentTilesInvalid || !this.lasTtMVP
-                || !dc.navigatorState.modelviewProjection.equals(this.lasTtMVP)) {
+            if (this.currentTilesInvalid
+                || !this.lasTtMVP || !dc.navigatorState.modelviewProjection.equals(this.lasTtMVP)
+                || dc.globe.stateKey != this.lastGlobeStateKey) {
                 this.assembleTiles(dc);
                 this.currentTilesInvalid = false;
             }
 
             this.lasTtMVP = dc.navigatorState.modelviewProjection;
+            this.lastGlobeStateKey = dc.globe.stateKey;
 
             if (this.currentTiles.length > 0) {
                 dc.surfaceTileRenderer.renderTiles(dc, this.currentTiles, this.opacity);
@@ -147,7 +149,7 @@ define([
         };
 
         TiledImageLayer.prototype.isLayerInView = function (dc) {
-            return !dc.visibleSector || dc.visibleSector.intersects(this.levels.sector);
+            return dc.terrain || dc.terrain.sector.intersects(this.levels.sector);
         };
 
         TiledImageLayer.prototype.createTopLevelTiles = function (dc) {
@@ -235,12 +237,6 @@ define([
         };
 
         TiledImageLayer.prototype.isTileVisible = function (dc, tile) {
-            var visibleSector = dc.visibleSector;
-
-            if (visibleSector && visibleSector.intersects(tile.sector)) {
-                return true;
-            }
-
             return tile.extent.intersectsFrustum(dc.navigatorState.frustumInModelCoordinates);
         };
 
