@@ -167,6 +167,38 @@ define([
         Placemark.prototype = Object.create(Renderable.prototype);
 
         /**
+         * Copies the contents of a specified placemark to this placemark.
+         * @param {Placemark} that The placemark to copy.
+         */
+        Placemark.prototype.copy = function (that) {
+            this.position = that.position;
+            this.attributes = that.attributes;
+            this.highlightAttributes = that.highlightAttributes;
+            this.highlighted = that.highlighted;
+            this.enabled = that.enabled;
+            this.label = that.label;
+            this.altitudeMode = that.altitudeMode;
+            this.pickDelegate = that.pickDelegate;
+            this.alwaysOnTop = that.alwaysOnTop;
+            this.depthOffset = that.depthOffset;
+
+            return this;
+        };
+
+        /**
+         * Creates a new placemark that is a copy of this placemark.
+         * @returns {Placemark} The new placemark.
+         */
+        Placemark.prototype.clone = function () {
+            var clone = new Placemark(this.position);
+
+            clone.copy(this);
+            clone.pickDelegate = this.pickDelegate ? this.pickDelegate : this;
+
+            return clone;
+        };
+
+        /**
          * Renders this placemark. This method is typically not called by applications but is called by
          * [RenderableLayer]{@link RenderableLayer} during rendering. For this shape this method creates and
          * enques an ordered renderable with the draw context and does not actually draw the placemark.
@@ -177,7 +209,16 @@ define([
                 return;
             }
 
-            var orderedPlacemark = this.makeOrderedRenderable(dc);
+            // Create an ordered renderable for this placemark. If one has already been created this frame then we're
+            // in 2D-continuous mode and another needs to be created for one of the alternate globe offsets.
+            var orderedPlacemark;
+            if (this.lastFrameTime !== dc.timestamp) {
+                orderedPlacemark = this.makeOrderedRenderable(dc);
+            } else {
+                var placemarkCopy = this.clone();
+                orderedPlacemark = this.makeOrderedRenderable.call(placemarkCopy, dc);
+            }
+
             if (!orderedPlacemark) {
                 return;
             }
@@ -188,6 +229,7 @@ define([
 
             orderedPlacemark.layer = dc.currentLayer;
 
+            this.lastFrameTime = dc.timestamp;
             dc.addOrderedRenderable(orderedPlacemark);
         };
 

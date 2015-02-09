@@ -423,7 +423,9 @@ define([
         // Internal function. Intentionally not documented.
         WorldWindow.prototype.doDraw = function (dc) {
             this.drawLayers();
-            this.drawOrderedRenderables();
+            if (!this.deferOrderedRendering) {
+                this.drawOrderedRenderables();
+            }
         };
 
         // Internal function. Intentionally not documented.
@@ -432,7 +434,9 @@ define([
 
             if (!this.pickTerrainOnly) {
                 this.drawLayers();
-                this.drawOrderedRenderables();
+                if (!this.deferOrderedRendering) {
+                    this.drawOrderedRenderables();
+                }
             }
 
             if (this.drawContext.regionPicking) {
