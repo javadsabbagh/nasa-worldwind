@@ -68,7 +68,7 @@ define([
                 terrainTileSector,
                 surfaceTile;
 
-            if (!terrain || !terrain.surfaceGeometry)
+            if (!terrain)
                 return;
 
             // For each terrain tile, render it for each overlapping surface tile.

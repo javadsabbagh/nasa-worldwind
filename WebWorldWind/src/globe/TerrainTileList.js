@@ -34,9 +34,17 @@ define(['../error/ArgumentError',
             this.tileArray = [];
         };
 
-        Object.defineProperty(TerrainTileList.prototype, 'length', {
-            get: function () {
-                return this.tileArray.length
+        Object.defineProperties(TerrainTileList.prototype, {
+            /**
+             * The number of terrain tiles in this terrain tile list.
+             * @memberof TerrainTileList.prototype
+             * @readonly
+             * @type {Number}
+             */
+            length: {
+                get: function () {
+                    return this.tileArray.length
+                }
             }
         });
 

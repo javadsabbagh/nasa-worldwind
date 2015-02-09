@@ -125,7 +125,7 @@ define([
         };
 
         TiledImageLayer.prototype.doRender = function (dc) {
-            if (!dc.terrain.surfaceGeometry)
+            if (!dc.terrain)
                 return;
 
             if (this.expiration && (new Date().getTime() > this.expiration.getTime()))

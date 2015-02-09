@@ -53,7 +53,7 @@ define([
         };
 
         ShowTessellationLayer.prototype.doRender = function (dc) {
-            if (!dc.hasTerrain() || !dc.terrain.tessellator)
+            if (!dc.terrain || !dc.terrain.tessellator)
                 return;
 
             var terrain = dc.terrain,

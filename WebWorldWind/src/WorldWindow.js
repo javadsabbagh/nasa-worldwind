@@ -346,7 +346,7 @@ define([
             try {
                 this.beginFrame(this.drawContext, this.viewport);
                 if (this.drawContext.globe instanceof Globe2D && this.drawContext.globe.continuous) {
-                    this.do2DContiguousRepaint(this.drawContext);
+                    this.doNormalRepaint(this.drawContext);
                 } else {
                     this.doNormalRepaint(this.drawContext);
                 }
@@ -372,14 +372,14 @@ define([
         };
 
         WorldWindow.prototype.do2DContiguousRepaint = function (dc) {
-            this.createTerrain(this.drawContext);
+            this.createTerrain2DContiguous(this.drawContext);
             this.clearFrame(this.drawContext);
             if (this.drawContext.pickingMode) {
                 if (this.drawContext.makePickFrustum()) {
-                    this.doPick(this.drawContext);
+                    this.pick2DContiguous(this.drawContext);
                 }
             } else {
-                this.doDraw(this.drawContext);
+                this.draw2DContiguous(this.drawContext);
             }
         };
 
@@ -445,9 +445,94 @@ define([
         WorldWindow.prototype.createTerrain = function (dc) {
             dc.terrain = this.globe.tessellator.tessellate(dc);
 
-            dc.frameStatistics.setTerrainTileCount(
-                this.drawContext.terrain && this.drawContext.terrain.surfaceGeometry ?
-                    this.drawContext.terrain.surfaceGeometry.length : 0);
+            dc.frameStatistics.setTerrainTileCount(dc.terrain ? dc.terrain.surfaceGeometry.length : 0);
+        };
+
+        WorldWindow.prototype.makeCurrent = function (dc, offset) {
+            dc.globe.offset = offset;
+
+            switch (offset) {
+                case -1:
+                    dc.terrain = this.terrainLeft;
+                    break;
+
+                case 0:
+                    dc.terrain = this.terrainCenter;
+                    break;
+
+                case 1:
+                    dc.terrain = this.terrainRight;
+                    break;
+            }
+        };
+
+        WorldWindow.prototype.createTerrain2DContiguous = function (dc) {
+            this.terrainCenter = null;
+            dc.globe.offset = 0;
+            if (dc.globe.intersectsFrustum(dc.navigatorState.frustumInModelCoordinates)) {
+                this.terrainCenter = dc.globe.tessellator.tessellate(dc);
+            }
+
+            this.terrainRight = null;
+            dc.globe.offset = 1;
+            if (dc.globe.intersectsFrustum(dc.navigatorState.frustumInModelCoordinates)) {
+                this.terrainRight = dc.globe.tessellator.tessellate(dc);
+            }
+
+            this.terrainLeft = null;
+            dc.globe.offset = -1;
+            if (dc.globe.intersectsFrustum(dc.navigatorState.frustumInModelCoordinates)) {
+                this.terrainLeft = dc.globe.tessellator.tessellate(dc);
+            }
+        };
+
+        WorldWindow.prototype.draw2DContiguous = function (dc) {
+            var drawing = "";
+
+            if (this.terrainCenter) {
+                drawing += " 0 ";
+                this.makeCurrent(dc, 0);
+                this.deferOrderedRendering = this.terrainLeft || this.terrainRight;
+                this.doDraw(dc);
+            }
+
+            if (this.terrainRight) {
+                drawing += " 1 ";
+                this.makeCurrent(dc, 1);
+                this.deferOrderedRendering = this.terrainLeft || this.terrainLeft;
+                this.doDraw(dc);
+            }
+
+            this.deferOrderedRendering = false;
+
+            if (this.terrainLeft) {
+                drawing += " -1 ";
+                this.makeCurrent(dc, -1);
+                this.doDraw(dc);
+            }
+
+            console.log(drawing);
+        };
+
+        WorldWindow.prototype.pick2DContiguous = function (dc) {
+            if (this.terrainCenter) {
+                this.makeCurrent(dc, 0);
+                this.deferOrderedRendering = this.terrainLeft || this.terrainRight;
+                this.doPick(dc);
+            }
+
+            if (this.terrainRight) {
+                this.makeCurrent(dc, 1);
+                this.deferOrderedRendering = this.terrainLeft || this.terrainLeft;
+                this.doPick(dc);
+            }
+
+            this.deferOrderedRendering = false;
+
+            if (this.terrainLeft) {
+                this.makeCurrent(dc, -1);
+                this.doPick(dc);
+            }
         };
 
         // Internal function. Intentionally not documented.

@@ -82,7 +82,6 @@ define([
 
             this.topLevelTiles = undefined;
             this.currentTiles = new TerrainTileList(this);
-            this.currentCoverage = undefined;
 
             this.tileCache = new MemoryCache(5000000, 4000000); // Holds 316 32x32 tiles.
 
@@ -166,20 +165,21 @@ define([
             }
 
             var lastElevationsChange = dc.globe.elevationTimestamp();
-            if (this.currentTiles &&
-                this.elevationTimestamp == lastElevationsChange && !this.lastModelViewProjection &&
-                dc.navigatorState.modelviewProjection.equals(this.lastModelViewProjection)) {
-                return new Terrain(dc.globe, this, this.currentTiles.tileArray, dc.verticalExaggeration,
-                    this.currentTiles.sector);
+            if (this.lastGlobeStateKey === dc.globe.stateKey
+                && this.elevationTimestamp === lastElevationsChange
+                && this.lastModelViewProjection
+                && dc.navigatorState.modelviewProjection.equals(this.lastModelViewProjection)) {
+
+                return this.lastTerrain;
             }
 
             var navigatorState = dc.navigatorState;
 
             this.lastModelViewProjection = navigatorState.modelviewProjection;
+            this.lastGlobeStateKey = dc.globe.stateKey;
+            this.elevationTimestamp = lastElevationsChange;
 
             this.currentTiles.removeAllTiles();
-            this.currentCoverage = undefined;
-            this.elevationTimestamp = lastElevationsChange;
 
             if (!this.topLevelTiles || this.topLevelTiles.length == 0) {
                 this.createTopLevelTiles();
@@ -202,8 +202,10 @@ define([
 
             this.finishTessellating();
 
-            return new Terrain(dc.globe, this, this.currentTiles.tileArray, dc.verticalExaggeration,
-                this.currentTiles.sector);
+            this.lastTerrain = this.currentTiles.length === 0 ? null
+                : new Terrain(dc.globe, this, this.currentTiles, dc.verticalExaggeration);
+
+            return this.lastTerrain;
         };
 
         /**
@@ -763,18 +765,6 @@ define([
         Tessellator.prototype.finishTessellating = function () {
             for (var idx = 0, len = this.tiles.length; idx < len; idx += 1) {
                 var tile = this.tiles[idx];
-
-                // Factor tile into coverage.
-                if (!this.currentCoverage) {
-                    this.currentCoverage = new Sector(
-                        tile.sector.minLatitude,
-                        tile.sector.maxLatitude,
-                        tile.sector.minLongitude,
-                        tile.sector.maxLongitude);
-                }
-                else {
-                    this.currentCoverage.union(tile.sector);
-                }
 
                 this.setNeighbors(tile);
 

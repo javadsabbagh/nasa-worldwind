@@ -113,7 +113,7 @@ define([
         // Documented in base class.
         ProjectionPolarEquidistant.prototype.geographicToCartesianGrid = function (globe, sector, numLat, numLon,
                                                                                   elevations, referenceCenter,
-                                                                                  result) {
+                                                                                  offset, result) {
             if (!globe) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "ProjectionPolarEquidistant",
                     "geographicToCartesianGrid", "missingGlobe"));
