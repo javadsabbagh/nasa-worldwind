@@ -29,7 +29,6 @@ define([
          *     <li>{@link ProjectionEquirectangular}</li>
          *     <li>{@link ProjectionMercator}</li>
          *     <li>{@link ProjectionPolarEquidistant}</li>
-         *     <li>{@link ProjectionTransverseMercator}</li>
          *     <li>{@link ProjectionUPS}</li>
          </ul>
          * @param {String} displayName The projection's display name.
@@ -97,22 +96,22 @@ define([
          *
          * @param {Globe} globe The globe this projection applies to.
          * @param {Sector} sector The sector in which to compute the points.
-         * @param {Number} numLat The number of latitudinal sections a tile is broken into.
-         * @param {Number} numLon The number of longitudinal sections a tile is broken into.
+         * @param {Number} numLat The number of latitudinal sections a tile is divided into.
+         * @param {Number} numLon The number of longitudinal sections a tile is divided into.
          * @param {Number[]} elevations An array of elevations to incorporate in the point calculations. There must be
          * one elevation value in the array for each generated point. Elevations are in meters.
          * There must be (tileWidth + 1) x (tileHeight + 1) elevations in the array.
          * @param {Vec3} referenceCenter The X, Y and Z Cartesian coordinates to subtract from the computed coordinates.
-         * This makes the computed coordinates relative to the specified point.
+         * This makes the computed coordinates relative to the specified point. May be null.
          * @param {Vec3} offset An offset to apply to the Cartesian output points. Typically only projections that
          * are continuous (see [continuous]{@link GeographicProjection#continuous}) apply this offset. Others ignore it.
          * May be null to indicate that no offset is applied.
          * @param {Float32Array} result A typed array to hold the computed coordinates. It must be at least of
-         * size (tileWidth + 1) x (tileHeight + 1).
+         * size (tileWidth + 1) x (tileHeight + 1) * 3.
          * The points are returned in row major order, beginning with the row of minimum latitude.
-         * @returns {Float32Array} The specified resultPoints argument.
-         * @throws {ArgumentError} if the specified sector, elevations array or results arrays are null or undefined, or
-         * if the lengths of any of the results arrays are insufficient.
+         * @returns {Float32Array} The specified result argument, populated with the computed Cartesian coordinates.
+         * @throws {ArgumentError} if any of the specified globe, sector, elevations array or results arrays is null or
+         * undefined.
          */
         GeographicProjection.prototype.geographicToCartesianGrid = function (globe, sector, numLat, numLon, elevations,
                                                                              referenceCenter, offset, result) {
@@ -132,7 +131,7 @@ define([
          * @param {Position} result A variable in which to return the computed position.
          *
          * @returns {Position} The specified result argument containing the computed position.
-         * @throws {ArgumentError} If any of the specified globe, Cartesian point or result is null or undefined.
+         * @throws {ArgumentError} If either the specified globe or result argument is null or undefined.
          */
         GeographicProjection.prototype.cartesianToGeographic = function (globe, x, y, z, offset, result) {
             throw new UnsupportedOperationError(
