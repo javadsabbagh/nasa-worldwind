@@ -200,7 +200,7 @@ define([
             this.drawOrderedPlacemark(dc);
 
             if (dc.pickingMode) {
-                var po = new PickedObject(this.pickColor.copy(), this.pickDelegate ? this.pickDelegate : this,
+                var po = new PickedObject(this.pickColor.clone(), this.pickDelegate ? this.pickDelegate : this,
                     this.position, this.layer, false);
 
                 if (dc.pickPoint && this.mustDrawLabel()) {
