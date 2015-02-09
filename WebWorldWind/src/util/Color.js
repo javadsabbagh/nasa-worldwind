@@ -133,7 +133,7 @@ define([
          * Create a copy of this color.
          * @returns {Color} A new instance containing the color components of this color.
          */
-        Color.prototype.copy = function () {
+        Color.prototype.clone = function () {
             return new Color(this.red, this.green, this.blue, this.alpha);
         };
 
