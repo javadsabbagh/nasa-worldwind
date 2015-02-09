@@ -4,7 +4,7 @@
  */
 /**
  * @exports ProjectionPolarEquidistant
- * @version $Id: ProjectionPolarEquidistant.js 2746 2015-02-06 18:51:30Z tgaskins $
+ * @version $Id$
  */
 define([
         '../geom/Angle',
@@ -23,7 +23,7 @@ define([
          * @alias ProjectionPolarEquidistant
          * @constructor
          * @augments GeographicProjection
-         * @classdesc Represents an polar equidistant geographic projection.
+         * @classdesc Represents a polar equidistant geographic projection.
          * @param {String} pole Indicates the north or south aspect. Specify "North" for the north aspect or "South"
          * for the south aspect.
          */
@@ -130,11 +130,6 @@ define([
                     "The specified elevations array is null, undefined or insufficient length"));
             }
 
-            if (!referenceCenter) {
-                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "ProjectionPolarEquidistant",
-                    "geographicToCartesianGrid", "The specified reference center is null or undefined."));
-            }
-
             if (!result) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "ProjectionPolarEquidistant",
                     "geographicToCartesianGrid", "missingResult"));
@@ -148,6 +143,7 @@ define([
                 deltaLat = (maxLat - minLat) / (numLat > 1 ? numLat : 1),
                 deltaLon = (maxLon - minLon) / (numLon > 1 ? numLon : 1),
                 northSouthFactor = this.north ? -1 : 1,
+                refCenter = referenceCenter ? referenceCenter : new Vec3(0, 0, 0),
                 pi_2 = Math.PI / 2,
                 pos = 0, k = 0,
                 cosLon = [], sinLon = [],
@@ -180,9 +176,9 @@ define([
 
                 for (var i = 0; i < numLon + 1; i++) {
 
-                    result[k++] = a * sinLon[i] - referenceCenter[0];
-                    result[k++] = a * cosLon[i] * northSouthFactor - referenceCenter[1];
-                    result[k++] = elevations[pos++] - referenceCenter[2];
+                    result[k++] = a * sinLon[i] - refCenter[0];
+                    result[k++] = a * cosLon[i] * northSouthFactor - refCenter[1];
+                    result[k++] = elevations[pos++] - refCenter[2];
                 }
             }
 

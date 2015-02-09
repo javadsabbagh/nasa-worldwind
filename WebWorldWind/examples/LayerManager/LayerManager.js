@@ -45,7 +45,7 @@ define(function () {
         var layerManager = this,
             lm = document.querySelector('#' + this.layerManagerName),
             projectionDiv = lm.querySelector("#projectionDiv"),
-            selections = ["3D", "Equirectangular", "Mercator", "North Polar", "South Polar"],
+            selections = ["3D", "Equirectangular", "Mercator", "North Polar", "South Polar", "North UPS", "South UPS"],
             form, div, label, option;
 
         // If no projection div, create one.
@@ -101,6 +101,12 @@ define(function () {
                     this.projectionSelect.selectedIndex = selections.indexOf("North Polar");
                 } else if (projection.pole === "South") {
                     this.projectionSelect.selectedIndex = selections.indexOf("South Polar");
+                }
+            } else if (projection instanceof WorldWind.ProjectionUPS) {
+                if (projection.pole === "North") {
+                    this.projectionSelect.selectedIndex = selections.indexOf("North UPS");
+                } else if (projection.pole === "South") {
+                    this.projectionSelect.selectedIndex = selections.indexOf("South UPS");
                 }
             }
         } else {
@@ -236,6 +242,10 @@ define(function () {
                 this.flatGlobe.projection = new WorldWind.ProjectionPolarEquidistant("North");
             } else if (projectionName === "South Polar") {
                 this.flatGlobe.projection = new WorldWind.ProjectionPolarEquidistant("South");
+            } else if (projectionName === "North UPS") {
+                this.flatGlobe.projection = new WorldWind.ProjectionUPS("North");
+            } else if (projectionName === "South UPS") {
+                this.flatGlobe.projection = new WorldWind.ProjectionUPS("South");
             }
 
             if (this.wwd.globe !== this.flatGlobe) {

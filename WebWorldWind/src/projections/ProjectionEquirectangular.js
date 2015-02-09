@@ -10,12 +10,14 @@ define([
         '../geom/Angle',
         '../error/ArgumentError',
         '../projections/GeographicProjection',
-        '../util/Logger'
+        '../util/Logger',
+        '../geom/Vec3'
     ],
     function (Angle,
               ArgumentError,
               GeographicProjection,
-              Logger) {
+              Logger,
+              Vec3) {
         "use strict";
 
         /**
@@ -89,11 +91,6 @@ define([
                     "The specified elevations array is null, undefined or insufficient length"));
             }
 
-            if (!referenceCenter) {
-                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "ProjectionEquirectangular",
-                    "geographicToCartesianGrid", "The specified reference center is null or undefined."));
-            }
-
             if (!result) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "ProjectionEquirectangular",
                     "geographicToCartesianGrid", "missingResult"));
@@ -106,9 +103,10 @@ define([
                 maxLon = sector.maxLongitude * Angle.DEGREES_TO_RADIANS,
                 deltaLat = (maxLat - minLat) / (numLat > 1 ? numLat : 1),
                 deltaLon = (maxLon - minLon) / (numLon > 1 ? numLon : 1),
+                refCenter = referenceCenter ? referenceCenter : new Vec3(0, 0, 0),
                 offsetX = offset ? offset[0] : 0,
                 pos = 0, k = 0,
-                lat, lon, x, y, z;
+                lat, lon, y;
 
             // Iterate over the latitude and longitude coordinates in the specified sector, computing the Cartesian point
             // corresponding to each latitude and longitude.
@@ -118,19 +116,16 @@ define([
                     lat = maxLat;
 
                 // Latitude is constant for each row. Values that are a function of latitude can be computed once per row.
-                y = eqr * lat - referenceCenter[1];
+                y = eqr * lat - refCenter[1];
 
                 lon = minLon;
                 for (var i = 0; i < numLon + 1; i++, lon += deltaLon) {
                     if (i === numLon) // explicitly set the last lon to the max longitude to ensure alignment
                         lon = maxLon;
 
-                    x = eqr * lon - referenceCenter[0];
-                    z = elevations[pos++] - referenceCenter[2];
-
-                    result[k++] = x + offsetX;
+                    result[k++] = eqr * lon - refCenter[0] + offsetX;
                     result[k++] = y;
-                    result[k++] = z;
+                    result[k++] = elevations[pos++] - refCenter[2];
                 }
             }
 
