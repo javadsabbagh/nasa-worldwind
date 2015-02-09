@@ -150,6 +150,24 @@ define([
         Text.prototype = Object.create(Renderable.prototype);
 
         /**
+         * Copies the contents of a specified text object to this text object.
+         * @param {Text} that The text object to copy.
+         */
+        Text.prototype.copy = function (that) {
+            this.text = that.text;
+            this.attributes = that.attributes;
+            this.highlightAttributes = that.highlightAttributes;
+            this.highlighted = that.highlighted;
+            this.enabled = that.enabled;
+            this.altitudeMode = that.altitudeMode;
+            this.pickDelegate = that.pickDelegate;
+            this.alwaysOnTop = that.alwaysOnTop;
+            this.depthOffset = that.depthOffset;
+
+            return this;
+        };
+
+        /**
          * Renders this text. This method is typically not called by applications but is called by
          * [RenderableLayer]{@link RenderableLayer} during rendering. For this shape this method creates and
          * enques an ordered renderable with the draw context and does not actually draw the text.
@@ -160,7 +178,16 @@ define([
                 return;
             }
 
-            var orderedText = this.makeOrderedRenderable(dc);
+            // Create an ordered renderable for this text. If one has already been created this frame then we're
+            // in 2D-continuous mode and another needs to be created for one of the alternate globe offsets.
+            var orderedText;
+            if (this.lastFrameTime != dc.timestamp) {
+                orderedText = this.makeOrderedRenderable(dc);
+            } else {
+                var textCopy = this.clone();
+                orderedText = this.makeOrderedRenderable.call(textCopy, dc);
+            }
+
             if (!orderedText) {
                 return;
             }
@@ -171,6 +198,7 @@ define([
 
             orderedText.layer = dc.currentLayer;
 
+            this.lastFrameTime = dc.timestamp;
             dc.addOrderedRenderable(orderedText);
         };
 

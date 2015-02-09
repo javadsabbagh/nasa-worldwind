@@ -53,6 +53,13 @@ define([
 
         ScreenText.prototype = Object.create(Text.prototype);
 
+        ScreenText.prototype.render = function (dc) {
+            // Ensure that this text is drawn only once per frame.
+            if (this.lastFrameTime != dc.timestamp) {
+                Text.prototype.render.call(this, dc);
+            }
+        };
+
         ScreenText.prototype.computeScreenPointAndEyeDistance = function (dc) {
             dc.navigatorState.convertPointToViewport(this.screenPosition, Text.screenPoint);
             Text.screenPoint[2] = 1;

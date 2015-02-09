@@ -64,7 +64,7 @@ define([
              * The starting time of the current frame, in milliseconds.
              * @type {Number}
              */
-            this.timestamp = new Date().getTime();
+            this.timestamp = Date.now();
 
             /**
              * The globe being rendered.

@@ -57,7 +57,7 @@ requirejs(['../src/WorldWind',
             highlightAttributes,
             placemarkLayer = new WorldWind.RenderableLayer("Placemarks"),
             latitude = 47.684444,
-            longitude = -122.129722;
+            longitude = -179.129722;
 
         // Set up the common placemark attributes.
         placemarkAttributes.imageScale = 1;

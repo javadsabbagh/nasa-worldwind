@@ -51,6 +51,19 @@ define([
 
         GeographicText.prototype = Object.create(Text.prototype);
 
+        /**
+         * Creates a new geographic text object that is a copy of this one.
+         * @returns {GeographicText} The new geographic text object.
+         */
+        GeographicText.prototype.clone = function () {
+            var clone = new GeographicText(this.position, this.text);
+
+            clone.copy(this);
+            clone.pickDelegate = this.pickDelegate ? this.pickDelegate : this;
+
+            return clone;
+        };
+
         GeographicText.prototype.computeScreenPointAndEyeDistance = function (dc) {
             // Compute the text's model point and corresponding distance to the eye point.
             dc.terrain.surfacePointForMode(this.position.latitude, this.position.longitude, this.position.altitude,
