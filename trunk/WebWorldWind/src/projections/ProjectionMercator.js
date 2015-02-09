@@ -131,10 +131,10 @@ define([
             for (var j = 0; j < numLat + 1; j++, lat += deltaLat) {
                 if (j === numLat) // explicitly set the last lat to the max latitude to ensure alignment
                     lat = maxLat;
-                lat = WWMath.clamp(lat, minLatLimit, maxLatLimit);
+                var clampedLat = WWMath.clamp(lat, minLatLimit, maxLatLimit);
 
                 // Latitude is constant for each row. Values that are a function of latitude can be computed once per row.
-                sinLat = Math.sin(lat);
+                sinLat = Math.sin(clampedLat);
                 s = ((1 + sinLat) / (1 - sinLat)) * Math.pow((1 - ecc * sinLat) / (1 + ecc * sinLat), ecc);
                 y = eqr * Math.log(s) * 0.5 - referenceCenter[1];
 

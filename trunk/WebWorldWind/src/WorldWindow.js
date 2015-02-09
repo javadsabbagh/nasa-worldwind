@@ -515,8 +515,8 @@ define([
                 this.makeCurrent(dc, -1);
                 this.doDraw(dc);
             }
-
-            console.log(drawing);
+            //
+            //console.log(drawing);
         };
 
         WorldWindow.prototype.pick2DContiguous = function (dc) {
