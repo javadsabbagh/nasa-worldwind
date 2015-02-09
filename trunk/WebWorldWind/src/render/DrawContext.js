@@ -276,14 +276,6 @@ define([
         };
 
         /**
-         * Indicates whether terrain exists.
-         * @returns {boolean} <code>true</code> if there is terrain, otherwise <code>false</code>.
-         */
-        DrawContext.prototype.hasTerrain = function () {
-            return this.terrain && this.terrain.surfaceGeometry && (this.terrain.surfaceGeometry.length > 0);
-        };
-
-        /**
          * Binds a specified GPU program.
          * This function also makes the program the current program.
          * @param {WebGLRenderingContext} gl The current WebGL drawing context.

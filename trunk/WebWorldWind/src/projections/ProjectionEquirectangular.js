@@ -72,7 +72,7 @@ define([
         // Documented in base class.
         ProjectionEquirectangular.prototype.geographicToCartesianGrid = function (globe, sector, numLat, numLon,
                                                                                   elevations, referenceCenter,
-                                                                                  result) {
+                                                                                  offset, result) {
             if (!globe) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "ProjectionEquirectangular",
                     "geographicToCartesianGrid", "missingGlobe"));
@@ -106,6 +106,7 @@ define([
                 maxLon = sector.maxLongitude * Angle.DEGREES_TO_RADIANS,
                 deltaLat = (maxLat - minLat) / (numLat > 1 ? numLat : 1),
                 deltaLon = (maxLon - minLon) / (numLon > 1 ? numLon : 1),
+                offsetX = offset ? offset[0] : 0,
                 pos = 0, k = 0,
                 lat, lon, x, y, z;
 
@@ -127,7 +128,7 @@ define([
                     x = eqr * lon - referenceCenter[0];
                     z = elevations[pos++] - referenceCenter[2];
 
-                    result[k++] = x;
+                    result[k++] = x + offsetX;
                     result[k++] = y;
                     result[k++] = z;
                 }

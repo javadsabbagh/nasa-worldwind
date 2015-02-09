@@ -153,7 +153,7 @@ define([
                                                              referencePoint, resultPoints) {
 
             return this.projection.geographicToCartesianGrid(this, sector, tileWidth, tileHeight, elevations,
-                referencePoint, resultPoints);
+                referencePoint, this.offsetVector, resultPoints);
         };
 
         /**
@@ -240,6 +240,9 @@ define([
                     "intersectsFrustum", "missingFrustum"));
             }
             var bbox = new BoundingBox(Sector.FULL_SPHERE, this, this.elevationModel.minElevation,
+                this.elevationModel.maxElevation);
+
+            bbox.setToSector(Sector.FULL_SPHERE, this, this.elevationModel.minElevation,
                 this.elevationModel.maxElevation);
 
             return bbox.intersectsFrustum(frustum);

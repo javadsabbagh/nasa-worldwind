@@ -89,7 +89,7 @@ define([
 
         // Documented in base class.
         ProjectionMercator.prototype.geographicToCartesianGrid = function (globe, sector, numLat, numLon, elevations,
-                                                                           referenceCenter, result) {
+                                                                           referenceCenter, offset, result) {
             if (!globe) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "ProjectionMercator",
                     "geographicToCartesianGrid", "missingGlobe"));
@@ -121,6 +121,7 @@ define([
                 deltaLon = (maxLon - minLon) / (numLon > 1 ? numLon : 1),
                 minLatLimit = this.projectionLimits.minLatitude * Angle.DEGREES_TO_RADIANS,
                 maxLatLimit = this.projectionLimits.maxLatitude * Angle.DEGREES_TO_RADIANS,
+                offsetX = offset ? offset[0] : 0,
                 sinLat, s, lat, lon, y,
                 pos = 0, k = 0;
 
@@ -142,7 +143,7 @@ define([
                     if (i === numLon) // explicitly set the last lon to the max longitude to ensure alignment
                         lon = maxLon;
 
-                    result[k++] = eqr * lon - referenceCenter[0];
+                    result[k++] = eqr * lon - referenceCenter[0] + offsetX;
                     result[k++] = y;
                     result[k++] = elevations[pos++] - referenceCenter[2];
                 }
