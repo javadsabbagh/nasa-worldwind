@@ -91,12 +91,6 @@ define([
             this.terrain = null;
 
             /**
-             * The maximum geographic area currently in view.
-             * @type {Sector}
-             */
-            this.visibleSector = null;
-
-            /**
              * The current GPU program.
              * @type {GpuProgram}
              */
