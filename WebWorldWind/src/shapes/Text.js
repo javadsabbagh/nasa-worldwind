@@ -185,7 +185,7 @@ define([
                 orderedText = this.makeOrderedRenderable(dc);
             } else {
                 var textCopy = this.clone();
-                orderedText = this.makeOrderedRenderable.call(textCopy, dc);
+                orderedText = textCopy.makeOrderedRenderable(dc);
             }
 
             if (!orderedText) {

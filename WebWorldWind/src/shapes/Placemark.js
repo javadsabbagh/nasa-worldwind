@@ -209,6 +209,11 @@ define([
                 return;
             }
 
+            if (dc.globe.projectionLimits
+                && !dc.globe.projectionLimits.containsLocation(this.position.latitude, this.position.longitude)) {
+                return;
+            }
+
             // Create an ordered renderable for this placemark. If one has already been created this frame then we're
             // in 2D-continuous mode and another needs to be created for one of the alternate globe offsets.
             var orderedPlacemark;
@@ -216,7 +221,7 @@ define([
                 orderedPlacemark = this.makeOrderedRenderable(dc);
             } else {
                 var placemarkCopy = this.clone();
-                orderedPlacemark = this.makeOrderedRenderable.call(placemarkCopy, dc);
+                orderedPlacemark = placemarkCopy.makeOrderedRenderable(dc);
             }
 
             if (!orderedPlacemark) {
