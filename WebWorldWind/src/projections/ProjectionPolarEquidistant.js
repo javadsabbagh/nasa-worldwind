@@ -228,13 +228,39 @@ define([
                     "northTangentAtLocation", "missingResult"));
             }
 
-            // The north pointing tangent depends on the pole. With the south pole, the north pointing tangent points in the
-            // same direction as the vector returned by cartesianToGeographic. With the north pole, the north pointing
-            // tangent has the opposite direction.
+            // The north pointing tangent depends on the pole. With the south pole, the north pointing tangent points in
+            // the same direction as the vector returned by cartesianToGeographic. With the north pole, the north
+            // pointing tangent has the opposite direction.
 
             result[0] = Math.sin(longitude * Angle.DEGREES_TO_RADIANS) * (this.north ? -1 : 1);
             result[1] = Math.cos(longitude * Angle.DEGREES_TO_RADIANS);
             result[2] = 0;
+
+            return result;
+        };
+
+        // Documented in base class.
+        ProjectionPolarEquidistant.prototype.northTangentAtPoint = function (globe, x, y, z, offset, result) {
+            if (!result) {
+                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "ProjectionPolarEquidistant",
+                    "northTangentAtLocation", "missingResult"));
+            }
+
+            // The north pointing tangent depends on the pole. With the south pole, the north pointing tangent points in
+            // the same direction as the vector returned by cartesianToGeographic. With the north pole, the north
+            // pointing tangent has the opposite direction.
+
+            var rho = Math.sqrt(x * x + y * y);
+
+            if (rho < 1.0e-4) {
+                result[0] = 0;
+                result[1] = 1;
+                result[2] = 0;
+            } else {
+                result[0] = x / rho * (this.north ? -1 : 1);
+                result[1] = y / rho * (this.north ? -1 : 1);
+                result[2] = 0;
+            }
 
             return result;
         };

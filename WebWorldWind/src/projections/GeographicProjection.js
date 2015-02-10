@@ -168,15 +168,18 @@ define([
          * point.
          *
          * @param {Globe} globe The globe this projection is applied to.
-         * @param {number} x The X component of the Cartesian location.
-         * @param {number} y The Y component of the Cartesian location.
-         * @param {number} z The Z component of the Cartesian location.
+         * @param {number} x The X component of the Cartesian point.
+         * @param {number} y The Y component of the Cartesian point.
+         * @param {number} z The Z component of the Cartesian point.
+         * @param {Vec3} offset An offset to apply to the Cartesian point. Typically only projections that
+         * are continuous (see [continuous]{@link GeographicProjection#continuous}) apply this offset. Others ignore it.
+         * May be null to indicate that no offset is applied.
          * @param {Vec3} result A variable in which to return the computed vector.
          *
          * @returns{Vec3} The specified result argument containing the computed vector.
          * @throws {ArgumentError} If either the specified globe or result argument is null or undefined.
          */
-        GeographicProjection.prototype.northTangentAtPoint = function (globe, x, y, z, result) {
+        GeographicProjection.prototype.northTangentAtPoint = function (globe, x, y, z, offset, result) {
             if (!result) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "ProjectionEquirectangular",
                     "northTangentAtPoint", "missingResult"));

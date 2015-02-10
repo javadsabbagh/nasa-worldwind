@@ -39,9 +39,6 @@ define([
          * @augments Globe
          * @classdesc Represents a 2D flat globe. Depending on the projection, the globe may be continuously
          * scrolling longitudinally.
-         *
-         * @param {ElevationModel} elevationModel The elevation model to use for the globe.
-         * @throws {ArgumentError} If the specified elevation model is null or undefined.
          */
         var Globe2D = function () {
             Globe.call(this, new ZeroElevationModel());
@@ -241,7 +238,7 @@ define([
                     "missingResult"));
             }
 
-            return this.projection.northTangentAtPoint(this, x, y, z, result);
+            return this.projection.northTangentAtPoint(this, x, y, z, this.offsetVector, result);
         };
 
         // Documented in superclass.
