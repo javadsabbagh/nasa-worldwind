@@ -10,11 +10,15 @@ define([
         '../geom/Angle',
         '../error/ArgumentError',
         '../util/Logger',
+        '../geom/Plane',
+        '../geom/Vec3',
         '../util/WWMath'
     ],
     function (Angle,
               ArgumentError,
               Logger,
+              Plane,
+              Vec3,
               WWMath) {
         "use strict";
 
@@ -57,7 +61,7 @@ define([
         };
 
         /**
-         * Sets this location to the latitude and longitude of a specified location.
+         * Copies this location to the latitude and longitude of a specified location.
          * @param {Location} location The location to copy.
          * @returns {Location} This location, set to the values of the specified location.
          * @throws {ArgumentError} If the specified location is null or undefined.
@@ -70,6 +74,20 @@ define([
 
             this.latitude = location.latitude;
             this.longitude = location.longitude;
+
+            return this;
+        };
+
+        /**
+         * Sets this location to the latitude and longitude.
+         * @param {number} latitude The latitude to set.
+         * @param {number} longitude The longitude to set.
+         * @returns {Location} This location, set to the values of the specified location.
+         * @throws {ArgumentError} If the specified location is null or undefined.
+         */
+        Location.prototype.set = function (latitude, longitude) {
+            this.latitude = latitude;
+            this.longitude = longitude;
 
             return this;
         };
@@ -90,7 +108,7 @@ define([
          * @param {String} pathType The type of path to assume. Recognized values are
          * [WorldWind.GREAT_CIRCLE]{@link WorldWind#GREAT_CIRCLE},
          * [WorldWind.RHUMB_LINE]{@link WorldWind#RHUMB_LINE} and
-         * [WorldWind.LINEAR]{@link WorldWind#INEAR}.
+         * [WorldWind.LINEAR]{@link WorldWind#LINEAR}.
          * If the path type is not recognized then WorldWind.LINEAR is used.
          * @param {Number} amount The fraction of the path between the two locations at which to compute the new
          * location. This number should be between 0 and 1. If not, it is clamped to the nearest of those values.
@@ -632,6 +650,308 @@ define([
             }
 
             return result;
+        };
+
+        /**
+         * Determine whether two locations cross the dateline.
+         * @param {Location} p1 The first location.
+         * @param {Location} p2 The second location.
+         * @returns {boolean} True if the dateline is crossed, else false.
+         */
+        Location.locationsCrossDateline = function(p1, p2) {
+            if (!p1 || !p2) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Location", "locationsCrossDateline", "missingLocation"));
+            }
+
+            // A segment cross the line if end pos have different longitude signs
+            // and are more than 180 degrees longitude apart
+            if (p1.longitude * p2.longitude <= 0) {
+                var delta = Math.abs(p1.longitude - p2.longitude);
+                if (delta > 180 && delta < 360) {
+                    return true;
+                }
+            }
+
+            return false;
+        };
+
+        /**
+         * Returns two locations with the most extreme latitudes on the sequence of great circle arcs defined by each pair
+         * of locations in the specified iterable.
+         *
+         * @param {Location[]} locations The pairs of locations defining a sequence of great circle arcs.
+         *
+         * @return {Location[]} Two locations with the most extreme latitudes on the great circle arcs.
+         *
+         * @throws IllegalArgumentException if locations is null.
+         */
+        Location.greatCircleArcExtremeLocations = function(locations) {
+            if (!locations) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Location", "greatCircleArcExtremeLocations", "missingLocation"));
+            }
+
+            var minLatLocation = null;
+            var maxLatLocation = null;
+
+            var lastLocation = null;
+
+            for (var idx = 0, len = locations.length; idx < len; idx += 1) {
+                var location = locations[idx];
+
+                if (lastLocation != null) {
+                    var extremes = Location.greatCircleArcExtremeForTwoLocations(lastLocation, location);
+                    if (extremes == null) {
+                        continue;
+                    }
+
+                    if (minLatLocation == null || minLatLocation.latitude > extremes[0].latitude) {
+                        minLatLocation = extremes[0];
+                    }
+                    if (maxLatLocation == null || maxLatLocation.latitude < extremes[1].latitude) {
+                        maxLatLocation = extremes[1];
+                    }
+                }
+
+                lastLocation = location;
+            }
+
+            return [minLatLocation, maxLatLocation];
+        };
+
+        /**
+         * Returns two locations with the most extreme latitudes on the great circle arc defined by, and limited to, the two
+         * locations.
+         *
+         * @param {Location} begin Beginning location on the great circle arc.
+         * @param {Location} end   Ending location on the great circle arc.
+         *
+         * @return {Location[]} Two locations with the most extreme latitudes on the great circle arc.
+         *
+         * @throws IllegalArgumentException if either begin or end are null.
+         */
+        Location.greatCircleArcExtremeForTwoLocations = function(begin, end) {
+            if (!begin || !end) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Location", "greatCircleArcExtremeForTwoLocations", "missingLocation"));
+            }
+
+            var idx, len, location; // Iteration variables.
+            var minLatLocation = null;
+            var maxLatLocation = null;
+            var minLat = 90;
+            var maxLat = -90;
+
+            // Compute the min and max latitude and associated locations from the arc endpoints.
+            var locations = [begin, end];
+            for (idx = 0, len = locations.length; idx < len; idx += 1) {
+                location = locations[idx];
+
+                if (minLat >= location.latitude) {
+                    minLat = location.latitude;
+                    minLatLocation = location;
+                }
+                if (maxLat <= location.latitude) {
+                    maxLat = location.latitude;
+                    maxLatLocation = location;
+                }
+            }
+            // The above could be written for greater clarity, simplicity, and speed:
+            // minLat = Math.min(begin.latitude, end.latitude);
+            // maxLat = Math.max(begin.latitude, end.latitude);
+            // minLatLocation = minLat == begin.latitude ? begin : end;
+            // maxLatLocation = maxLat == begin.latitude ? begin : end;
+
+            // Compute parameters for the great circle arc defined by begin and end. Then compute the locations of extreme
+            // latitude on entire the great circle which that arc is part of.
+            var greatArcAzimuth = Location.greatCircleAzimuth(begin, end);
+            var greatArcDistance = Location.greatCircleDistance(begin, end);
+            var greatCircleExtremes = Location.greatCircleExtremeLocationsUsingAzimuth(begin, greatArcAzimuth);
+
+            // Determine whether either of the extreme locations are inside the arc defined by begin and end. If so,
+            // adjust the min and max latitude accordingly.
+            for (idx = 0, len = greatCircleExtremes.length; idx < len; idx += 1) {
+                location = greatCircleExtremes[idx];
+
+                var az = Location.greatCircleAzimuth(begin, location);
+                var d = Location.greatCircleDistance(begin, location);
+
+                // The extreme location must be between the begin and end locations. Therefore its azimuth relative to
+                // the begin location should have the same signum, and its distance relative to the begin location should
+                // be between 0 and greatArcDistance, inclusive.
+                if (WWMath.signum(az) == WWMath.signum(greatArcAzimuth)) {
+                    if (d >= 0 && d <= greatArcDistance) {
+                        if (minLat >= location.latitude) {
+                            minLat = location.latitude;
+                            minLatLocation = location;
+                        }
+                        if (maxLat <= location.latitude) {
+                            maxLat = location.latitude;
+                            maxLatLocation = location;
+                        }
+                    }
+                }
+            }
+
+            return [minLatLocation, maxLatLocation];
+        };
+
+        /**
+         * Returns two locations with the most extreme latitudes on the great circle with the given starting location and
+         * azimuth.
+         *
+         * @param {Location} location Location on the great circle.
+         * @param {number} azimuth  Great circle azimuth angle (clockwise from North).
+         *
+         * @return {Location[]} Two locations where the great circle has its extreme latitudes.
+         *
+         * @throws IllegalArgumentException if either <code>location</code> or <code>azimuth</code> are null.
+         */
+        Location.greatCircleExtremeLocationsUsingAzimuth = function(location, azimuth) {
+            if (!location) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Location", "greatCircleArcExtremeLocationsUsingAzimuth", "missingLocation"));
+            }
+
+            var lat0 = location.latitude;
+            var az = azimuth * Angle.DEGREES_TO_RADIANS;
+
+            // Derived by solving the function for longitude on a great circle against the desired longitude. We start with
+            // the equation in "Map Projections - A Working Manual", page 31, equation 5-5:
+            //
+            // lat = asin( sin(lat0) * cos(c) + cos(lat0) * sin(c) * cos(Az) )
+            //
+            // Where (lat0, lon) are the starting coordinates, c is the angular distance along the great circle from the
+            // starting coordinate, and Az is the azimuth. All values are in radians.
+            //
+            // Solving for angular distance gives distance to the equator:
+            //
+            // tan(c) = -tan(lat0) / cos(Az)
+            //
+            // The great circle is by definition centered about the Globe's origin. Therefore intersections with the
+            // equator will be antipodal (exactly 180 degrees opposite each other), as will be the extreme latitudes.
+            // By observing the symmetry of a great circle, it is also apparent that the extreme latitudes will be 90
+            // degrees from either intersection with the equator.
+            //
+            // d1 = c + 90
+            // d2 = c - 90
+
+            var tanDistance = -Math.tan(lat0) / Math.cos(az);
+            var distance = Math.atan(tanDistance);
+
+            var extremeDistance1 = (distance + (Math.PI / 2.0)) * Angle.RADIANS_TO_DEGREES;
+            var extremeDistance2 = (distance - (Math.PI / 2.0)) * Angle.RADIANS_TO_DEGREES;
+
+            return [
+                Location.greatCircleEndPosition(location, azimuth, extremeDistance1),
+                Location.greatCircleEndPosition(location, azimuth, extremeDistance2)
+            ];
+        };
+
+        /**
+         * Computes the location on a great circle arc with the given starting location, azimuth, and arc distance.
+         *
+         * @param {Location} p                  Location of the starting location
+         * @param {number} azimuth   Great circle azimuth angle (clockwise from North)
+         * @param {number} pathLength           Angular arc distance to travel
+         *
+         * @return {Location} Location on the great circle arc.
+         */
+        Location.greatCircleEndPosition = function(p, azimuth, pathLength) {
+            if (!p) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Location", "greatCircleEndPosition", "missingLocation"));
+            }
+
+            var lat = p.latitude;
+            var lon = p.longitude;
+            var distance = pathLength * Angle.DEGREES_TO_RADIANS;
+
+            if (distance == 0) {
+                return p;
+            }
+
+            // Taken from "Map Projections - A Working Manual", page 31, equation 5-5 and 5-6.
+            var endLatRadians = Math.asin(Math.sin(lat) * Math.cos(distance) + Math.cos(lat) * Math.sin(distance) * Math.cos(azimuth));
+            var endLonRadians = lon + Math.atan2(
+                Math.sin(distance) * Math.sin(azimuth),
+                Math.cos(lat) * Math.cos(distance) - Math.sin(lat) * Math.sin(distance) * Math.cos(azimuth));
+
+            if (isNaN(endLatRadians) || isNaN(endLonRadians)) {
+                return p;
+            }
+
+            return new Location(
+                Angle.normalizedRadiansLatitude(endLatRadians),
+                Angle.normalizedRadiansLongitude(endLonRadians));
+        };
+
+        /**
+         * Determine where a line between two positions crosses a given meridian. The intersection test is performed by
+         * intersecting a line in Cartesian space between the two positions with a plane through the meridian. Thus, it is
+         * most suitable for working with positions that are fairly close together as the calculation does not take into
+         * account great circle or rhumb paths.
+         *
+         * @param {Location} p1         First position.
+         * @param {Location} p2         Second position.
+         * @param {number} meridian     Longitude line to intersect with.
+         * @param {Globe} globe         Globe used to compute intersection.
+         * @param {Location} result     The result of the computation is placed in this variable.
+         *
+         * @return {Location} result The intersection location along the meridian
+         *
+         * TODO: this code allocates 4 new Vec3; use scratch variables???
+         * Why not? Every location created would then allocated those variables as well, even if they aren't needed :(.
+         */
+        Location.intersectionWithMeridian = function(p1, p2, meridian, globe, result) {
+            // TODO: add support for 2D
+            //if (globe instanceof Globe2D)
+            //{
+            //    // y = mx + b case after normalizing negative angles.
+            //    double lon1 = p1.getLongitude().degrees < 0 ? p1.getLongitude().degrees + 360 : p1.getLongitude().degrees;
+            //    double lon2 = p2.getLongitude().degrees < 0 ? p2.getLongitude().degrees + 360 : p2.getLongitude().degrees;
+            //    if (lon1 == lon2)
+            //        return null;
+            //
+            //    double med = meridian.degrees < 0 ? meridian.degrees + 360 : meridian.degrees;
+            //    double slope = (p2.latitude.degrees - p1.latitude.degrees) / (lon2 - lon1);
+            //    double lat = p1.latitude.degrees + slope * (med - lon1);
+            //
+            //    return LatLon.fromDegrees(lat, meridian.degrees);
+            //}
+
+            var pt1 = globe.computePointFromLocation(p1.latitude, p1.longitude, new Vec3(0, 0, 0));
+            var pt2 = globe.computePointFromLocation(p2.latitude, p2.longitude, new Vec3(0, 0, 0));
+
+            // Compute a plane through the origin, North Pole, and the desired meridian.
+            var northPole = globe.computePointFromLocation(90, meridian, new Vec3(0, 0, 0));
+            var pointOnEquator = globe.computePointFromLocation(0, meridian, new Vec3(0, 0, 0));
+
+            var plane = Plane.fromPoints(northPole, pointOnEquator, Vec3.ZERO);
+
+            var intersectionPoint = new Vec3(0, 0, 0);
+            if (!plane.intersectsSegmentAt(pt1, pt2, intersectionPoint)) {
+                return null;
+            }
+
+            var intersectionPos = globe.computePositionFromPoint(intersectionPoint[0], intersectionPoint[1], intersectionPoint[2], new Position(0, 0, 0));
+
+            result.set(intersectionPos.latitude, meridian);
+            return result;
+        };
+
+        /**
+         * A bit mask indicating which if any pole is being referenced.
+         * This corresponds to Java WW's AVKey.NORTH and AVKey.SOUTH,
+         * although this encoding can capture both poles simultaneously, which was
+         * a 'to do' item in the Java implementation.
+         * @type {{NONE: number, NORTH: number, SOUTH: number}}
+         */
+        Location.poles = {
+            'NONE': 0,
+            'NORTH': 1,
+            'SOUTH': 2
         };
 
         return Location;
