@@ -42,6 +42,12 @@ define([
         Vec3.prototype = new Float64Array(Vec3.NUM_ELEMENTS);
 
         /**
+         * A vector corresponding to the origin.
+         * @type {Vec3}
+         */
+        Vec3.ZERO = new Vec3(0, 0, 0);
+
+        /**
          * Computes the average of a specified array of points.
          * @param {Vec3[]} points The points whose average to compute.
          * @param {Vec3} result A pre-allocated Vec3 in which to return the computed average.
