@@ -385,6 +385,10 @@ define([
                 return; // ignore mouse events when touches are active
             }
 
+            if (event.defaultPrevented && this.state == WorldWind.POSSIBLE) {
+                return; // ignore cancelled events while in the possible state
+            }
+
             if (event.type == "mousedown") {
                 if ((this.buttonMask & buttonBit) == 0) {
                     this.buttonMask |= buttonBit;
@@ -491,6 +495,10 @@ define([
         GestureRecognizer.prototype.handleTouchEvent = function (event) {
             if (!this.enabled) {
                 return;
+            }
+
+            if (event.defaultPrevented && this.state == WorldWind.POSSIBLE) {
+                return; // ignore cancelled events while in the possible state
             }
 
             if (event.type == "touchstart") {
