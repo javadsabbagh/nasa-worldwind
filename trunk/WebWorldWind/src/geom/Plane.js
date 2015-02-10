@@ -44,6 +44,36 @@ define([
         };
 
         /**
+         * Returns the plane that passes through the specified three points. The plane's normal is the cross product of the
+         * two vectors from pb to pa and pc to pa, respectively. The
+         * returned plane is undefined if any of the specified points are colinear.
+         *
+         * @param {Vec3} pa The first point.
+         * @param {Vec3} pb The second point.
+         * @param {Vec3} pc The third point.
+         *
+         * @return {Plane} A plane passing through the specified points.
+         *
+         * @throws {ArgumentError} if pa, pb, or pc is null.
+         */
+        Plane.fromPoints = function(pa, pb, pc) {
+            if (!pa || !pb || !pc) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Plane", "fromPoints", "missingVector"));
+            }
+
+            var vab = new Vec3(pb[0], pb[1], pb[2]);
+            vab.subtract(pa);
+            var vac = new Vec3(pc[0], pc[1], pc[2]);
+            vac.subtract(pa);
+            vab.cross(vac);
+            vab.normalize();
+            var d = -vab.dot(pa);
+
+            return new Plane(vab[0], vab[1], vab[2], d);
+        };
+
+        /**
          * Computes the dot product of this plane's normal vector with a specified vector.
          * Since the plane was defined with a unit normal vector, this function returns the distance of the vector from
          * the plane.
