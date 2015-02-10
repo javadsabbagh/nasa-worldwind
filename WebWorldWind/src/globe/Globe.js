@@ -142,6 +142,25 @@ define([
         };
 
         /**
+         * Computes a Cartesian point from a specified location.
+         * See this class' Overview section for a description of the Cartesian coordinate system used.
+         * @param {Number} latitude The position's latitude.
+         * @param {Number} longitude The position's longitude.
+         * @param {Vec3} result A reference to a pre-allocated {@link Vec3} instance to contain the computed X,
+         * Y and Z Cartesian coordinates.
+         * @returns {Vec3} The result argument.
+         * @throws {ArgumentError} If the specified result is null or undefined.
+         */
+        Globe.prototype.computePointFromLocation = function (latitude, longitude, result) {
+            if (!result) {
+                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "Globe", "computePointFromLocation",
+                    "missingResult"));
+            }
+
+            return this.computePointFromPosition(latitude, longitude, 0, result);
+        };
+
+        /**
          * Computes a grid of Cartesian points within a specified sector and relative to a specified Cartesian
          * reference point.
          * <p>
