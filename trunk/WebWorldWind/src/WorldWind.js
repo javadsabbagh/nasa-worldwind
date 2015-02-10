@@ -26,6 +26,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './util/Font',
         './util/FrameStatistics',
         './geom/Frustum',
+        './projections/GeographicProjection',
         './shapes/GeographicText',
         './gesture/GestureRecognizer',
         './globe/Globe',
@@ -123,6 +124,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               Font,
               FrameStatistics,
               Frustum,
+              GeographicProjection,
               GeographicText,
               GestureRecognizer,
               Globe,
@@ -349,6 +351,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['Font'] = Font;
         WorldWind['FrameStatistics'] = FrameStatistics;
         WorldWind['Frustum'] = Frustum;
+        WorldWind['GeographicProjection'] = GeographicProjection;
         WorldWind['GeographicText'] = GeographicText;
         WorldWind['GestureRecognizer'] = GestureRecognizer;
         WorldWind['Globe'] = Globe;
