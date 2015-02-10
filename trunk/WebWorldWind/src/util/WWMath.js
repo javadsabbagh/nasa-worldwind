@@ -506,5 +506,14 @@ define([
             }
         };
 
+        /**
+         * Determine the sign of a number.
+         * @param {number} value The value to determine the sign of.
+         * @returns {number} 1, -1, or 0, depending on the sign of the value.
+         */
+        WWMath.signum = function(value) {
+            return value > 0 ? 1 : value < 0 ? -1 : 0;
+        };
+
         return WWMath;
     });
