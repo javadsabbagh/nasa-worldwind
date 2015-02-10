@@ -75,6 +75,9 @@ define([
                 gl = this.canvas.getContext("experimental-webgl");
             }
 
+            // Internal. Intentionally not documented. Must be initialized before the navigator is created.
+            this.eventListeners = {};
+
             /**
              * The number of bits in the depth buffer associated with this World Window.
              * @type {number}
@@ -180,6 +183,93 @@ define([
                 yc = y - bbox.top * (this.canvas.height / bbox.height);
 
             return new Vec2(xc, yc);
+        };
+
+        /**
+         * Registers an event listener for the specified event type on this World Window's canvas. This function
+         * delegates the processing of events to the World Window's canvas. For details on this function and its
+         * arguments, see the W3C [EventTarget]{@link http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-EventTarget}
+         * documentation.
+         *
+         * Registering event listeners using this function enables applications to prevent the World Window's default
+         * navigation behavior. To prevent default navigation behavior, call the [Event]{@link http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-Event}'s
+         * preventDefault method from within an event listener for any events the navigator should not respond to.
+         *
+         * When an event occurs, this calls the registered event listeners in order of reverse registration. Since the
+         * World Window registers its navigator event listeners first, application event listeners are called before
+         * navigator event listeners.
+         *
+         * @param type The event type to listen for.
+         * @param listener The function to call when the event occurs.
+         * @throws {ArgumentError} If any argument is null or undefined.
+         */
+        WorldWindow.prototype.addEventListener = function (type, listener) {
+            if (!type) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "WorldWindow", "addEventListener", "missingType"));
+            }
+
+            if (!listener) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "WorldWindow", "addEventListener", "missingListener"));
+            }
+
+            var entry = this.eventListeners[type];
+            if (!entry) {
+                entry = {
+                    listeners: [],
+                    callback: function (event) { // calls listeners in reverse registration order
+                        for (var i = entry.listeners.length - 1; i >= 0; i--) {
+                            entry.listeners[i](event);
+                        }
+                    }
+                };
+                this.eventListeners[type] = entry;
+            }
+
+            var index = entry.listeners.indexOf(listener);
+            if (index == -1) { // suppress duplicate listeners
+                entry.listeners.push(listener); // add the listener to the list
+
+                if (entry.listeners.length == 1) { // first listener added, add the event listener callback
+                    this.canvas.addEventListener(type, entry.callback, false);
+                }
+            }
+        };
+
+        /**
+         * Removes an event listener for the specified event type from this World Window's canvas. The listener must be
+         * the same object passed to addEventListener. Calling removeEventListener with arguments that do not identify a
+         * currently registered listener has no effect.
+         *
+         * @param type Indicates the event type the listener registered for.
+         * @param listener The listener to remove. Must be the same function object passed to addEventListener.
+         * @throws {ArgumentError} If any argument is null or undefined.
+         */
+        WorldWindow.prototype.removeEventListener = function (type, listener) {
+            if (!type) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "WorldWindow", "removeEventListener", "missingType"));
+            }
+
+            if (!listener) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "WorldWindow", "removeEventListener", "missingListener"));
+            }
+
+            var entry = this.eventListeners[type];
+            if (!entry) {
+                return; // no entry for the specified type
+            }
+
+            var index = entry.listeners.indexOf(listener);
+            if (index != -1) {
+                entry.listeners.splice(index, 1); // remove the listener from the list
+
+                if (entry.listeners.length == 0) { // last listener removed, remove the event listener callback
+                    this.canvas.removeEventListener(type, entry.callback, false);
+                }
+            }
         };
 
         /**
