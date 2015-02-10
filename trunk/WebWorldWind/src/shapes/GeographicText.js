@@ -64,6 +64,16 @@ define([
             return clone;
         };
 
+        GeographicText.prototype.render = function (dc) {
+            // Filter out instances outside any projection limits.
+            if (dc.globe.projectionLimits
+                && !dc.globe.projectionLimits.containsLocation(this.position.latitude, this.position.longitude)) {
+                return;
+            }
+
+            Text.prototype.render.call(this, dc);
+        };
+
         GeographicText.prototype.computeScreenPointAndEyeDistance = function (dc) {
             // Compute the text's model point and corresponding distance to the eye point.
             dc.terrain.surfacePointForMode(this.position.latitude, this.position.longitude, this.position.altitude,

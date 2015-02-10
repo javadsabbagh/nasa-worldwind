@@ -96,6 +96,17 @@ define([
             },
 
             /**
+             * The projection limits of the associated projection.
+             * @memberof Globe2D.prototype
+             * @type {Sector}
+             */
+            projectionLimits: {
+                get: function() {
+                    return this._projection.projectionLimits;
+                }
+            },
+
+            /**
              * An offset to apply to this globe when translating between Geographic positions and Cartesian points.
              * Used during scrolling to position points appropriately.
              * Applications typically do not access this property. It is used by the associated globe.
