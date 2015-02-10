@@ -106,16 +106,15 @@ requirejs(['../src/WorldWind',
 
         // Now set up to handle picking.
 
-        var canvas = document.getElementById("canvasOne"),
-            highlightedItems = [];
+        var highlightedItems = [];
 
         // Listen for mouse moves and highlight the placemarks that the cursor rolls over.
-        canvas.addEventListener("mousemove", function (e) {
+        wwd.addEventListener("mousemove", function (e) {
             handlePick(e.clientX, e.clientY);
-        }, false);
+        });
 
         // Listen for taps on mobile devices and highlight the placemarks that the user taps.
-        var tapRecognizer = new WorldWind.TapRecognizer(canvas);
+        var tapRecognizer = new WorldWind.TapRecognizer(wwd);
         tapRecognizer.addGestureListener(function (recognizer) {
             var location = recognizer.location();
             handlePick(location[0], location[1]);

@@ -48,6 +48,19 @@ define([
         var LookAtNavigator = function (worldWindow) {
             Navigator.call(this, worldWindow);
 
+            // Prevent the browser's default actions for touches on the WorldWindow's canvas, and prevent the context
+            // menu from appearing when the WorldWindow's canvas is right-clicked. Register these event listeners on the
+            // World Window before creating gesture recognizers so these listeners will be called last.
+            var preventDefaultListener = function (event) {
+                event.preventDefault();
+            };
+            worldWindow.addEventListener("touchstart", preventDefaultListener);
+            worldWindow.addEventListener("touchmove", preventDefaultListener);
+            worldWindow.addEventListener("touchend", preventDefaultListener);
+            worldWindow.addEventListener("touchcancel", preventDefaultListener);
+            worldWindow.addEventListener("wheel", preventDefaultListener);
+            worldWindow.addEventListener("contextmenu", preventDefaultListener);
+
             var self = this;
 
             /**
@@ -63,38 +76,38 @@ define([
             this.range = 10e6; // TODO: Compute initial range to fit globe in viewport.
 
             // Internal use only. Intentionally not documented.
-            this.primaryDragRecognizer = new DragRecognizer(worldWindow.canvas);
+            this.primaryDragRecognizer = new DragRecognizer(worldWindow);
             this.primaryDragRecognizer.addGestureListener(function (recognizer) {
                 self.handlePanOrDrag(recognizer);
             });
 
             // Internal use only. Intentionally not documented.
-            this.secondaryDragRecognizer = new DragRecognizer(worldWindow.canvas);
+            this.secondaryDragRecognizer = new DragRecognizer(worldWindow);
             this.secondaryDragRecognizer.buttons = 4; // secondary mouse button
             this.secondaryDragRecognizer.addGestureListener(function (recognizer) {
                 self.handleSecondaryDrag(recognizer);
             });
 
             // Internal use only. Intentionally not documented.
-            this.panRecognizer = new PanRecognizer(worldWindow.canvas);
+            this.panRecognizer = new PanRecognizer(worldWindow);
             this.panRecognizer.addGestureListener(function (recognizer) {
                 self.handlePanOrDrag(recognizer);
             });
 
             // Internal use only. Intentionally not documented.
-            this.pinchRecognizer = new PinchRecognizer(worldWindow.canvas);
+            this.pinchRecognizer = new PinchRecognizer(worldWindow);
             this.pinchRecognizer.addGestureListener(function (recognizer) {
                 self.handlePinch(recognizer);
             });
 
             // Internal use only. Intentionally not documented.
-            this.rotationRecognizer = new RotationRecognizer(worldWindow.canvas);
+            this.rotationRecognizer = new RotationRecognizer(worldWindow);
             this.rotationRecognizer.addGestureListener(function (recognizer) {
                 self.handleRotation(recognizer);
             });
 
             // Internal use only. Intentionally not documented.
-            this.tiltRecognizer = new TiltRecognizer(worldWindow.canvas);
+            this.tiltRecognizer = new TiltRecognizer(worldWindow);
             this.tiltRecognizer.addGestureListener(function (recognizer) {
                 self.handleTilt(recognizer);
             });
@@ -122,20 +135,9 @@ define([
             this.beginRange = 0;
 
             // Register wheel event listeners on the WorldWindow's canvas.
-            worldWindow.canvas.addEventListener("wheel", function (event) {
+            worldWindow.addEventListener("wheel", function (event) {
                 self.handleWheelEvent(event);
-            }, false);
-
-            // Prevent the browser's default actions for touches on the WorldWindow's canvas, and prevent the context
-            // menu from appearing when the WorldWindow's canvas is right-clicked.
-            var preventDefaultListener = function (event) {
-                event.preventDefault();
-            };
-            worldWindow.canvas.addEventListener("touchstart", preventDefaultListener, false);
-            worldWindow.canvas.addEventListener("touchmove", preventDefaultListener, false);
-            worldWindow.canvas.addEventListener("touchend", preventDefaultListener, false);
-            worldWindow.canvas.addEventListener("touchcancel", preventDefaultListener, false);
-            worldWindow.canvas.addEventListener("contextmenu", preventDefaultListener, false);
+            });
         };
 
         LookAtNavigator.prototype = Object.create(Navigator.prototype);
@@ -346,7 +348,6 @@ define([
                     wheelDelta *= 100;
                 }
 
-                event.preventDefault();
                 this.handleWheelZoom(wheelDelta);
             } else {
                 Logger.logMessage(Logger.LEVEL_WARNING, "LookAtNavigator", "handleWheelEvent",

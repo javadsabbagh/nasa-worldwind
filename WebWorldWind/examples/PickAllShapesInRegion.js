@@ -77,14 +77,13 @@ requirejs(['../src/WorldWind',
 
         var layerManger = new LayerManager('divLayerManager', wwd);
 
-        var canvas = document.getElementById("canvasOne"),
-            highlightedItems = [];
+        var highlightedItems = [];
 
-        canvas.addEventListener("mousemove", function (e) {
+        wwd.addEventListener("mousemove", function (e) {
             handlePick(e.clientX, e.clientY);
-        }, false);
+        });
 
-        var tapRecognizer = new WorldWind.TapRecognizer(canvas);
+        var tapRecognizer = new WorldWind.TapRecognizer(wwd);
         tapRecognizer.addGestureListener(function (recognizer) {
             var location = recognizer.location();
             handlePick(location[0], location[1]);

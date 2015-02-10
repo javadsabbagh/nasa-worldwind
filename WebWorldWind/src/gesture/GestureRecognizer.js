@@ -75,9 +75,6 @@ define([
             // Internal use only. Intentionally not documented.
             this.touchCentroidShift = new Vec2(0, 0);
 
-            GestureRecognizer.registerMouseEventListeners(this);
-            GestureRecognizer.registerTouchEventListeners(this);
-
             if (!GestureRecognizer.listenerStates) {
                 GestureRecognizer.listenerStates = [WorldWind.BEGAN, WorldWind.CHANGED, WorldWind.ENDED,
                     WorldWind.RECOGNIZED];
@@ -91,6 +88,9 @@ define([
                 GestureRecognizer.terminalStates = [WorldWind.ENDED, WorldWind.CANCELLED, WorldWind.FAILED,
                     WorldWind.RECOGNIZED]
             }
+
+            GestureRecognizer.registerMouseEventListeners(this);
+            GestureRecognizer.registerTouchEventListeners(this);
         };
 
         // Internal use only. Intentionally not documented.
@@ -143,7 +143,7 @@ define([
             if (!listener) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "GestureRecognizer", "addGestureListener",
-                        "The specified listener is null or undefined."));
+                        "missingListener"));
             }
 
             if (typeof listener != "function") {
@@ -163,7 +163,7 @@ define([
             if (!listener) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "GestureRecognizer", "removeGestureListener",
-                        "The specified listener is null or undefined."));
+                        "missingListener"));
             }
 
             var index = this.listeners.indexOf(listener);
@@ -192,7 +192,7 @@ define([
             if (!gestureRecognizer) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "GestureRecognizer", "recognizeWith",
-                        "The specified gesture recognizer is null or undefined"));
+                        "The specified gesture recognizer is null or undefined."));
             }
 
             this.recognizeWithList.push(gestureRecognizer);
@@ -355,14 +355,16 @@ define([
                         "The specified recognizer is null or undefined"));
             }
 
-            // Register mouse event listeners on the global window object. Mouse drags started on the target do not
-            // generate mouse move and mouse up events outside of the target's bounds. We listen on the window to
-            // handle mouse gestures that start on the target but travel outside the target or end outside the target.
+            // Register a mouse down listener on the event target and mouse move/up listeners on the global window.
+            // Mouse drags started on the target do not generate move and up events outside of the target's bounds. We
+            // listen to the window for those events in order to capture mouse dragging that starts on the target but
+            // moves outside it or ends outside it. Mouse move and mouse up events are ignored unless they correspond to
+            // a mouse down that occurred on the target.
             var eventListener = function (event) {
                 recognizer.handleMouseEvent(event);
                 recognizer.didHandleMouseEvent(event);
             };
-            window.addEventListener("mousedown", eventListener, false);
+            recognizer.target.addEventListener("mousedown", eventListener, false);
             window.addEventListener("mousemove", eventListener, false);
             window.addEventListener("mouseup", eventListener, false);
         };
@@ -384,7 +386,7 @@ define([
             }
 
             if (event.type == "mousedown") {
-                if ((this.buttonMask & buttonBit) == 0 && this.target == event.target) {
+                if ((this.buttonMask & buttonBit) == 0) {
                     this.buttonMask |= buttonBit;
                     this.mouseDown(event);
                 }

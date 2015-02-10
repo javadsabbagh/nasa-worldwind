@@ -239,8 +239,7 @@ define([
         MemoryCache.prototype.addCacheListener = function (listener) {
             if (!listener) {
                 throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "MemoryCache", "addCacheListener",
-                        "The specified listener is null or undefined."));
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "MemoryCache", "addCacheListener", "missingListener"));
             }
 
             if (typeof listener.entryRemoved != "function" || typeof listener.removalError != "function") {
@@ -260,8 +259,7 @@ define([
         MemoryCache.prototype.removeCacheListener = function (listener) {
             if (!listener) {
                 throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "MemoryCache", "removeCacheListener",
-                        "The specified listener is null or undefined."));
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "MemoryCache", "removeCacheListener", "missingListener"));
             }
 
             var index = this.listeners.indexOf(listener);
