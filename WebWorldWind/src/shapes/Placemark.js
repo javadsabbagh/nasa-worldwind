@@ -141,6 +141,9 @@ define([
             this.placePoint = new Vec3(0, 0, 0); // Cartesian point corresponding to this placemark's geographic position
 
             // Internal use only. Intentionally not documented.
+            this.groundPoint = new Vec3(0, 0, 0); // Cartesian point corresponding to ground position below this placemark
+
+            // Internal use only. Intentionally not documented.
             this.imageTransform = Matrix.fromIdentity();
 
             // Internal use only. Intentionally not documented.
@@ -162,7 +165,7 @@ define([
         // Internal use only. Intentionally not documented.
         Placemark.screenPoint = new Vec3(0, 0, 0); // scratch variable
         Placemark.matrix = Matrix.fromIdentity(); // scratch variable
-        Placemark.glPickPoint = new Vec3(0, 0, 0); // scratch variable
+        Placemark.scratchPoint = new Vec3(0, 0, 0); // scratch variable
 
         Placemark.prototype = Object.create(Renderable.prototype);
 
@@ -252,8 +255,7 @@ define([
 
                 if (dc.pickPoint && this.mustDrawLabel()) {
                     if (this.labelBounds.containsPoint(
-                        dc.navigatorState.convertPointToViewport(dc.pickPoint, Placemark.glPickPoint)))
-                    {
+                            dc.navigatorState.convertPointToViewport(dc.pickPoint, Placemark.scratchPoint))) {
                         po.labelPicked = true;
                     }
                 }
@@ -277,11 +279,26 @@ define([
                 return null;
             }
 
-            // Compute the placemark's model point and corresponding distance to the eye point.
-            dc.terrain.surfacePointForMode(this.position.latitude, this.position.longitude, this.position.altitude,
-                this.altitudeMode, this.placePoint);
+            // Compute the placemark's model point and corresponding distance to the eye point. If the placemark's
+            // position is terrain-dependent but off the terrain, then compute it ABSOLUTE so that we have a point for
+            // the placemark and are thus able to draw it. Otherwise its image and label portion that are potentially
+            // over the terrain won't get drawn, and would disappear as soon as there is no terrain at the placemark's
+            // position. This can occur at the window edges.
+            if (!dc.terrain.surfacePointForMode(this.position.latitude, this.position.longitude, this.position.altitude,
+                    this.altitudeMode, this.placePoint)) {
+                dc.terrain.surfacePointForMode(this.position.latitude, this.position.longitude, this.position.altitude,
+                    WorldWind.ABSOLUTE, this.placePoint);
+            }
 
             this.eyeDistance = this.alwaysOnTop ? 0 : dc.navigatorState.eyePoint.distanceTo(this.placePoint);
+
+            if (this.mustDrawLeaderLine()) {
+                if (!dc.terrain.surfacePointForMode(this.position.latitude, this.position.longitude, 0,
+                        this.altitudeMode, this.groundPoint)) {
+                    dc.terrain.surfacePointForMode(this.position.latitude, this.position.longitude, 0,
+                        WorldWind.ABSOLUTE, this.groundPoint);
+                }
+            }
 
             // Compute the placemark's screen point in the OpenGL coordinate system of the WorldWindow by projecting its model
             // coordinate point onto the viewport. Apply a depth offset in order to cause the placemark to appear above nearby
@@ -427,8 +444,6 @@ define([
             // that they be in separate buffers, so the code below uses the 3D buffer for vertex coords and the 2D
             // buffer for texture coords.
             program = dc.currentProgram;
-            gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, dc.unitQuadBuffer3());
-            gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, 0, 0);
             gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, dc.unitQuadBuffer());
             gl.vertexAttribPointer(program.vertexTexCoordLocation, 2, WebGLRenderingContext.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(program.vertexPointLocation);
@@ -440,14 +455,6 @@ define([
             // Turn off texturing in picking mode.
             if (dc.pickingMode) {
                 program.loadTextureEnabled(gl, false);
-            }
-
-            if (!this.activeAttributes.depthTest) {
-                // Suppress depth testing entirely.
-                gl.disable(WebGLRenderingContext.DEPTH_TEST, false);
-            } else {
-                // Suppress only depth-buffer writes.
-                gl.depthMask(false);
             }
 
             // The currentTexture field is used to avoid re-specifying textures unnecessarily. Clear it to start.
@@ -468,12 +475,6 @@ define([
             gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, null);
             gl.bindTexture(WebGLRenderingContext.TEXTURE_2D, null);
 
-            if (!this.activeAttributes.depthTest) {
-                gl.disable(WebGLRenderingContext.DEPTH_TEST, true);
-            } else {
-                gl.depthMask(true);
-            }
-
             // Avoid keeping a dangling reference to the current texture.
             Placemark.currentTexture = null;
         };
@@ -482,7 +483,63 @@ define([
         Placemark.prototype.doDrawOrderedPlacemark = function (dc) {
             var gl = dc.currentGlContext,
                 program = dc.currentProgram,
+                depthTest = true,
                 textureBound;
+
+            // Draw the leader line first so that the image and label have visual priority.
+            if (this.mustDrawLeaderLine()) {
+                if (!this.leaderLinePoints) {
+                    this.leaderLinePoints = new Float32Array(6);
+                }
+
+                this.leaderLinePoints[0] = this.groundPoint[0]; // computed during makeOrderedRenderable
+                this.leaderLinePoints[1] = this.groundPoint[1];
+                this.leaderLinePoints[2] = this.groundPoint[2];
+                this.leaderLinePoints[3] = this.placePoint[0]; // computed during makeOrderedRenderable
+                this.leaderLinePoints[4] = this.placePoint[1];
+                this.leaderLinePoints[5] = this.placePoint[2];
+
+                if (!this.leaderLineCacheKey) {
+                    this.leaderLineCacheKey = dc.gpuResourceCache.generateCacheKey();
+                }
+
+                var leaderLineVboId = dc.gpuResourceCache.resourceForKey(this.leaderLineCacheKey);
+                if (!leaderLineVboId) {
+                    leaderLineVboId = gl.createBuffer();
+                    dc.gpuResourceCache.putResource(this.leaderLineCacheKey, leaderLineVboId,
+                        this.leaderLinePoints.length * 4);
+                }
+
+                program.loadTextureEnabled(gl, false);
+                program.loadColor(gl, this.activeAttributes.leaderLineAttributes.outlineColor);
+
+                Placemark.matrix.setToMatrix(dc.navigatorState.modelviewProjection);
+                program.loadModelviewProjection(gl, Placemark.matrix);
+
+                if (!this.activeAttributes.leaderLineAttributes.depthTest) {
+                    gl.disable(WebGLRenderingContext.DEPTH_TEST);
+                }
+
+                gl.lineWidth(this.activeAttributes.leaderLineAttributes.outlineWidth);
+
+                gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, leaderLineVboId);
+                gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, this.leaderLinePoints, WebGLRenderingContext.STATIC_DRAW);
+                gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, 0, 0);
+                gl.drawArrays(WebGLRenderingContext.LINES, 0, 2);
+            }
+
+            // Turn off depth testing for the placemark image if requested. The placemark label and leader line have
+            // their own depth-test controls.
+            if (!this.activeAttributes.depthTest) {
+                depthTest = false;
+                gl.disable(WebGLRenderingContext.DEPTH_TEST);
+            }
+
+            // Suppress frame buffer writes for the placemark image and its label.
+            gl.depthMask(false);
+
+            gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, dc.unitQuadBuffer3());
+            gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, 0, 0);
 
             // Compute and specify the MVP matrix.
             Placemark.matrix.setToMatrix(dc.screenProjection);
@@ -492,9 +549,10 @@ define([
             // Set the pick color for picking or the color, opacity and texture if not picking.
             if (dc.pickingMode) {
                 this.pickColor = dc.uniquePickColor();
-                program.loadPickColor(gl, this.pickColor);
                 program.loadTextureEnabled(gl, false);
+                program.loadPickColor(gl, this.pickColor);
             } else {
+                program.loadTextureEnabled(gl, true);
                 program.loadColor(gl, this.activeAttributes.imageColor);
                 program.loadOpacity(gl, this.layer.opacity);
 
@@ -514,8 +572,6 @@ define([
             // Draw the placemark's image quad.
             gl.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 4);
 
-            // Draw the placemark's label if it has one.
-
             if (this.mustDrawLabel()) {
                 Placemark.matrix.setToMatrix(dc.screenProjection);
                 Placemark.matrix.multiplyMatrix(this.labelTransform);
@@ -532,23 +588,37 @@ define([
                     textureBound = this.labelTexture.bind(dc);
                     program.loadTextureEnabled(gl, textureBound);
                     Placemark.currentTexture = this.labelTexture;
+                } else {
+                    program.loadTextureEnabled(gl, false);
+                    program.loadPickColor(gl, this.pickColor);
                 }
 
-                // Turn off depth testing for the label unless it's been requested.
-                if (!this.activeAttributes.labelAttributes.depthTest) {
-                    gl.disable(WebGLRenderingContext.DEPTH_TEST, false);
+                if (this.activeAttributes.labelAttributes.depthTest && !depthTest) {
+                    depthTest = true;
+                    gl.enable(WebGLRenderingContext.DEPTH_TEST);
+                } else if (depthTest) {
+                    depthTest = false;
+                    gl.disable(WebGLRenderingContext.DEPTH_TEST);
                 }
+
                 gl.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 4);
-                if (!this.activeAttributes.labelAttributes.depthTest) {
-                    // Turn depth testing back on.
-                    gl.disable(WebGLRenderingContext.DEPTH_TEST, true);
-                }
             }
+
+            if (!depthTest) {
+                gl.enable(WebGLRenderingContext.DEPTH_TEST);
+            }
+
+            gl.depthMask(true);
         };
 
         // Internal. Intentionally not documented.
         Placemark.prototype.mustDrawLabel = function () {
             return this.label && this.label.length > 0 && this.activeAttributes.labelAttributes;
+        };
+
+        // Internal. Intentionally not documented.
+        Placemark.prototype.mustDrawLeaderLine = function () {
+            return this.activeAttributes.drawLeaderline && this.activeAttributes.leaderLineAttributes;
         };
 
         return Placemark;

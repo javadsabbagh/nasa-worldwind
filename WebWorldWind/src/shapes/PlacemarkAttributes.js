@@ -60,14 +60,14 @@ define([
              * @type {Number}
              * @default 1
              */
-            this.imageScale = (attributes && attributes.imageScale) ? attributes.imageScale : 1;
+            this.imageScale = attributes ? attributes.imageScale : 1;
 
             /**
              * The URL of the placemark's image.
              * @type {String}
              * @default null
              */
-            this.imagePath = (attributes && attributes.imagePath) ? attributes.imagePath : null;
+            this.imagePath = attributes ? attributes.imagePath : null;
 
             /**
              * Indicates whether the placemark should be depth-tested against other objects in the scene. If true,
@@ -78,7 +78,7 @@ define([
              * @type {boolean}
              * @default
              */
-            this.depthTest = true;
+            this.depthTest = attributes ? attributes.depthTest : true;
 
             /**
              * Indicates the attributes to apply to the placemark's label, if any. If null, the placemark's label is
@@ -86,22 +86,21 @@ define([
              * @type {TextAttributes}
              * @default The defaults of TextAttributes.
              */
-            this.labelAttributes = (attributes && attributes.labelAttributes) ? attributes.labelAttributes
-                : new TextAttributes(null);
+            this.labelAttributes = attributes ? attributes.labelAttributes : new TextAttributes(null);
 
             /**
              * Indicates whether to draw a line from the placemark's geographical position to the ground.
              * @type {boolean}
              * @default false
              */
-            this.drawLeaderline = false;
+            this.drawLeaderline = attributes ? attributes.drawLeaderline : false;
 
             /**
              * The attributes to apply to the leader line.
              * @type {ShapeAttributes}
              * @default See {@link ShapeAttributes}
              */
-            this.leaderLineAttributes = new ShapeAttributes(null);
+            this.leaderLineAttributes = attributes ? attributes.leaderLineAttributes : new ShapeAttributes(null);
         };
 
         return PlacemarkAttributes;

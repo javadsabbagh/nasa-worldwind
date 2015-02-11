@@ -8,24 +8,14 @@
  */
 define([
         '../error/ArgumentError',
-        '../globe/Globe',
-        '../util/Level',
         '../util/Logger',
         '../geom/Matrix',
-        '../error/NotYetImplementedError',
-        '../geom/Sector',
-        '../util/Tile',
-        '../geom/Vec3'
+        '../util/Tile'
     ],
     function (ArgumentError,
-              Globe,
-              Level,
               Logger,
               Matrix,
-              NotYetImplementedError,
-              Sector,
-              Tile,
-              Vec3) {
+              Tile) {
         "use strict";
 
         /**
@@ -87,21 +77,77 @@ define([
          * Computes a point on the terrain at a specified location.
          * @param {Number} latitude The location's latitude.
          * @param {Number} longitude The location's longitude.
-         * @param {Number} offset An distance in meters from the terrain surface at which to place the point. The
-         * computed point is located this distance along the normal vector to the globe at the specified location.
          * @param {Vec3} result A pre-allocated Vec3 in which to return the computed point.
          * @returns {Vec3} The result argument set to the computed point.
          * @throws {ArgumentError} If the specified result is null or undefined.
          */
-        TerrainTile.prototype.surfacePoint = function (latitude, longitude, offset, result) {
+        TerrainTile.prototype.surfacePoint = function (latitude, longitude, result) {
             if (!result) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "TerrainTile", "surfacePoint", "missingResult"));
             }
 
-            // TODO
-            throw new NotYetImplementedError(
-                Logger.logMessage(Logger.LEVEL_SEVERE, "TerrainTile", "surfacePoint", "notYetImplemented"));
+            var tileSector = this.sector,
+                minLat = tileSector.minLatitude,
+                maxLat = tileSector.maxLatitude,
+                minLon = tileSector.minLongitude,
+                maxLon = tileSector.maxLongitude,
+                tileWidth = this.tileWidth,
+                tileHeight = this.tileHeight,
+                s, t, si, ti, rowStride, vertices, points, k, sf, tf, x, y, z;
+
+            // Compute the location's horizontal (s) and vertical (t) parameterized coordinates within the tiles 2D grid of
+            // points as a floating-point value in the range [0, tileWidth] and [0, tileHeight]. These coordinates indicate
+            // which cell contains the location, as well as the location's placement within the cell. Note that this method
+            // assumes that the caller has tested whether the location is contained within the tile's sector.
+            s = (longitude - minLon) / (maxLon - minLon) * tileWidth;
+            t = (latitude - minLat) / (maxLat - minLat) * tileHeight;
+
+            // Get the coordinates for the four vertices defining the cell this point is in. Tile vertices start in the lower
+            // left corner and proceed in row major order across the tile. The tile contains one more vertex per row or
+            // column than the tile width or height. Vertices in the points array are organized in the
+            // following order: lower-left, lower-right, upper-left, upper-right. The cell's diagonal starts at the
+            // lower-left vertex and ends at the upper-right vertex.
+            si = s < tileWidth ? Math.floor(s) : tileWidth;
+            ti = t < tileHeight ? Math.floor(t) : tileHeight;
+            rowStride = tileWidth + 1;
+
+            vertices = this.points;
+            points = []; // temporary working buffer
+            k = 3 * (si + ti * rowStride); // lower-left and lower-right vertices
+            for (var i = 0; i < 6; i++) {
+                points[i] = vertices[k + i];
+            }
+
+            k = 3 * (si + (ti + 1) * rowStride); // upper-left and upper-right vertices
+            for (var j = 6; j < 12; j++) {
+                points[j] = vertices[k + (j - 6)];
+            }
+
+            // Compute the location's corresponding point on the cell in tile local coordinates,
+            // given the fractional portion of the parameterized s and t coordinates. These values indicate the location's
+            // relative placement within the cell. The cell's vertices are defined in the following order: lower-left,
+            // lower-right, upper-left, upper-right. The cell's diagonal starts at the lower-left vertex and ends at the
+            // upper-right vertex.
+            sf = (s < tileWidth ? s - Math.floor(s) : 1);
+            tf = (t < tileHeight ? t - Math.floor(t) : 1);
+
+            if (sf < tf) {
+                result[0] = points[3] + (1 - sf) * (points[0] - points[3]) + tf * (points[9] - points[3]);
+                result[1] = points[4] + (1 - sf) * (points[1] - points[4]) + tf * (points[10] - points[4]);
+                result[2] = points[5] + (1 - sf) * (points[2] - points[5]) + tf * (points[11] - points[5]);
+            }
+            else {
+                result[0] = points[6] + sf * (points[9] - points[6]) + (1 - tf) * (points[0] - points[6]);
+                result[1] = points[7] + sf * (points[10] - points[7]) + (1 - tf) * (points[1] - points[7]);
+                result[2] = points[8] + sf * (points[11] - points[8]) + (1 - tf) * (points[2] - points[8]);
+            }
+
+            result[0] += this.referencePoint[0];
+            result[1] += this.referencePoint[1];
+            result[2] += this.referencePoint[2];
+
+            return result;
         };
 
         return TerrainTile;

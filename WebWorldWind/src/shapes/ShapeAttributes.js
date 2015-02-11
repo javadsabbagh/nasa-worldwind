@@ -114,6 +114,15 @@ define([
              * @type {null}
              */
             this.imageOffset = attributes ? attributes.imageOffset : null;
+
+            /**
+             * Indicates whether the shape should be depth-tested against other objects in the scene. If true,
+             * the shape may be occluded by terrain and other objects in certain viewing situations. If false,
+             * the shape will not be occluded by terrain and other objects.
+             * @type {boolean}
+             * @default
+             */
+            this.depthTest = attributes ? attributes.depthTest : true;
         };
 
         return ShapeAttributes;

@@ -57,18 +57,20 @@ requirejs(['../src/WorldWind',
             highlightAttributes,
             placemarkLayer = new WorldWind.RenderableLayer("Placemarks"),
             latitude = 47.684444,
-            longitude = -179.129722;
+            longitude = -121.129722;
 
         // Set up the common placemark attributes.
         placemarkAttributes.imageScale = 1;
         placemarkAttributes.imageOffset = new WorldWind.Offset(
-            WorldWind.OFFSET_FRACTION, 0.5,
+            WorldWind.OFFSET_FRACTION, 0.3,
             WorldWind.OFFSET_FRACTION, 0.0);
         placemarkAttributes.imageColor = WorldWind.Color.WHITE;
         placemarkAttributes.labelAttributes.offset = new WorldWind.Offset(
             WorldWind.OFFSET_FRACTION, 0.5,
             WorldWind.OFFSET_FRACTION, 1.0);
         placemarkAttributes.labelAttributes.color = WorldWind.Color.YELLOW;
+        placemarkAttributes.drawLeaderline = true;
+        placemarkAttributes.leaderLineAttributes.outlineColor = WorldWind.Color.RED;
 
         // For each placemark image, create a placemark with a label.
         for (var i = 0, len = images.length; i < len; i++) {
@@ -77,6 +79,7 @@ requirejs(['../src/WorldWind',
             placemark.label = "Placemark " + i.toString() + "\n"
             + "Lat " + latitude.toPrecision(4).toString() + "\n"
             + "Lon " + longitude.toPrecision(5).toString();
+            placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
 
             // Create the placemark attributes for this placemark. Note that the attributes differ only by their
             // image URL.
