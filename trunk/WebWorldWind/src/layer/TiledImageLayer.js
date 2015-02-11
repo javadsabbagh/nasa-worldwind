@@ -237,6 +237,10 @@ define([
         };
 
         TiledImageLayer.prototype.isTileVisible = function (dc, tile) {
+            if (dc.globe.projectionLimits && !tile.sector.overlaps(dc.globe.projectionLimits)) {
+                return false;
+            }
+
             return tile.extent.intersectsFrustum(dc.navigatorState.frustumInModelCoordinates);
         };
 
