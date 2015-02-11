@@ -9,19 +9,11 @@
 define([
         '../shaders/BasicProgram',
         '../util/Color',
-        '../render/DrawContext',
-        '../layer/Layer',
-        '../globe/Terrain',
-        '../globe/TerrainTile',
-        '../globe/Tessellator'
+        '../layer/Layer'
     ],
     function (BasicProgram,
               Color,
-              DrawContext,
-              Layer,
-              Terrain,
-              TerrainTile,
-              Tessellator) {
+              Layer) {
         "use strict";
 
         /**
