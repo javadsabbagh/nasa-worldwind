@@ -69,6 +69,8 @@ define([
              * @type {null}
              */
             this.geometryVboCacheKey = level.levelNumber.toString() + "." + row.toString() + "." + column.toString();
+
+            this.scratchArray = [];
         };
 
         TerrainTile.prototype = Object.create(Tile.prototype);
@@ -113,7 +115,7 @@ define([
             rowStride = tileWidth + 1;
 
             vertices = this.points;
-            points = []; // temporary working buffer
+            points = this.scratchArray; // temporary working buffer
             k = 3 * (si + ti * rowStride); // lower-left and lower-right vertices
             for (var i = 0; i < 6; i++) {
                 points[i] = vertices[k + i];
