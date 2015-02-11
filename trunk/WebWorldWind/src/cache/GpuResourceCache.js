@@ -45,9 +45,14 @@ define([
 
             this.entries = new MemoryCache(capacity, lowWater);
 
+            this.cacheKeyPool = 0;
             this.currentRetrievals = {};
             this.absentResourceList = new AbsentResourceList(3, 60e3);
         };
+
+        GpuResourceCache.prototype.generateCacheKey = function () {
+            return "GpuResourceCache " + ++this.cacheKeyPool;
+        }
 
         /**
          * Indicates the capacity of this cache in bytes.

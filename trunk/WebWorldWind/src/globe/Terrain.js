@@ -8,21 +8,11 @@
  */
 define([
         '../error/ArgumentError',
-        '../globe/Globe',
         '../util/Logger',
-        '../error/NotYetImplementedError',
-        '../geom/Sector',
-        '../globe/TerrainTile',
-        '../globe/Tessellator',
         '../geom/Vec3'
     ],
     function (ArgumentError,
-              Globe,
               Logger,
-              NotYetImplementedError,
-              Sector,
-              TerrainTile,
-              Tessellator,
               Vec3) {
         "use strict";
 
@@ -65,13 +55,16 @@ define([
             this.surfaceGeometry = terrainTiles.tileArray;
         };
 
+        Terrain.scratchPoint = new Vec3(0, 0, 0);
+
         /**
          * Computes a Cartesian point at a location on the surface of this terrain.
          * @param {Number} latitude The location's latitude.
          * @param {Number} longitude The location's longitude.
          * @param {Number} offset Distance above the terrain, in meters, at which to compute the point.
          * @param {Vec3} result A pre-allocated Vec3 in which to return the computed point.
-         * @returns {Vec3} The specified result parameter, set to the coordinates of the computed point.
+         * @returns {Vec3} The specified result parameter, set to the coordinates of the computed point, or null if
+         * the specified location is not within this terrain.
          * @throws {ArgumentError} If the specified result argument is null or undefined.
          */
         Terrain.prototype.surfacePoint = function (latitude, longitude, offset, result) {
@@ -80,11 +73,22 @@ define([
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Terrain", "surfacePoint", "missingResult"));
             }
 
-            // TODO
-            throw new NotYetImplementedError(
-                Logger.logMessage(Logger.LEVEL_SEVERE, "Terrain", "surfacePoint", "notYetImplemented"));
+            for (var i = 0, len = this.surfaceGeometry.length; i < len; i++) {
+                if (this.surfaceGeometry[i].sector.containsLocation(latitude, longitude)) {
+                    this.surfaceGeometry[i].surfacePoint(latitude, longitude, result);
 
-            return result;
+                    if (offset) {
+                        var normal = this.globe.surfaceNormalAtPoint(result[0], result[1], result[2], Terrain.scratchPoint);
+                        result[0] += normal[0] * offset;
+                        result[1] += normal[1] * offset;
+                        result[2] += normal[2] * offset;
+                    }
+
+                    return result;
+                }
+            }
+
+            return null;
         };
 
         /**
@@ -112,15 +116,14 @@ define([
                 altitudeMode = WorldWind.ABSOLUTE;
 
             if (altitudeMode === WorldWind.CLAMP_TO_GROUND) {
-                this.surfacePoint(latitude, longitude, 0, result);
+                return this.surfacePoint(latitude, longitude, 0, result);
             } else if (altitudeMode === WorldWind.RELATIVE_TO_GROUND) {
-                this.surfacePoint(latitude, longitude, offset, result);
+                return this.surfacePoint(latitude, longitude, offset, result);
             } else {
                 var height = offset * this.verticalExaggeration;
                 this.globe.computePointFromPosition(latitude, longitude, height, result);
+                return result;
             }
-
-            return result;
         };
 
         /**
