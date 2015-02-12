@@ -480,10 +480,8 @@ define([
 
             gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
 
-            if (!dc.pickingMode) {
-                gl.enable(WebGLRenderingContext.BLEND);
-                gl.blendFunc(WebGLRenderingContext.ONE, WebGLRenderingContext.ONE_MINUS_SRC_ALPHA);
-            }
+            gl.enable(WebGLRenderingContext.BLEND);
+            gl.blendFunc(WebGLRenderingContext.ONE, WebGLRenderingContext.ONE_MINUS_SRC_ALPHA);
 
             gl.enable(WebGLRenderingContext.CULL_FACE);
             gl.enable(WebGLRenderingContext.DEPTH_TEST);
