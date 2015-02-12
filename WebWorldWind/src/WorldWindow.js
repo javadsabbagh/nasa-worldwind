@@ -794,6 +794,8 @@ define([
                             pickedObjects.add(terrainObject);
                         }
                     }
+                } else {
+                    pickedObjects.clear();
                 }
             }
         };
