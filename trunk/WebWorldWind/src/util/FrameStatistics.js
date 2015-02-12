@@ -131,10 +131,11 @@ define([],
             // Compute averages every 2 seconds.
             if (now - this.frameTimeBase > 2000) {
                 this.frameTimeAverage = this.frameTimeCumulative / this.frameCount;
-                this.frameRateAverage = this.frameCount / (now - this.frameTimeBase);
+                this.frameRateAverage = 1000 * this.frameCount / (now - this.frameTimeBase);
                 this.frameTimeBase = now;
                 this.frameTimeCumulative = 0;
                 this.frameCount = 0;
+                //console.log(this.frameTimeAverage.toString() + ", " + this.frameRateAverage.toString());
             }
         };
 
