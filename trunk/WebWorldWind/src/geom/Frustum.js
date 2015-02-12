@@ -36,13 +36,87 @@ define([
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Frustum", "constructor", "missingPlane"));
             }
-            this.left = left;
-            this.right = right;
-            this.bottom = bottom;
-            this.top = top;
-            this.near = near;
-            this.far = far;
+
+            // Internal. Intentionally not documented. See property accessors below for public interface.
+            this._left = left;
+            this._right = right;
+            this._bottom = bottom;
+            this._top = top;
+            this._near = near;
+            this._far = far;
+
+            // Internal. Intentionally not documented.
+            this._planes = [this._left, this._right, this._top, this._bottom, this._near, this._far];
         };
+
+        Object.defineProperties(Frustum.prototype, {
+            /**
+             * This frustum's left plane.
+             * @memberof Frustum.prototype
+             * @type {Plane}
+             * @readonly
+             */
+            left: {
+                get: function() {
+                    return this._left;
+                }
+            },
+            /**
+             * This frustum's right plane.
+             * @memberof Frustum.prototype
+             * @type {Plane}
+             * @readonly
+             */
+            right: {
+                get: function() {
+                    return this._right;
+                }
+            },
+            /**
+             * This frustum's bottom plane.
+             * @memberof Frustum.prototype
+             * @type {Plane}
+             * @readonly
+             */
+            bottom: {
+                get: function() {
+                    return this._bottom;
+                }
+            },
+            /**
+             * This frustum's top plane.
+             * @memberof Frustum.prototype
+             * @type {Plane}
+             * @readonly
+             */
+            top: {
+                get: function() {
+                    return this._top;
+                }
+            },
+            /**
+             * This frustum's near plane.
+             * @memberof Frustum.prototype
+             * @type {Plane}
+             * @readonly
+             */
+            near: {
+                get: function() {
+                    return this._near;
+                }
+            },
+            /**
+             * This frustum's far plane.
+             * @memberof Frustum.prototype
+             * @type {Plane}
+             * @readonly
+             */
+            far: {
+                get: function() {
+                    return this._far;
+                }
+            }
+        });
 
         /**
          * Transforms this frustum by a specified matrix.
@@ -56,12 +130,12 @@ define([
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Frustum", "transformByMatrix", "missingMatrix"));
             }
 
-            this.left.transformByMatrix(matrix);
-            this.right.transformByMatrix(matrix);
-            this.bottom.transformByMatrix(matrix);
-            this.top.transformByMatrix(matrix);
-            this.near.transformByMatrix(matrix);
-            this.far.transformByMatrix(matrix);
+            this._left.transformByMatrix(matrix);
+            this._right.transformByMatrix(matrix);
+            this._bottom.transformByMatrix(matrix);
+            this._top.transformByMatrix(matrix);
+            this._near.transformByMatrix(matrix);
+            this._far.transformByMatrix(matrix);
 
             return this;
         };
@@ -71,12 +145,12 @@ define([
          * @returns {Frustum} This frustum with its planes normalized.
          */
         Frustum.prototype.normalize = function () {
-            this.left.normalize();
-            this.right.normalize();
-            this.bottom.normalize();
-            this.top.normalize();
-            this.near.normalize();
-            this.far.normalize();
+            this._left.normalize();
+            this._right.normalize();
+            this._bottom.normalize();
+            this._top.normalize();
+            this._near.normalize();
+            this._far.normalize();
 
             return this;
         };
@@ -178,17 +252,17 @@ define([
             // provides a distance to each plane. If this distance is less than 0, the point is clipped by that plane and
             // neither intersects nor is contained by the space enclosed by this Frustum.
 
-            if (this.far.dot(point) <= 0)
+            if (this._far.dot(point) <= 0)
                 return false;
-            if (this.left.dot(point) <= 0)
+            if (this._left.dot(point) <= 0)
                 return false;
-            if (this.right.dot(point) <= 0)
+            if (this._right.dot(point) <= 0)
                 return false;
-            if (this.top.dot(point) <= 0)
+            if (this._top.dot(point) <= 0)
                 return false;
-            if (this.bottom.dot(point) <= 0)
+            if (this._bottom.dot(point) <= 0)
                 return false;
-            if (this.near.dot(point) <= 0)
+            if (this._near.dot(point) <= 0)
                 return false;
 
             return true;
@@ -218,15 +292,14 @@ define([
             if (pointA.equals(pointB))
                 return false;
 
-            var planes = [this.left, this.right, this.top, this.bottom, this.near, this.far];
-            for (var i = 0, len = planes.length; i < len; i++) {
+            for (var i = 0, len = this._planes.length; i < len; i++) {
 
                 // See if both points are behind the plane and therefore not in the frustum.
-                if (planes[i].onSameSide(pointA, pointB) < 0)
+                if (this._planes[i].onSameSide(pointA, pointB) < 0)
                     return false;
 
                 // See if the segment intersects the plane.
-                if (planes[i].clip(pointA, pointB) != null)
+                if (this._planes[i].clip(pointA, pointB) != null)
                     return true;
             }
 
