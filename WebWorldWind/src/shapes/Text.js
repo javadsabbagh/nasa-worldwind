@@ -340,6 +340,9 @@ define([
                 program.loadTextureEnabled(gl, false);
             }
 
+            // Turn off color modulation since we want to pick against the text box and not just the text.
+            program.loadModulateColor(gl, false);
+
             // Suppress depth-buffer writes.
             gl.depthMask(false);
 
@@ -381,7 +384,7 @@ define([
             // Set the pick color for picking or the color, opacity and texture if not picking.
             if (dc.pickingMode) {
                 this.pickColor = dc.uniquePickColor();
-                program.loadPickColor(gl, this.pickColor);
+                program.loadColor(gl, this.pickColor);
                 program.loadTextureEnabled(gl, false);
             } else {
                 program.loadColor(gl, this.activeAttributes.color);
