@@ -3,7 +3,7 @@
  * National Aeronautics and Space Administration. All Rights Reserved.
  */
 /**
- * @exports BMNGRestLayer
+ * @exports LandsatRestLayer
  * @version $Id$
  */
 define([
@@ -25,10 +25,10 @@ define([
         "use strict";
 
         /**
-         * Constructs a Blue Marble image layer that uses a REST interface to retrieve its imagery.
-         * @alias BMNGRestLayer
+         * Constructs a LandSat image layer that uses a REST interface to retrieve its imagery.
+         * @alias LandsatRestLayer
          * @constructor
-         * @classdesc Displays a Blue Marble image layer that spans the entire globe. The imagery is obtained from a
+         * @classdesc Displays a LandSat image layer that spans the entire globe. The imagery is obtained from a
          * specified REST tile service.
          * See [LevelRowColumnUrlBuilder]{@link LevelRowColumnUrlBuilder} for a description of the REST interface.
          * @param {String} serverAddress The server address of the tile service. May be null, in which case the
@@ -37,7 +37,7 @@ define([
          * May be null, in which case the server address is assumed to be the full path to the data directory.
          * @param {String} displayName The display name to associate with this layer.
          */
-        var BMNGRestLayer = function (serverAddress, pathToData, displayName) {
+        var LandsatRestLayer = function (serverAddress, pathToData, displayName) {
             var cachePath = WWUtil.urlPath(serverAddress + "/" + pathToData);
 
             TiledImageLayer.call(this, Sector.FULL_SPHERE, new Location(36, 36), 10, "image/png", cachePath, 512, 512);
@@ -47,7 +47,7 @@ define([
             this.urlBuilder = new LevelRowColumnUrlBuilder(serverAddress, pathToData);
         };
 
-        BMNGRestLayer.prototype = Object.create(TiledImageLayer.prototype);
+        LandsatRestLayer.prototype = Object.create(TiledImageLayer.prototype);
 
-        return BMNGRestLayer;
+        return LandsatRestLayer;
     });
