@@ -71,7 +71,7 @@ define([
          * @param {Vec2} vector The vector to test.
          * @returns {boolean} <code>true</code> if this vector is equal to the specified one, otherwise <code>false</code>.
          */
-        Vec3.prototype.equals = function (vector) {
+        Vec2.prototype.equals = function (vector) {
             return this[0] === vector[0] && this[1] === vector[1];
         };
 
