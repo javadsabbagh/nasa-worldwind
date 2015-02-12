@@ -25,11 +25,11 @@ define([
          * @constructor
          * @classdesc Represents a plane in Cartesian coordinates.
          * The plane's X, Y and Z components indicate the plane's normal vector. The distance component
-         * indicates the negative of the plane's distance from the origin. The components are expected to be normalized.
+         * indicates the plane's distance from the origin relative to its normal. The components are expected to be normalized.
          * @param {Number} x The X coordinate of the plane's unit normal vector.
          * @param {Number} y The Y coordinate of the plane's unit normal vector.
          * @param {Number} z The Z coordinate of the plane's unit normal vector.
-         * @param {Number} distance The negative of the plane's distance from the origin.
+         * @param {Number} distance The plane's distance from the origin.
          */
         var Plane = function (x, y, z, distance) {
             /**
