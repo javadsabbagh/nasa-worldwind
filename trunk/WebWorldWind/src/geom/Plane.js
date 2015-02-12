@@ -8,10 +8,12 @@
  */
 define([
         '../error/ArgumentError',
+        '../geom/Line',
         '../util/Logger',
         '../geom/Vec3'
     ],
     function (ArgumentError,
+              Line,
               Logger,
               Vec3) {
         "use strict";
@@ -219,6 +221,60 @@ define([
                 return 1;
 
             return 0;
+        };
+
+        /**
+         * Clip a line segment to this plane.
+         * @param {Vec3} pointA The first line segment endpoint.
+         * @param {Vec3} pointB The second line segment endpoint.
+         *
+         * @returns {Vec3[]}  An array of two points both on the positive side of the plane. If the direction of the line formed by the
+         *         two points is positive with respect to this plane's normal vector, the first point in the array will be
+         *         the intersection point on the plane, and the second point will be the original segment end point. If the
+         *         direction of the line is negative with respect to this plane's normal vector, the first point in the
+         *         array will be the original segment's begin point, and the second point will be the intersection point on
+         *         the plane. If the segment does not intersect the plane, null is returned. If the segment is coincident
+         *         with the plane, the input points are returned, in their input order.
+         *
+         * @throws {ArgumentError} if either point is null or undefined.
+         */
+        Plane.prototype.clip = function (pointA, pointB) {
+            if (!pointA || !pointB) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Plane", "clip", "missingPoint"));
+            }
+
+            if (pointA.equals(pointB)) {
+                return null;
+            }
+
+            // Get the projection of the segment onto the plane.
+            var line = Line.fromSegment(pointA, pointB),
+                lDotV = this.normal.dot(line.direction),
+                lDotS, t, p;
+
+            // Are the line and plane parallel?
+            if (lDotV === 0) { // line and plane are parallel and may be coincident.
+                lDotS = this.dot(line.origin);
+                if (lDotS === 0) {
+                    return [pointA, pointB]; // line is coincident with the plane
+                } else {
+                    return null; // line is not coincident with the plane.
+                }
+            }
+
+            // Not parallel so the line intersects. But does the segment intersect?
+            t = -this.dot(line.origin) / lDotV; // lDotS / lDotV
+            if (t < 0 || t > 1) { // segment does not intersect
+                return null;
+            }
+
+            p = line.pointAt(t, new Vec3(0, 0, 0));
+            if (lDotV > 0) {
+                return [p, pointB];
+            } else {
+                return [pointA, p];
+            }
         };
 
         return Plane;

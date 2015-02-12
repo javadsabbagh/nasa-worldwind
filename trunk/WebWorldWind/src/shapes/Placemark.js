@@ -128,6 +128,13 @@ define([
              */
             this.alwaysOnTop = false;
 
+            /**
+             * Indicates whether this placemark's leader line, if any is pickable.
+             * @type {boolean}
+             * @default false
+             */
+            this.enableLeaderLinePicking = false;
+
             // Internal use only. Intentionally not documented.
             this.activeAttributes = null;
 
@@ -292,7 +299,7 @@ define([
 
             this.eyeDistance = this.alwaysOnTop ? 0 : dc.navigatorState.eyePoint.distanceTo(this.placePoint);
 
-            if (this.mustDrawLeaderLine()) {
+            if (this.mustDrawLeaderLine(dc)) {
                 if (!dc.terrain.surfacePointForMode(this.position.latitude, this.position.longitude, 0,
                         this.altitudeMode, this.groundPoint)) {
                     dc.terrain.surfacePointForMode(this.position.latitude, this.position.longitude, 0,
@@ -391,10 +398,14 @@ define([
         Placemark.prototype.isVisible = function (dc) {
             if (dc.pickingMode) {
                 return dc.pickRectangle && (this.imageBounds.intersects(dc.pickRectangle)
-                    || (this.label && this.labelBounds.intersects(dc.pickRectangle)));
+                    || (this.mustDrawLabel() && this.labelBounds.intersects(dc.pickRectangle))
+                    || (this.mustDrawLeaderLine(dc)
+                    && dc.pickFrustum.intersectsSegment(this.groundPoint, this.placePoint)));
             } else {
                 return this.imageBounds.intersects(dc.navigatorState.viewport)
-                    || (this.label && this.labelBounds.intersects(dc.navigatorState.viewport));
+                    || (this.mustDrawLabel() && this.labelBounds.intersects(dc.navigatorState.viewport))
+                    || (this.mustDrawLeaderLine(dc)
+                    && dc.navigatorState.frustumInModelCoordinates.intersectsSegment(this.groundPoint, this.placePoint));
             }
         };
 
@@ -451,11 +462,7 @@ define([
 
             // Tell the program which texture unit to use.
             program.loadTextureUnit(gl, WebGLRenderingContext.TEXTURE0);
-
-            // Turn off texturing in picking mode.
-            if (dc.pickingMode) {
-                program.loadTextureEnabled(gl, false);
-            }
+            program.loadModulateColor(gl, dc.pickingMode);
 
             // The currentTexture field is used to avoid re-specifying textures unnecessarily. Clear it to start.
             Placemark.currentTexture = null;
@@ -486,8 +493,12 @@ define([
                 depthTest = true,
                 textureBound;
 
+            if (dc.pickingMode) {
+                this.pickColor = dc.uniquePickColor();
+            }
+
             // Draw the leader line first so that the image and label have visual priority.
-            if (this.mustDrawLeaderLine()) {
+            if (this.mustDrawLeaderLine(dc)) {
                 if (!this.leaderLinePoints) {
                     this.leaderLinePoints = new Float32Array(6);
                 }
@@ -511,7 +522,8 @@ define([
                 }
 
                 program.loadTextureEnabled(gl, false);
-                program.loadColor(gl, this.activeAttributes.leaderLineAttributes.outlineColor);
+                program.loadColor(gl, dc.pickingMode ? this.pickColor :
+                    this.activeAttributes.leaderLineAttributes.outlineColor);
 
                 Placemark.matrix.setToMatrix(dc.navigatorState.modelviewProjection);
                 program.loadModelviewProjection(gl, Placemark.matrix);
@@ -546,27 +558,29 @@ define([
             Placemark.matrix.multiplyMatrix(this.imageTransform);
             program.loadModelviewProjection(gl, Placemark.matrix);
 
+            // Enable texture for both normal display and for picking. If picking is enabled in the shader (set in
+            // beginDrawing() above) then the texture's alpha component is still needed in order to modulate the
+            // pick color to mask off transparent pixels.
+            program.loadTextureEnabled(gl, true);
+
             // Set the pick color for picking or the color, opacity and texture if not picking.
             if (dc.pickingMode) {
-                this.pickColor = dc.uniquePickColor();
-                program.loadTextureEnabled(gl, false);
-                program.loadPickColor(gl, this.pickColor);
+                program.loadColor(gl, this.pickColor);
             } else {
-                program.loadTextureEnabled(gl, true);
                 program.loadColor(gl, this.activeAttributes.imageColor);
                 program.loadOpacity(gl, this.layer.opacity);
+            }
 
-                this.texCoordMatrix.setToIdentity();
-                if (this.activeTexture) {
-                    this.texCoordMatrix.multiplyByTextureTransform(this.activeTexture);
-                }
-                program.loadTextureMatrix(gl, this.texCoordMatrix);
+            this.texCoordMatrix.setToIdentity();
+            if (this.activeTexture) {
+                this.texCoordMatrix.multiplyByTextureTransform(this.activeTexture);
+            }
+            program.loadTextureMatrix(gl, this.texCoordMatrix);
 
-                if (this.activeTexture && this.activeTexture != Placemark.currentTexture) { // avoid unnecessary texture state changes
-                    textureBound = this.activeTexture.bind(dc); // returns false if active texture is null or cannot be bound
-                    program.loadTextureEnabled(gl, textureBound);
-                    Placemark.currentTexture = this.activeTexture;
-                }
+            if (this.activeTexture && this.activeTexture != Placemark.currentTexture) { // avoid unnecessary texture state changes
+                textureBound = this.activeTexture.bind(dc); // returns false if active texture is null or cannot be bound
+                program.loadTextureEnabled(gl, textureBound);
+                Placemark.currentTexture = this.activeTexture;
             }
 
             // Draw the placemark's image quad.
@@ -590,7 +604,7 @@ define([
                     Placemark.currentTexture = this.labelTexture;
                 } else {
                     program.loadTextureEnabled(gl, false);
-                    program.loadPickColor(gl, this.pickColor);
+                    program.loadColor(gl, this.pickColor);
                 }
 
                 if (this.activeAttributes.labelAttributes.depthTest && !depthTest) {
@@ -617,8 +631,9 @@ define([
         };
 
         // Internal. Intentionally not documented.
-        Placemark.prototype.mustDrawLeaderLine = function () {
-            return this.activeAttributes.drawLeaderline && this.activeAttributes.leaderLineAttributes;
+        Placemark.prototype.mustDrawLeaderLine = function (dc) {
+            return this.activeAttributes.drawLeaderline && this.activeAttributes.leaderLineAttributes
+                && (!dc.pickingMode || this.enableLeaderLinePicking);
         };
 
         return Placemark;

@@ -48,10 +48,18 @@ define([
                     'uniform float opacity;\n' +
                     'uniform vec4 color;\n' +
                     'uniform bool enableTexture;\n' +
+                    'uniform bool modulateColor;\n' +
                     'uniform sampler2D textureSampler;\n' +
                     'varying vec2 texCoord;\n' +
-                    'void main() {vec4 textureColor = texture2D(textureSampler, texCoord) * color;\n' +
-                    'gl_FragColor = mix(color, textureColor, float(enableTexture)) * opacity;}';
+                    'void main() {\n' +
+                    'vec4 textureColor = texture2D(textureSampler, texCoord);\n' +
+                    'if (enableTexture && !modulateColor)\n' +
+                    '    gl_FragColor = textureColor * color * opacity;\n' +
+                    'else if (enableTexture && modulateColor)\n' +
+                    '    gl_FragColor = color * floor(textureColor.a + 0.5);\n' +
+                    'else\n' +
+                    '    gl_FragColor = color * opacity;\n' +
+                    '}';
 
             // Call to the superclass, which performs shader program compiling and linking.
             GpuProgram.call(this, gl, vertexShaderSource, fragmentShaderSource);
@@ -85,6 +93,12 @@ define([
              * @type {WebGLUniformLocation}
              */
             this.textureEnabledLocation = this.uniformLocation(gl, "enableTexture");
+
+            /**
+             * The WebGL location for this program's 'enablePicking' uniform.
+             * @type {WebGLUniformLocation}
+             */
+            this.modulateColorLocation = this.uniformLocation(gl, "modulateColor");
 
             /**
              * The WebGL location for this program's 'textureSampler' uniform.
@@ -148,22 +162,26 @@ define([
         };
 
         /**
-         * Loads the specified pick color as the value of this program's 'color' uniform variable.
-         *
-         * @param {WebGLRenderingContext} gl The current WebGL context.
-         * @param {Number} pickColor The color to load, expressed as a Number.
-         */
-        BasicTextureProgram.prototype.loadPickColor = function (gl, pickColor) {
-            GpuProgram.loadUniformPickColor(gl, pickColor, this.colorLocation);
-        };
-
-        /**
          * Loads the specified boolean as the value of this program's 'enableTexture' uniform variable.
          * @param {WebGLRenderingContext} gl The current WebGL context.
          * @param {Boolean} enable <code>true</code> to enable texturing, <code>false</code> to disable texturing.
          */
         BasicTextureProgram.prototype.loadTextureEnabled = function (gl, enable) {
             GpuProgram.loadUniformInteger(gl, enable ? 1 : 0, this.textureEnabledLocation);
+        };
+
+        /**
+         * Loads the specified boolean as the value of this program's 'modulateColor' uniform variable. When this
+         * value is true and the value of the textureEnabled variable is true the color uniform of this shader is
+         * multiplied by the rounded alpha component of the texture color at each fragment. This causes the color
+         * to be either fully opaque or fully transparent depending on the value of the texture color's alpha value.
+         * This is used during picking to replace opaque or mostly opaque texture colors with the pick color, and
+         * to make all other texture colors transparent.
+         * @param {WebGLRenderingContext} gl The current WebGL context.
+         * @param {Boolean} enable <code>true</code> to enable modulation, <code>false</code> to disable modulation.
+         */
+        BasicTextureProgram.prototype.loadModulateColor = function (gl, enable) {
+            GpuProgram.loadUniformInteger(gl, enable ? 1 : 0, this.modulateColorLocation);
         };
 
         /**

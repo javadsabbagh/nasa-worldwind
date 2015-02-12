@@ -212,7 +212,7 @@ define([
             }
 
             // First do a trivial accept test.
-            if (this.contains(pointA) || this.contains(pointB))
+            if (this.containsPoint(pointA) || this.containsPoint(pointB))
                 return true;
 
             if (pointA.equals(pointB))

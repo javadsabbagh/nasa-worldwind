@@ -110,15 +110,5 @@ define([
             GpuProgram.loadUniformColor(gl, color, this.colorLocation);
         };
 
-        /**
-         * Loads the specified pick color as the value of this program's 'color' uniform variable.
-         *
-         * @param {WebGLRenderingContext} gl The current WebGL context.
-         * @param {Number} pickColor The color to load, expressed as a Number.
-         */
-        BasicProgram.prototype.loadPickColor = function (gl, pickColor) {
-            GpuProgram.loadUniformPickColor(gl, pickColor, this.colorLocation);
-        };
-
         return BasicProgram;
     });
