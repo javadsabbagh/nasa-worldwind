@@ -40,7 +40,8 @@ define([
          * @constructor
          * @augments Renderable
          * @classdesc Represents a Placemark shape. A placemark displays an image, a label and a leader line connecting
-         * the placemark's geographical position to the ground. All three of these items are optional.
+         * the placemark's geographical position to the ground. All three of these items are optional. By default, the
+         * leader line is not pickable. See [enableLeaderLinePicking]{@link Placemark#enableLeaderLinePicking}.
          * <p>
          * Placemarks may be drawn with either an image or as single-color square with a specified size. When the placemark attributes
          * have a valid image path the placemark's image is drawn as a rectangle in the image's original dimensions, scaled
@@ -129,7 +130,7 @@ define([
             this.alwaysOnTop = false;
 
             /**
-             * Indicates whether this placemark's leader line, if any is pickable.
+             * Indicates whether this placemark's leader line, if any, is pickable.
              * @type {boolean}
              * @default false
              */
