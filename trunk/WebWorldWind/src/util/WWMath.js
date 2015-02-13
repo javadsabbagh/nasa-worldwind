@@ -23,14 +23,6 @@ define([
          */
         var WWMath = {
 
-            POSITIVE_ZERO: +0.0,
-
-            NEGATIVE_ZERO: -0.0,
-
-            isZero: function (value) {
-                return value === this.POSITIVE_ZERO || value === this.NEGATIVE_ZERO;
-            },
-
             /**
              * Returns a number within the range of a specified minimum and maximum.
              * @param {Number} value The value to clamp.
@@ -149,7 +141,9 @@ define([
                 }
                 else {
                     t = (-b - Math.sqrt(d)) / (2 * a);
-                    line.pointAt(t, result);
+                    result[0] = sx + vx * t;
+                    result[1] = sy + vy * t;
+                    result[2] = sz + vz * t;
                     return true;
                 }
             },
@@ -503,16 +497,16 @@ define([
              */
             isPowerOfTwo: function (value) {
                 return value != 0 && (value & (value - 1)) === 0;
-            }
-        };
+            },
 
-        /**
-         * Determine the sign of a number.
-         * @param {number} value The value to determine the sign of.
-         * @returns {number} 1, -1, or 0, depending on the sign of the value.
-         */
-        WWMath.signum = function(value) {
-            return value > 0 ? 1 : value < 0 ? -1 : 0;
+            /**
+             * Determine the sign of a number.
+             * @param {number} value The value to determine the sign of.
+             * @returns {number} 1, -1, or 0, depending on the sign of the value.
+             */
+            signum: function(value) {
+                return value > 0 ? 1 : value < 0 ? -1 : 0;
+            }
         };
 
         return WWMath;
