@@ -406,7 +406,7 @@ define([
          * @returns {Color} The color at the pick point.
          */
         DrawContext.prototype.readPickColor = function (pickPoint) {
-            var glPickPoint = this.navigatorState.convertPointToViewport(pickPoint, new Vec2(0, 0, 0)),
+            var glPickPoint = this.navigatorState.convertPointToViewport(pickPoint, new Vec2(0, 0)),
                 colorBytes = new Uint8Array(4);
 
             this.currentGlContext.readPixels(glPickPoint[0], glPickPoint[1], 1, 1, WebGLRenderingContext.RGBA,
