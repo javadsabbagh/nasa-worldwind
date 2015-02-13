@@ -8,12 +8,10 @@
  */
 define([
         '../geom/Angle',
-        '../gesture/GestureRecognizer',
-        '../geom/Vec2'
+        '../gesture/GestureRecognizer'
     ],
     function (Angle,
-              GestureRecognizer,
-              Vec2) {
+              GestureRecognizer) {
         "use strict";
 
         /**
@@ -25,23 +23,20 @@ define([
         var RotationRecognizer = function (target) {
             GestureRecognizer.call(this, target);
 
-            /**
-             *
-             * @type {number}
-             */
-            this.rotation = 0;
+            // Internal use only. Intentionally not documented.
+            this._rotation = 0;
 
             // Internal use only. Intentionally not documented.
-            this.rotationOffset = 0;
+            this._offsetRotation = 0;
 
             // Internal use only. Intentionally not documented.
-            this.threshold = 10;
+            this.referenceAngle = 0;
 
             // Internal use only. Intentionally not documented.
-            this.slope = new Vec2(0, 0);
+            this.threshold = 20;
 
             // Internal use only. Intentionally not documented.
-            this.beginSlope = new Vec2(0, 0);
+            this.weight = 0.5;
 
             // Internal use only. Intentionally not documented.
             this.touchIds = [];
@@ -49,16 +44,23 @@ define([
 
         RotationRecognizer.prototype = Object.create(GestureRecognizer.prototype);
 
+        Object.defineProperties(RotationRecognizer.prototype, {
+            rotation: {
+                get: function () {
+                    return this._rotation + this._offsetRotation;
+                }
+            }
+        });
+
         /**
          * @protected
          */
         RotationRecognizer.prototype.reset = function () {
             GestureRecognizer.prototype.reset.call(this);
 
-            this.rotation = 0;
-            this.rotationOffset = 0;
-            this.slope.set(0, 0);
-            this.beginSlope.set(0, 0);
+            this._rotation = 0;
+            this._offsetRotation = 0;
+            this.referenceAngle = 0;
             this.touchIds = [];
         };
 
@@ -90,11 +92,7 @@ define([
                 }
 
                 if (this.touchIds.length == 2) {
-                    var index0 = this.indexOfTouch(this.touchIds[0]),
-                        index1 = this.indexOfTouch(this.touchIds[1]);
-                    this.slope = this.touchSlope(index0, index1);
-                    this.beginSlope = this.slope;
-                    this.rotationOffset = this.rotation;
+                    this.touchesStarted();
                 }
             }
         };
@@ -108,16 +106,13 @@ define([
             GestureRecognizer.prototype.touchMove.call(this, event);
 
             if (this.touchIds.length == 2) {
-                var index0 = this.indexOfTouch(this.touchIds[0]),
-                    index1 = this.indexOfTouch(this.touchIds[1]);
-                this.slope = this.touchSlope(index0, index1);
-                this.rotation = this.computeRotation();
-
                 if (this.state == WorldWind.POSSIBLE) {
-                    if (this.shouldRecognize()) {
+                    if (this.shouldRecognizeTouches()) {
+                        this.gestureBegan();
                         this.transitionToState(WorldWind.BEGAN);
                     }
                 } else if (this.state == WorldWind.BEGAN || this.state == WorldWind.CHANGED) {
+                    this.gestureChanged();
                     this.transitionToState(WorldWind.CHANGED);
                 }
             }
@@ -148,49 +143,69 @@ define([
         };
 
         /**
+         * @protected
+         */
+        RotationRecognizer.prototype.touchesStarted = function () {
+            var index0 = this.indexOfTouch(this.touchIds[0]),
+                index1 = this.indexOfTouch(this.touchIds[1]);
+
+            this.referenceAngle = this.touchAngle(index0, index1);
+        };
+
+        /**
          *
          * @returns {boolean}
          * @protected
          */
-        RotationRecognizer.prototype.shouldRecognize = function () {
-            return Math.abs(this.slope[0] - this.beginSlope[0]) > this.threshold
-                || Math.abs(this.slope[1] - this.beginSlope[1]) > this.threshold;
+        RotationRecognizer.prototype.shouldRecognizeTouches = function () {
+            var index0 = this.indexOfTouch(this.touchIds[0]),
+                index1 = this.indexOfTouch(this.touchIds[1]),
+                angle = this.touchAngle(index0, index1),
+                rotation = Angle.normalizedDegrees(angle - this.referenceAngle);
+
+            return Math.abs(rotation) > this.threshold;
         };
 
         /**
          *
-         * @param indexA
-         * @param indexB
-         * @returns {number}
-         * @protected
          */
-        RotationRecognizer.prototype.touchSlope = function (indexA, indexB) {
-            var pointA = this.touches[indexA].clientLocation,
-                pointB = this.touches[indexB].clientLocation;
-            return new Vec2(pointA[0] - pointB[0], pointA[1] - pointB[1]);
+        RotationRecognizer.prototype.gestureBegan = function () {
+            var index0 = this.indexOfTouch(this.touchIds[0]),
+                index1 = this.indexOfTouch(this.touchIds[1]);
+
+            this.referenceAngle = this.touchAngle(index0, index1);
+            this._offsetRotation = this._rotation;
+            this._rotation = 0;
         };
 
         /**
          *
-         * @param slope
-         * @returns {number}
          * @protected
          */
-        RotationRecognizer.prototype.angleForSlope = function (slope) {
-            var radians = Math.atan2(slope[1], slope[0]);
-            return radians * Angle.RADIANS_TO_DEGREES;
+        RotationRecognizer.prototype.gestureChanged = function () {
+            var index0 = this.indexOfTouch(this.touchIds[0]),
+                index1 = this.indexOfTouch(this.touchIds[1]),
+                angle = this.touchAngle(index0, index1),
+                newRotation = Angle.normalizedDegrees(angle - this.referenceAngle),
+                w = this.weight;
+
+            this._rotation = this._rotation * (1 - w) + newRotation * w;
         };
 
         /**
          *
+         * @param index0
+         * @param index1
          * @returns {number}
          * @protected
          */
-        RotationRecognizer.prototype.computeRotation = function () {
-            var angle = this.angleForSlope(this.slope),
-                beginAngle = this.angleForSlope(this.beginSlope),
-                rotation = angle - beginAngle + this.rotationOffset;
-            return Angle.normalizedDegrees(rotation);
+        RotationRecognizer.prototype.touchAngle = function (index0, index1) {
+            var point0 = this.touches[index0].clientLocation,
+                point1 = this.touches[index1].clientLocation,
+                dx = point0[0] - point1[0],
+                dy = point0[1] - point1[1];
+
+            return Math.atan2(dy, dx) * Angle.RADIANS_TO_DEGREES;
         };
 
         return RotationRecognizer;
