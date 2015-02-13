@@ -37,7 +37,7 @@ define([
             this.translation = new Vec2(0, 0);
 
             // Internal use only. Intentionally not documented.
-            this.gestureBeginLocation = new Vec2(0, 0);
+            this.referenceLocation = new Vec2(0, 0);
 
             // Internal use only. Intentionally not documented.
             this.threshold = 5;
@@ -55,7 +55,7 @@ define([
             GestureRecognizer.prototype.reset.call(this);
 
             this.translation.set(0, 0);
-            this.gestureBeginLocation.set(0, 0);
+            this.referenceLocation.set(0, 0);
         };
 
         /**
@@ -120,15 +120,15 @@ define([
          * @protected
          */
         DragRecognizer.prototype.gestureBegan = function () {
-            this.gestureBeginLocation.copy(this.clientLocation);
+            this.referenceLocation.copy(this.clientLocation);
         };
 
         /**
          * @protected
          */
         DragRecognizer.prototype.gestureChanged = function () {
-            var dx = this.clientLocation[0] - this.gestureBeginLocation[0],
-                dy = this.clientLocation[1] - this.gestureBeginLocation[1],
+            var dx = this.clientLocation[0] - this.referenceLocation[0],
+                dy = this.clientLocation[1] - this.referenceLocation[1],
                 w = this.weight;
 
             this.translation[0] = this.translation[0] * (1 - w) + dx * w;

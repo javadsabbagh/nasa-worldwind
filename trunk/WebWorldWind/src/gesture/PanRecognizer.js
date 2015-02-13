@@ -43,7 +43,10 @@ define([
             this.translation = new Vec2(0, 0);
 
             // Internal use only. Intentionally not documented.
-            this.gestureBeginLocation = new Vec2(0, 0);
+            this.actualTranslation = new Vec2(0, 0);
+
+            // Internal use only. Intentionally not documented.
+            this.referenceTranslation = new Vec2(0, 0);
 
             // Internal use only. Intentionally not documented.
             this.threshold = 20;
@@ -61,7 +64,7 @@ define([
             GestureRecognizer.prototype.reset.call(this);
 
             this.translation.set(0, 0);
-            this.gestureBeginLocation.set(0, 0);
+            this.actualTranslation.set(0, 0);
         };
 
         /**
@@ -84,6 +87,10 @@ define([
          */
         PanRecognizer.prototype.touchMove = function (event) {
             GestureRecognizer.prototype.touchMove.call(this, event);
+
+            var dx = this.clientLocation[0] - this.clientStartLocation[0] + this.touchCentroidShift[0],
+                dy = this.clientLocation[1] - this.clientStartLocation[1] + this.touchCentroidShift[1];
+            this.actualTranslation.set(dx, dy);
 
             if (this.state == WorldWind.POSSIBLE) {
                 if (this.shouldInterpret()) {
@@ -121,10 +128,7 @@ define([
          * @protected
          */
         PanRecognizer.prototype.shouldInterpret = function () {
-            var dx = this.clientLocation[0] - this.clientStartLocation[0] + this.touchCentroidShift[0],
-                dy = this.clientLocation[1] - this.clientStartLocation[1] + this.touchCentroidShift[1],
-                distance = Math.sqrt(dx * dx + dy * dy);
-
+            var distance = this.actualTranslation.magnitude();
             return distance > this.threshold; // interpret touches when the touch centroid moves far enough
         };
 
@@ -144,15 +148,15 @@ define([
          * @protected
          */
         PanRecognizer.prototype.gestureBegan = function () {
-            this.gestureBeginLocation.copy(this.clientLocation);
+            this.referenceTranslation.copy(this.actualTranslation);
         };
 
         /**
          * @protected
          */
         PanRecognizer.prototype.gestureChanged = function () {
-            var dx = this.clientLocation[0] - this.gestureBeginLocation[0] + this.touchCentroidShift[0],
-                dy = this.clientLocation[1] - this.gestureBeginLocation[1] + this.touchCentroidShift[1],
+            var dx = this.actualTranslation[0] - this.referenceTranslation[0],
+                dy = this.actualTranslation[1] - this.referenceTranslation[1],
                 w = this.weight;
 
             this.translation[0] = this.translation[0] * (1 - w) + dx * w;
