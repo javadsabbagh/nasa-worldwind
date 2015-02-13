@@ -25,6 +25,7 @@ requirejs(['../src/WorldWind',
          */
         wwd.addLayer(new WorldWind.BMNGLandsatLayer()); // Blue Marble + Landsat
         wwd.addLayer(new WorldWind.BingWMSLayer()); // Bing
+        wwd.addLayer(new WorldWind.CompassLayer);
 
         // Define the images we'll use for the placemarks.
         var images = [

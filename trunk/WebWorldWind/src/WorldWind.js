@@ -18,6 +18,8 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './layer/BMNGRestLayer',
         './geom/BoundingBox',
         './util/Color',
+        './shapes/Compass',
+        './layer/CompassLayer',
         './gesture/DragRecognizer',
         './render/DrawContext',
         './globe/EarthElevationModel',
@@ -66,6 +68,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './render/Renderable',
         './layer/RenderableLayer',
         './gesture/RotationRecognizer',
+        './shapes/ScreenImage',
         './shapes/ScreenText',
         './geom/Sector',
         './shapes/ShapeAttributes',
@@ -116,6 +119,8 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               BMNGRestLayer,
               BoundingBox,
               Color,
+              Compass,
+              CompassLayer,
               DragRecognizer,
               DrawContext,
               EarthElevationModel,
@@ -164,6 +169,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               Renderable,
               RenderableLayer,
               RotationRecognizer,
+              ScreenImage,
               ScreenText,
               Sector,
               ShapeAttributes,
@@ -343,6 +349,8 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['BMNGRestLayer'] = BMNGRestLayer;
         WorldWind['BoundingBox'] = BoundingBox;
         WorldWind['Color'] = Color;
+        WorldWind['Compass'] = Compass;
+        WorldWind['CompassLayer'] = CompassLayer;
         WorldWind['DragRecognizer'] = DragRecognizer;
         WorldWind['DrawContext'] = DrawContext;
         WorldWind['EarthElevationModel'] = EarthElevationModel;
@@ -392,6 +400,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['RenderableLayer'] = RenderableLayer;
         WorldWind['RotationRecognizer'] = RotationRecognizer;
         WorldWind['ScreenText'] = ScreenText;
+        WorldWind['ScreenImage'] = ScreenImage;
         WorldWind['Sector'] = Sector;
         WorldWind['ShapeAttributes'] = ShapeAttributes;
         WorldWind['ShowTessellationLayer'] = ShowTessellationLayer;

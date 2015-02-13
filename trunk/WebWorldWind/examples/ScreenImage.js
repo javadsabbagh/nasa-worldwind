@@ -3,7 +3,7 @@
  * National Aeronautics and Space Administration. All Rights Reserved.
  */
 /**
- * Illustrates how to display and pick SurfaceImage.
+ * Illustrates how to display and pick ScreenImage.
  *
  * @version $Id$
  */
@@ -25,15 +25,18 @@ requirejs(['../src/WorldWind',
          */
         wwd.addLayer(new WorldWind.BMNGLandsatLayer()); // Blue Marble + Landsat
         wwd.addLayer(new WorldWind.BingWMSLayer()); // Bing
+        wwd.addLayer(new WorldWind.CompassLayer);
 
-        var surfaceImage = new WorldWind.SurfaceImage(new WorldWind.Sector(40, 50, -120, -100),
-            "../images/400x230-splash-nww.png");
+        var screenOffset = new WorldWind.Offset(WorldWind.OFFSET_FRACTION, 1, WorldWind.OFFSET_FRACTION, 0);
+        var screenImage = new WorldWind.ScreenImage(screenOffset, "../images/400x230-splash-nww.png");
+        screenImage.imageOffset = new WorldWind.Offset(WorldWind.OFFSET_FRACTION, 1, WorldWind.OFFSET_FRACTION, 0);
+        screenImage.imageScale = 0.3;
 
-        // Add the surface image to a layer and the layer to the World Window's layer list.
-        var surfaceImageLayer = new WorldWind.RenderableLayer();
-        surfaceImageLayer.displayName = "Surface Image";
-        surfaceImageLayer.addRenderable(surfaceImage);
-        wwd.addLayer(surfaceImageLayer);
+        // Add the screen image to a layer and the layer to the World Window's layer list.
+        var screenImageLayer = new WorldWind.RenderableLayer();
+        screenImageLayer.displayName = "Screen Image";
+        screenImageLayer.addRenderable(screenImage);
+        wwd.addLayer(screenImageLayer);
 
         // Draw the World Window for the first time.
         wwd.redraw();
@@ -63,8 +66,8 @@ requirejs(['../src/WorldWind',
 
             if (pickList.objects.length > 0) {
                 for (var p = 0; p < pickList.objects.length; p++) {
-                    if (pickList.objects[p].userObject instanceof WorldWind.SurfaceImage) {
-                        console.log("Surface image picked");
+                    if (pickList.objects[p].userObject instanceof WorldWind.ScreenImage) {
+                        console.log("Screen image picked");
                     }
                 }
             }

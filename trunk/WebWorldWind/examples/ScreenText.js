@@ -25,6 +25,7 @@ requirejs(['../src/WorldWind',
          */
         wwd.addLayer(new WorldWind.BMNGLandsatLayer()); // Blue Marble + Landsat
         wwd.addLayer(new WorldWind.BingWMSLayer()); // Bing
+        wwd.addLayer(new WorldWind.CompassLayer);
 
         var screenText,
             textAttributes = new WorldWind.TextAttributes(null),
