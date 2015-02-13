@@ -55,7 +55,8 @@ define([
             this.imagePath = imagePath;
 
             /**
-             * This surface image's opacity.
+             * This surface image's opacity. When this surface image is drawn, the actual opacity is the product of
+             * this opacity and the opacity of the layer containing this surface image.
              * @type {number}
              */
             this.opacity = 1;
