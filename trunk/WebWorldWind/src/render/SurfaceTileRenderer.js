@@ -7,27 +7,15 @@
  * @version $Id$
  */
 define([
-        '../geom/Angle',
         '../error/ArgumentError',
-        '../render/DrawContext',
         '../util/Logger',
         '../geom/Matrix',
-        '../error/NotYetImplementedError',
-        '../render/SurfaceTile',
-        '../shaders/SurfaceTileRendererProgram',
-        '../globe/Terrain',
-        '../globe/Tessellator'
+        '../shaders/SurfaceTileRendererProgram'
     ],
-    function (Angle,
-              ArgumentError,
-              DrawContext,
+    function (ArgumentError,
               Logger,
               Matrix,
-              NotYetImplementedError,
-              SurfaceTile,
-              SurfaceTileRendererProgram,
-              Terrain,
-              Tesselator) {
+              SurfaceTileRendererProgram) {
         "use strict";
 
         /**
@@ -63,7 +51,9 @@ define([
                 return;
 
             var terrain = dc.terrain,
-                tileCount = 0, // for frame statistics
+                gl = dc.currentGlContext,
+                tileCount = 0,// for frame statistics,
+                program,
                 terrainTile,
                 terrainTileSector,
                 surfaceTile;
@@ -72,7 +62,7 @@ define([
                 return;
 
             // For each terrain tile, render it for each overlapping surface tile.
-            this.beginRendering(dc, opacity);
+            program = this.beginRendering(dc, opacity);
             terrain.beginRendering(dc);
             try {
                 for (var i = 0, ttLen = terrain.surfaceGeometry.length; i < ttLen; i++) {
@@ -86,6 +76,15 @@ define([
                             surfaceTile = surfaceTiles[j];
                             if (surfaceTile.sector.overlaps(terrainTileSector)) {
                                 if (surfaceTile.bind(dc)) {
+                                    if (dc.pickingMode) {
+                                        if (surfaceTile.pickColor) {
+                                            program.loadColor(gl, surfaceTile.pickColor);
+                                        } else {
+                                            // Unlikely to be picking without a pick color, but don't draw in this case
+                                            continue;
+                                        }
+                                    }
+
                                     this.applyTileState(dc, terrainTile, surfaceTile);
                                     terrain.renderTile(dc, terrainTile);
                                     ++tileCount;
@@ -107,7 +106,15 @@ define([
             var gl = dc.currentGlContext,
                 program = dc.findAndBindProgram(gl, SurfaceTileRendererProgram);
             program.loadTexSampler(gl, WebGLRenderingContext.TEXTURE0);
-            program.loadOpacity(gl, opacity);
+
+            if (dc.pickingMode) {
+                program.loadModulateColor(gl, true);
+            } else {
+                program.loadModulateColor(gl, false);
+                program.loadOpacity(gl, opacity);
+            }
+
+            return program;
         };
 
         SurfaceTileRenderer.prototype.endRendering = function (dc) {
