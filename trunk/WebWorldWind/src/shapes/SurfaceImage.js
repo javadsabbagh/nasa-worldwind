@@ -103,6 +103,8 @@ define([
                     null, this.layer, false);
                 dc.resolvePick(po);
             }
+
+            dc.currentLayer.inCurrentFrame = true;
         };
 
         return SurfaceImage;
