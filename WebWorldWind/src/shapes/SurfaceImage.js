@@ -52,7 +52,7 @@ define([
              * The path to the image.
              * @type {String}
              */
-            this.imagePath = imagePath;
+            this._imagePath = imagePath;
 
             /**
              * This surface image's opacity. When this surface image is drawn, the actual opacity is the product of
@@ -70,12 +70,30 @@ define([
 
         SurfaceImage.prototype = Object.create(SurfaceTile.prototype);
 
+        Object.defineProperties(SurfaceImage.prototype, {
+            imagePath: {
+                get: function () {
+                    return this._imagePath;
+                },
+                set: function (imagePath) {
+                    if (!imagePath) {
+                        throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceImage", "imagePath",
+                            "missingPath"));
+                    }
+
+                    this._imagePath = imagePath;
+                    this.imagePathWasUpdated = true;
+                }
+            }
+        });
+
         SurfaceImage.prototype.bind = function (dc) {
-            var texture = dc.gpuResourceCache.resourceForKey(this.imagePath);
-            if (texture) {
+            var texture = dc.gpuResourceCache.resourceForKey(this._imagePath);
+            if (texture && !this.imagePathWasUpdated) {
                 return texture.bind(dc);
             } else {
-                dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, this.imagePath);
+                dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, this._imagePath);
+                this.imagePathWasUpdated = false;
             }
         };
 

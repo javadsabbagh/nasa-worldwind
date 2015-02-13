@@ -68,7 +68,7 @@ define([
              * @type {String}
              * @default null
              */
-            this.imagePath = imagePath;
+            this._imagePath = imagePath;
 
             /**
              * The image color. When displayed, this shape's image is multiplied by this image color to achieve the
@@ -151,6 +151,23 @@ define([
 
         ScreenImage.prototype = Object.create(Renderable.prototype);
 
+        Object.defineProperties(ScreenImage.prototype, {
+            imagePath: {
+                get: function () {
+                    return this._imagePath;
+                },
+                set: function (imagePath) {
+                    if (!imagePath) {
+                        throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceImage", "imagePath",
+                            "missingPath"));
+                    }
+
+                    this._imagePath = imagePath;
+                    this.imagePathWasUpdated = true;
+                }
+            }
+        });
+
         /**
          * Renders this screen image. This method is typically not called by applications but is called by
          * [RenderableLayer]{@link RenderableLayer} during rendering. For this shape this method creates and
@@ -201,9 +218,9 @@ define([
             var w, h, s, ws, hs,
                 iOffset, sOffset;
 
-            this.activeTexture = dc.gpuResourceCache.resourceForKey(this.imagePath);
+            this.activeTexture = dc.gpuResourceCache.resourceForKey(this._imagePath);
             if (!this.activeTexture) {
-                dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, this.imagePath);
+                dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, this._imagePath);
                 return null;
             }
 
