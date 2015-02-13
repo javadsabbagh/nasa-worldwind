@@ -12,6 +12,7 @@ define([
         '../error/ArgumentError',
         '../util/Logger',
         '../geom/Plane',
+        '../geom/Position',
         '../geom/Rectangle',
         '../render/Texture',
         '../geom/Vec3',
@@ -21,6 +22,7 @@ define([
               ArgumentError,
               Logger,
               Plane,
+              Position,
               Rectangle,
               Texture,
               Vec3,
@@ -155,6 +157,30 @@ define([
             this[13] = 0;
             this[14] = 0;
             this[15] = 1;
+        };
+
+        /**
+         * Copy a matrix.
+         * @param {Matrix} matrix The matrix to copy.
+         * @returns {Matrix} This matrix set to the values of the specified matrix.
+         */
+        Matrix.prototype.copy = function (matrix) {
+            this[0] = matrix[0];
+            this[1] = matrix[1];
+            this[2] = matrix[2];
+            this[3] = matrix[3];
+            this[4] = matrix[4];
+            this[5] = matrix[5];
+            this[6] = matrix[6];
+            this[7] = matrix[7];
+            this[8] = matrix[8];
+            this[9] = matrix[9];
+            this[10] = matrix[10];
+            this[11] = matrix[11];
+            this[12] = matrix[12];
+            this[13] = matrix[13];
+            this[14] = matrix[14];
+            this[15] = matrix[15];
         };
 
         /**
@@ -1145,18 +1171,19 @@ define([
 
             // Transform the modelview matrix to a local coordinate system at the origin. This eliminates the geographic
             // transform contained in the modelview matrix while maintaining rotation and translation relative to the origin.
+            modelviewLocal.copy(this);
             modelviewLocal.multiplyByLocalCoordinateTransform(origin, globe);
 
             range = -modelviewLocal[11];
             ct = modelviewLocal[10];
             st = Math.sqrt(modelviewLocal[2] * modelviewLocal[2] + modelviewLocal[6] * modelviewLocal[6]);
-            tilt = Math.atan2(st, ct);
+            tilt = Math.atan2(st, ct) * Angle.RADIANS_TO_DEGREES;
 
             cr = Math.cos(roll * Angle.DEGREES_TO_RADIANS);
             sr = Math.sin(roll * Angle.DEGREES_TO_RADIANS);
             ch = cr * modelviewLocal[0] - sr * modelviewLocal[4];
             sh = sr * modelviewLocal[5] - cr * modelviewLocal[1];
-            heading = Math.atan2(sh, ch);
+            heading = Math.atan2(sh, ch) * Angle.RADIANS_TO_DEGREES;
 
             result['origin'] = originPos;
             result['range'] = range;
