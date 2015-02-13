@@ -23,10 +23,6 @@ define([
          */
         var WWUtil = {
 
-            POSITIVE_ZERO: +0.0,
-
-            NEGATIVE_ZERO: -0.0,
-
             /**
              * Returns the suffix for a specified mime type.
              * @param {String} mimeType The mime type to determine a suffix for.
