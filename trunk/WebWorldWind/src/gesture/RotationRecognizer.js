@@ -150,6 +150,8 @@ define([
                 index1 = this.indexOfTouch(this.touchIds[1]);
 
             this.referenceAngle = this.touchAngle(index0, index1);
+            this._offsetRotation += this._rotation;
+            this._rotation = 0;
         };
 
         /**
@@ -174,7 +176,6 @@ define([
                 index1 = this.indexOfTouch(this.touchIds[1]);
 
             this.referenceAngle = this.touchAngle(index0, index1);
-            this._offsetRotation = this._rotation;
             this._rotation = 0;
         };
 

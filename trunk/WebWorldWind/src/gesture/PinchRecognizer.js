@@ -145,6 +145,8 @@ define(['../gesture/GestureRecognizer'],
                 index1 = this.indexOfTouch(this.touchIds[1]);
 
             this.referenceDistance = this.touchDistance(index0, index1);
+            this._offsetScale *= this._scale;
+            this._scale = 1;
         };
 
         /**
@@ -168,7 +170,6 @@ define(['../gesture/GestureRecognizer'],
                 index1 = this.indexOfTouch(this.touchIds[1]);
 
             this.referenceDistance = this.touchDistance(index0, index1);
-            this._offsetScale = this._scale;
             this._scale = 1;
         };
 
