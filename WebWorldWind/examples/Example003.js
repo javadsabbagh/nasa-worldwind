@@ -17,6 +17,7 @@ requirejs(['../src/WorldWind',
         var wwd = new WorldWind.WorldWindow("canvasOne");
         wwd.addLayer(new WorldWind.BMNGLandsatLayer());
         wwd.addLayer(new WorldWind.BingWMSLayer());
+        wwd.addLayer(new WorldWind.CompassLayer);
         wwd.redraw();
 
         var layerManger = new LayerManager('divLayerManager', wwd);

@@ -25,6 +25,7 @@ requirejs(['../src/WorldWind',
          */
         wwd.addLayer(new WorldWind.BMNGLandsatLayer()); // Blue Marble + Landsat
         wwd.addLayer(new WorldWind.BingWMSLayer()); // Bing
+        wwd.addLayer(new WorldWind.CompassLayer);
 
         // A list of prominent peaks in the U.S.
         // This list was mined from http://en.wikipedia.org/wiki/List_of_Ultras_of_the_United_States
