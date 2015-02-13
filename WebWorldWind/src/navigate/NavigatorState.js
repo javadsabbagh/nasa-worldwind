@@ -484,7 +484,7 @@ define([
 
             // Compute a ray originating at the eye point and with direction pointing from the xy coordinate on the near
             // plane to the same xy coordinate on the far plane.
-            var origin = new Vec3(this.eyePoint),
+            var origin = new Vec3(this.eyePoint[0], this.eyePoint[1], this.eyePoint[2]),
                 direction = new Vec3(farPoint[0], farPoint[1], farPoint[2]);
 
             direction.subtract(nearPoint);
