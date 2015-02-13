@@ -267,9 +267,28 @@ define([
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "Globe", "intersectsLine", "missingResult"));
             }
 
-            var normal = new Vec3(0, 1, 0);
+            var vx = line.direction[0],
+                vy = line.direction[1],
+                vz = line.direction[2],
+                sx = line.origin[0],
+                sy = line.origin[1],
+                sz = line.origin[2],
+                t;
 
-            return Math.abs(line.origin.dot(normal)) != 1;
+            if (vz == 0 && sz != 0) { // ray is parallel to and not coincident with the XY plane
+                return false;
+            }
+
+            t = - sz / vz; // intersection distance, simplified for the XY plane
+            if (t < 0) { // intersection is behind the ray's origin
+                return false;
+            }
+
+            result[0] = sx + vx * t;
+            result[1] = sy + vy * t;
+            result[2] = sz + vz * t;
+
+            return true;
         };
 
         return Globe2D;
