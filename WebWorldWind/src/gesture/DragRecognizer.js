@@ -30,14 +30,20 @@ define([
             this.buttons = 1;
 
             /**
-             * The gesture's translation in the window's coordinate system. This indicates the translation of the
-             * cursor since the first button was pressed.
+             * The gesture's translation in the window's coordinate system. This indicates the cursor's absolute
+             * translation since the gesture was recognized.
              * @type {Vec2}
              */
             this.translation = new Vec2(0, 0);
 
             // Internal use only. Intentionally not documented.
-            this.threshold = 10;
+            this.gestureBeginLocation = new Vec2(0, 0);
+
+            // Internal use only. Intentionally not documented.
+            this.threshold = 5;
+
+            // Internal use only. Intentionally not documented.
+            this.weight = 0.5;
         };
 
         DragRecognizer.prototype = Object.create(GestureRecognizer.prototype);
@@ -49,20 +55,7 @@ define([
             GestureRecognizer.prototype.reset.call(this);
 
             this.translation.set(0, 0);
-        };
-
-        /**
-         *
-         * @param event
-         * @protected
-         */
-        DragRecognizer.prototype.mouseDown = function (event) {
-            GestureRecognizer.prototype.mouseDown.call(this, event);
-
-            var buttonBit = (1 << event.button);
-            if (buttonBit == this.buttonMask) { // first button down
-                this.translation.set(0, 0);
-            }
+            this.gestureBeginLocation.set(0, 0);
         };
 
         /**
@@ -73,18 +66,17 @@ define([
         DragRecognizer.prototype.mouseMove = function (event) {
             GestureRecognizer.prototype.mouseMove.call(this, event);
 
-            this.translation.copy(this.clientLocation);
-            this.translation.subtract(this.clientStartLocation);
-
             if (this.state == WorldWind.POSSIBLE) {
                 if (this.shouldInterpret()) {
                     if (this.shouldRecognize()) {
+                        this.gestureBegan();
                         this.transitionToState(WorldWind.BEGAN);
                     } else {
                         this.transitionToState(WorldWind.FAILED);
                     }
                 }
             } else if (this.state == WorldWind.BEGAN || this.state == WorldWind.CHANGED) {
+                this.gestureChanged();
                 this.transitionToState(WorldWind.CHANGED);
             }
         };
@@ -110,7 +102,7 @@ define([
          * @protected
          */
         DragRecognizer.prototype.shouldInterpret = function () {
-            var distance = this.translation.magnitude();
+            var distance = this.clientLocation.distanceTo(this.clientStartLocation);
             return distance > this.threshold; // interpret mouse movement when the cursor moves far enough
         };
 
@@ -122,6 +114,25 @@ define([
         DragRecognizer.prototype.shouldRecognize = function () {
             var buttonMask = this.buttonMask;
             return buttonMask != 0 && buttonMask == this.buttons;
+        };
+
+        /**
+         * @protected
+         */
+        DragRecognizer.prototype.gestureBegan = function () {
+            this.gestureBeginLocation.copy(this.clientLocation);
+        };
+
+        /**
+         * @protected
+         */
+        DragRecognizer.prototype.gestureChanged = function () {
+            var dx = this.clientLocation[0] - this.gestureBeginLocation[0],
+                dy = this.clientLocation[1] - this.gestureBeginLocation[1],
+                w = this.weight;
+
+            this.translation[0] = this.translation[0] * (1 - w) + dx * w;
+            this.translation[1] = this.translation[1] * (1 - w) + dy * w;
         };
 
         /**
