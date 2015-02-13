@@ -95,7 +95,7 @@ define([
             this.textureEnabledLocation = this.uniformLocation(gl, "enableTexture");
 
             /**
-             * The WebGL location for this program's 'enablePicking' uniform.
+             * The WebGL location for this program's 'modulateColor' uniform.
              * @type {WebGLUniformLocation}
              */
             this.modulateColorLocation = this.uniformLocation(gl, "modulateColor");
