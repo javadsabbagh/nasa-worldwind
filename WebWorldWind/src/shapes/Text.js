@@ -140,10 +140,12 @@ define([
 
             // Internal use only. Intentionally not documented.
             this.depthOffset = -0.003;
+
+            // Internal use only. Intentionally not documented.
+            this.screenPoint = new Vec3(0, 0, 0);
         };
 
         // Internal use only. Intentionally not documented.
-        Text.screenPoint = new Vec3(0, 0, 0); // scratch variable
         Text.matrix = Matrix.fromIdentity(); // scratch variable
         Text.glPickPoint = new Vec3(0, 0, 0); // scratch variable
 
@@ -245,9 +247,9 @@ define([
             offset = this.activeAttributes.offset.offsetForSize(w, h);
 
             this.imageTransform.setTranslation(
-                Text.screenPoint[0] - offset[0] * s,
-                Text.screenPoint[1] - offset[1] * s,
-                Text.screenPoint[2]);
+                this.screenPoint[0] - offset[0] * s,
+                this.screenPoint[1] - offset[1] * s,
+                this.screenPoint[2]);
 
             this.imageTransform.setScale(w * s, h * s, 1);
 
@@ -286,7 +288,7 @@ define([
             try {
                 this.doDrawOrderedText(dc);
                 if (!dc.pickingMode) {
-                    this.drawBatchOrderedText(dc);
+                    //this.drawBatchOrderedText(dc);
                 }
             } finally {
                 this.endDrawing(dc);

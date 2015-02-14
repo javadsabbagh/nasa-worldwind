@@ -61,7 +61,7 @@ define([
         };
 
         ScreenText.prototype.computeScreenPointAndEyeDistance = function (dc) {
-            dc.navigatorState.convertPointToViewport(this.screenPosition, Text.screenPoint);
+            dc.navigatorState.convertPointToViewport(this.screenPosition, this.screenPoint);
             Text.screenPoint[2] = 1;
 
             this.eyeDistance = 0;
