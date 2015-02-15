@@ -66,7 +66,11 @@ requirejs(['../src/WorldWind',
 
             if (pickList.objects.length > 0) {
                 for (var p = 0; p < pickList.objects.length; p++) {
-                    if (pickList.objects[p].userObject instanceof WorldWind.ScreenImage) {
+                    if (pickList.objects[p].userObject instanceof WorldWind.Compass) {
+                        wwd.navigator.heading = 0;
+                        wwd.redraw();
+                    }
+                    else if (pickList.objects[p].userObject instanceof WorldWind.ScreenImage) {
                         console.log("Screen image picked");
                     }
                 }
