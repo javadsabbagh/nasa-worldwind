@@ -27,8 +27,6 @@ define([
             this._compass = new Compass(null, null);
 
             this.addRenderable(this._compass);
-
-            this.pickEnabled = false;
         };
 
         Object.defineProperties(Compass.prototype, {
