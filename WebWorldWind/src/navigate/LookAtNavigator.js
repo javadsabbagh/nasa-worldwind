@@ -82,6 +82,9 @@ define([
              */
             this.range = 10e6; // TODO: Compute initial range to fit globe in viewport.
 
+            // Development testing only. Set this to false to suppress default navigator limits on 2D globes.
+            this.enable2DLimits = true;
+
             // Internal use only. Intentionally not documented.
             this.primaryDragRecognizer = new DragRecognizer(worldWindow);
             this.primaryDragRecognizer.addGestureListener(function (recognizer) {
@@ -482,7 +485,7 @@ define([
             this.roll = Angle.normalizedDegrees(this.roll);
 
             // Apply 2D limits when the globe is 2D.
-            if (this.isGlobe2D(this.worldWindow.globe)) {
+            if (this.isGlobe2D(this.worldWindow.globe) && this.enable2DLimits) {
                 // Clamp range to prevent more than 360 degrees of visible longitude.
                 var nearDist = this.nearDistance,
                     nearWidth = WWMath.perspectiveFrustumRectangle(this.worldWindow.viewport, nearDist).width,
