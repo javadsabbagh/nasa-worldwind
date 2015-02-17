@@ -15,11 +15,9 @@ import gov.nasa.worldwind.symbology.IconRetriever;
 import gov.nasa.worldwind.symbology.milstd2525.*;
 import gov.nasa.worldwind.util.WWUtil;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.*;
-import java.io.*;
 
 /**
  * Illustrates how to use {@link gov.nasa.worldwind.render.PointPlacemark}. Also shows how to use a 2525 tactical
@@ -242,18 +240,8 @@ public class Placemarks extends ApplicationTemplate
             {
                 try
                 {
-                    // PointPlacemarks require an image address, so save the retrieved image as a file and use
-                    // the path to that file as the image address.
-                    File cacheDir = WorldWind.getDataFileStore().getWriteLocation();
-                    File imageFile = File.createTempFile("WorldWind", ".png", cacheDir);
-                    ImageIO.write(symbolImage, "png", imageFile);
-                    File highlightFile = File.createTempFile("WorldWind", ".png");
-                    ImageIO.write(highlightImage, "png", highlightFile);
-                    imageFile.deleteOnExit();
-                    highlightFile.deleteOnExit();
-
                     // Create the placemark
-                    PointPlacemark pp = new PointPlacemark(Position.fromDegrees(30, -102, 1e4));
+                    PointPlacemark pp = new PointPlacemark(Position.fromDegrees(30, -102, 0));
                     pp.setLabelText("Tactical Symbol");
                     pp.setLineEnabled(false);
                     pp.setAltitudeMode(WorldWind.CLAMP_TO_GROUND);
@@ -262,7 +250,7 @@ public class Placemarks extends ApplicationTemplate
 
                     // Create and assign the placemark attributes.
                     PointPlacemarkAttributes attrs = new PointPlacemarkAttributes();
-                    attrs.setImageAddress(imageFile.getAbsolutePath());
+                    attrs.setImage(symbolImage);
                     attrs.setImageColor(new Color(1f, 1f, 1f, 1f));
                     attrs.setLabelOffset(new Offset(0.9d, 0.6d, AVKey.FRACTION, AVKey.FRACTION));
                     attrs.setScale(0.5);
@@ -270,13 +258,13 @@ public class Placemarks extends ApplicationTemplate
 
                     // Create and assign the placemark's highlight attributes.
                     PointPlacemarkAttributes highlightAttributes = new PointPlacemarkAttributes(attrs);
-                    highlightAttributes.setImageAddress(highlightFile.getAbsolutePath());
+                    highlightAttributes.setImage(highlightImage);
                     pp.setHighlightAttributes(highlightAttributes);
 
                     // Add the placemark to the layer.
                     layer.addRenderable(pp);
                 }
-                catch (IOException e)
+                catch (Exception e)
                 {
                     e.printStackTrace();
                 }
