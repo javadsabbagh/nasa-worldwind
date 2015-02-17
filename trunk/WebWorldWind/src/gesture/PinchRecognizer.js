@@ -32,7 +32,7 @@ define(['../gesture/GestureRecognizer'],
             this.threshold = 20;
 
             // Internal use only. Intentionally not documented.
-            this.weight = 0.5;
+            this.weight = 0.4;
 
             // Internal use only. Intentionally not documented.
             this.touchIds = [];
@@ -47,6 +47,20 @@ define(['../gesture/GestureRecognizer'],
                 }
             }
         });
+
+        /**
+         * @param newState
+         * @protected
+         */
+        PinchRecognizer.prototype.didTransitionToState = function (newState) {
+            GestureRecognizer.prototype.didTransitionToState.call(this, newState);
+
+            if (newState == WorldWind.BEGAN) {
+                this.gestureBegan();
+            } else if (newState == WorldWind.CHANGED) {
+                this.gestureChanged();
+            }
+        };
 
         /**
          * @protected
@@ -103,11 +117,9 @@ define(['../gesture/GestureRecognizer'],
             if (this.touchIds.length == 2) {
                 if (this.state == WorldWind.POSSIBLE) {
                     if (this.shouldRecognizeTouches()) {
-                        this.gestureBegan();
                         this.transitionToState(WorldWind.BEGAN);
                     }
                 } else if (this.state == WorldWind.BEGAN || this.state == WorldWind.CHANGED) {
-                    this.gestureChanged();
                     this.transitionToState(WorldWind.CHANGED);
                 }
             }
