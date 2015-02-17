@@ -237,6 +237,11 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
             BEGAN: "began",
 
             /**
+             * The event name of World Wind begin redraw events.
+             */
+            BEGIN_REDRAW_EVENT_TYPE: "WorldWindBeginRedraw",
+
+            /**
              * The CANCELLED gesture recognizer state. Continuous gesture recognizers may transition to this state from
              * the BEGAN state or the CHANGED state when the touch events are cancelled.
              * @constant
@@ -262,6 +267,11 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
              * @constant
              */
             ENDED: "ended",
+
+            /**
+             * The event name of World Wind end redraw events.
+             */
+            END_REDRAW_EVENT_TYPE: "WorldWindEndRedraw",
 
             /**
              * The FAILED gesture recognizer state. Gesture recognizers transition to this state from the POSSIBLE state

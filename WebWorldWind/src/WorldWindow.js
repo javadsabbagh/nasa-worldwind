@@ -158,17 +158,21 @@ define([
             this.drawContext.canvas2D = document.createElement("canvas");
             this.drawContext.ctx2D = this.drawContext.canvas2D.getContext("2d");
 
-            // Set up to handle redraw requests sent to the canvas. Imagery uses this target because images are
-            // generally specific to the WebGL context associated with the canvas.
-            this.canvas.addEventListener(WorldWind.REDRAW_EVENT_TYPE, function (event) {
-                thisWindow.redraw();
-            }, false);
+            // Set up to handle redraw requests sent to the canvas and the global window. Imagery uses the canvas target
+            // because images are generally specific to the WebGL context associated with the canvas. Elevation models
+            // use the window target because they can be shared among world windows.
+            var redrawEventListener = function (event) {
+                thisWindow.handleRedrawEvent(event);
+            };
+            this.canvas.addEventListener(WorldWind.REDRAW_EVENT_TYPE, redrawEventListener, false);
+            this.canvas.addEventListener(WorldWind.BEGIN_REDRAW_EVENT_TYPE, redrawEventListener, false);
+            this.canvas.addEventListener(WorldWind.END_REDRAW_EVENT_TYPE, redrawEventListener, false);
+            window.addEventListener(WorldWind.REDRAW_EVENT_TYPE, redrawEventListener, false);
+            window.addEventListener(WorldWind.BEGIN_REDRAW_EVENT_TYPE, redrawEventListener, false);
+            window.addEventListener(WorldWind.END_REDRAW_EVENT_TYPE, redrawEventListener, false);
 
-            // Set up to handel redraw requests sent to the global window. Elevation models use this target because
-            // they can be shared among world windows.
-            window.addEventListener(WorldWind.REDRAW_EVENT_TYPE, function (event) {
-                thisWindow.redraw();
-            }, false);
+            // Internal. Intentionally not documented.
+            this.redrawContinuouslyCount = 0;
         };
 
         /**
@@ -820,6 +824,45 @@ define([
                     po.isOnTop = true;
                 }
             }
+        };
+
+        // Internal. Intentionally not documented.
+        WorldWindow.prototype.handleRedrawEvent = function (event) {
+            if (event.type == WorldWind.REDRAW_EVENT_TYPE) {
+                if (this.redrawContinuouslyCount == 0) {
+                    this.redraw();
+                }
+            } else if (event.type == WorldWind.BEGIN_REDRAW_EVENT_TYPE) {
+                this.redrawContinuouslyCount++;
+                if (this.redrawContinuouslyCount == 1) {
+                    this.redrawContinuously(2); // redraw continuously at 30Hz
+                }
+            } else if (event.type == WorldWind.END_REDRAW_EVENT_TYPE) {
+                this.redrawContinuouslyCount--; // stop redrawing continuously when this number reaches 0
+                if (this.redrawContinuouslyCount == 0) {
+                    this.redraw(); // continuous redraw stops automatically; ensure we draw one last frame
+                }
+            }
+        };
+
+        // Internal. Intentionally not documented.
+        WorldWindow.prototype.redrawContinuously = function (frameInterval) {
+            var thisWindow = this,
+                frameCount = 0;
+
+            function callback() {
+                if ((frameCount % frameInterval) == 0) {
+                    thisWindow.redraw();
+                }
+
+                if (thisWindow.redrawContinuouslyCount > 0) { // stop redrawing when the redraw count reaches 0
+                    window.requestAnimationFrame(callback);
+                }
+
+                frameCount++;
+            }
+
+            window.requestAnimationFrame(callback);
         };
 
         return WorldWindow;
