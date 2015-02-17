@@ -43,10 +43,24 @@ define([
             this.threshold = 5;
 
             // Internal use only. Intentionally not documented.
-            this.weight = 0.5;
+            this.weight = 0.3;
         };
 
         DragRecognizer.prototype = Object.create(GestureRecognizer.prototype);
+
+        /**
+         * @param newState
+         * @protected
+         */
+        DragRecognizer.prototype.didTransitionToState = function (newState) {
+            GestureRecognizer.prototype.didTransitionToState.call(this, newState);
+
+            if (newState == WorldWind.BEGAN) {
+                this.gestureBegan();
+            } else if (newState == WorldWind.CHANGED) {
+                this.gestureChanged();
+            }
+        };
 
         /**
          * @protected
@@ -69,14 +83,12 @@ define([
             if (this.state == WorldWind.POSSIBLE) {
                 if (this.shouldInterpret()) {
                     if (this.shouldRecognize()) {
-                        this.gestureBegan();
                         this.transitionToState(WorldWind.BEGAN);
                     } else {
                         this.transitionToState(WorldWind.FAILED);
                     }
                 }
             } else if (this.state == WorldWind.BEGAN || this.state == WorldWind.CHANGED) {
-                this.gestureChanged();
                 this.transitionToState(WorldWind.CHANGED);
             }
         };
