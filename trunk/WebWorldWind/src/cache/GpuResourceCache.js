@@ -52,7 +52,7 @@ define([
 
         GpuResourceCache.prototype.generateCacheKey = function () {
             return "GpuResourceCache " + ++this.cacheKeyPool;
-        }
+        };
 
         /**
          * Indicates the capacity of this cache in bytes.
