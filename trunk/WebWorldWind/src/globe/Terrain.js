@@ -53,6 +53,15 @@ define([
              * @type {TerrainTile[]}
              */
             this.surfaceGeometry = terrainTiles.tileArray;
+
+            /**
+             * A string identifying this terrain's current state. Used to compare states during rendering to
+             * determine whether state dependent cached values must be updated. Applications typically do not
+             * interact with this property.
+             * @readonly
+             * @type {String}
+             */
+            this.stateKey = globe.stateKey + " ve " + verticalExaggeration.toString();
         };
 
         Terrain.scratchPoint = new Vec3(0, 0, 0);
