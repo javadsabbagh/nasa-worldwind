@@ -155,21 +155,18 @@ define([
             this.drawContext.canvas2D = document.createElement("canvas");
             this.drawContext.ctx2D = this.drawContext.canvas2D.getContext("2d");
 
-            // Set up to handle redraw requests sent to the canvas and the global window. Imagery uses the canvas target
+            // Internal. Intentionally not documented.
+            this.frameRequested = false;
+            this.frameRequestCallback = null;
+
+            // Set up to handle redraw requests sent to the canvas and the global window. Imagery uses the canvas
             // because images are generally specific to the WebGL context associated with the canvas. Elevation models
-            // use the window target because they can be shared among world windows.
-            var redrawEventListener = function (event) {
-                thisWindow.handleRedrawEvent(event);
+            // use the global window because they can be shared among world windows.
+            var redrawEventListener = function () {
+                thisWindow.redraw();
             };
             this.canvas.addEventListener(WorldWind.REDRAW_EVENT_TYPE, redrawEventListener, false);
-            this.canvas.addEventListener(WorldWind.BEGIN_REDRAW_EVENT_TYPE, redrawEventListener, false);
-            this.canvas.addEventListener(WorldWind.END_REDRAW_EVENT_TYPE, redrawEventListener, false);
             window.addEventListener(WorldWind.REDRAW_EVENT_TYPE, redrawEventListener, false);
-            window.addEventListener(WorldWind.BEGIN_REDRAW_EVENT_TYPE, redrawEventListener, false);
-            window.addEventListener(WorldWind.END_REDRAW_EVENT_TYPE, redrawEventListener, false);
-
-            // Internal. Intentionally not documented.
-            this.redrawContinuouslyCount = 0;
         };
 
         /**
@@ -274,9 +271,30 @@ define([
         };
 
         /**
-         * Redraws the window.
+         * Causes a redraw event for this World Window to be enqueued with the browser. The redraw occurs on the main
+         * thread at a time of the browser's discretion. Applications should call redraw after changing the World
+         * Window's state, but should not expect that change to be reflected on screen immediately after this function
+         * returns. This is the preferred method for requesting a redraw of the World Window.
          */
         WorldWindow.prototype.redraw = function () {
+            if (this.frameRequested) {
+                return; // coalesce redundant redraw requests
+            }
+
+            if (!this.frameRequestCallback) {
+                var self = this;
+                this.frameRequestCallback = function () {
+                    self.doRedraw();
+                };
+            }
+
+            window.requestAnimationFrame(this.frameRequestCallback);
+            this.frameRequested = true;
+        };
+
+        WorldWindow.prototype.doRedraw = function () {
+            this.frameRequested = false;
+
             try {
                 this.resetDrawContext();
                 this.drawFrame();
@@ -451,7 +469,7 @@ define([
         WorldWindow.prototype.getWebGLContext = function () {
             // Request a WebGL context with antialiasing is disabled. Antialiasing causes gaps to appear at the edges of
             // terrain tiles.
-            var glAttrs = {antialias:false},
+            var glAttrs = {antialias: false},
                 gl = this.canvas.getContext("webgl", glAttrs);
             if (!gl) {
                 gl = this.canvas.getContext("experimental-webgl", glAttrs);
@@ -830,45 +848,6 @@ define([
                     po.isOnTop = true;
                 }
             }
-        };
-
-        // Internal. Intentionally not documented.
-        WorldWindow.prototype.handleRedrawEvent = function (event) {
-            if (event.type == WorldWind.REDRAW_EVENT_TYPE) {
-                if (this.redrawContinuouslyCount == 0) {
-                    this.redraw();
-                }
-            } else if (event.type == WorldWind.BEGIN_REDRAW_EVENT_TYPE) {
-                this.redrawContinuouslyCount++;
-                if (this.redrawContinuouslyCount == 1) {
-                    this.redrawContinuously(2); // redraw continuously at 30Hz
-                }
-            } else if (event.type == WorldWind.END_REDRAW_EVENT_TYPE) {
-                this.redrawContinuouslyCount--; // stop redrawing continuously when this number reaches 0
-                if (this.redrawContinuouslyCount == 0) {
-                    this.redraw(); // continuous redraw stops automatically; ensure we draw one last frame
-                }
-            }
-        };
-
-        // Internal. Intentionally not documented.
-        WorldWindow.prototype.redrawContinuously = function (frameInterval) {
-            var thisWindow = this,
-                frameCount = 0;
-
-            function callback() {
-                if ((frameCount % frameInterval) == 0) {
-                    thisWindow.redraw();
-                }
-
-                if (thisWindow.redrawContinuouslyCount > 0) { // stop redrawing when the redraw count reaches 0
-                    window.requestAnimationFrame(callback);
-                }
-
-                frameCount++;
-            }
-
-            window.requestAnimationFrame(callback);
         };
 
         return WorldWindow;

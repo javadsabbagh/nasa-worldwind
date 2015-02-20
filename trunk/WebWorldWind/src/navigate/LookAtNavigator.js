@@ -451,16 +451,7 @@ define([
          * @param recognizer
          */
         LookAtNavigator.prototype.gestureStateChanged = function (recognizer) {
-            var state = recognizer.state,
-                type,
-                e;
-
-            if (state == WorldWind.BEGAN || state == WorldWind.ENDED) {
-                type = (state == WorldWind.BEGAN) ? WorldWind.BEGIN_REDRAW_EVENT_TYPE : WorldWind.END_REDRAW_EVENT_TYPE;
-                e = document.createEvent('Event');
-                e.initEvent(type, true, true);
-                this.worldWindow.canvas.dispatchEvent(e);
-            }
+            this.sendRedrawEvent();
         };
 
         /**
