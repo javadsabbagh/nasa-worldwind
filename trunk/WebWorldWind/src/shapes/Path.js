@@ -11,9 +11,11 @@ define([
         '../error/ArgumentError',
         '../shaders/BasicTextureProgram',
         '../util/Color',
+        '../geom/Location',
         '../util/Logger',
         '../geom/Matrix',
         '../pick/PickedObject',
+        '../geom/Position',
         '../geom/Vec2',
         '../geom/Vec3',
         '../util/WWMath'
@@ -22,9 +24,11 @@ define([
               ArgumentError,
               BasicTextureProgram,
               Color,
+              Location,
               Logger,
               Matrix,
               PickedObject,
+              Position,
               Vec2,
               Vec3,
               WWMath) {
@@ -48,6 +52,7 @@ define([
             AbstractShape.call(this);
 
             this._positions = positions;
+
             this.referencePosition = positions.length > 0 ? positions[0] : null;
 
             this._pathType = WorldWind.LINEAR;
@@ -56,6 +61,8 @@ define([
 
             this._numSubSegments = 10;
         };
+
+        Path.scratchMatrix = Matrix.fromIdentity(); // scratch variable
 
         Path.prototype = Object.create(AbstractShape.prototype);
 
@@ -127,7 +134,7 @@ define([
             }
         });
 
-        Path.prototype.makeOrderedRenderable = function (dc) {
+        Path.prototype.doMakeOrderedRenderable = function (dc) {
             // A null reference position is a signal that there are no positions to render.
             if (!this.referencePosition || this._positions.length < 2) {
                 return null;
@@ -151,8 +158,8 @@ define([
             // Create the extent from the Cartesian points. Those points are relative to this path's reference point, so
             // translate the computed extent to the reference point.
             this.currentData.tessellatedPoints = tessellatedPoints;
-            this.currentData.extent.setToPoints(tessellatedPoints);
-            this.currentData.extent.translate(this.currentData.referencePoint);
+            //this.currentData.extent.setToPoints(tessellatedPoints); TODO
+            //this.currentData.extent.translate(this.currentData.referencePoint);
 
             return this;
         };
@@ -191,31 +198,45 @@ define([
             var navState = dc.navigatorState,
                 eyePoint = navState.eyePoint,
                 pos = new Location(0, 0),
+                height = 0,
                 arcLength, segmentAzimuth, segmentDistance, s, p, distance;
 
-            if (this._pathType === WorldWind.LINEAR) {
-                arcLength = ptA.distanceTo(ptB);
-            } else {
-                arcLength = this.computeSegmentLength(dc, posA, posB);
-            }
-
-            if (arcLength <= 0 || (this._pathType === WorldWind.LINEAR && !this._followTerrain)) {
-                // Segment is 0 length or a straight line.
+            // If it's just a straight line and not terrain following, then the segment is just two points.
+            if (this._pathType === WorldWind.LINEAR && !this._followTerrain) {
                 if (!ptA.equals(ptB)) {
                     tessellatedPositions.push(posB);
                 }
                 return;
             }
 
+            // Compute the segment length.
+
             if (this._pathType === WorldWind.LINEAR) {
-                segmentAzimuth = Location.linearAzimuth(posA, posB);
                 segmentDistance = Location.linearDistance(posA, posB);
             } else if (this._pathType === WorldWind.RHUMB_LINE) {
-                segmentAzimuth = Location.rhumbAzimuth(posA, posB);
                 segmentDistance = Location.rhumbDistance(posA, posB);
             } else {
-                segmentAzimuth = Location.greatCircleAzimuth(posA, posB);
                 segmentDistance = Location.greatCircleDistance(posA, posB);
+            }
+
+            if (this._altitudeMode !== WorldWind.CLAMP_TO_GROUND) {
+                height = 0.5 * (posA.altitude + posB.altitude);
+            }
+
+            arcLength = segmentDistance * (dc.globe.equatorialRadius + height * dc.verticalExaggeration);
+
+            if (arcLength <= 0) { // segment is 0 length
+                return;
+            }
+
+            // Compute the azimuth to apply while tessellating the segment.
+
+            if (this._pathType === WorldWind.LINEAR) {
+                segmentAzimuth = Location.linearAzimuth(posA, posB);
+            } else if (this._pathType === WorldWind.RHUMB_LINE) {
+                segmentAzimuth = Location.rhumbAzimuth(posA, posB);
+            } else {
+                segmentAzimuth = Location.greatCircleAzimuth(posA, posB);
             }
 
             for (s = 0, p = 0; s < 1;) {
@@ -242,32 +263,21 @@ define([
                     pos.altitude = (1 - s) * posA.altitude + s * posB.altitude;
                 }
 
-                tessellatedPositions.push(pos);
+                tessellatedPositions.push(new Position(pos.latitude, pos.longitude, pos.altitude));
 
                 ptA = ptB;
             }
         };
 
-        Path.prototype.computeSegmentLength = function (dc, posA, posB) {
-            var length = Location.greatCircleDistance(posA, posB) * dc.globe.equatorialRadius;
-
-            if (this._altitudeMode !== WorldWind.CLAMP_TO_GROUND) {
-                length += 0.5 * (posA.altitude + posB.altitude) * dc.verticalExaggeration;
-
-            }
-
-            return length;
-        };
-
         Path.prototype.computeRenderedPath = function (dc, tessellatedPositions) {
-            var extrudeIt = this.activeAttributes.drawInterior,
+            var extrudeIt = this.mustDrawInterior(dc),
                 eyeDistSquared = Number.MAX_VALUE,
                 eyePoint = dc.navigatorState.eyePoint,
                 numPoints = (extrudeIt ? 2 : 1) * tessellatedPositions.length,
                 tessellatedPoints = new Float32Array(numPoints * 3),
                 stride = extrudeIt ? 6 : 3,
                 pt = new Vec3(0, 0, 0),
-                pos, lat, lon, k, dSquared;
+                pos, k, dSquared;
 
             for (var i = 0, len = tessellatedPositions.length; i < len; i++) {
                 pos = tessellatedPositions[i];
@@ -287,7 +297,7 @@ define([
                 tessellatedPoints[k + 2] = pt[2];
 
                 if (extrudeIt) {
-                    dc.terrain.surfacePointForMode(pos.latitude, pos.longitude, 0, this._altitudeMode, pt);
+                    dc.terrain.surfacePointForMode(pos.latitude, pos.longitude, 0, WorldWind.CLAMP_TO_GROUND, pt);
 
                     dSquared = pt.distanceToSquared(eyePoint);
                     if (dSquared < eyeDistSquared) {
@@ -296,7 +306,6 @@ define([
 
                     pt.subtract(this.currentData.referencePoint);
 
-                    k = stride * i;
                     tessellatedPoints[k + 3] = pt[0];
                     tessellatedPoints[k + 4] = pt[1];
                     tessellatedPoints[k + 5] = pt[2];
@@ -306,6 +315,94 @@ define([
             this.currentData.eyeDistance = Math.sqrt(eyeDistSquared);
 
             return tessellatedPoints;
+        };
+
+        Path.prototype.mustDrawInterior = function (dc) {
+            return this.activeAttributes.drawInterior && !(this._altitudeMode === WorldWind.CLAMP_TO_GROUND);
+        };
+
+        Path.prototype.doRenderOrdered = function (dc) {
+            var gl = dc.currentGlContext,
+                program = dc.currentProgram,
+                currentData = this.currentData,
+                numPoints = currentData.tessellatedPoints.length / 3,
+                vboId, color, extrudeIt, stride, nPts;
+
+            this.applyMvpMatrix(dc);
+
+            if (!currentData.vboKey) {
+                currentData.vboKey = dc.gpuResourceCache.generateCacheKey();
+            }
+
+            vboId = dc.gpuResourceCache.resourceForKey(currentData.vboKey);
+            if (!vboId) {
+                vboId = gl.createBuffer();
+                dc.gpuResourceCache.putResource(currentData.vboKey, vboId, numPoints * 3 * 4);
+            }
+
+            gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, vboId);
+            gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, currentData.tessellatedPoints,
+                WebGLRenderingContext.STATIC_DRAW);
+
+            program.loadTextureEnabled(gl, false);
+
+            if (this.mustDrawInterior(dc)) {
+                extrudeIt = true;
+
+                color = this.activeAttributes.interiorColor;
+                // Disable writing the shape's fragments to the depth buffer when the interior is semi-transparent.
+                if (color.alpha < 1) {
+                    gl.depthMask(false);
+                }
+                program.loadColor(gl, color);
+
+                gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, 0, 0);
+                gl.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, numPoints);
+            }
+
+            if (this.activeAttributes.drawOutline) {
+                color = this.activeAttributes.outlineColor;
+                // Disable writing the shape's fragments to the depth buffer when the interior is semi-transparent.
+                if (color.alpha < 1) {
+                    gl.depthMask(false);
+                }
+                program.loadColor(gl, color);
+
+                gl.lineWidth(this.activeAttributes.outlineWidth);
+
+                stride = extrudeIt ? 24 : 12;
+                nPts = extrudeIt ? numPoints / 2 : numPoints;
+
+                gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, stride, 0);
+                gl.drawArrays(WebGLRenderingContext.LINE_STRIP, 0, nPts);
+            }
+        };
+
+        Path.prototype.beginDrawing = function (dc) {
+            var gl = dc.currentGlContext;
+
+            if (this.mustDrawInterior(dc)) {
+                gl.disable(WebGLRenderingContext.CULL_FACE);
+            }
+
+            dc.findAndBindProgram(gl, BasicTextureProgram);
+            gl.enableVertexAttribArray(dc.currentProgram.vertexPointLocation);
+        };
+
+        Path.prototype.endDrawing = function (dc) {
+            var gl = dc.currentGlContext;
+
+            gl.disableVertexAttribArray(dc.currentProgram.vertexPointLocation);
+            dc.bindProgram(gl, null);
+            gl.depthMask(true);
+            gl.lineWidth(1);
+            gl.enable(WebGLRenderingContext.CULL_FACE);
+        };
+
+        Path.prototype.applyMvpMatrix = function (dc) {
+            Path.scratchMatrix.setToMatrix(dc.navigatorState.modelviewProjection);
+            Path.scratchMatrix.multiplyMatrix(this.currentData.transformationMatrix);
+            dc.currentProgram.loadModelviewProjection(dc.currentGlContext, Path.scratchMatrix);
         };
 
         return Path;

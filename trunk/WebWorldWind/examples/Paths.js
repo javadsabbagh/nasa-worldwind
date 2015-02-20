@@ -28,8 +28,8 @@ requirejs(['../src/WorldWind',
         wwd.addLayer(new WorldWind.CompassLayer);
 
         var pathPositions = [];
-        pathPositions.push(new Position(40, -100, 1e4));
-        pathPositions.push(new Position(45, -120, 1e3));
+        pathPositions.push(new WorldWind.Position(40, -100, 1e4));
+        pathPositions.push(new WorldWind.Position(45, -120, 1e3));
         var path = new WorldWind.Path(pathPositions);
 
         var pathAttributes = new WorldWind.ShapeAttributes(null);
