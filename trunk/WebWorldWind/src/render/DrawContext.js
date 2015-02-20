@@ -333,6 +333,9 @@ define([
         DrawContext.prototype.addOrderedRenderable = function (orderedRenderable) {
             if (orderedRenderable) {
                 orderedRenderable.insertionOrder = this.orderedRenderablesCounter++;
+                if (this.globe.continuous) {
+                    orderedRenderable.globeOffset = this.globe.offset;
+                }
                 this.orderedRenderables.push(orderedRenderable);
             }
         };
@@ -346,6 +349,9 @@ define([
             if (orderedRenderable) {
                 orderedRenderable.insertionOrder = this.orderedRenderablesCounter++;
                 orderedRenderable.eyeDistance = Number.MAX_VALUE;
+                if (this.globe.continuous) {
+                    orderedRenderable.globeOffset = this.globe.offset;
+                }
                 this.orderedRenderables.push(orderedRenderable);
             }
         };
@@ -370,7 +376,13 @@ define([
          */
         DrawContext.prototype.popOrderedRenderable = function () {
             if (this.orderedRenderables.length > 0) {
-                return this.orderedRenderables.pop();
+                var or = this.orderedRenderables.pop();
+                if (this.globe.continuous) {
+                    // Restore the globe state to that when the ordered renderable was created.
+                    this.globe.offset = or.globeOffset;
+                    this.globeStateKey = this.globe.stateKey;
+                }
+                return or;
             } else {
                 return null;
             }
