@@ -295,8 +295,8 @@ define([
                 result.latitude = location.latitude;
                 result.longitude = location.longitude;
             } else {
-                result.latitude = Angle.normalizedRadiansLatitude(endLatRadians);
-                result.longitude = Angle.normalizedRadiansLongitude(endLonRadians);
+                result.latitude = Angle.normalizedDegreesLatitude(endLatRadians * Angle.RADIANS_TO_DEGREES);
+                result.longitude = Angle.normalizedDegreesLongitude(endLonRadians * Angle.RADIANS_TO_DEGREES);
             }
 
             return result;
@@ -478,8 +478,8 @@ define([
                 result.latitude = location.latitude;
                 result.longitude = location.longitude;
             } else {
-                result.latitude = Angle.normalizedRadiansLatitude(endLatRadians);
-                result.longitude = Angle.normalizedRadiansLongitude(endLonRadians);
+                result.latitude = Angle.normalizedDegreesLatitude(endLatRadians * Angle.RADIANS_TO_DEGREES);
+                result.longitude = Angle.normalizedDegreesLongitude(endLonRadians * Angle.RADIANS_TO_DEGREES);
             }
 
             return result;
@@ -645,8 +645,8 @@ define([
                 result.latitude = location.latitude;
                 result.longitude = location.longitude;
             } else {
-                result.latitude = Angle.normalizedRadiansLatitude(endLatRadians);
-                result.longitude = Angle.normalizedRadiansLongitude(endLonRadians);
+                result.latitude = Angle.normalizedDegreesLatitude(endLatRadians * Angle.RADIANS_TO_DEGREES);
+                result.longitude = Angle.normalizedDegreesLongitude(endLonRadians * Angle.RADIANS_TO_DEGREES);
             }
 
             return result;
