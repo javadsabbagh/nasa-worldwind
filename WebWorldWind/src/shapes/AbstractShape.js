@@ -39,10 +39,6 @@ define([
 
             Renderable.call(this);
 
-            this.enabled = true;
-
-            this.displayName = "Shape";
-
             this.attributes = new ShapeAttributes(null);
 
             this.highlightAttributes = null;
@@ -60,8 +56,6 @@ define([
             this.currentData = null;
 
             this.activeAttributes = null;
-
-            this.extent = null;
         };
 
         AbstractShape.prototype = Object.create(Renderable.prototype);
@@ -98,19 +92,19 @@ define([
                 return;
             }
 
-            if (this.currentData.extent) {
-                if (dc.pickingMode) {
-                    if (!this.currentData.extent.intersectsFrustum(dc.pickFrustum)) {
-                        return;
-                    }
-                } else if (!this.currentData.extent.intersectsFrustum(dc.frustumInModelCoordinates)) {
-                    return;
-                }
-
-                if (dc.isSmall(this.currentData.extent, 1)) {
-                    return;
-                }
-            }
+            //if (this.currentData.extent) {
+            //    if (dc.pickingMode) {
+            //        if (!this.currentData.extent.intersectsFrustum(dc.pickFrustum)) {
+            //            return;
+            //        }
+            //    } else if (!this.currentData.extent.intersectsFrustum(dc.frustumInModelCoordinates)) {
+            //        return;
+            //    }
+            //
+            //    if (dc.isSmall(this.currentData.extent, 1)) {
+            //        return;
+            //    }
+            //}
 
             this.determineActiveAttributes(dc);
             if (!this.activeAttributes) {
@@ -126,10 +120,23 @@ define([
 
         AbstractShape.prototype.renderOrdered = function (dc) {
             this.establishCurrentData(dc);
-            this.doRenderOrdered(dc);
+
+            this.beginDrawing(dc);
+            try {
+                this.doRenderOrdered(dc);
+            } finally {
+                this.endDrawing(dc);
+            }
         };
 
         AbstractShape.prototype.makeOrderedRenderable = function (dc) {
+            var or = this.doMakeOrderedRenderable(dc);
+            this.currentData.verticalExaggeration = dc. verticalExaggeration;
+
+            return or;
+        };
+
+        AbstractShape.prototype.doMakeOrderedRenderable = function (dc) {
             throw new UnsupportedOperationError(
                 Logger.logMessage(Logger.LEVEL_SEVERE, "AbstractShape", "makeOrderedRenderable", "abstractInvocation"));
         };
@@ -139,12 +146,28 @@ define([
                 Logger.logMessage(Logger.LEVEL_SEVERE, "AbstractShape", "doRenderOrdered", "abstractInvocation"));
         };
 
+        AbstractShape.prototype.beginDrawing = function (dc) {
+        };
+
+        AbstractShape.prototype.endDrawing = function (dc) {
+        };
+
         AbstractShape.prototype.establishCurrentData = function (dc) {
-            this.currentData = this.shapeDataCache[dc.globe.stateKey];
+            this.currentData = this.shapeDataCache[dc.globeStateKey];
+
+            if (this.currentData) {
+                if (this.isShapeDataCurrent(dc, this.currentData)) {
+                    return;
+                }
+
+                // Shape data is obsolete. Delete it from the cache.
+                delete this.shapeDataCache[dc.globeStateKey];
+                this.currentData = null;
+            }
 
             if (!this.currentData) {
                 this.currentData = this.createShapeDataObject();
-                this.shapeDataCache[dc.globe.stateKey] = this.currentData;
+                this.shapeDataCache[dc.globeStateKey] = this.currentData;
             }
         };
 
@@ -154,6 +177,10 @@ define([
                 referencePoint: new Vec3(0, 0, 0),
                 extent: new BoundingBox()
             };
+        };
+
+        AbstractShape.prototype.isShapeDataCurrent = function (dc, shapeData) {
+            return shapeData.verticalExaggeration === dc.verticalExaggeration;
         };
 
         // Internal. Intentionally not documented.
