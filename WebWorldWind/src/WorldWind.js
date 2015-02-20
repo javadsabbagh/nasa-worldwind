@@ -53,6 +53,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './error/NotYetImplementedError',
         './util/Offset',
         './gesture/PanRecognizer',
+        './shapes/Path',
         './pick/PickedObject',
         './pick/PickedObjectList',
         './gesture/PinchRecognizer',
@@ -154,6 +155,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               NotYetImplementedError,
               Offset,
               PanRecognizer,
+              Path,
               PickedObject,
               PickedObjectList,
               PinchRecognizer,
@@ -394,6 +396,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['NotYetImplementedError'] = NotYetImplementedError;
         WorldWind['Offset'] = Offset;
         WorldWind['PanRecognizer'] = PanRecognizer;
+        WorldWind['Path'] = Path;
         WorldWind['PickedObject'] = PickedObject;
         WorldWind['PickedObjectList'] = PickedObjectList;
         WorldWind['PinchRecognizer'] = PinchRecognizer;
