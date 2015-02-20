@@ -97,7 +97,11 @@ define([
                 }
             }
 
-            return null;
+            // No tile was found that contains the location, so approximate one using the globe.
+            var h = offset + this.globe.elevationAtLocation(latitude, longitude) * this.verticalExaggeration;
+            this.globe.computePointFromPosition(latitude, longitude, h, result);
+
+            return result;
         };
 
         /**
