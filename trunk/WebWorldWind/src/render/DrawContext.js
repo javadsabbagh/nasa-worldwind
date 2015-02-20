@@ -633,6 +633,24 @@ define([
         };
 
         /**
+         * Indicates whether an extent is smaller than a specified number of pixels.
+         * @param {BoundingBox} extent The extent to test.
+         * @param {Number} numPixels The number of pixels below which the extent is considered small.
+         * @returns {Boolean} True if the extent is smaller than the specified number of pixels, otherwise false.
+         * Returns false if the extent is null or undefined.
+         */
+        DrawContext.prototype.isSmall = function (extent, numPixels) {
+            if (!extent) {
+                return false;
+            }
+
+            var distance = this.navigatorState.eyePoint.distanceTo(extent.center),
+                pixelSize = this.navigatorState.pixelSizeAtDistance(distance);
+
+            return (2 * extent.radius) < (numPixels * pixelSize); // extent diameter less than size of num pixels
+        };
+
+        /**
          * Returns the VBO ID of a buffer containing a unit quadrilateral expressed as four 2D vertices at (0, 1), (0, 0),
          * (1, 1) and (1, 0). The four vertices are in the order required by a triangle strip. The buffer is created
          * on first use and cached. Subsequent calls to this method return the cached buffer.
