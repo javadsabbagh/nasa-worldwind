@@ -292,20 +292,14 @@ define([
             // the placemark and are thus able to draw it. Otherwise its image and label portion that are potentially
             // over the terrain won't get drawn, and would disappear as soon as there is no terrain at the placemark's
             // position. This can occur at the window edges.
-            if (!dc.terrain.surfacePointForMode(this.position.latitude, this.position.longitude, this.position.altitude,
-                    this.altitudeMode, this.placePoint)) {
-                dc.terrain.surfacePointForMode(this.position.latitude, this.position.longitude, this.position.altitude,
-                    WorldWind.ABSOLUTE, this.placePoint);
-            }
+            dc.terrain.surfacePointForMode(this.position.latitude, this.position.longitude, this.position.altitude,
+                this.altitudeMode, this.placePoint);
 
             this.eyeDistance = this.alwaysOnTop ? 0 : dc.navigatorState.eyePoint.distanceTo(this.placePoint);
 
             if (this.mustDrawLeaderLine(dc)) {
-                if (!dc.terrain.surfacePointForMode(this.position.latitude, this.position.longitude, 0,
-                        this.altitudeMode, this.groundPoint)) {
-                    dc.terrain.surfacePointForMode(this.position.latitude, this.position.longitude, 0,
-                        WorldWind.ABSOLUTE, this.groundPoint);
-                }
+                dc.terrain.surfacePointForMode(this.position.latitude, this.position.longitude, 0,
+                    this.altitudeMode, this.groundPoint);
             }
 
             // Compute the placemark's screen point in the OpenGL coordinate system of the WorldWindow by projecting its model
