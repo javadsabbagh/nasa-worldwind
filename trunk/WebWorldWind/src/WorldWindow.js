@@ -70,10 +70,7 @@ define([
             function handleContextRestored(event) {
             }
 
-            var gl = this.canvas.getContext("webgl");
-            if (!gl) {
-                gl = this.canvas.getContext("experimental-webgl");
-            }
+            var gl = this.getWebGLContext();
 
             // Internal. Intentionally not documented. Must be initialized before the navigator is created.
             this.eventListeners = {};
@@ -415,10 +412,7 @@ define([
         WorldWindow.prototype.drawFrame = function () {
             this.drawContext.frameStatistics.beginFrame();
 
-            var gl = this.canvas.getContext("webgl");
-            if (!gl) {
-                gl = this.canvas.getContext("experimental-webgl");
-            }
+            var gl = this.getWebGLContext();
 
             // uncomment to debug WebGL
             //var gl = WebGLDebugUtils.makeDebugContext(this.canvas.getContext("webgl"),
@@ -452,6 +446,18 @@ define([
                 }
                 this.drawContext.frameStatistics.endFrame();
             }
+        };
+
+        WorldWindow.prototype.getWebGLContext = function () {
+            // Request a WebGL context with antialiasing is disabled. Antialiasing causes gaps to appear at the edges of
+            // terrain tiles.
+            var glAttrs = {antialias:false},
+                gl = this.canvas.getContext("webgl", glAttrs);
+            if (!gl) {
+                gl = this.canvas.getContext("experimental-webgl", glAttrs);
+            }
+
+            return gl;
         };
 
         WorldWindow.prototype.doNormalRepaint = function (dc) {
