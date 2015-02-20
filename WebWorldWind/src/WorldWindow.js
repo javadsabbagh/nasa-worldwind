@@ -571,6 +571,7 @@ define([
 
         WorldWindow.prototype.makeCurrent = function (dc, offset) {
             dc.globe.offset = offset;
+            dc.globeStateKey = dc.globe.stateKey;
 
             switch (offset) {
                 case -1:
