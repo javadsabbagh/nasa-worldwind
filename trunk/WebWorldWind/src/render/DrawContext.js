@@ -233,6 +233,13 @@ define([
              * @type {TextSupport}
              */
             this.textSupport = new TextSupport();
+
+            /**
+             * A copy of the current globe's state key. Provided here to avoid having to recompute it every time
+             * it's needed.
+             * @type {String}
+             */
+            this.globeStateKey = null;
         };
 
         // Internal use. Intentionally not documented.
@@ -265,6 +272,7 @@ define([
         DrawContext.prototype.update = function () {
             var eyePoint = this.navigatorState.eyePoint;
 
+            this.globeStateKey = this.globe.stateKey;
             this.globe.computePositionFromPoint(eyePoint[0], eyePoint[1], eyePoint[2], this.eyePosition);
             this.screenProjection.setToScreenProjection(this.navigatorState.viewport);
         };
