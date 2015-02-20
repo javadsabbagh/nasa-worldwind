@@ -10,16 +10,12 @@ define([
         '../error/ArgumentError',
         '../util/Color',
         '../shaders/GpuProgram',
-        '../util/Logger',
-        '../geom/Matrix',
-        '../error/NotYetImplementedError'
+        '../util/Logger'
     ],
     function (ArgumentError,
               Color,
               GpuProgram,
-              Logger,
-              Matrix,
-              NotYetImplementedError) {
+              Logger) {
         "use strict";
 
         /**
@@ -63,14 +59,10 @@ define([
                     'varying vec2 texSamplerCoord;\n' +
                     'varying vec2 texMaskCoord;\n' +
                         /*
-                         * Returns 1.0 when the coordinate's s- and t-components are in the range [0,1], and returns 0.0 otherwise. The returned
-                         * float can be muptilied by a sampled texture color in order to mask fragments of a textured primitive. This mask
-                         * performs has the same result as setting the texture wrap state to GL_CLAMP_TO_BORDER and providing a border color of
-                         * (0, 0, 0, 0).
+                         * Returns true when the texture coordinate samples texels outside the texture image.
                          */
-                    'float texture2DBorderMask(const vec2 coord) {\n' +
-                    'vec2 maskVec = vec2(greaterThanEqual(coord, vec2(0.0))) * vec2(lessThanEqual(coord, vec2(1.0)));\n' +
-                    'return maskVec.x * maskVec.y;\n' +
+                    'bool isOutsideTextureImage(const vec2 coord) {\n' +
+                    '    return coord.x < 0.0 || coord.x > 1.0 || coord.y < 0.0 || coord.y > 1.0;\n' +
                     '}\n' +
                         /*
                          * OpenGL ES Shading Language v1.00 fragment shader for SurfaceTileRendererProgram. Writes the value of the texture 2D
@@ -79,12 +71,14 @@ define([
                          * standard range of [0,1].
                          */
                     'void main(void) {\n' +
-                    'float alpha = texture2DBorderMask(texMaskCoord);\n' +
-                    'if (modulateColor)\n' +
-                    '    gl_FragColor = color * floor(texture2D(texSampler, texSamplerCoord).a + 0.5) * alpha;\n' +
-                    'else\n' +
+                    'if (isOutsideTextureImage(texMaskCoord)) {\n' +
+                    '    discard;\n' +
+                    '} else if (modulateColor) {\n' +
+                    '    gl_FragColor = color * floor(texture2D(texSampler, texSamplerCoord).a + 0.5);\n' +
+                    '} else {\n' +
                         /* Return either the sampled texture2D color multiplied by opacity or transparent black. */
-                    '    gl_FragColor = texture2D(texSampler, texSamplerCoord) * alpha * opacity;\n' +
+                    '    gl_FragColor = texture2D(texSampler, texSamplerCoord) * opacity;\n' +
+                    '}\n' +
                     '}';
 
             // Call to the superclass, which performs shader program compiling and linking.
@@ -179,7 +173,7 @@ define([
         };
 
         /**
-         * Loads the specified matrix as the value of this program's 'loadTexMaskMatrix' uniform variable.
+         * Loads the specified matrix as the value of this program's 'texMaskMatrix' uniform variable.
          *
          * @param {WebGLRenderingContext} gl The current WebGL context.
          * @param {Matrix} matrix The matrix to load.
