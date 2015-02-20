@@ -86,7 +86,13 @@ define([
             var numOrderedRenderablesAtStart = dc.orderedRenderables.length;
 
             for (var i = 0, len = this.renderables.length; i < len; i++) {
-                this.renderables[i].render(dc);
+                try {
+                    this.renderables[i].render(dc);
+                } catch (e) {
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "RenderableLayer", "doRender",
+                        "Error while rendering shape " + this.renderables[i].displayName + ".");
+                    // Keep going. Render the rest of the shapes.
+                }
             }
 
             if (dc.orderedRenderables.length > numOrderedRenderablesAtStart) {
