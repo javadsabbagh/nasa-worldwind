@@ -57,7 +57,7 @@ define([
              * @type {Sector}
              * @readonly
              */
-            this.projectionLimits = projectionLimits || Sector.FULL_SPHERE;
+            this.projectionLimits = projectionLimits;
         };
 
         /**
