@@ -85,19 +85,14 @@ define([
 
             this.tileCache = new MemoryCache(5000000, 4000000); // Holds 316 32x32 tiles.
 
-            this.detailHintOrigin = 1.1;
-            this.detailHint = 0;
-
             this.elevationTimestamp = undefined;
             this.lastModelViewProjection = undefined;
 
             this.vertexPointLocation = -1;
             this.vertexTexCoordLocation = -1;
-            this.vertexElevationLocation = -1;
             this.modelViewProjectionMatrixLocation = -1;
 
             this.texCoords = undefined;
-            this.numTexCoords = undefined;
             this.texCoordVboCacheKey = 'global_tex_coords';
 
             this.indices = undefined;
@@ -144,9 +139,8 @@ define([
             this.numWireframeIndices = undefined;
             this.wireframeIndicesVboCacheKey = 'global_wireframe_indices';
 
-            this.tileElevations = undefined;
-
             this.scratchMatrix = Matrix.fromIdentity();
+            this.scratchElevations = null;
 
             this.corners = {};
             this.tiles = [];
@@ -857,39 +851,29 @@ define([
         };
 
         Tessellator.prototype.buildTileVertices = function (dc, tile) {
-            var sector = tile.sector,
+            var numLat = tile.tileHeight + 1, // num points in each dimension is 1 more than the number of tile cells
+                numLon = tile.tileWidth + 1,
+                refPoint = tile.referencePoint,
                 ve = dc.verticalExaggeration;
 
-            // Cartesian tile coordinates are relative to a local origin, called the reference center. Compute the reference
-            // center here and establish a translation transform that is used later to move the tile coordinates into place
-            // relative to the globe.
-            var refCenter = tile.referencePoint;
-            tile.transformationMatrix.setTranslation(refCenter[0], refCenter[1], refCenter[2]);
-
-            // The number of vertices in each dimension is 1 more than the number of cells.
-            var numLatVertices = tile.tileWidth + 1,
-                numLonVertices = tile.tileHeight + 1;
-
-            // Retrieve the elevations for all vertices in the tile. The returned elevations will already have vertical
-            // exaggeration applied.
-            if (!this.tileElevations) {
-                this.tileElevations = new Float64Array(numLatVertices * numLonVertices);
-            }
-            dc.globe.elevationsForSector(sector, numLatVertices, numLonVertices, tile.texelSize, ve, this.tileElevations);
-
-            // Allocate space for the Cartesian vertices.
-            var points = tile.points,
-                numPoints = -1;
-            if (!points) {
-                numPoints = numLatVertices * numLonVertices;
-                points = new Float32Array(numPoints * 3);
-                tile.numPoints = numPoints;
-                tile.points = points;
+            // Allocate space for the tile's elevations.
+            if (!this.scratchElevations) {
+                this.scratchElevations = new Float64Array(numLat * numLon);
             }
 
-            // Compute the tile's Cartesian vertices.
-            dc.globe.computePointsForSector(sector, tile.tileWidth, tile.tileHeight, this.tileElevations, refCenter,
-                points);
+            // Allocate space for the tile's Cartesian coordinates.
+            if (!tile.points) {
+                tile.points = new Float32Array(numLat * numLon * 3);
+            }
+
+            // Retrieve the elevations for all points in the tile. The returned values include vertical exaggeration.
+            dc.globe.elevationsForSector(tile.sector, numLat, numLon, tile.texelSize, ve, this.scratchElevations);
+
+            // Compute the tile's Cartesian coordinates relative to a local origin, called the reference point.
+            dc.globe.computePointsForSector(tile.sector, numLat, numLon, this.scratchElevations, refPoint, tile.points);
+
+            // Establish a transform that is used later to move the tile coordinates into place relative to the globe.
+            tile.transformationMatrix.setTranslation(refPoint[0], refPoint[1], refPoint[2]);
         };
 
         Tessellator.prototype.buildSharedGeometry = function (tile) {
@@ -911,32 +895,29 @@ define([
         };
 
         Tessellator.prototype.buildTexCoords = function (tileWidth, tileHeight) {
-            var numLatVertices = tileHeight + 1,
-                numLonVertices = tileWidth + 1,
-                vertexStride = 2;
+            var numCols = tileWidth + 1,
+                numRows = tileHeight + 1,
+                colDelta = 1 / tileWidth,
+                rowDelta = 1 / tileHeight,
+                buffer = new Float32Array(numCols * numRows * 2),
+                index = 0;
 
-            // Allocate an array to hold the texture coordinates.
-            var numTexCoords = numLatVertices * numLonVertices,
-                texCoords = new Float32Array(numTexCoords * vertexStride);
+            for (var row = 0, t = 0; row < numRows; row++, t += rowDelta) {
+                if (row == numRows - 1) {
+                    t = 1; // explicitly set the last row coordinate to ensure alignment
+                }
 
-            var s, // Horizontal texture coordinate; varies along tile width or longitude.
-                t; // Vertical texture coordinate; varies along tile height or latitude.
+                for (var col = 0, s = 0; col < numCols; col++, s += colDelta) {
+                    if (col == numCols - 1) {
+                        s = 1; // explicitly set the last column coordinate to ensure alignment
+                    }
 
-            var texIndex = 0;
-            for (var row = 0; row <= tileHeight; row += 1) {
-                t = row / tileHeight;
-
-                for (var col = 0; col <= tileWidth; col += 1) {
-                    s = col / tileWidth;
-
-                    texCoords[texIndex] = s;
-                    texCoords[texIndex + 1] = t;
-                    texIndex += vertexStride;
+                    buffer[index++] = s;
+                    buffer[index++] = t;
                 }
             }
 
-            this.texCoords = texCoords;
-            this.numTexCoords = numTexCoords;
+            this.texCoords = buffer;
         };
 
         Tessellator.prototype.buildIndices = function (tileWidth, tileHeight) {

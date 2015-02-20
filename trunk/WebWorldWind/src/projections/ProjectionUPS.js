@@ -134,7 +134,7 @@ define([
 
         // Documented in base class.
         ProjectionUPS.prototype.geographicToCartesianGrid = function (globe, sector, numLat, numLon,
-                                                                      elevations, referenceCenter,
+                                                                      elevations, referencePoint,
                                                                       offset, result) {
             if (!globe) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "ProjectionUPS",
@@ -164,39 +164,40 @@ define([
                 maxLat = sector.maxLatitude * Angle.DEGREES_TO_RADIANS,
                 minLon = sector.minLongitude * Angle.DEGREES_TO_RADIANS,
                 maxLon = sector.maxLongitude * Angle.DEGREES_TO_RADIANS,
-                deltaLat = (maxLat - minLat) / (numLat > 1 ? numLat : 1),
-                deltaLon = (maxLon - minLon) / (numLon > 1 ? numLon : 1),
+                deltaLat = (maxLat - minLat) / (numLat > 1 ? numLat - 1 : 1),
+                deltaLon = (maxLon - minLon) / (numLon > 1 ? numLon - 1 : 1),
                 minLatLimit = this.projectionLimits.minLatitude * Angle.DEGREES_TO_RADIANS,
                 maxLatLimit = this.projectionLimits.maxLatitude * Angle.DEGREES_TO_RADIANS,
                 k0 = 0.994, // standard UPS scale factor -- see above reference pg.157, pp 2.
                 ecc = Math.sqrt(globe.eccentricitySquared),
                 s = Math.sqrt(Math.pow(1 + ecc, 1 + ecc) * Math.pow(1 - ecc, 1 - ecc)),
                 poleFactor = this.north ? 1 : -1,
-                refCenter = referenceCenter ? referenceCenter : new Vec3(0, 0, 0),
-                pos = 0, k = 0,
+                refPoint = referencePoint ? referencePoint : new Vec3(0, 0, 0),
+                latIndex, lonIndex,
+                elevIndex = 0, resultIndex = 0,
                 lat, lon, clampedLat, sp, t, r;
 
             // Iterate over the latitude and longitude coordinates in the specified sector, computing the Cartesian point
             // corresponding to each latitude and longitude.
-            lat = minLat;
-            for (var j = 0; j < numLat + 1; j++, lat += deltaLat) {
-                if (j === numLat) // explicitly set the last lat to the max latitude to ensure alignment
-                    lat = maxLat;
+            for (latIndex = 0, lat = minLat; latIndex < numLat; latIndex++, lat += deltaLat) {
+                if (latIndex === numLat - 1) {
+                    lat = maxLat; // explicitly set the last lat to the max latitude to ensure alignment
+                }
 
+                // Latitude is constant for each row. Values that are a function of latitude can be computed once per row.
                 clampedLat = WWMath.clamp(lat, minLatLimit, maxLatLimit);
-
                 sp = Math.sin(clampedLat * poleFactor);
                 t = Math.sqrt(((1 - sp) / (1 + sp)) * Math.pow((1 + ecc * sp) / (1 - ecc * sp), ecc));
                 r = 2 * eqr * k0 * t / s;
 
-                lon = minLon;
-                for (var i = 0; i < numLon + 1; i++, lon += deltaLon) {
-                    if (i === numLon)
-                        lon = maxLon;
+                for (lonIndex = 0, lon = minLon; lonIndex < numLon; lonIndex++, lon += deltaLon) {
+                    if (lonIndex === numLon - 1) {
+                        lon = maxLon; // explicitly set the last lon to the max longitude to ensure alignment
+                    }
 
-                    result[k++] = r * Math.sin(lon) - refCenter[0];
-                    result[k++] = -r * Math.cos(lon) * poleFactor - refCenter[1];
-                    result[k++] = elevations[pos++] - refCenter[2];
+                    result[resultIndex++] = r * Math.sin(lon) - refPoint[0];
+                    result[resultIndex++] = -r * Math.cos(lon) * poleFactor - refPoint[1];
+                    result[resultIndex++] = elevations[elevIndex++] - refPoint[2];
                 }
             }
 

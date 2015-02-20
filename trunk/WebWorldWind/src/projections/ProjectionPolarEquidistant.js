@@ -112,7 +112,7 @@ define([
 
         // Documented in base class.
         ProjectionPolarEquidistant.prototype.geographicToCartesianGrid = function (globe, sector, numLat, numLon,
-                                                                                  elevations, referenceCenter,
+                                                                                  elevations, referencePoint,
                                                                                   offset, result) {
             if (!globe) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "ProjectionPolarEquidistant",
@@ -140,45 +140,44 @@ define([
                 maxLat = sector.maxLatitude * Angle.DEGREES_TO_RADIANS,
                 minLon = sector.minLongitude * Angle.DEGREES_TO_RADIANS,
                 maxLon = sector.maxLongitude * Angle.DEGREES_TO_RADIANS,
-                deltaLat = (maxLat - minLat) / (numLat > 1 ? numLat : 1),
-                deltaLon = (maxLon - minLon) / (numLon > 1 ? numLon : 1),
+                deltaLat = (maxLat - minLat) / (numLat > 1 ? numLat - 1 : 1),
+                deltaLon = (maxLon - minLon) / (numLon > 1 ? numLon - 1 : 1),
                 northSouthFactor = this.north ? -1 : 1,
-                refCenter = referenceCenter ? referenceCenter : new Vec3(0, 0, 0),
+                refPoint = referencePoint ? referencePoint : new Vec3(0, 0, 0),
                 pi_2 = Math.PI / 2,
-                pos = 0, k = 0,
-                cosLon = [], sinLon = [],
+                latIndex, lonIndex,
+                elevIndex = 0, resultIndex = 0,
+                cosLon = new Float64Array(numLon), sinLon = new Float64Array(numLon),
                 lat, lon, a;
 
-            // Iterate over the longitude coordinates in the specified sector and compute the cosine and sine of each
-            // longitude value required to compute Cartesian points for the specified sector. This eliminates the need to
-            // re-compute the same cosine and sine results for each row of constant latitude (and varying longitude).
-            lon = minLon;
-            for (var l = 0; l < numLon + 1; l++, lon += deltaLon) {
-                if (l === numLon){
-                    lon = maxLon;
+            // Compute and save values that are a function of each unique longitude value in the specified sector. This
+            // eliminates the need to re-compute these values for each column of constant longitude.
+            for (lonIndex = 0, lon = minLon; lonIndex < numLon; lonIndex++, lon += deltaLon) {
+                if (lonIndex === numLon - 1) {
+                    lon = maxLon; // explicitly set the last lon to the max longitude to ensure alignment
                 }
 
-                cosLon[l] = Math.cos(lon);
-                sinLon[l] = Math.sin(lon);
+                cosLon[lonIndex] = Math.cos(lon);
+                sinLon[lonIndex] = Math.sin(lon);
             }
 
             // Iterate over the latitude and longitude coordinates in the specified sector, computing the Cartesian point
             // corresponding to each latitude and longitude.
-            lat = minLat;
-            for (var j = 0; j < numLat + 1; j++, lat += deltaLat) {
-                if (j === numLat) // explicitly set the last lat to the max latitude to ensure alignment
-                    lat = maxLat;
+            for (latIndex = 0, lat = minLat; latIndex < numLat; latIndex++, lat += deltaLat) {
+                if (latIndex === numLat - 1) {
+                    lat = maxLat; // explicitly set the last lat to the max latitude to ensure alignment
+                }
 
+                // Latitude is constant for each row. Values that are a function of latitude can be computed once per row.
                 a = eqr * (pi_2 + lat * northSouthFactor);
                 if ((this.north && lat === pi_2) || (!this.north && lat === -pi_2)) {
                     a = 0;
                 }
 
-                for (var i = 0; i < numLon + 1; i++) {
-
-                    result[k++] = a * sinLon[i] - refCenter[0];
-                    result[k++] = a * cosLon[i] * northSouthFactor - refCenter[1];
-                    result[k++] = elevations[pos++] - refCenter[2];
+                for (lonIndex = 0; lonIndex < numLon; lonIndex++) {
+                    result[resultIndex++] = a * sinLon[lonIndex] - refPoint[0];
+                    result[resultIndex++] = a * cosLon[lonIndex] * northSouthFactor - refPoint[1];
+                    result[resultIndex++] = elevations[elevIndex++] - refPoint[2];
                 }
             }
 

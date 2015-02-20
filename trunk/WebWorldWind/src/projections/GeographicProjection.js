@@ -101,7 +101,7 @@ define([
          * @param {Number[]} elevations An array of elevations to incorporate in the point calculations. There must be
          * one elevation value in the array for each generated point. Elevations are in meters.
          * There must be (tileWidth + 1) x (tileHeight + 1) elevations in the array.
-         * @param {Vec3} referenceCenter The X, Y and Z Cartesian coordinates to subtract from the computed coordinates.
+         * @param {Vec3} referencePoint The X, Y and Z Cartesian coordinates to subtract from the computed coordinates.
          * This makes the computed coordinates relative to the specified point. May be null.
          * @param {Vec3} offset An offset to apply to the Cartesian output points. Typically only projections that
          * are continuous (see [continuous]{@link GeographicProjection#continuous}) apply this offset. Others ignore it.
@@ -114,7 +114,7 @@ define([
          * undefined.
          */
         GeographicProjection.prototype.geographicToCartesianGrid = function (globe, sector, numLat, numLon, elevations,
-                                                                             referenceCenter, offset, result) {
+                                                                             referencePoint, offset, result) {
             throw new UnsupportedOperationError(
                 Logger.logMessage(Logger.LEVEL_SEVERE, "GeographicProjection", "geographicToCartesianGrid", "abstractInvocation"));
         };

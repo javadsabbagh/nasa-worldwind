@@ -73,7 +73,7 @@ define([
 
         // Documented in base class.
         ProjectionEquirectangular.prototype.geographicToCartesianGrid = function (globe, sector, numLat, numLon,
-                                                                                  elevations, referenceCenter,
+                                                                                  elevations, referencePoint,
                                                                                   offset, result) {
             if (!globe) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "ProjectionEquirectangular",
@@ -101,31 +101,32 @@ define([
                 maxLat = sector.maxLatitude * Angle.DEGREES_TO_RADIANS,
                 minLon = sector.minLongitude * Angle.DEGREES_TO_RADIANS,
                 maxLon = sector.maxLongitude * Angle.DEGREES_TO_RADIANS,
-                deltaLat = (maxLat - minLat) / (numLat > 1 ? numLat : 1),
-                deltaLon = (maxLon - minLon) / (numLon > 1 ? numLon : 1),
-                refCenter = referenceCenter ? referenceCenter : new Vec3(0, 0, 0),
+                deltaLat = (maxLat - minLat) / (numLat > 1 ? numLat - 1 : 1),
+                deltaLon = (maxLon - minLon) / (numLon > 1 ? numLon - 1 : 1),
+                refPoint = referencePoint ? referencePoint : new Vec3(0, 0, 0),
                 offsetX = offset ? offset[0] : 0,
-                pos = 0, k = 0,
+                latIndex, lonIndex,
+                elevIndex = 0, resultIndex = 0,
                 lat, lon, y;
 
-            // Iterate over the latitude and longitude coordinates in the specified sector, computing the Cartesian point
-            // corresponding to each latitude and longitude.
-            lat = minLat;
-            for (var j = 0; j < numLat + 1; j++, lat += deltaLat) {
-                if (j === numLat) // explicitly set the last lat to the max latitude to ensure alignment
-                    lat = maxLat;
+            // Iterate over the latitude and longitude coordinates in the specified sector, computing the Cartesian
+            // point corresponding to each latitude and longitude.
+            for (latIndex = 0, lat = minLat; latIndex < numLat; latIndex++, lat += deltaLat) {
+                if (latIndex === numLat - 1) {
+                    lat = maxLat; // explicitly set the last lat to the max latitude to ensure alignment
+                }
 
                 // Latitude is constant for each row. Values that are a function of latitude can be computed once per row.
-                y = eqr * lat - refCenter[1];
+                y = eqr * lat - refPoint[1];
 
-                lon = minLon;
-                for (var i = 0; i < numLon + 1; i++, lon += deltaLon) {
-                    if (i === numLon) // explicitly set the last lon to the max longitude to ensure alignment
-                        lon = maxLon;
+                for (lonIndex = 0, lon = minLon; lonIndex < numLon; lonIndex++, lon += deltaLon) {
+                    if (lonIndex === numLon - 1) {
+                        lon = maxLon; // explicitly set the last lon to the max longitude to ensure alignment
+                    }
 
-                    result[k++] = eqr * lon - refCenter[0] + offsetX;
-                    result[k++] = y;
-                    result[k++] = elevations[pos++] - refCenter[2];
+                    result[resultIndex++] = eqr * lon - refPoint[0] + offsetX;
+                    result[resultIndex++] = y;
+                    result[resultIndex++] = elevations[elevIndex++] - refPoint[2];
                 }
             }
 
