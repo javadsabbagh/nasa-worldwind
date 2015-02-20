@@ -157,11 +157,11 @@ define([
         };
 
         // Documented in superclass.
-        Globe2D.prototype.computePointsForSector = function (sector, tileWidth, tileHeight, elevations,
-                                                             referencePoint, resultPoints) {
+        Globe2D.prototype.computePointsForSector = function (sector, numLat, numLon, elevations,
+                                                             referencePoint, result) {
 
-            return this.projection.geographicToCartesianGrid(this, sector, tileWidth, tileHeight, elevations,
-                referencePoint, this.offsetVector, resultPoints);
+            return this.projection.geographicToCartesianGrid(this, sector, numLat, numLon, elevations,
+                referencePoint, this.offsetVector, result);
         };
 
         /**

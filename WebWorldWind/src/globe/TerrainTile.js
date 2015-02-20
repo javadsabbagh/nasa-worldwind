@@ -39,12 +39,6 @@ define([
             this.transformationMatrix = Matrix.fromIdentity();
 
             /**
-             * The number of model coordinate points this tile contains.
-             * @type {number}
-             */
-            this.numPoints = 0;
-
-            /**
              * The tile's model coordinate points.
              * @type {null}
              */
