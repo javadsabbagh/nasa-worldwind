@@ -259,7 +259,7 @@ define([
                 image = null;
 
             for (var i = level.levelNumber; i >= 0; i--) {
-                tile = this.tileCache.entryForKey(level.levelNumber.toString() + "." + r.toString() + "." + c.toString());
+                tile = this.tileCache.entryForKey(i.toString() + "." + r.toString() + "." + c.toString());
                 if (tile) {
                     image = tile.image();
                     if (image) {
