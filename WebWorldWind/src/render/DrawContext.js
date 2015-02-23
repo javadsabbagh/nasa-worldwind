@@ -332,11 +332,18 @@ define([
          */
         DrawContext.prototype.addOrderedRenderable = function (orderedRenderable) {
             if (orderedRenderable) {
-                orderedRenderable.insertionOrder = this.orderedRenderablesCounter++;
+                var ore = {
+                    orderedRenderable: orderedRenderable,
+                    insertionOrder: this.orderedRenderablesCounter++,
+                    eyeDistance: orderedRenderable.eyeDistance,
+                    globeStateKey: this.globeStateKey
+                };
+
                 if (this.globe.continuous) {
-                    orderedRenderable.globeOffset = this.globe.offset;
+                    ore.globeOffset = this.globe.offset;
                 }
-                this.orderedRenderables.push(orderedRenderable);
+
+                this.orderedRenderables.push(ore);
             }
         };
 
@@ -347,12 +354,18 @@ define([
          */
         DrawContext.prototype.addOrderedRenderableToBack = function (orderedRenderable) {
             if (orderedRenderable) {
-                orderedRenderable.insertionOrder = this.orderedRenderablesCounter++;
-                orderedRenderable.eyeDistance = Number.MAX_VALUE;
+                var ore = {
+                    orderedRenderable: orderedRenderable,
+                    insertionOrder: this.orderedRenderablesCounter++,
+                    eyeDistance: Number.MAX_VALUE,
+                    globeStateKey: this.globeStateKey
+                };
+
                 if (this.globe.continuous) {
-                    orderedRenderable.globeOffset = this.globe.offset;
+                    ore.globeOffset = this.globe.offset;
                 }
-                this.orderedRenderables.push(orderedRenderable);
+
+                this.orderedRenderables.push(ore);
             }
         };
 
@@ -363,7 +376,7 @@ define([
          */
         DrawContext.prototype.peekOrderedRenderable = function () {
             if (this.orderedRenderables.length > 0) {
-                return this.orderedRenderables[this.orderedRenderables.length - 1];
+                return this.orderedRenderables[this.orderedRenderables.length - 1].orderedRenderable;
             } else {
                 return null;
             }
@@ -376,13 +389,15 @@ define([
          */
         DrawContext.prototype.popOrderedRenderable = function () {
             if (this.orderedRenderables.length > 0) {
-                var or = this.orderedRenderables.pop();
+                var ore = this.orderedRenderables.pop();
+                this.globeStateKey = ore.globeStateKey;
+
                 if (this.globe.continuous) {
                     // Restore the globe state to that when the ordered renderable was created.
-                    this.globe.offset = or.globeOffset;
-                    this.globeStateKey = this.globe.stateKey;
+                    this.globe.offset = ore.globeOffset;
                 }
-                return or;
+
+                return ore.orderedRenderable;
             } else {
                 return null;
             }
@@ -396,17 +411,17 @@ define([
             // renderable peek and pop access the back of the ordered renderable list, thereby causing ordered renderables to
             // be processed from back to front.
 
-            this.orderedRenderables.sort(function (orA, orB) {
-                var eA = orA.eyeDistance,
-                    eB = orB.eyeDistance;
+            this.orderedRenderables.sort(function (oreA, oreB) {
+                var eA = oreA.eyeDistance,
+                    eB = oreB.eyeDistance;
 
                 if (eA < eB) { // orA is closer to the eye than orB; sort orA before orB
                     return -1;
                 } else if (eA > eB) { // orA is farther from the eye than orB; sort orB before orA
                     return 1;
                 } else { // orA and orB are the same distance from the eye; sort them based on insertion time
-                    var tA = orA.insertionOrder,
-                        tB = orB.insertionOrder;
+                    var tA = oreA.insertionOrder,
+                        tB = oreB.insertionOrder;
 
                     if (tA > tB) {
                         return -1;
