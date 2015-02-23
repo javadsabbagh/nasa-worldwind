@@ -104,8 +104,8 @@ define([
             // column than the tile width or height. Vertices in the points array are organized in the
             // following order: lower-left, lower-right, upper-left, upper-right. The cell's diagonal starts at the
             // lower-left vertex and ends at the upper-right vertex.
-            si = s < tileWidth ? Math.floor(s) : tileWidth;
-            ti = t < tileHeight ? Math.floor(t) : tileHeight;
+            si = s < tileWidth ? Math.floor(s) : tileWidth - 1;
+            ti = t < tileHeight ? Math.floor(t) : tileHeight - 1;
             rowStride = tileWidth + 1;
 
             vertices = this.points;
