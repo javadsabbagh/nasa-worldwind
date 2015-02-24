@@ -370,6 +370,7 @@ define([
                 gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, vboId);
                 gl.bufferSubData(WebGLRenderingContext.ARRAY_BUFFER, 0, currentData.tessellatedPoints);
             }
+            dc.frameStatistics.incrementVboLoadCount(1);
 
             program.loadTextureEnabled(gl, false);
 
@@ -430,6 +431,7 @@ define([
                         gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, vboId);
                         gl.bufferSubData(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, 0, currentData.verticalIndices);
                     }
+                    dc.frameStatistics.incrementVboLoadCount(1);
 
                     gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, 0, 0);
                     gl.drawElements(WebGLRenderingContext.LINES, currentData.verticalIndices.length,
