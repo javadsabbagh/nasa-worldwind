@@ -720,6 +720,7 @@ define([
                 gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, vboId);
                 gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, points, WebGLRenderingContext.STATIC_DRAW);
                 gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, null);
+                this.frameStatistics.incrementVboLoadCount(1);
 
                 this.gpuResourceCache.putResource(DrawContext.unitQuadKey, vboId, points.length * 4);
             }
@@ -758,6 +759,7 @@ define([
                 gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, vboId);
                 gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, points, WebGLRenderingContext.STATIC_DRAW);
                 gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, null);
+                this.frameStatistics.incrementVboLoadCount(1);
 
                 this.gpuResourceCache.putResource(DrawContext.unitQuadKey3, vboId, points.length * 4);
             }
