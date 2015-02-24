@@ -36,8 +36,13 @@ requirejs(['../src/WorldWind',
         path.followTerrain = false;
 
         var pathAttributes = new WorldWind.ShapeAttributes(null);
-        pathAttributes.outlineColor = WorldWind.Color.RED;
+        pathAttributes.outlineColor = WorldWind.Color.BLUE;
+        pathAttributes.interiorColor = new WorldWind.Color(0, 1, 1, 0.5);
         path.attributes = pathAttributes;
+        var highlightAttributes = new WorldWind.ShapeAttributes(pathAttributes);
+        highlightAttributes.outlineColor = WorldWind.Color.RED;
+        highlightAttributes.interiorColor = new WorldWind.Color(1, 1, 1, 0.5);
+        path.highlightAttributes = highlightAttributes;
 
         // Add the surface image to a layer and the layer to the World Window's layer list.
         var pathsLayer = new WorldWind.RenderableLayer();
@@ -65,18 +70,38 @@ requirejs(['../src/WorldWind',
             handlePick(location[0], location[1]);
         });
 
+        var highlightedItems = [];
+
         // The common pick-handling function.
         var handlePick = function (x, y) {
+            var redrawRequired = highlightedItems.length > 0; // must redraw if we de-highlight previously picked items
+
+            // De-highlight any previously highlighted placemarks.
+            for (var h = 0; h < highlightedItems.length; h++) {
+                highlightedItems[h].highlighted = false;
+            }
+            highlightedItems = [];
+
             // Perform the pick. Must first convert from window coordinates to canvas coordinates, which are
             // relative to the upper left corner of the canvas rather than the upper left corner of the page.
             var pickList = wwd.pick(wwd.canvasCoordinates(x, y));
+            if (pickList.objects.length > 0) {
+                redrawRequired = true;
+            }
 
+            // Highlight the items picked by simply setting their highlight flag to true.
             if (pickList.objects.length > 0) {
                 for (var p = 0; p < pickList.objects.length; p++) {
-                    if (pickList.objects[p].userObject instanceof WorldWind.Path) {
-                        console.log("Path picked");
-                    }
+                    pickList.objects[p].userObject.highlighted = true;
+
+                    // Keep track of highlighted items in order to de-highlight them later.
+                    highlightedItems.push(pickList.objects[p].userObject);
                 }
             }
-        }
+
+            // Update the window if we changed anything.
+            if (redrawRequired) {
+                wwd.redraw(); // redraw to make the highlighting changes take effect on the screen
+            }
+        };
     });
