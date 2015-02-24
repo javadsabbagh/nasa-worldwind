@@ -55,7 +55,7 @@ define([
 
             this.referencePosition = positions.length > 0 ? positions[0] : null;
 
-            this._pathType = WorldWind.LINEAR;
+            this._pathType = WorldWind.GREAT_CIRCLE;
 
             this._terrainConformance = 10;
 
@@ -167,10 +167,17 @@ define([
         Path.prototype.makeTessellatedPositions = function (dc) {
             var tessellatedPositions = [],
                 navState = dc.navigatorState,
+                showVerticals = this.mustDrawVerticals(dc),
                 ptA = new Vec3(0, 0, 0),
                 ptB = new Vec3(0, 0, 0),
                 posA = this._positions[0],
                 posB, eyeDistance, pixelSize;
+
+            if (showVerticals) {
+                this.currentData.verticalIndices = new Int16Array(this.positions.length * 2);
+                this.currentData.verticalIndices[0] = 0;
+                this.currentData.verticalIndices[1] = 1;
+            }
 
             tessellatedPositions.push(posA);
 
@@ -189,6 +196,12 @@ define([
 
                 posA = posB;
                 ptA.copy(ptB);
+
+                if (showVerticals) {
+                    var k = 2 * (tessellatedPositions.length - 1);
+                    this.currentData.verticalIndices[i * 2] = k;
+                    this.currentData.verticalIndices[i * 2 + 1] = k + 1;
+                }
             }
 
             return tessellatedPositions;
@@ -321,12 +334,16 @@ define([
             return this.activeAttributes.drawInterior && !(this._altitudeMode === WorldWind.CLAMP_TO_GROUND);
         };
 
+        Path.prototype.mustDrawVerticals = function (dc) {
+            return this.mustDrawInterior(dc) && this.activeAttributes.drawOutline;
+        };
+
         Path.prototype.doRenderOrdered = function (dc) {
             var gl = dc.currentGlContext,
                 program = dc.currentProgram,
                 currentData = this.currentData,
                 numPoints = currentData.tessellatedPoints.length / 3,
-                vboId, color, extrudeIt, stride, nPts;
+                vboId, opacity, color, pickColor, extrudeIt, stride, nPts;
 
             this.applyMvpMatrix(dc);
 
@@ -338,23 +355,31 @@ define([
             if (!vboId) {
                 vboId = gl.createBuffer();
                 dc.gpuResourceCache.putResource(currentData.vboKey, vboId, numPoints * 3 * 4);
-            }
 
-            gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, vboId);
-            gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, currentData.tessellatedPoints,
-                WebGLRenderingContext.STATIC_DRAW);
+                gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, vboId);
+                gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, currentData.tessellatedPoints,
+                    WebGLRenderingContext.STATIC_DRAW);
+            } else{
+                gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, vboId);
+                gl.bufferSubData(WebGLRenderingContext.ARRAY_BUFFER, 0, currentData.tessellatedPoints);
+            }
 
             program.loadTextureEnabled(gl, false);
 
+            if (dc.pickingMode) {
+                pickColor = dc.uniquePickColor();
+            }
+
             if (this.mustDrawInterior(dc)) {
                 extrudeIt = true;
-
                 color = this.activeAttributes.interiorColor;
+                opacity = color.alpha * dc.currentLayer.opacity;
                 // Disable writing the shape's fragments to the depth buffer when the interior is semi-transparent.
-                if (color.alpha < 1) {
+                if (opacity < 1 && !dc.pickingMode) {
                     gl.depthMask(false);
                 }
-                program.loadColor(gl, color);
+                program.loadColor(gl, dc.pickingMode ? pickColor : color);
+                program.loadOpacity(gl, opacity);
 
                 gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, 0, 0);
                 gl.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, numPoints);
@@ -362,11 +387,13 @@ define([
 
             if (this.activeAttributes.drawOutline) {
                 color = this.activeAttributes.outlineColor;
+                opacity = color.alpha * dc.currentLayer.opacity;
                 // Disable writing the shape's fragments to the depth buffer when the interior is semi-transparent.
-                if (color.alpha < 1) {
+                if (opacity < 1 && !dc.pickingMode) {
                     gl.depthMask(false);
                 }
-                program.loadColor(gl, color);
+                program.loadColor(gl, dc.pickingMode ? pickColor : color);
+                program.loadOpacity(gl, opacity);
 
                 gl.lineWidth(this.activeAttributes.outlineWidth);
 
@@ -375,6 +402,38 @@ define([
 
                 gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, stride, 0);
                 gl.drawArrays(WebGLRenderingContext.LINE_STRIP, 0, nPts);
+
+                if (this.mustDrawVerticals(dc)) {
+                    this.applyMvpMatrixForVerticals(dc);
+
+                    if (!currentData.verticalIndicesCacheKey) {
+                        currentData.verticalIndicesCacheKey = dc.gpuResourceCache.generateCacheKey();
+                    }
+
+                    vboId = dc.gpuResourceCache.resourceForKey(currentData.verticalIndicesCacheKey);
+                    if (!vboId) {
+                        vboId = gl.createBuffer();
+                        dc.gpuResourceCache.putResource(currentData.verticalIndicesCacheKey, vboId,
+                            currentData.verticalIndices.length * 4);
+
+                        gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, vboId);
+                        gl.bufferData(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, currentData.verticalIndices,
+                            WebGLRenderingContext.STATIC_DRAW);
+                    } else {
+                        gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, vboId);
+                        gl.bufferSubData(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, 0, currentData.verticalIndices);
+                    }
+
+                    gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, 0, 0);
+                    gl.drawElements(WebGLRenderingContext.LINES, currentData.verticalIndices.length,
+                        WebGLRenderingContext.UNSIGNED_SHORT, 0);
+                }
+            }
+
+            if (dc.pickingMode) {
+                var po = new PickedObject(pickColor, this.pickDelegate ? this.pickDelegate : this, null, dc.currentLayer,
+                    false);
+                dc.resolvePick(po);
             }
         };
 
@@ -401,6 +460,14 @@ define([
 
         Path.prototype.applyMvpMatrix = function (dc) {
             Path.scratchMatrix.setToMatrix(dc.navigatorState.modelviewProjection);
+            Path.scratchMatrix.multiplyMatrix(this.currentData.transformationMatrix);
+            dc.currentProgram.loadModelviewProjection(dc.currentGlContext, Path.scratchMatrix);
+        };
+
+        Path.prototype.applyMvpMatrixForVerticals = function (dc) {
+            Path.scratchMatrix.setToMatrix(dc.navigatorState.projection);
+            Path.scratchMatrix.offsetProjectionDepth(-0.001);
+            Path.scratchMatrix.multiplyMatrix(dc.navigatorState.modelview);
             Path.scratchMatrix.multiplyMatrix(this.currentData.transformationMatrix);
             dc.currentProgram.loadModelviewProjection(dc.currentGlContext, Path.scratchMatrix);
         };
