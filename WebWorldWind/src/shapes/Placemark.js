@@ -531,6 +531,7 @@ define([
 
                 gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, leaderLineVboId);
                 gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, this.leaderLinePoints, WebGLRenderingContext.STATIC_DRAW);
+                dc.frameStatistics.incrementVboLoadCount(1);
                 gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, 0, 0);
                 gl.drawArrays(WebGLRenderingContext.LINES, 0, 2);
             }
