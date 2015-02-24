@@ -8,11 +8,13 @@
  */
 define([
         '../error/ArgumentError',
+        '../geom/Location',
         '../util/Logger',
         '../shapes/ShapeAttributes',
         '../shapes/SurfaceShape'
     ],
     function (ArgumentError,
+              Location,
               Logger,
               ShapeAttributes,
               SurfaceShape) {
@@ -57,6 +59,18 @@ define([
         };
 
         SurfaceSector.prototype = Object.create(SurfaceShape.prototype);
+
+        // Internal. Intentionally not documented.
+        SurfaceSector.prototype.computeBoundaries = function(dc) {
+            var sector = this.sector;
+
+            this.boundaries = new Array(4);
+
+            this.boundaries[0] = new Location(sector.minLatitude, sector.minLongitude);
+            this.boundaries[1] = new Location(sector.maxLatitude, sector.minLongitude);
+            this.boundaries[2] = new Location(sector.maxLatitude, sector.maxLongitude);
+            this.boundaries[3] = new Location(sector.minLatitude, sector.maxLongitude);
+        };
 
         return SurfaceSector;
     });

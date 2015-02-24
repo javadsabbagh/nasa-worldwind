@@ -36,6 +36,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './shaders/GpuProgram',
         './cache/GpuResourceCache',
         './shaders/GpuShader',
+        './render/ImageTile',
         './layer/LandsatRestLayer',
         './layer/Layer',
         './util/Level',
@@ -83,6 +84,8 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './shapes/SurfaceRectangle',
         './shapes/SurfaceSector',
         './shapes/SurfaceShape',
+        './shapes/SurfaceShapeTile',
+        './shapes/SurfaceShapeTileBuilder',
         './render/SurfaceTile',
         './render/SurfaceTileRenderer',
         './shaders/SurfaceTileRendererProgram',
@@ -138,6 +141,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               GpuProgram,
               GpuResourceCache,
               GpuShader,
+              ImageTile,
               LandsatRestLayer,
               Layer,
               Level,
@@ -185,6 +189,8 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               SurfaceRectangle,
               SurfaceSector,
               SurfaceShape,
+              SurfaceShapeTile,
+              SurfaceShapeTileBuilder,
               SurfaceTile,
               SurfaceTileRenderer,
               SurfaceTileRendererProgram,
@@ -369,6 +375,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['GpuProgram'] = GpuProgram;
         WorldWind['GpuResourceCache'] = GpuResourceCache;
         WorldWind['GpuShader'] = GpuShader;
+        WorldWind['ImageTile'] = ImageTile;
         WorldWind['LandsatRestLayer'] = LandsatRestLayer;
         WorldWind['Layer'] = Layer;
         WorldWind['Level'] = Level;
@@ -416,6 +423,8 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['SurfaceRectangle'] = SurfaceRectangle;
         WorldWind['SurfaceSector'] = SurfaceSector;
         WorldWind['SurfaceShape'] = SurfaceShape;
+        WorldWind['SurfaceShapeTile'] = SurfaceShapeTile;
+        WorldWind['SurfaceShapeTileBuilder'] = SurfaceShapeTileBuilder;
         WorldWind['SurfaceTile'] = SurfaceTile;
         WorldWind['SurfaceTileRenderer'] = SurfaceTileRenderer;
         WorldWind['SurfaceTileRendererProgram'] = SurfaceTileRendererProgram;

@@ -9,23 +9,23 @@
 define([
         '../util/AbsentResourceList',
         '../error/ArgumentError',
+        '../render/ImageTile',
         '../layer/Layer',
         '../util/LevelSet',
         '../util/Logger',
         '../cache/MemoryCache',
         '../render/Texture',
-        '../render/TextureTile',
         '../util/Tile',
         '../util/WWUtil'
     ],
     function (AbsentResourceList,
               ArgumentError,
+              ImageTile,
               Layer,
               LevelSet,
               Logger,
               MemoryCache,
               Texture,
-              TextureTile,
               Tile,
               WWUtil) {
         "use strict";
@@ -121,7 +121,7 @@ define([
             var path = this.cachePath + "-layer/" + level.levelNumber + "/" + row + "/" + row + "_" + column + "."
                 + WWUtil.suffixForMimeType(this.retrievalImageFormat);
 
-            return new TextureTile(sector, level, row, column, path);
+            return new ImageTile(sector, level, row, column, path);
         };
 
         TiledImageLayer.prototype.doRender = function (dc) {

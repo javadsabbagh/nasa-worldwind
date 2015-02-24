@@ -85,8 +85,9 @@ define([
              */
             this.tessellator = new Tessellator();
 
-            // Used internally to eliminate the need to create new positions for certain calculations.
+            // Used internally to eliminate temporary allocations for certain calculations.
             this.scratchPosition = new Position(0, 0, 0);
+            this.scratchPoint = new Vec3(0, 0, 0);
 
             this.id = ++Globe.idPool;
 
@@ -377,6 +378,17 @@ define([
             result.altitude = h;
 
             return result;
+        };
+
+        /**
+         * Computes the radius of this globe at a specified location.
+         * @param {number} latitude The locations' latitude.
+         * @param {number} longitude The locations' longitude.
+         * @returns {number} The radius at the specified location.
+         */
+        Globe.prototype.radiusAt = function(latitude, longitude) {
+            this.computePointFromLocation(latitude, longitude, this.scratchPoint);
+            return this.scratchPoint.magnitude();
         };
 
         /**

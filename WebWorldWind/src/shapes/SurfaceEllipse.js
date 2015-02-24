@@ -7,15 +7,21 @@
  * @version $Id$
  */
 define([
+        '../geom/Angle',
         '../error/ArgumentError',
+        '../geom/Location',
         '../util/Logger',
         '../shapes/ShapeAttributes',
-        '../shapes/SurfaceShape'
+        '../shapes/SurfaceShape',
+        '../util/WWMath'
     ],
-    function (ArgumentError,
+    function (Angle,
+              ArgumentError,
+              Location,
               Logger,
               ShapeAttributes,
-              SurfaceShape) {
+              SurfaceShape,
+              WWMath) {
         "use strict";
 
         /**
@@ -38,12 +44,13 @@ define([
          * @param {Location} center The ellipse's center location.
          * @param {Number} majorRadius The ellipse's major radius in meters.
          * @param {Number} minorRadius The ellipse's minor radius in meters.
+         * @param {Number} heading The heading of the major axis in degrees.
          * @param {ShapeAttributes} attributes The attributes to apply to this shape. May be null, in which case
          * attributes must be set directly before the shape is drawn.
          * @throws {ArgumentError} If the specified center location is null or undefined or if either specified radii
          * is negative.
          */
-        var SurfaceEllipse = function (center, majorRadius, minorRadius, attributes) {
+        var SurfaceEllipse = function (center, majorRadius, minorRadius, heading, attributes) {
             if (!center) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceEllipse", "constructor", "missingLocation"));
@@ -79,10 +86,56 @@ define([
              * @type {number}
              * @default 0
              */
-            this.heading = 0;
+            this.heading = heading;
+
+            /**
+             * The number of intervals to generate locations for.
+             * @type {number}
+             * @default SurfaceEllipse.DEFAULT_NUM_INTERVALS
+             */
+            this.intervals = SurfaceEllipse.DEFAULT_NUM_INTERVALS;
         };
 
         SurfaceEllipse.prototype = Object.create(SurfaceShape.prototype);
+
+        // Internal. Intentionally not documented.
+        SurfaceEllipse.prototype.computeBoundaries = function(dc) {
+            if (this.majorRadius == 0 && this.minorRadius == 0) {
+                return null;
+            }
+
+            var globe = dc.globe,
+                numLocations = 1 + Math.max(SurfaceEllipse.MIN_NUM_INTERVALS, this.intervals),
+                da = (2 * Math.PI) / (numLocations - 1),
+                globeRadius = globe.radiusAt(this.center.latitude, this.center.longitude);
+
+            this.boundaries = new Array(numLocations);
+
+            for (var i = 0; i < numLocations; i++) {
+                var angle = (i != numLocations - 1) ? i * da : 0,
+                    xLength = this.majorRadius * Math.cos(angle),
+                    yLength = this.minorRadius * Math.sin(angle),
+                    distance = Math.sqrt(xLength * xLength + yLength * yLength);
+
+                // azimuth runs positive clockwise from north and through 360 degrees.
+                var azimuth = (Math.PI / 2.0) -
+                    (Math.acos(xLength / distance) * WWMath.signum(yLength) - this.heading * Angle.DEGREES_TO_RADIANS);
+
+                this.boundaries[i] = Location.greatCircleEndPosition(this.center, azimuth * Angle.RADIANS_TO_DEGREES, (distance / globeRadius) * Angle.RADIANS_TO_DEGREES);
+            }
+        };
+
+        /**
+         * The minimum number of intervals the ellipse generates.
+         * @type {number}
+         */
+        SurfaceEllipse.MIN_NUM_INTERVALS = 8;
+
+        /**
+         * The default number of intervals the ellipse generates.
+         * @type {number}
+         */
+        SurfaceEllipse.DEFAULT_NUM_INTERVALS = 32;
 
         return SurfaceEllipse;
     });
