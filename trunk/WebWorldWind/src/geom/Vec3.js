@@ -84,6 +84,39 @@ define([
         };
 
         /**
+         * Computes the average of a specified array of points.
+         * @param {Float32Array} points The points whose average to compute.
+         * @param {Vec3} result A pre-allocated Vec3 in which to return the computed average.
+         * @returns {Vec3} The result argument set to the average of the specified lists of points.
+         * @throws {ArgumentError} If the specified array of points or the result argument is null or undefined..
+         */
+        Vec3.averageOfBuffer = function (points, result) {
+            if (!points || points.length < 1) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Vec3", "averageBuffer", "missingArray"));
+            }
+
+            if (!result) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Vec3", "averageBuffer", "missingResult"));
+            }
+
+            var count = points.length / 3;
+
+            result[0] = 0;
+            result[1] = 0;
+            result[2] = 0;
+
+            for (var i = 0; i < count; i++) {
+                result[0] += points[i * 3] / count;
+                result[1] += points[i * 3 + 1] / count;
+                result[2] += points[i * 3 + 2] / count;
+            }
+
+            return result;
+        };
+
+        /**
          * Assign the components of a vector.
          * @param x The X component of the vector.
          * @param y The Y component of the vector.

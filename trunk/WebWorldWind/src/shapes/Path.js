@@ -10,6 +10,7 @@ define([
         '../shapes/AbstractShape',
         '../error/ArgumentError',
         '../shaders/BasicTextureProgram',
+        '../geom/BoundingBox',
         '../util/Color',
         '../geom/Location',
         '../util/Logger',
@@ -23,6 +24,7 @@ define([
     function (AbstractShape,
               ArgumentError,
               BasicTextureProgram,
+              BoundingBox,
               Color,
               Location,
               Logger,
@@ -158,8 +160,13 @@ define([
             // Create the extent from the Cartesian points. Those points are relative to this path's reference point, so
             // translate the computed extent to the reference point.
             this.currentData.tessellatedPoints = tessellatedPoints;
-            //this.currentData.extent.setToPoints(tessellatedPoints); TODO
-            //this.currentData.extent.translate(this.currentData.referencePoint);
+
+            if (!this.currentData.extent) {
+                this.currentData.extent = new BoundingBox();
+
+            }
+            this.currentData.extent.setToPoints(tessellatedPoints);
+            this.currentData.extent.translate(this.currentData.referencePoint);
 
             return this;
         };
