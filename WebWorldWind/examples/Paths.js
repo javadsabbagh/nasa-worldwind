@@ -29,11 +29,14 @@ requirejs(['../src/WorldWind',
 
         var pathPositions = [];
         pathPositions.push(new WorldWind.Position(40, -100, 1e4));
-        pathPositions.push(new WorldWind.Position(45, -120, 1e3));
+        pathPositions.push(new WorldWind.Position(45, -110, 1e4));
+        pathPositions.push(new WorldWind.Position(46, -122, 1e4));
         var path = new WorldWind.Path(pathPositions);
+        path.altitudeMode = WorldWind.ABSOLUTE;
+        path.followTerrain = false;
 
         var pathAttributes = new WorldWind.ShapeAttributes(null);
-        pathAttributes.outlineColor = WorldWind.Color.YELLOW;
+        pathAttributes.outlineColor = WorldWind.Color.RED;
         path.attributes = pathAttributes;
 
         // Add the surface image to a layer and the layer to the World Window's layer list.
