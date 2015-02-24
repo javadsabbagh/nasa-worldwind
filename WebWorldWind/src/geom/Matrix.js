@@ -93,6 +93,39 @@ define([
         };
 
         /**
+         * Computes the principal axes of a point collection expressed in a typed array.
+         * @param {Float32Array} points The points for which to compute the axes.
+         * @param {Vec3} axis1 A vector in which to return the first (longest) principal axis.
+         * @param {Vec3} axis2 A vector in which to return the second (mid-length) principal axis.
+         * @param {Vec3} axis3 A vector in which to return the third (shortest) principal axis.
+         * @throws {ArgumentError} If the specified points array or one of the specified axes is null or undefined.
+         */
+        Matrix.principalAxesFromPoints = function (points, axis1, axis2, axis3) {
+            if (!points || points.length < 1) {
+                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "Matrix", "principalAxesFromPoints",
+                    "missingPoints"));
+            }
+
+            if (!axis1 || !axis2 || !axis3) {
+                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "Matrix", "principalAxesFromPoints",
+                    "An axis argument is null or undefined."));
+            }
+
+            // Compute the covariance matrix.
+            var covariance = Matrix.fromIdentity();
+            covariance.setToCovarianceOfPoints(points);
+
+            // Compute the eigenvectors from the covariance matrix. Since the covariance matrix is symmetric by
+            // definition, we can safely use the "symmetric" method below.
+            covariance.eigensystemFromSymmetricMatrix(axis1, axis2, axis3);
+
+            // Normalize the eigenvectors, which are already sorted in order from most prominent to least prominent.
+            axis1.normalize();
+            axis2.normalize();
+            axis3.normalize();
+        };
+
+        /**
          * Sets the components of this matrix to specified values.
          * @param {Number} m11 matrix element at row 1, column 1.
          * @param {Number} m12 matrix element at row 1, column 2.
@@ -457,7 +490,7 @@ define([
          * value. If any entry is zero, then there's no correlation between the two coordinates defining that entry. If the
          * returned matrix is diagonal, then all three coordinates are uncorrelated, and the specified point is
          * distributed evenly about its mean point.
-         * @param {Vec3[]} points The points to consider.
+         * @param {Float32Array} points The points to consider.
          * @returns {Matrix} This matrix set to the covariance matrix for the specified list of points.
          * @throws {ArgumentError} If the specified array of points is null, undefined or empty.
          */
@@ -478,12 +511,14 @@ define([
                 c12 = 0,
                 c13 = 0,
                 c23 = 0,
-                vec;
+                vec = new Vec3(0, 0, 0);
 
-            mean = Vec3.average(points, new Vec3(0, 0, 0));
+            mean = Vec3.averageOfBuffer(points, new Vec3(0, 0, 0));
 
-            for (var i = 0, len = points.length; i < len; i++) {
-                vec = points[i];
+            for (var i = 0, len = points.length / 3; i < len; i++) {
+                vec[0] = points[i * 3];
+                vec[1] = points[i * 3 + 1];
+                vec[2] = points[i * 3 + 2];
 
                 dx = vec[0] - mean[0];
                 dy = vec[1] - mean[1];

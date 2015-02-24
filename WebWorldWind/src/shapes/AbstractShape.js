@@ -8,7 +8,6 @@
  */
 define([
         '../error/ArgumentError',
-        '../geom/BoundingBox',
         '../util/Logger',
         '../geom/Matrix',
         '../render/Renderable',
@@ -17,7 +16,6 @@ define([
         '../geom/Vec3'
     ],
     function (ArgumentError,
-              BoundingBox,
               Logger,
               Matrix,
               Renderable,
@@ -92,20 +90,6 @@ define([
                 return;
             }
 
-            //if (this.currentData.extent) {
-            //    if (dc.pickingMode) {
-            //        if (!this.currentData.extent.intersectsFrustum(dc.pickFrustum)) {
-            //            return;
-            //        }
-            //    } else if (!this.currentData.extent.intersectsFrustum(dc.frustumInModelCoordinates)) {
-            //        return;
-            //    }
-            //
-            //    if (dc.isSmall(this.currentData.extent, 1)) {
-            //        return;
-            //    }
-            //}
-
             this.determineActiveAttributes(dc);
             if (!this.activeAttributes) {
                 return;
@@ -113,6 +97,15 @@ define([
 
             var orderedRenderable = this.makeOrderedRenderable(dc);
             if (orderedRenderable) {
+
+                if (!this.intersectsFrustum(dc)) {
+                    return;
+                }
+
+                if (dc.isSmall(this.currentData.extent, 1)) {
+                    return;
+                }
+
                 orderedRenderable.layer = dc.currentLayer;
                 dc.addOrderedRenderable(orderedRenderable);
             }
@@ -131,7 +124,7 @@ define([
 
         AbstractShape.prototype.makeOrderedRenderable = function (dc) {
             var or = this.doMakeOrderedRenderable(dc);
-            this.currentData.verticalExaggeration = dc. verticalExaggeration;
+            this.currentData.verticalExaggeration = dc.verticalExaggeration;
 
             return or;
         };
@@ -150,6 +143,18 @@ define([
         };
 
         AbstractShape.prototype.endDrawing = function (dc) {
+        };
+
+        AbstractShape.prototype.intersectsFrustum = function (dc) {
+            if (this.currentData && this.currentData.extent) {
+                if (dc.pickingMode) {
+                    return this.currentData.extent.intersectsFrustum(dc.pickFrustum);
+                } else {
+                    return this.currentData.extent.intersectsFrustum(dc.navigatorState.frustumInModelCoordinates);
+                }
+            } else {
+                return true;
+            }
         };
 
         AbstractShape.prototype.establishCurrentData = function (dc) {
@@ -174,8 +179,7 @@ define([
         AbstractShape.prototype.createShapeDataObject = function () {
             return {
                 transformationMatrix: Matrix.fromIdentity(),
-                referencePoint: new Vec3(0, 0, 0),
-                extent: new BoundingBox()
+                referencePoint: new Vec3(0, 0, 0)
             };
         };
 

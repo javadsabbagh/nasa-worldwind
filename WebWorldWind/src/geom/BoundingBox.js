@@ -10,6 +10,7 @@ define([
         '../error/ArgumentError',
         '../geom/Frustum',
         '../util/Logger',
+        '../geom/Matrix',
         '../error/NotYetImplementedError',
         '../geom/Plane',
         '../geom/Sector',
@@ -19,6 +20,7 @@ define([
     function (ArgumentError,
               Frustum,
               Logger,
+              Matrix,
               NotYetImplementedError,
               Plane,
               Sector,
@@ -92,20 +94,93 @@ define([
         };
 
         /**
-         * Sets this bounding box such that it minimally encloses a specified list of points.
-         * @param {Vec3[]} points to contain.
+         * Sets this bounding box such that it minimally encloses a specified collection of points.
+         * @param {Float32Array} points to contain.
          * @returns {BoundingBox} This bounding box set to contain the specified points.
          * @throws {ArgumentError} If the specified list of points is null, undefined or empty.
          */
         BoundingBox.prototype.setToPoints = function (points) {
-            if (!points || points.length < 1) {
+            if (!points || points.length < 3) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "BoundingBox", "setToPoints", "missingArray"));
             }
 
-            // TODO
-            throw new NotYetImplementedError(
-                Logger.logMessage(Logger.LEVEL_SEVERE, "BoundingBox", "setToPoints", "notYetImplemented"));
+            var rMin = +Number.MAX_VALUE,
+                rMax = -Number.MAX_VALUE,
+                sMin = +Number.MAX_VALUE,
+                sMax = -Number.MAX_VALUE,
+                tMin = +Number.MAX_VALUE,
+                tMax = -Number.MAX_VALUE,
+                r = this.r, s = this.s, t = this.t,
+                p = new Vec3(0, 0, 0),
+                pdr, pds, pdt, rLen, sLen, tLen, rSum, sSum, tSum,
+                rx_2, ry_2, rz_2, cx, cy, cz;
+
+            Matrix.principalAxesFromPoints(points, r, s, t);
+
+            for (var i = 0, len = points.length / 3; i < len; i++) {
+                p[0] = points[i * 3];
+                p[1] = points[i * 3 + 1];
+                p[2] = points[i * 3 + 2];
+
+                pdr = p.dot(r);
+                if (rMin > pdr)
+                    rMin = pdr;
+                if (rMax < pdr)
+                    rMax = pdr;
+
+                pds = p.dot(s);
+                if (sMin > pds)
+                    sMin = pds;
+                if (sMax < pds)
+                    sMax = pds;
+
+                pdt = p.dot(t);
+                if (tMin > pdt)
+                    tMin = pdt;
+                if (tMax < pdt)
+                    tMax = pdt;
+            }
+
+            if (rMax === rMin)
+                rMax = rMin + 1;
+            if (sMax === sMin)
+                sMax = sMin + 1;
+            if (tMax === tMin)
+                tMax = tMin + 1;
+
+            rLen = rMax - rMin;
+            sLen = sMax - sMin;
+            tLen = tMax - tMin;
+            rSum = rMax + rMin;
+            sSum = sMax + sMin;
+            tSum = tMax + tMin;
+
+            rx_2 = 0.5 * r[0] * rLen;
+            ry_2 = 0.5 * r[1] * rLen;
+            rz_2 = 0.5 * r[2] * rLen;
+
+            cx = 0.5 * (r[0] * rSum + s[0] * sSum + t[0] * tSum);
+            cy = 0.5 * (r[1] * rSum + s[1] * sSum + t[1] * tSum);
+            cz = 0.5 * (r[2] * rSum + s[2] * sSum + t[2] * tSum);
+
+            this.center[0] = cx;
+            this.center[1] = cy;
+            this.center[2] = cz;
+
+            this.topCenter[0] = cx + rx_2;
+            this.topCenter[1] = cy + ry_2;
+            this.topCenter[2] = cz + rz_2;
+
+            this.bottomCenter[0] = cx - rx_2;
+            this.bottomCenter[1] = cy - ry_2;
+            this.bottomCenter[2] = cz - rz_2;
+
+            r.multiply(rLen);
+            s.multiply(sLen);
+            t.multiply(tLen);
+
+            this.radius = 0.5 * Math.sqrt(rLen * rLen + sLen * sLen + tLen * tLen);
 
             return this;
         };
