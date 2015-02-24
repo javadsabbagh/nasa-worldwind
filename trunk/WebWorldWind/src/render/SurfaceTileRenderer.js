@@ -89,11 +89,19 @@ define([
                                 }
                             }
                         }
-                    } finally {
+                    }
+                    catch (e) {
+                        console.log(e);
+                    }
+                    finally {
                         terrain.endRenderingTile(dc, terrainTile);
                     }
                 }
-            } finally {
+            }
+            catch (e) {
+                console.log(e);
+            }
+            finally {
                 terrain.endRendering(dc);
                 this.endRendering(dc);
                 dc.frameStatistics.incrementRenderedTileCount(tileCount);

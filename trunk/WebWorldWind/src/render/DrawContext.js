@@ -23,6 +23,7 @@ define([
         '../geom/Position',
         '../geom/Rectangle',
         '../geom/Sector',
+        '../shapes/SurfaceShapeTileBuilder',
         '../render/SurfaceTileRenderer',
         '../render/TextSupport',
         '../geom/Vec2',
@@ -45,6 +46,7 @@ define([
               Position,
               Rectangle,
               Sector,
+              SurfaceShapeTileBuilder,
               SurfaceTileRenderer,
               TextSupport,
               Vec2,
@@ -240,6 +242,13 @@ define([
              * @type {String}
              */
             this.globeStateKey = null;
+
+            /**
+             * A surface shape tile builder that is inserted into the draw context whenever a layer might need to
+             * render surface shapes. The entry in the draw context must be reset to null after the layer completes.
+             * @type {SurfaceShapeTileBuilder}
+             */
+            this.surfaceShapeTileBuilder = null;
         };
 
         // Internal use. Intentionally not documented.

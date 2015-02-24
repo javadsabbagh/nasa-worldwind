@@ -11,13 +11,15 @@ define([
         '../error/ArgumentError',
         '../geom/Location',
         '../util/Logger',
-        '../geom/Vec3'
+        '../geom/Vec3',
+        '../util/WWMath'
     ],
     function (Angle,
               ArgumentError,
               Location,
               Logger,
-              Vec3) {
+              Vec3,
+              WWMath) {
         "use strict";
 
         /**
@@ -212,22 +214,92 @@ define([
                     "missingArray"));
             }
 
-            for (var i = 0, len = locations.length; i < len; i++) {
-                if (!locations[i])
+            var minLatitude = 90,
+                maxLatitude = -90,
+                minLongitude = 180,
+                maxLongitude = -180;
+
+            for (var idx = 0, len = locations.length; idx < len; idx += 1) {
+                var location = locations[idx];
+
+                if (!location) {
                     continue;
+                }
 
-                if (locations[i].latitude < this.minLatitude)
-                    this.minLatitude = locations[i].latitude;
-                if (locations[i].latitude > this.maxLatitude)
-                    this.maxLatitude = locations[i].latitude;
-
-                if (locations[i].longitude < this.minLongitude)
-                    this.minLongitude = locations[i].longitude;
-                if (locations[i].longitude > this.maxLongitude)
-                    this.maxLongitude = locations[i].longitude;
+                minLatitude = Math.min(minLatitude, location.latitude);
+                maxLatitude = Math.max(maxLatitude, location.latitude);
+                minLongitude = Math.min(minLongitude, location.longitude);
+                maxLongitude = Math.max(maxLongitude, location.longitude);
             }
 
+            this.minLatitude = minLatitude;
+            this.maxLatitude = maxLatitude;
+            this.minLongitude = minLongitude;
+            this.maxLongitude = maxLongitude;
+
             return this;
+        };
+
+        /**
+         * Create bounding sectors for the northern and southern hemispheres???
+         * TODO: Ported directly from Java WW, which didn't have any documentation.
+         * @param {Location[]} locations The locations to split a bounding sector of.
+         * @returns {Sector[]} Either no sectors or a pair of sectors describing the northern and southern hemispheres.
+         * @throws {ArgumentError} If the specified array is null, undefined or empty.
+         */
+        Sector.splitBoundingSectors = function(locations) {
+            if (!locations || locations.length < 1) {
+                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "Sector", "splitBoundingSectors",
+                    "missingArray"));
+            }
+
+            var minLat = 90;
+            var minLon = 180;
+            var maxLat = -90;
+            var maxLon = -180;
+
+            var lastLocation = null;
+
+            for (var idx = 0, len = locations.length; idx < len; idx += 1) {
+                var location = locations[idx];
+
+                var lat = location.latitude;
+                if (lat < minLat) {
+                    minLat = lat;
+                }
+                if (lat > maxLat) {
+                    maxLat = lat;
+                }
+
+                var lon = location.longitude;
+                if (lon >= 0 && lon < minLon) {
+                    minLon = lon;
+                }
+                if (lon <= 0 && lon > maxLon) {
+                    maxLon = lon;
+                }
+
+                if (lastLocation != null) {
+                    var lastLon = lastLocation.longitude;
+                    if (WWMath.signum(lon) != WWMath.signum(lastLon)) {
+                        if (Math.abs(lon - lastLon) < 180) {
+                            // Crossing the zero longitude line too
+                            maxLon = 0;
+                            minLon = 0;
+                        }
+                    }
+                }
+                lastLocation = location;
+            }
+
+            if (minLat == maxLat && minLon == maxLon) {
+                return null;
+            }
+
+            return [
+                new Sector(minLat, maxLat, minLon, 180), // Sector on eastern hemisphere.
+                new Sector(minLat, maxLat, -180, maxLon) // Sector on western hemisphere.
+            ];
         };
 
         /**

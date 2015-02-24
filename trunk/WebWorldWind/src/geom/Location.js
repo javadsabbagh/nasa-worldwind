@@ -228,23 +228,23 @@ define([
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Location", "greatCircleDistance", "missingLocation"));
             }
 
-            var lat1 = location1.latitude * Angle.DEGREES_TO_RADIANS,
-                lat2 = location2.latitude * Angle.DEGREES_TO_RADIANS,
-                lon1 = location1.longitude * Angle.DEGREES_TO_RADIANS,
-                lon2 = location2.longitude * Angle.DEGREES_TO_RADIANS,
+            var lat1Radians = location1.latitude * Angle.DEGREES_TO_RADIANS,
+                lat2Radians = location2.latitude * Angle.DEGREES_TO_RADIANS,
+                lon1Radians = location1.longitude * Angle.DEGREES_TO_RADIANS,
+                lon2Radians = location2.longitude * Angle.DEGREES_TO_RADIANS,
                 a,
                 b,
                 c,
                 distanceRadians;
 
-            if (lat1 == lat2 && lon1 == lon2) {
+            if (lat1Radians == lat2Radians && lon1Radians == lon2Radians) {
                 return 0;
             }
 
             // "Haversine formula," taken from http://en.wikipedia.org/wiki/Great-circle_distance#Formul.C3.A6
-            a = Math.sin((lat2 - lat1) / 2.0);
-            b = Math.sin((lon2 - lon1) / 2.0);
-            c = a * a + Math.cos(lat1) * Math.cos(lat2) * b * b;
+            a = Math.sin((lat2Radians - lat1Radians) / 2.0);
+            b = Math.sin((lon2Radians - lon1Radians) / 2.0);
+            c = a * a + Math.cos(lat1Radians) * Math.cos(lat2Radians) * b * b;
             distanceRadians = 2.0 * Math.asin(Math.sqrt(c));
 
             return isNaN(distanceRadians) ? 0 : distanceRadians;
@@ -284,12 +284,12 @@ define([
                 endLonRadians;
 
             // Taken from "Map Projections - A Working Manual", page 31, equation 5-5 and 5-6.
-            endLatRadians = Math.asin(Math.sin(latRadians) * Math.cos(pathLengthRadians)
-            + Math.cos(latRadians) * Math.sin(pathLengthRadians) * Math.cos(azimuthRadians));
+            endLatRadians = Math.asin(Math.sin(latRadians) * Math.cos(pathLengthRadians) +
+                Math.cos(latRadians) * Math.sin(pathLengthRadians) * Math.cos(azimuthRadians));
             endLonRadians = lonRadians + Math.atan2(
                 Math.sin(pathLengthRadians) * Math.sin(azimuthRadians),
-                Math.cos(latRadians) * Math.cos(pathLengthRadians) - Math.sin(latRadians) * Math.sin(pathLengthRadians)
-                * Math.cos(azimuthRadians));
+                Math.cos(latRadians) * Math.cos(pathLengthRadians) -
+                Math.sin(latRadians) * Math.sin(pathLengthRadians) * Math.cos(azimuthRadians));
 
             if (isNaN(endLatRadians) || isNaN(endLonRadians)) {
                 result.latitude = location.latitude;
@@ -653,24 +653,31 @@ define([
         };
 
         /**
-         * Determine whether two locations cross the dateline.
-         * @param {Location} p1 The first location.
-         * @param {Location} p2 The second location.
+         * Determine whether a list of locations crosses the dateline.
+         * @param {Location[]} locations The locations to test.
          * @returns {boolean} True if the dateline is crossed, else false.
+         * @throws {ArgumentError} If the locations list is null.
          */
-        Location.locationsCrossDateline = function(p1, p2) {
-            if (!p1 || !p2) {
+        Location.locationsCrossDateLine = function(locations) {
+            if (!locations) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Location", "locationsCrossDateline", "missingLocation"));
             }
 
-            // A segment cross the line if end pos have different longitude signs
-            // and are more than 180 degrees longitude apart
-            if (p1.longitude * p2.longitude <= 0) {
-                var delta = Math.abs(p1.longitude - p2.longitude);
-                if (delta > 180 && delta < 360) {
-                    return true;
+            var pos = null;
+            for (var idx = 0, len = locations.length; idx < len; idx += 1) {
+                var posNext = locations[idx];
+
+                if (pos != null) {
+                    // A segment cross the line if end pos have different longitude signs
+                    // and are more than 180 degrees longitude apart
+                    if (WWMath.signum(pos.longitude) != WWMath.signum(posNext.longitude)) {
+                        var delta = Math.abs(pos.longitude - posNext.longitude);
+                        if (delta > 180 && delta < 360)
+                            return true;
+                    }
                 }
+                pos = posNext;
             }
 
             return false;
@@ -729,7 +736,7 @@ define([
          *
          * @return {Location[]} Two locations with the most extreme latitudes on the great circle arc.
          *
-         * @throws IllegalArgumentException if either begin or end are null.
+         * @throws {ArgumentError} If either begin or end are null.
          */
         Location.greatCircleArcExtremeForTwoLocations = function(begin, end) {
             if (!begin || !end) {
@@ -806,7 +813,7 @@ define([
          *
          * @return {Location[]} Two locations where the great circle has its extreme latitudes.
          *
-         * @throws IllegalArgumentException if either <code>location</code> or <code>azimuth</code> are null.
+         * @throws {ArgumentError} If location is null.
          */
         Location.greatCircleExtremeLocationsUsingAzimuth = function(location, azimuth) {
             if (!location) {
@@ -852,9 +859,9 @@ define([
         /**
          * Computes the location on a great circle arc with the given starting location, azimuth, and arc distance.
          *
-         * @param {Location} p                  Location of the starting location
-         * @param {number} azimuth   Great circle azimuth angle (clockwise from North)
-         * @param {number} pathLength           Angular arc distance to travel
+         * @param {Location} p          Location of the starting location.
+         * @param {number} azimuth      Great circle azimuth angle (clockwise from North) in degrees.
+         * @param {number} pathLength   Angular arc distance to travel indegrees
          *
          * @return {Location} Location on the great circle arc.
          */
@@ -864,8 +871,9 @@ define([
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Location", "greatCircleEndPosition", "missingLocation"));
             }
 
-            var lat = p.latitude;
-            var lon = p.longitude;
+            var azimuthRadians = azimuth * Angle.DEGREES_TO_RADIANS;
+            var latRadians = p.latitude * Angle.DEGREES_TO_RADIANS;
+            var lonRadians = p.longitude * Angle.DEGREES_TO_RADIANS;
             var distance = pathLength * Angle.DEGREES_TO_RADIANS;
 
             if (distance == 0) {
@@ -873,18 +881,24 @@ define([
             }
 
             // Taken from "Map Projections - A Working Manual", page 31, equation 5-5 and 5-6.
-            var endLatRadians = Math.asin(Math.sin(lat) * Math.cos(distance) + Math.cos(lat) * Math.sin(distance) * Math.cos(azimuth));
-            var endLonRadians = lon + Math.atan2(
-                Math.sin(distance) * Math.sin(azimuth),
-                Math.cos(lat) * Math.cos(distance) - Math.sin(lat) * Math.sin(distance) * Math.cos(azimuth));
+            var endLatRadians =
+                Math.asin(Math.sin(latRadians) * Math.cos(distance) +
+                Math.cos(latRadians) * Math.sin(distance) * Math.cos(azimuthRadians));
+            var endLonRadians =
+                lonRadians +
+                Math.atan2(
+                    Math.sin(distance) * Math.sin(azimuthRadians),
+                    Math.cos(latRadians) * Math.cos(distance) -
+                        Math.sin(latRadians) * Math.sin(distance) * Math.cos(azimuthRadians)
+                );
 
             if (isNaN(endLatRadians) || isNaN(endLonRadians)) {
                 return p;
             }
 
             return new Location(
-                Angle.normalizedRadiansLatitude(endLatRadians),
-                Angle.normalizedRadiansLongitude(endLonRadians));
+                Angle.normalizedDegreesLatitude(endLatRadians * Angle.RADIANS_TO_DEGREES),
+                Angle.normalizedDegreesLongitude(endLonRadians * Angle.RADIANS_TO_DEGREES));
         };
 
         /**
@@ -897,14 +911,13 @@ define([
          * @param {Location} p2         Second position.
          * @param {number} meridian     Longitude line to intersect with.
          * @param {Globe} globe         Globe used to compute intersection.
-         * @param {Location} result     The result of the computation is placed in this variable.
          *
-         * @return {Location} result The intersection location along the meridian
+         * @return {number} latitude The intersection latitude along the meridian
          *
-         * TODO: this code allocates 4 new Vec3; use scratch variables???
-         * Why not? Every location created would then allocated those variables as well, even if they aren't needed :(.
+         * TODO: this code allocates 4 new Vec3 and 1 new Position; use scratch variables???
+         * TODO: Why not? Every location created would then allocated those variables as well, even if they aren't needed :(.
          */
-        Location.intersectionWithMeridian = function(p1, p2, meridian, globe, result) {
+        Location.intersectionWithMeridian = function(p1, p2, meridian, globe) {
             // TODO: add support for 2D
             //if (globe instanceof Globe2D)
             //{
@@ -935,10 +948,11 @@ define([
                 return null;
             }
 
-            var intersectionPos = globe.computePositionFromPoint(intersectionPoint[0], intersectionPoint[1], intersectionPoint[2], new Position(0, 0, 0));
+            // TODO: unable to simply create a new Position(0, 0, 0)
+            var pos = new WorldWind.Position(0, 0, 0);
+            globe.computePositionFromPoint(intersectionPoint[0], intersectionPoint[1], intersectionPoint[2], pos);
 
-            result.set(intersectionPos.latitude, meridian);
-            return result;
+            return pos.latitude;
         };
 
         /**

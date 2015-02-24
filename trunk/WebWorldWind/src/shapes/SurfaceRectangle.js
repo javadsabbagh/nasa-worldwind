@@ -7,15 +7,21 @@
  * @version $Id$
  */
 define([
+        '../geom/Angle',
         '../error/ArgumentError',
+        '../geom/Location',
         '../util/Logger',
         '../shapes/ShapeAttributes',
-        '../shapes/SurfaceShape'
+        '../shapes/SurfaceShape',
+        '../util/WWMath'
     ],
-    function (ArgumentError,
+    function (Angle,
+              ArgumentError,
+              Location,
               Logger,
               ShapeAttributes,
-              SurfaceShape) {
+              SurfaceShape,
+              WWMath) {
         "use strict";
 
         /**
@@ -84,6 +90,31 @@ define([
         };
 
         SurfaceRectangle.prototype = Object.create(SurfaceShape.prototype);
+
+        // Internal. Intentionally not documented.
+        SurfaceRectangle.prototype.computeBoundaries = function(dc) {
+            var halfWidth = 0.5 * this.width,
+                halfHeight = 0.5 * this.height,
+                globeRadius = dc.globe.radiusAt(this.center.latitude, this.center.longitude);
+
+
+            this.boundaries = new Array(4);
+
+            this.addLocation(0, -halfWidth, -halfHeight, globeRadius);
+            this.addLocation(1,  halfWidth, -halfHeight, globeRadius);
+            this.addLocation(2,  halfWidth,  halfHeight, globeRadius);
+            this.addLocation(3, -halfWidth,  halfHeight, globeRadius);
+        };
+
+        SurfaceRectangle.prototype.addLocation = function(idx, xLength, yLength, globeRadius) {
+            var distance = Math.sqrt(xLength * xLength + yLength * yLength);
+
+            // azimuth runs positive clockwise from north and through 360 degrees.
+            var azimuth = (Math.PI / 2.0) - (Math.acos(xLength / distance) * WWMath.signum(yLength) - this.heading * Angle.DEGREES_TO_RADIANS);
+
+            this.boundaries[idx] = Location.greatCircleEndPosition(this.center, azimuth * Angle.RADIANS_TO_DEGREES, (distance / globeRadius) * Angle.RADIANS_TO_DEGREES);
+
+        };
 
         return SurfaceRectangle;
     });
