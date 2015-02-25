@@ -19,6 +19,7 @@ define([
         './navigate/NavigatorState',
         './geom/Rectangle',
         './geom/Sector',
+        './shapes/SurfaceShapeTileBuilder',
         './globe/Terrain',
         './geom/Vec2'],
     function (ArgumentError,
@@ -33,6 +34,7 @@ define([
               NavigatorState,
               Rectangle,
               Sector,
+              SurfaceShapeTileBuilder,
               Terrain,
               Vec2) {
         "use strict";
@@ -158,6 +160,12 @@ define([
             // Internal. Intentionally not documented.
             this.frameRequested = false;
             this.frameRequestCallback = null;
+
+            /**
+             * Create a surface shape tile builder to accumulate and render surface shapes.
+             * @type {SurfaceShapeTileBuilder}
+             */
+            this.surfaceShapeTileBuilder = new SurfaceShapeTileBuilder();
 
             // Set up to handle redraw requests sent to the canvas and the global window. Imagery uses the canvas
             // because images are generally specific to the WebGL context associated with the canvas. Elevation models
@@ -538,7 +546,13 @@ define([
 
         // Internal function. Intentionally not documented.
         WorldWindow.prototype.doDraw = function (dc) {
+            this.drawContext.surfaceShapeTileBuilder = this.surfaceShapeTileBuilder;
+            this.surfaceShapeTileBuilder.clear();
+
             this.drawLayers();
+
+            this.surfaceShapeTileBuilder.doRender(dc);
+
             if (!this.deferOrderedRendering) {
                 this.drawOrderedRenderables();
             }

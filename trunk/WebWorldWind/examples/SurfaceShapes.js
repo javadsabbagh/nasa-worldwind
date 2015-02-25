@@ -28,7 +28,7 @@ requirejs([
         wwd.addLayer(new WorldWind.BMNGLandsatLayer()); // Blue Marble + Landsat
         wwd.addLayer(new WorldWind.BingWMSLayer()); // Bing
         
-        var shapesLayer = new WorldWind.RenderableLayer("Shapes"),
+        var shapesLayer = new WorldWind.RenderableLayer("Surface Shapes"),
             shapeAttributes = new WorldWind.ShapeAttributes(null);
 
         // Set up the common shape attributes.
