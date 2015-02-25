@@ -123,20 +123,20 @@ define([
             // Compute the location's corresponding point on the cell in tile local coordinates,
             // given the fractional portion of the parameterized s and t coordinates. These values indicate the location's
             // relative placement within the cell. The cell's vertices are defined in the following order: lower-left,
-            // lower-right, upper-left, upper-right. The cell's diagonal starts at the lower-left vertex and ends at the
-            // upper-right vertex.
+            // lower-right, upper-left, upper-right. The cell's diagonal starts at the lower-right vertex and ends at the
+            // upper-left vertex.
             sf = (s < tileWidth ? s - Math.floor(s) : 1);
             tf = (t < tileHeight ? t - Math.floor(t) : 1);
 
-            if (sf < tf) {
-                result[0] = points[3] + (1 - sf) * (points[0] - points[3]) + tf * (points[9] - points[3]);
-                result[1] = points[4] + (1 - sf) * (points[1] - points[4]) + tf * (points[10] - points[4]);
-                result[2] = points[5] + (1 - sf) * (points[2] - points[5]) + tf * (points[11] - points[5]);
+            if (sf > tf) {
+                result[0] = points[0] + sf * (points[3] - points[0]) + tf * (points[6] - points[0]);
+                result[1] = points[1] + sf * (points[4] - points[1]) + tf * (points[7] - points[1]);
+                result[2] = points[2] + sf * (points[5] - points[2]) + tf * (points[8] - points[2]);
             }
             else {
-                result[0] = points[6] + sf * (points[9] - points[6]) + (1 - tf) * (points[0] - points[6]);
-                result[1] = points[7] + sf * (points[10] - points[7]) + (1 - tf) * (points[1] - points[7]);
-                result[2] = points[8] + sf * (points[11] - points[8]) + (1 - tf) * (points[2] - points[8]);
+                result[0] = points[9] + (1 - sf) * (points[6] - points[9]) + (1 - tf) * (points[3] - points[9]);
+                result[1] = points[10] + (1 - sf) * (points[7] - points[10]) + (1 - tf) * (points[4] - points[10]);
+                result[2] = points[11] + (1 - sf) * (points[8] - points[11]) + (1 - tf) * (points[5] - points[11]);
             }
 
             result[0] += this.referencePoint[0];
