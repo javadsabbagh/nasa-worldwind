@@ -83,13 +83,6 @@ define([
             this.highlighted = false;
 
             /**
-             * Indicates whether this placemark is drawn.
-             * @type {boolean}
-             * @default true
-             */
-            this.enabled = true;
-
-            /**
              * This placemark's geographic position.
              * @type {Position}
              */
@@ -112,15 +105,6 @@ define([
              * @default WorldWind.ABSOLUTE
              */
             this.altitudeMode = WorldWind.ABSOLUTE;
-
-            /**
-             * Indicates the object to return as the <code>userObject</code> of this placemark when picked. If null,
-             * then this placemark is returned as the <code>userObject</code>.
-             * @type {Object}
-             * @default null
-             * @see  [PickedObject.userObject]{@link PickedObject#userObject}
-             */
-            this.pickDelegate = null;
 
             /**
              * Indicates whether this placemark has visual priority over other shapes in the scene.

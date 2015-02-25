@@ -34,8 +34,23 @@ define([
              * @type {boolean}
              */
             this.enabled = true;
+
+            /**
+             * Indicates the object to return as the <code>userObject</code> of this placemark when picked. If null,
+             * then this renderable is returned as the <code>userObject</code>.
+             * @type {Object}
+             * @default null
+             * @see  [PickedObject.userObject]{@link PickedObject#userObject}
+             */
+            this.pickDelegate = null;
         };
 
+        /**
+         * Render this renderable. Some  shapes actually draw themselves during this call, others only add themselves
+         * to the draw context's ordered rendering list for subsequent drawing when the renderOrdered method is called.
+         * This method is intended to be called by layers such as {@link RenderableLayer} and not by applications.
+         * @param {DrawContext} dc The current draw context.
+         */
         Renderable.prototype.render = function (dc) {
             throw new UnsupportedOperationError(
                 Logger.logMessage(Logger.LEVEL_SEVERE, "Renderable", "render", "abstractInvocation"));
