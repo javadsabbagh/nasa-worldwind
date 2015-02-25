@@ -87,6 +87,7 @@ define([
         };
 
         Path.scratchMatrix = Matrix.fromIdentity(); // scratch variable
+        Path.scratchPoint = new Vec3(0, 0, 0); // scratch variable
 
         Path.prototype = Object.create(AbstractShape.prototype);
 
@@ -336,9 +337,10 @@ define([
                 segmentAzimuth = Location.greatCircleAzimuth(posA, posB);
             }
 
+            Path.scratchPoint.copy(ptA);
             for (s = 0, p = 0; s < 1;) {
                 if (this._followTerrain) {
-                    p += this._terrainConformance * navState.pixelSizeAtDistance(ptA.distanceTo(eyePoint));
+                    p += this._terrainConformance * navState.pixelSizeAtDistance(Path.scratchPoint.distanceTo(eyePoint));
                 } else {
                     p += arcLength / this._numSubSegments;
                 }
@@ -362,7 +364,11 @@ define([
 
                 tessellatedPositions.push(new Position(pos.latitude, pos.longitude, pos.altitude));
 
-                ptA = ptB;
+                if (this._followTerrain) {
+                    // Compute a new reference point for eye distance.
+                    dc.terrain.surfacePointForMode(pos.latitude, pos.longitude, pos.altitude,
+                        WorldWind.CLAMP_TO_GROUND, Path.scratchPoint);
+                }
             }
         };
 
@@ -429,7 +435,8 @@ define([
 
         // Private. Intentionally not documented.
         Path.prototype.mustDrawVerticals = function (dc) {
-            return this.activeAttributes.drawOutline && this.activeAttributes.drawVerticals;
+            return this.activeAttributes.drawOutline && this.activeAttributes.drawVerticals
+                && !this.altitudeMode === WorldWind.CLAMP_TO_GROUND;
         };
 
         // Overridden from AbstractShape base class.
@@ -481,8 +488,8 @@ define([
             }
 
             if (this.activeAttributes.drawOutline) {
-                if (this.mustDrawInterior(dc)) {
-                    this.applyMvpMatrixForOutline(dc); // make the outline stand out from the interior
+                if (this.mustDrawInterior(dc) || this.altitudeMode === WorldWind.CLAMP_TO_GROUND) {
+                    this.applyMvpMatrixForOutline(dc); // make the outline stand out from the interior or terrain
                 }
 
                 color = this.activeAttributes.outlineColor;

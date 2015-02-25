@@ -32,13 +32,12 @@ requirejs(['../src/WorldWind',
         pathPositions.push(new WorldWind.Position(45, -110, 1e4));
         pathPositions.push(new WorldWind.Position(46, -122, 1e4));
         var path = new WorldWind.Path(pathPositions);
-        path.altitudeMode = WorldWind.ABSOLUTE;
-        path.followTerrain = false;
+        path.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
+        path.followTerrain = true;
 
         var pathAttributes = new WorldWind.PathAttributes(null);
         pathAttributes.outlineColor = WorldWind.Color.BLUE;
         pathAttributes.interiorColor = new WorldWind.Color(0, 1, 1, 0.5);
-        pathAttributes.drawVerticals = true;
         path.attributes = pathAttributes;
         var highlightAttributes = new WorldWind.PathAttributes(pathAttributes);
         highlightAttributes.outlineColor = WorldWind.Color.RED;
