@@ -9,13 +9,11 @@
 define([
         '../error/ArgumentError',
         '../layer/Layer',
-        '../util/Logger',
-        '../shapes/SurfaceShapeTileBuilder'
+        '../util/Logger'
     ],
     function (ArgumentError,
               Layer,
-              Logger,
-              SurfaceShapeTileBuilder) {
+              Logger) {
         "use strict";
 
         /**
@@ -29,8 +27,6 @@ define([
             Layer.call(this, displayName);
 
             this.renderables = [];
-
-            this.surfaceShapeTileBuilder = new SurfaceShapeTileBuilder();
         };
 
         RenderableLayer.prototype = Object.create(Layer.prototype);
@@ -40,7 +36,6 @@ define([
          */
         RenderableLayer.prototype.dispose = function () {
             this.removeAllRenderables();
-            this.surfaceShapeTileBuilder.clearTiles();
         };
 
         /**
@@ -88,10 +83,6 @@ define([
         };
 
         RenderableLayer.prototype.doRender = function (dc) {
-            dc.surfaceShapeTileBuilder = this.surfaceShapeTileBuilder;
-
-            this.surfaceShapeTileBuilder.clear();
-
             var numOrderedRenderablesAtStart = dc.orderedRenderables.length;
 
             for (var i = 0, len = this.renderables.length; i < len; i++) {
@@ -107,10 +98,6 @@ define([
             if (dc.orderedRenderables.length > numOrderedRenderablesAtStart) {
                 this.inCurrentFrame = true;
             }
-
-            this.surfaceShapeTileBuilder.doRender(dc);
-
-            dc.surfaceShapeTileBuilder = null;
         };
 
         return RenderableLayer;
