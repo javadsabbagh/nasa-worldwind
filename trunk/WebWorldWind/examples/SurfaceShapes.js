@@ -5,7 +5,7 @@
 /**
  * Illustrates how to display SurfaceShapes.
  *
- * @version $Id: Shapes.js 2734 2015-02-03 19:04:49Z tgaskins $
+ * @version $Id$
  */
 
 requirejs([
@@ -96,4 +96,7 @@ requirejs([
 
         // Draw the World Window for the first time.
         wwd.redraw();
+
+        // Create a layer manager for controlling layer visibility.
+        var layerManger = new LayerManager('divLayerManager', wwd);
     });
