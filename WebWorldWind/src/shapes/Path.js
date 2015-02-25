@@ -208,8 +208,10 @@ define([
 
         // Overridden from AbstractShape base class.
         Path.prototype.doMakeOrderedRenderable = function (dc) {
-            // If the current data has tessellated points then the data has not expired and we can re-use it.
-            if (this.currentData.tessellatedPoints) {
+            // See if the current shape data can be re-used.
+            if (this.currentData.tessellatedPoints
+                && this.currentData.drawInterior === this.activeAttributes.drawInterior
+                && this.currentData.drawVerticals === this.activeAttributes.drawVerticals) {
                 return this;
             }
 
@@ -233,10 +235,12 @@ define([
             // Convert the tessellated geographic coordinates to the Cartesian coordinates that will be rendered.
             var tessellatedPoints = this.computeRenderedPath(dc, tessellatedPositions);
 
+            this.currentData.tessellatedPoints = tessellatedPoints;
+            this.currentData.drawInterior = this.activeAttributes.drawInterior;
+            this.currentData.drawVerticals = this.activeAttributes.drawVerticals;
+
             // Create the extent from the Cartesian points. Those points are relative to this path's reference point, so
             // translate the computed extent to the reference point.
-            this.currentData.tessellatedPoints = tessellatedPoints;
-
             if (!this.currentData.extent) {
                 this.currentData.extent = new BoundingBox();
 
@@ -445,7 +449,7 @@ define([
                 program = dc.currentProgram,
                 currentData = this.currentData,
                 numPoints = currentData.tessellatedPoints.length / 3,
-                vboId, opacity, color, pickColor, drawPoles, stride, nPts;
+                vboId, opacity, color, pickColor, stride, nPts;
 
             this.applyMvpMatrix(dc);
 
