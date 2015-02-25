@@ -387,8 +387,10 @@ define([
          * @returns {number} The radius at the specified location.
          */
         Globe.prototype.radiusAt = function(latitude, longitude) {
-            this.computePointFromLocation(latitude, longitude, this.scratchPoint);
-            return this.scratchPoint.magnitude();
+            var sinLat = Math.sin(latitude * Angle.DEGREES_TO_RADIANS),
+                rpm = this.equatorialRadius / Math.sqrt(1.0 - this.eccentricitySquared * sinLat * sinLat);
+
+            return rpm * Math.sqrt(1.0 + (this.eccentricitySquared * this.eccentricitySquared - 2.0 * this.eccentricitySquared) * sinLat * sinLat);
         };
 
         /**
