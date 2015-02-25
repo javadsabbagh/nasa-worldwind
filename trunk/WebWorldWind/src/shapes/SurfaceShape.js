@@ -104,12 +104,22 @@ define([
             this.pickDelegate = null;
 
             /**
-             * Edge interpolation error tolerance.
+             * The maximum number of intervals an edge will be broken into. This is the number of intervals that an
+             * edge that spans to opposite side of the globe would be broken into. This is strictly an upper bound
+             * and the number of edge intervals may be lower if this resolution is not needed.
              * @type {number}
-             * @default SurfaceShape.DEFAULT_EDGE_TOLERANCE
+             * @default SurfaceShape.DEFAULT_NUM_EDGE_INTERVALS
              */
-            this.edgeTolerance = SurfaceShape.DEFAULT_EDGE_TOLERANCE;
+            this.maximumNumEdgeIntervals = SurfaceShape.DEFAULT_NUM_EDGE_INTERVALS;
 
+            /**
+             * A dimensionless number that controls throttling of edge traversal near the poles where edges need to be
+             * sampled more closely together.
+             * A value of 0 indicates that no polar throttling is to be performed.
+             * @type {number}
+             * @default SurfaceShape.DEFAULT_POLAR_THROTTLE
+             */
+            this.polarThrottle = SurfaceShape.DEFAULT_POLAR_THROTTLE;
             /**
              * Defines the extent of the shape in latitude and longitude.
              * Initially it is a full sphere, but as geometry is determined, it is filled in to reflect that geometry.
@@ -124,13 +134,13 @@ define([
             this.sectors = [];
 
             /**
-             * The raw collection of locations defining this shape.
+             * The raw collection of locations defining this shape and are explicitly specified by the client of this class.
              * @type {Location[]}
              */
             this.locations = null;
 
             /**
-             * Boundaries that are either the user specified locations or locations that are algorithimcally generated.
+             * Boundaries that are either the user specified locations or locations that are algorithmically generated.
              * @type {Location[]}
              */
             this.boundaries = null;
@@ -186,43 +196,43 @@ define([
             for (var idx = 1, len = locations.length; idx < len; idx += 1) {
                 var next = locations[idx];
 
-                this.subdivideEdge(prev, next, this.locations);
+                //this.subdivideEdge(prev, next, this.locations);
+                this.interpolateEdge(prev, next, this.locations);
                 this.locations.push(next);
 
                 prev = next;
             }
 
-            this.subdivideEdge(prev, first, this.locations);
+            //this.subdivideEdge(prev, first, this.locations);
+            this.interpolateEdge(prev, first, this.locations);
             this.locations.push(first);
         };
 
+        SurfaceShape.prototype.interpolateEdge = function(start, end, locations) {
+            var distanceRadians = Location.greatCircleDistance(start, end),
+                steps = Math.ceil(this.maximumNumEdgeIntervals * distanceRadians / Math.PI),
+                dt = 1 / steps,
+                location = start;
+
+            for (var t = this.throttledStep(dt, location); t < 1; t += this.throttledStep(dt, location)) {
+                location = new Location(0, 0);
+                Location.interpolateAlongPath(this.pathType, t, start, end, location);
+                locations.push(location);
+            }
+        };
+
         // Internal function. Intentionally not documented.
-        SurfaceShape.prototype.subdivideEdge = function(start, end, locations) {
-            var middle = new Location(0, 0);
+        // Return a throttled step size when near the poles.
+        SurfaceShape.prototype.throttledStep = function(dt, location) {
+            var cosLat = Math.cos(location.latitude * Angle.DEGREES_TO_RADIANS);
+            cosLat *= cosLat; // Square cos to emphasize poles and de-emphasize equator.
 
-            Location.interpolateAlongPath(this.pathType, 0.5, start, end, middle);
+            // Remap polarThrotle:
+            //  0 .. INF => 0 .. 1
+            // This acts as a weight between no throttle and fill throttle.
+            var weight = this.polarThrottle / (1 + this.polarThrottle);
 
-            var minLatitude = start.latitude,
-                maxLatitude = start.latitude;
-
-            minLatitude = Math.min(minLatitude, end.latitude);
-            maxLatitude = Math.max(maxLatitude, end.latitude);
-
-            minLatitude = Math.min(minLatitude, middle.latitude);
-            maxLatitude = Math.max(maxLatitude, middle.latitude);
-
-            // Use as a heuristic to subdivide more the closer the edge gets to a pole.
-            var absLatitude = Math.max(Math.abs(minLatitude), Math.abs(maxLatitude));
-
-            // If the edge is above the acceptable tolerance, subdivide it recursively.
-            if (maxLatitude - minLatitude > this.edgeTolerance * (0.1 + Math.cos(absLatitude * Angle.DEGREES_TO_RADIANS))) {
-                this.subdivideEdge(start, middle, locations);
-                locations.push(middle);
-                this.subdivideEdge(middle, end, locations);
-            }
-            else {
-                locations.push(middle);
-            }
+            return dt * ((1 - weight) + weight * cosLat);
         };
 
         // Internal function. Intentionally not documented.
@@ -534,11 +544,13 @@ define([
                     path = this.interiorGeometry[idx];
 
                     ctx2D.beginPath();
+
                     ctx2D.moveTo(path[0].longitude, path[0].latitude);
                     for (idxPath = 1, lenPath = path.length; idxPath < lenPath; idxPath += 1) {
                         location = path[idxPath];
                         ctx2D.lineTo(location.longitude, location.latitude);
                     }
+
                     ctx2D.closePath();
 
                     ctx2D.fill();
@@ -560,6 +572,7 @@ define([
                 for (idx = 0, len = this.outlineGeometry.length; idx < len; idx += 1) {
                     path = this.outlineGeometry[idx];
                     ctx2D.beginPath();
+
                     ctx2D.moveTo(path[0].longitude, path[0].latitude);
                     for (idxPath = 1, lenPath = path.length; idxPath < lenPath; idxPath += 1) {
                         location = path[idxPath];
@@ -573,6 +586,8 @@ define([
 
         /**
          * Compute a dash pattern that SVG can use to render the outline.
+         * @param {number} pattern The pattern that the application specified.
+         * @param {number} spacing The spacing that the application specified.
          * @return {number[]} The line dash pattern that SVG expects.
          */
         SurfaceShape.prototype.getLineDash = function(pattern, spacing) {
@@ -623,10 +638,16 @@ define([
         };
 
         /**
-         * Default value for edge tolerance, below which the edge will not be further subdivided.
+         * Default value for the maximum number of edge intervals.
          * @type {number}
          */
-        SurfaceShape.DEFAULT_EDGE_TOLERANCE = 1;
+        SurfaceShape.DEFAULT_NUM_EDGE_INTERVALS = 32;
+
+        /**
+         * The defualt value for the polar throttle, which slows edge traversal near the poles.
+         * @type {number}
+         */
+        SurfaceShape.DEFAULT_POLAR_THROTTLE = 10;
 
         return SurfaceShape;
     }
