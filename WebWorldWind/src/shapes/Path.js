@@ -18,8 +18,7 @@ define([
         '../pick/PickedObject',
         '../geom/Position',
         '../geom/Vec2',
-        '../geom/Vec3',
-        '../util/WWMath'
+        '../geom/Vec3'
     ],
     function (AbstractShape,
               ArgumentError,
@@ -32,8 +31,7 @@ define([
               PickedObject,
               Position,
               Vec2,
-              Vec3,
-              WWMath) {
+              Vec3) {
         "use strict";
 
         /**
@@ -41,7 +39,26 @@ define([
          * @alias Path
          * @constructor
          * @augments AbstractShape
-         * @classdesc Represents a Path shape.
+         * @classdesc Represents a line or curve between specified positions. The path is drawn between input
+         * positions to achieve a specified path type, which can be one of the following:
+         * <ul>
+         *     <li>[WorldWind.GREAT_CIRCLE]{@link WorldWind#GREAT_CIRCLE}</li>
+         *     <li>[WorldWind.RHUMB_LINE]{@link WorldWind#RHUMB_LINE}</li>
+         *     <li>[WorldWind.LINEAR]{@link WorldWind#LINEAR}</li>
+         * </ul>
+         * <p>
+         *     Paths conform to the terrain if the path's [followTerrain]{@link Path#followTerrain} property is true.
+         * <p>
+         *     Altitudes within the path's positions are interpreted according to the path's altitude mode, which
+         *     can be one of the following:
+         * <ul>
+         *     <li>[WorldWind.ABSOLUTE]{@link WorldWind#ABSOLUTE}</li>
+         *     <li>[WorldWind.RELATIVE_TO_GROUND]{@link WorldWind#RELATIVE_TO_GROUND}</li>
+         *     <li>[WorldWind.CLAMP_TO_GROUND]{@link WorldWind#CLAMP_TO_GROUND}</li>
+         * </ul>
+         * If the latter, the path positions' altitudes are ignored.
+         * <p>
+         *     Paths have separate attributes for normal display and highlighted display.
          * @param {Position[]} positions An array containing the path positions.
          * @throws {ArgumentError} If the specified positions array is null or undefined.
          */
@@ -53,15 +70,20 @@ define([
 
             AbstractShape.call(this);
 
+            // Private. Documentation is with the defined property below.
             this._positions = positions;
 
-            this.referencePosition = positions.length > 0 ? positions[0] : null;
-
+            // Private. Documentation is with the defined property below.
             this._pathType = WorldWind.GREAT_CIRCLE;
 
+            // Private. Documentation is with the defined property below.
             this._terrainConformance = 10;
 
+            // Private. Documentation is with the defined property below.
             this._numSubSegments = 10;
+
+            // Assign the first position as the reference position.
+            this.referencePosition = positions.length > 0 ? positions[0] : null;
         };
 
         Path.scratchMatrix = Matrix.fromIdentity(); // scratch variable
@@ -69,6 +91,11 @@ define([
         Path.prototype = Object.create(AbstractShape.prototype);
 
         Object.defineProperties(AbstractShape.prototype, {
+            /**
+             * This path's positions.
+             * @type {Position[]}
+             * @memberof Path.prototype
+             */
             positions: {
                 get: function () {
                     return this._positions;
@@ -85,6 +112,12 @@ define([
                 }
             },
 
+            /**
+             * Indicates whether this path should conform to the terrain.
+             * @type {Boolean}
+             * @default false
+             * @memberof Path.prototype
+             */
             followTerrain: {
                 get: function () {
                     return this._followTerrain;
@@ -95,6 +128,14 @@ define([
                 }
             },
 
+            /**
+             * Specifies how accurately this path must adhere to the terrain when the path is terrain following. The value
+             * specifies the maximum number of pixels between tessellation points. Lower values increase accuracy but decrease
+             * performance.
+             * @type {Number}
+             * @default 10
+             * @memberof Path.prototype
+             */
             terrainConformance: {
                 get: function () {
                     return this._terrainConformance;
@@ -105,6 +146,16 @@ define([
                 }
             },
 
+            /**
+             * Specifies the number of segments used between specified positions to achieve this path's path type. Higher values
+             * cause the path to conform more closely to the path type but decrease performance.
+             * <p/>
+             * Note: The sub-segments number is ignored when the path follows terrain or when the path type is
+             * WorldWind.LINEAR.
+             * @type {Number}
+             * @default 10
+             * @memberof Path.prototype
+             */
             numSubSegments: {
                 get: function () {
                     return this._numSubSegments;
@@ -115,6 +166,17 @@ define([
                 }
             },
 
+            /**
+             * The type of path to follow when drawing the path. Recognized values are:
+             * <ul>
+             * <li>[WorldWind.GREAT_CIRCLE]{@link WorldWind#GREAT_CIRCLE}
+             * <li>[WorldWind.RHUMB_LINE]{@link WorldWind#RHUMB_LINE}
+             * <li>[WorldWind.LINEAR]{@link WorldWind#LINEAR}
+             * </ul>
+             * @type {String}
+             * @default WorldWind.GREAT_CIRCLE
+             * @memberof Path.prototype
+             */
             pathType: {
                 get: function () {
                     return this._pathType;
@@ -125,6 +187,13 @@ define([
                 }
             },
 
+            /**
+             * Specifies whether to extrude this path to the ground by drawing a filled interior from the path to the
+             * terrain. The filled interior uses this path's interior attributes.
+             * @type {Boolean}
+             * @default false
+             * @memberof Path.prototype
+             */
             extrude: {
                 get: function () {
                     return this._extrude;
@@ -136,7 +205,13 @@ define([
             }
         });
 
+        // Overridden from AbstractShape base class.
         Path.prototype.doMakeOrderedRenderable = function (dc) {
+            // If the current data has tessellated points then the data has not expired and we can re-use it.
+            if (this.currentData.tessellatedPoints) {
+                return this;
+            }
+
             // A null reference position is a signal that there are no positions to render.
             if (!this.referencePosition || this._positions.length < 2) {
                 return null;
@@ -171,6 +246,7 @@ define([
             return this;
         };
 
+        // Private. Intentionally not documented.
         Path.prototype.makeTessellatedPositions = function (dc) {
             var tessellatedPositions = [],
                 navState = dc.navigatorState,
@@ -214,6 +290,7 @@ define([
             return tessellatedPositions;
         };
 
+        // Private. Intentionally not documented.
         Path.prototype.makeSegment = function (dc, posA, posB, ptA, ptB, tessellatedPositions) {
             var navState = dc.navigatorState,
                 eyePoint = navState.eyePoint,
@@ -289,20 +366,27 @@ define([
             }
         };
 
+        // Private. Intentionally not documented.
         Path.prototype.computeRenderedPath = function (dc, tessellatedPositions) {
-            var extrudeIt = this.mustDrawInterior(dc),
+            var capturePoles = this.mustDrawInterior(dc) || this.mustDrawVerticals(dc),
                 eyeDistSquared = Number.MAX_VALUE,
                 eyePoint = dc.navigatorState.eyePoint,
-                numPoints = (extrudeIt ? 2 : 1) * tessellatedPositions.length,
+                numPoints = (capturePoles ? 2 : 1) * tessellatedPositions.length,
                 tessellatedPoints = new Float32Array(numPoints * 3),
-                stride = extrudeIt ? 6 : 3,
+                stride = capturePoles ? 6 : 3,
                 pt = new Vec3(0, 0, 0),
-                pos, k, dSquared;
+                altitudeMode, pos, k, dSquared;
+
+            if (this._followTerrain && this.altitudeMode !== WorldWind.CLAMP_TO_GROUND) {
+                altitudeMode = WorldWind.RELATIVE_TO_GROUND;
+            } else {
+                altitudeMode = this.altitudeMode;
+            }
 
             for (var i = 0, len = tessellatedPositions.length; i < len; i++) {
                 pos = tessellatedPositions[i];
 
-                dc.terrain.surfacePointForMode(pos.latitude, pos.longitude, pos.altitude, this._altitudeMode, pt);
+                dc.terrain.surfacePointForMode(pos.latitude, pos.longitude, pos.altitude, altitudeMode, pt);
 
                 dSquared = pt.distanceToSquared(eyePoint);
                 if (dSquared < eyeDistSquared) {
@@ -316,7 +400,7 @@ define([
                 tessellatedPoints[k + 1] = pt[1];
                 tessellatedPoints[k + 2] = pt[2];
 
-                if (extrudeIt) {
+                if (capturePoles) {
                     dc.terrain.surfacePointForMode(pos.latitude, pos.longitude, 0, WorldWind.CLAMP_TO_GROUND, pt);
 
                     dSquared = pt.distanceToSquared(eyePoint);
@@ -332,25 +416,29 @@ define([
                 }
             }
 
+            this.currentData.pointBufferHasExtrusionPoints = capturePoles;
             this.currentData.eyeDistance = Math.sqrt(eyeDistSquared);
 
             return tessellatedPoints;
         };
 
+        // Private. Intentionally not documented.
         Path.prototype.mustDrawInterior = function (dc) {
             return this.activeAttributes.drawInterior && !(this._altitudeMode === WorldWind.CLAMP_TO_GROUND);
         };
 
+        // Private. Intentionally not documented.
         Path.prototype.mustDrawVerticals = function (dc) {
-            return this.mustDrawInterior(dc) && this.activeAttributes.drawOutline;
+            return this.activeAttributes.drawOutline && this.activeAttributes.drawVerticals;
         };
 
+        // Overridden from AbstractShape base class.
         Path.prototype.doRenderOrdered = function (dc) {
             var gl = dc.currentGlContext,
                 program = dc.currentProgram,
                 currentData = this.currentData,
                 numPoints = currentData.tessellatedPoints.length / 3,
-                vboId, opacity, color, pickColor, extrudeIt, stride, nPts;
+                vboId, opacity, color, pickColor, drawPoles, stride, nPts;
 
             this.applyMvpMatrix(dc);
 
@@ -366,7 +454,7 @@ define([
                 gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, vboId);
                 gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, currentData.tessellatedPoints,
                     WebGLRenderingContext.STATIC_DRAW);
-            } else{
+            } else {
                 gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, vboId);
                 gl.bufferSubData(WebGLRenderingContext.ARRAY_BUFFER, 0, currentData.tessellatedPoints);
             }
@@ -379,7 +467,6 @@ define([
             }
 
             if (this.mustDrawInterior(dc)) {
-                extrudeIt = true;
                 color = this.activeAttributes.interiorColor;
                 opacity = color.alpha * dc.currentLayer.opacity;
                 // Disable writing the shape's fragments to the depth buffer when the interior is semi-transparent.
@@ -394,6 +481,10 @@ define([
             }
 
             if (this.activeAttributes.drawOutline) {
+                if (this.mustDrawInterior(dc)) {
+                    this.applyMvpMatrixForOutline(dc); // make the outline stand out from the interior
+                }
+
                 color = this.activeAttributes.outlineColor;
                 opacity = color.alpha * dc.currentLayer.opacity;
                 // Disable writing the shape's fragments to the depth buffer when the interior is semi-transparent.
@@ -405,15 +496,18 @@ define([
 
                 gl.lineWidth(this.activeAttributes.outlineWidth);
 
-                stride = extrudeIt ? 24 : 12;
-                nPts = extrudeIt ? numPoints / 2 : numPoints;
+                if (this.currentData.pointBufferHasExtrusionPoints) {
+                    stride = 24;
+                    nPts = numPoints / 2;
+                } else {
+                    stride = 12;
+                    nPts = numPoints;
+                }
 
                 gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, stride, 0);
                 gl.drawArrays(WebGLRenderingContext.LINE_STRIP, 0, nPts);
 
                 if (this.mustDrawVerticals(dc)) {
-                    this.applyMvpMatrixForVerticals(dc);
-
                     if (!currentData.verticalIndicesCacheKey) {
                         currentData.verticalIndicesCacheKey = dc.gpuResourceCache.generateCacheKey();
                     }
@@ -446,6 +540,7 @@ define([
             }
         };
 
+        // Overridden from AbstractShape base class.
         Path.prototype.beginDrawing = function (dc) {
             var gl = dc.currentGlContext;
 
@@ -457,6 +552,7 @@ define([
             gl.enableVertexAttribArray(dc.currentProgram.vertexPointLocation);
         };
 
+        // Overridden from AbstractShape base class.
         Path.prototype.endDrawing = function (dc) {
             var gl = dc.currentGlContext;
 
@@ -467,13 +563,16 @@ define([
             gl.enable(WebGLRenderingContext.CULL_FACE);
         };
 
+        // Private. Intentionally not documented.
         Path.prototype.applyMvpMatrix = function (dc) {
             Path.scratchMatrix.setToMatrix(dc.navigatorState.modelviewProjection);
             Path.scratchMatrix.multiplyMatrix(this.currentData.transformationMatrix);
             dc.currentProgram.loadModelviewProjection(dc.currentGlContext, Path.scratchMatrix);
         };
 
-        Path.prototype.applyMvpMatrixForVerticals = function (dc) {
+        // Private. Intentionally not documented.
+        Path.prototype.applyMvpMatrixForOutline = function (dc) {
+            // Causes the outline to stand out from the interior.
             Path.scratchMatrix.setToMatrix(dc.navigatorState.projection);
             Path.scratchMatrix.offsetProjectionDepth(-0.001);
             Path.scratchMatrix.multiplyMatrix(dc.navigatorState.modelview);
