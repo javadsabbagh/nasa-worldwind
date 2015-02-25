@@ -492,8 +492,10 @@ define([
             }
 
             if (this.activeAttributes.drawOutline) {
-                if (this.mustDrawInterior(dc) || this.altitudeMode === WorldWind.CLAMP_TO_GROUND) {
-                    this.applyMvpMatrixForOutline(dc); // make the outline stand out from the interior or terrain
+                if ((this.mustDrawVerticals(dc) && this.mustDrawInterior(dc))
+                    || this.altitudeMode === WorldWind.CLAMP_TO_GROUND) {
+                    // Make the verticals stand out from the interior, or the outline stand out from the terrain.
+                    this.applyMvpMatrixForOutline(dc);
                 }
 
                 color = this.activeAttributes.outlineColor;
