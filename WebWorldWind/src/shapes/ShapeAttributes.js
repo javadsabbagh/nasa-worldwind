@@ -61,7 +61,7 @@ define([
             this.outlineColor = attributes ? attributes.outlineColor : Color.RED;
 
             /**
-             * Indicate the associated shape's outline width.
+             * Indicates the associated shape's outline width.
              * @type {number}
              * @default 1.0
              */
