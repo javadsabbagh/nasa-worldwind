@@ -24,7 +24,7 @@ public class CacheLocationConfiguration extends ApplicationTemplate
         // Prior to starting World Wind, specify the cache configuration file to Configuration.
         Configuration.setValue(
             "gov.nasa.worldwind.avkey.DataFileStoreConfigurationFileName",
-            "gov/nasa/worldwindx/examples/CacheLocationConfiguration.xml");
+            "gov/nasa/worldwindx/examples/data/CacheLocationConfiguration.xml");
 
         ApplicationTemplate.start("World Wind Cache Configuration", AppFrame.class);
     }
