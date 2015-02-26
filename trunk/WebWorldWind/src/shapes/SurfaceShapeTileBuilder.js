@@ -449,7 +449,9 @@ define([
 
             for (var idx = 0, len = this.surfaceShapeTiles.length; idx < len; idx += 1) {
                 var tile = this.surfaceShapeTiles[idx];
-                tile.updateTexture(dc);
+                if (!tile.hasTexture(dc)) {
+                    tile.updateTexture(dc);
+                }
             }
         };
 

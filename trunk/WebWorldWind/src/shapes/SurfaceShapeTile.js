@@ -117,6 +117,23 @@ define([
         };
 
         /**
+         * Determine whether the surface shape tile has a valid texture.
+         * @param {DrawContext} dc The draw context.
+         * @returns {boolean} True if the surface shape tile has a valid texture, else false.
+         */
+        SurfaceShapeTile.prototype.hasTexture = function(dc) {
+            var gpuResourceCache = dc.gpuResourceCache;
+
+            if (!this.gpuCacheKey) {
+                this.gpuCacheKey = this.getCacheKey();
+            }
+
+            var texture = gpuResourceCache.resourceForKey(this.gpuCacheKey);
+
+            return !texture ? false : true;
+        };
+
+        /**
          * Return the texture for rendering this tile. If one does not exist, create a new texture.
          * @param {DrawContext} dc The draw context
          * @returns {Texture} The texture for displaying the tile.
@@ -135,25 +152,6 @@ define([
             }
 
             return texture;
-        };
-
-        /**
-         * Get a key suitable for cache look-ups.
-         * @returns {string}
-         */
-        SurfaceShapeTile.prototype.getCacheKey = function() {
-            if (!this.cacheKey) {
-                this.cacheKey = "SurfaceShapeTile:" +
-                    this.sector.minLatitude.toString() + "," +
-                    this.sector.minLongitude.toString() + "," +
-                    this.sector.maxLatitude.toString() + "," +
-                    this.sector.maxLongitude.toString() + "," +
-                    this.level.levelNumber.toString() + "," +
-                    this.row.toString() + "," +
-                    this.column.toString();
-            }
-
-            return this.cacheKey;
         };
 
         /**
@@ -206,6 +204,25 @@ define([
             gpuResourceCache.putResource(this.gpuCacheKey, texture, texture.size);
 
             return texture;
+        };
+
+        /**
+         * Get a key suitable for cache look-ups.
+         * @returns {string}
+         */
+        SurfaceShapeTile.prototype.getCacheKey = function() {
+            if (!this.cacheKey) {
+                this.cacheKey = "SurfaceShapeTile:" +
+                this.sector.minLatitude.toString() + "," +
+                this.sector.minLongitude.toString() + "," +
+                this.sector.maxLatitude.toString() + "," +
+                this.sector.maxLongitude.toString() + "," +
+                this.level.levelNumber.toString() + "," +
+                this.row.toString() + "," +
+                this.column.toString();
+            }
+
+            return this.cacheKey;
         };
 
         /**
