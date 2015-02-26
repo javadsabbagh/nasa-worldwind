@@ -23,6 +23,7 @@ requirejs(['../src/WorldWind',
         /**
          * Added imagery layers.
          */
+        wwd.addLayer(new WorldWind.BMNGOneImageLayer());
         wwd.addLayer(new WorldWind.BMNGLandsatLayer()); // Blue Marble + Landsat
         wwd.addLayer(new WorldWind.BingWMSLayer()); // Bing
         wwd.addLayer(new WorldWind.CompassLayer);

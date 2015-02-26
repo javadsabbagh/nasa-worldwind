@@ -23,6 +23,7 @@ requirejs(['../src/WorldWind',
 
         // Create a World Window and some layers to display.
         var wwd = new WorldWind.WorldWindow("canvasOne");
+        wwd.addLayer(new WorldWind.BMNGOneImageLayer());
         wwd.addLayer(new WorldWind.BMNGLandsatLayer());
         wwd.addLayer(new WorldWind.BingWMSLayer());
         wwd.redraw();
