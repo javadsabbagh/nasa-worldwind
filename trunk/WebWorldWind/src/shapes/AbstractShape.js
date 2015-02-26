@@ -83,9 +83,14 @@ define([
             // Internal use only. Intentionally not documented.
             this.activeAttributes = null;
 
-            // Internal use only. Intentionally not documented.
-            // Indicates how long to use globe-specific shape data before regenerating it.
-            this.expirationInterval = 2000; // 2 seconds
+            /**
+             * Indicates how long to use terrain-specific shape data before regenerating it, in milliseconds. A value
+             * of zero specifies that shape data should be regenerated every frame. While this causes the shape to
+             * adapt more frequently to the terrain, it decreases performance.
+             * @type {number}
+             * @default 2000 (milliseconds)
+             */
+            this.expirationInterval = 2000;
         };
 
         AbstractShape.prototype = Object.create(Renderable.prototype);
