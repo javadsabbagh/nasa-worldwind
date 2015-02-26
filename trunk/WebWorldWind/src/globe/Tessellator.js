@@ -159,7 +159,7 @@ define([
             }
 
             var lastElevationsChange = dc.globe.elevationTimestamp();
-            if (this.lastGlobeStateKey === dc.globe.stateKey
+            if (this.lastGlobeStateKey === dc.globeStateKey
                 && this.elevationTimestamp === lastElevationsChange
                 && this.lastModelViewProjection
                 && dc.navigatorState.modelviewProjection.equals(this.lastModelViewProjection)) {
@@ -170,20 +170,20 @@ define([
             var navigatorState = dc.navigatorState;
 
             this.lastModelViewProjection = navigatorState.modelviewProjection;
-            this.lastGlobeStateKey = dc.globe.stateKey;
+            this.lastGlobeStateKey = dc.globeStateKey;
             this.elevationTimestamp = lastElevationsChange;
 
             this.currentTiles.removeAllTiles();
 
-            if (!this.topLevelTiles[dc.globe.stateKey] || this.topLevelTiles[dc.globe.stateKey].length == 0) {
+            if (!this.topLevelTiles[dc.globeStateKey] || this.topLevelTiles[dc.globeStateKey].length == 0) {
                 this.createTopLevelTiles(dc);
             }
 
             this.corners = {};
             this.tiles = [];
 
-            for (var index = 0, len = this.topLevelTiles[dc.globe.stateKey].length; index < len; index += 1) {
-                var tile = this.topLevelTiles[dc.globe.stateKey][index];
+            for (var index = 0, len = this.topLevelTiles[dc.globeStateKey].length; index < len; index += 1) {
+                var tile = this.topLevelTiles[dc.globeStateKey][index];
 
                 tile.update(dc);
 
@@ -318,7 +318,7 @@ define([
             this.scratchMatrix.setToMultiply(dc.navigatorState.modelviewProjection, terrainTile.transformationMatrix);
             GpuProgram.loadUniformMatrix(gl, this.scratchMatrix, this.modelViewProjectionMatrixLocation);
 
-            var vboCacheKey = dc.globe.stateKey + terrainTile.geometryVboCacheKey,
+            var vboCacheKey = dc.globeStateKey + terrainTile.geometryVboCacheKey,
                 vbo = gpuResourceCache.resourceForKey(vboCacheKey);
             if (!vbo) {
                 vbo = gl.createBuffer();
@@ -539,8 +539,8 @@ define([
          ***********************************************************************/
 
         Tessellator.prototype.createTopLevelTiles = function (dc) {
-            this.topLevelTiles[dc.globe.stateKey] = [];
-            Tile.createTilesForLevel(this.levels.firstLevel(), this, this.topLevelTiles[dc.globe.stateKey]);
+            this.topLevelTiles[dc.globeStateKey] = [];
+            Tile.createTilesForLevel(this.levels.firstLevel(), this, this.topLevelTiles[dc.globeStateKey]);
         };
 
         Tessellator.prototype.addTileOrDescendants = function (dc, tile) {

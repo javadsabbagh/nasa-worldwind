@@ -311,7 +311,7 @@ define([
             var globe = dc.globe,
                 elevationTimestamp = globe.elevationTimestamp(),
                 verticalExaggeration = dc.verticalExaggeration,
-                globeStateKey = dc.globe.stateKey;
+                globeStateKey = dc.globeStateKey;
 
             if (!this.extentTimestamp || this.extentTimestamp != elevationTimestamp
                 || this.extentVerticalExaggeration != verticalExaggeration

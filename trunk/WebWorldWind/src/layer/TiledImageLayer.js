@@ -133,13 +133,13 @@ define([
 
             if (this.currentTilesInvalid
                 || !this.lasTtMVP || !dc.navigatorState.modelviewProjection.equals(this.lasTtMVP)
-                || dc.globe.stateKey != this.lastGlobeStateKey) {
+                || dc.globeStateKey != this.lastGlobeStateKey) {
                 this.assembleTiles(dc);
                 this.currentTilesInvalid = false;
             }
 
             this.lasTtMVP = dc.navigatorState.modelviewProjection;
-            this.lastGlobeStateKey = dc.globe.stateKey;
+            this.lastGlobeStateKey = dc.globeStateKey;
 
             if (this.currentTiles.length > 0) {
                 dc.surfaceTileRenderer.renderTiles(dc, this.currentTiles, this.opacity);
