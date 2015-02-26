@@ -9,28 +9,32 @@
 define([
         '../layer/RenderableLayer',
         '../geom/Sector',
-        '../shapes/SurfaceImage'
+        '../shapes/SurfaceImage',
+        '../util/WWUtil'
     ],
     function (RenderableLayer,
               Sector,
-              SurfaceImage) {
+              SurfaceImage,
+              WWUtil) {
         "use strict";
 
         /**
          * Constructs a Blue Marble image layer that spans the entire globe.
          * @alias BMNGOneImageLayer
          * @constructor
+         * @augments RenderableLayer
          * @classdesc Displays a Blue Marble image layer that spans the entire globe with a single image.
          */
         var BMNGOneImageLayer = function () {
             RenderableLayer.call(this, "Blue Marble Image");
 
             var surfaceImage = new SurfaceImage(Sector.FULL_SPHERE,
-                "../src/resources/BMNG_world.topo.bathy.200405.3.2048x1024.jpg");
+                WWUtil.currentUrlSansFilePart() + "/../src/resources/BMNG_world.topo.bathy.200405.3.2048x1024.jpg");
 
             this.addRenderable(surfaceImage);
 
             this.pickEnabled = false;
+            this.minActiveAltitude = 3e6;
         };
 
         BMNGOneImageLayer.prototype = Object.create(RenderableLayer.prototype);
