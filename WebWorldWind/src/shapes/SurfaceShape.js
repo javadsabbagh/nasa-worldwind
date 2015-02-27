@@ -156,6 +156,13 @@ define([
              * @type {Location[][]}
              */
             this.outlineGeometry = null;
+
+            /**
+             * Internal use only.
+             * Inhibit the filling of the interior. This is to be used ONLY by polylines.
+             * @type {boolean}
+             */
+            this.isInteriorInhibited = false;
         };
 
         SurfaceShape.prototype = Object.create(Renderable.prototype);
@@ -527,17 +534,19 @@ define([
         };
 
         // Internal function. Intentionally not documented.
-        SurfaceShape.prototype.renderToTexture = function(ctx2D, degreesPerMeter) {
+        SurfaceShape.prototype.renderToTexture = function(ctx2D, xScale, yScale, dx, dy) {
             var idx,
                 len,
                 path,
                 idxPath,
                 lenPath,
-                location;
+                location,
+                x,
+                y;
 
             ctx2D.lineJoin = "round";
 
-            if (this.attributes.drawInterior) {
+            if (!this.isInteriorInhibited && this.attributes.drawInterior) {
                 ctx2D.fillStyle = this.attributes.interiorColor.toHexString(false);
 
                 for (idx = 0, len = this.interiorGeometry.length; idx < len; idx += 1) {
@@ -545,10 +554,18 @@ define([
 
                     ctx2D.beginPath();
 
-                    ctx2D.moveTo(path[0].longitude, path[0].latitude);
+                    x = path[0].longitude * xScale + dx;
+                    y = path[0].latitude * yScale + dy;
+
+                    ctx2D.moveTo(x, y);
+
                     for (idxPath = 1, lenPath = path.length; idxPath < lenPath; idxPath += 1) {
                         location = path[idxPath];
-                        ctx2D.lineTo(location.longitude, location.latitude);
+
+                        x = location.longitude * xScale + dx;
+                        y = location.latitude * yScale + dy;
+
+                        ctx2D.lineTo(x, y);
                     }
 
                     ctx2D.closePath();
@@ -558,14 +575,14 @@ define([
             }
 
             if (this.attributes.drawOutline) {
-                ctx2D.lineWidth = this.attributes.outlineWidth * degreesPerMeter;
+                ctx2D.lineWidth = 2 * this.attributes.outlineWidth;
                 ctx2D.strokeStyle = this.attributes.outlineColor.toHexString(false);
 
                 var pattern = this.attributes.outlineStipplePattern,
                     factor = this.attributes.outlineStippleFactor;
 
                 if (pattern != 0xffff && factor > 0) {
-                    var lineDash = this.getLineDash(pattern, factor);
+                    var lineDash = this.getLineDash(pattern, 4 * factor);
                     ctx2D.setLineDash(lineDash);
                 }
 
@@ -573,10 +590,18 @@ define([
                     path = this.outlineGeometry[idx];
                     ctx2D.beginPath();
 
-                    ctx2D.moveTo(path[0].longitude, path[0].latitude);
+                    x = path[0].longitude * xScale + dx;
+                    y = path[0].latitude * yScale + dy;
+
+                    ctx2D.moveTo(x, y);
+
                     for (idxPath = 1, lenPath = path.length; idxPath < lenPath; idxPath += 1) {
                         location = path[idxPath];
-                        ctx2D.lineTo(location.longitude, location.latitude);
+
+                        x = location.longitude * xScale + dx;
+                        y = location.latitude * yScale + dy;
+
+                        ctx2D.lineTo(x, y);
                     }
 
                     ctx2D.stroke();
@@ -638,10 +663,26 @@ define([
         };
 
         /**
-         * Default value for the maximum number of edge intervals.
+         * Default value for the maximum number of edge intervals. This results in a maximum error of 480 m for an arc
+         * that spans the entire globe.
+         *
+         * Other values for this parameter have the associated errors below:
+         * Intervals        Maximum error (meters)
+         *      2           1280253.5
+         *      4           448124.5
+         *      8           120837.6
+         *      16          30628.3
+         *      32          7677.9
+         *      64          1920.6
+         *      128         480.2
+         *      256         120.0
+         *      512         30.0
+         *      1024        7.5
+         *      2048        1.8
+         * The errors cited above are upper bounds and the actual error may be lower.
          * @type {number}
          */
-        SurfaceShape.DEFAULT_NUM_EDGE_INTERVALS = 32;
+        SurfaceShape.DEFAULT_NUM_EDGE_INTERVALS = 128;
 
         /**
          * The defualt value for the polar throttle, which slows edge traversal near the poles.

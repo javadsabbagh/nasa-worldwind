@@ -163,8 +163,8 @@ define([
             var gl = dc.currentGlContext,
                 canvas = SurfaceShapeTile.canvas;
 
-            canvas.width = SurfaceShapeTile.textureWidth;
-            canvas.height = SurfaceShapeTile.textureHeight;
+            canvas.width = this.tileWidth;
+            canvas.height = this.tileHeight;
 
             var ctx2D = SurfaceShapeTile.ctx2D;
 
@@ -177,22 +177,15 @@ define([
             // So:
             //  x = 256 / sector.dlon * (lon - minLon)
             //  y = -256 / sector.dlat * (lat - maxLat)
-            var xScale = SurfaceShapeTile.textureWidth / this.sector.deltaLongitude(),
-                yScale = -SurfaceShapeTile.textureHeight / this.sector.deltaLatitude(),
+            var xScale = this.tileWidth / this.sector.deltaLongitude(),
+                yScale = -this.tileHeight / this.sector.deltaLatitude(),
                 xOffset = -this.sector.minLongitude * xScale,
                 yOffset = -this.sector.maxLatitude * yScale;
-
-            ctx2D.setTransform(xScale, 0,
-                0, yScale,
-                xOffset, yOffset
-            );
-
-            var degreesPerMeter = 360 / (2 * Math.PI * dc.globe.equatorialRadius);
 
             for (var idx = 0, len = this.surfaceShapes.length; idx < len; idx += 1) {
                 var shape = this.surfaceShapes[idx];
 
-                shape.renderToTexture(ctx2D, degreesPerMeter);
+                shape.renderToTexture(ctx2D, xScale, yScale, xOffset, yOffset);
             }
 
             var texture = new Texture(gl, canvas);
@@ -235,19 +228,6 @@ define([
                 SurfaceShapeTile.ctx2D = SurfaceShapeTile.canvas.getContext("2d");
             }
         };
-
-        //
-        /**
-         * Default SurfaceShape tile texture width.
-         * @type {number}
-         */
-        SurfaceShapeTile.textureWidth = 256;
-
-        /**
-         * Default SurfaceShape tile texture height.
-         * @type {number}
-         */
-        SurfaceShapeTile.textureHeight = 256;
 
         /*
          * For internal use only.

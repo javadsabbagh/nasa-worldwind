@@ -37,27 +37,27 @@ requirejs([
             WorldWind.OFFSET_FRACTION, 0.5,
             WorldWind.OFFSET_FRACTION, 0.0);
         shapeAttributes.imageColor = WorldWind.Color.WHITE;
-        shapeAttributes.outlineWidth = 100000; // 100 km
+        shapeAttributes.outlineWidth = 2;
 
         // Set up some shape attributes to customize for the next shape.
         shapeAttributes.interiorColor = WorldWind.Color.RED;
         shapeAttributes.outlineColor = WorldWind.Color.BLUE;
 
         // Create a polygon that contains the north pole.
-        var shapeBoundariesSeattleLondonTokyo = [
-            new WorldWind.Location(47.592830, -122.331506), // Seattle
+        var shapeBoundariesVancouverLondonTokyo = [
+            new WorldWind.Location(49.195599, -123.193309), // Vancouver
             new WorldWind.Location(51.510483, -0.115675), // London
-            new WorldWind.Location(35.687008, 139.772529) // Tokyo
+            new WorldWind.Location(35.549284, 139.779834) // Tokyo
         ];
-        var surfacePolygonSeattleLondonTokyo = new WorldWind.SurfacePolygon(shapeBoundariesSeattleLondonTokyo,
+        var surfacePolygonVancouverLondonTokyo = new WorldWind.SurfacePolygon(shapeBoundariesVancouverLondonTokyo,
             new WorldWind.ShapeAttributes(shapeAttributes));
-        shapesLayer.addRenderable(surfacePolygonSeattleLondonTokyo);
+        shapesLayer.addRenderable(surfacePolygonVancouverLondonTokyo);
 
         // Set up some shape attributes to customize for the next shape.
         shapeAttributes.interiorColor = WorldWind.Color.GREEN;
-        shapeAttributes.outlineColor = WorldWind.Color.CYAN;
+        shapeAttributes.outlineColor = WorldWind.Color.RED;
         shapeAttributes.outlineStipplePattern = 0x663c; // A ".._" pattern.
-        shapeAttributes.outlineStippleFactor = 0.25; // Tighten the dot spacing.
+        shapeAttributes.outlineStippleFactor = 1;
 
         // Create a polygon that straddles the ante-meridian.
         var shapeBoundariesManilaLaSydney = [
@@ -72,7 +72,7 @@ requirejs([
         // Set up some shape attributes to customize for the next shape.
         shapeAttributes.interiorColor = WorldWind.Color.GREEN;
         shapeAttributes.outlineColor = WorldWind.Color.RED;
-        shapeAttributes.outlineWidth = 1000;
+        shapeAttributes.outlineWidth = 1;
         shapeAttributes.outlineStipplePattern = 0xffff;
         shapeAttributes.outlineStippleFactor = 1;
 
@@ -90,6 +90,26 @@ requirejs([
         var surfaceRectangleAntarctica = new WorldWind.SurfaceRectangle(new WorldWind.Location(-88, 45), 1000000, 2000000,
             new WorldWind.ShapeAttributes(shapeAttributes));
         shapesLayer.addRenderable(surfaceRectangleAntarctica);
+
+        shapeAttributes.outlineColor = WorldWind.Color.GREEN;
+        shapeAttributes.drawInterior = false;
+        shapeAttributes.outlineWidth = 1;
+
+        // Create a 3m circle around my car.
+        var surfaceCircleMyCar = new WorldWind.SurfaceCircle(new WorldWind.Location(47.637392, -122.112815), 3,
+            new WorldWind.ShapeAttributes(shapeAttributes));
+        shapesLayer.addRenderable(surfaceCircleMyCar);
+
+        // Set up some shape attributes to customize for the next shape.
+        shapeAttributes.lineWidth = 1;
+        shapeAttributes.outlineColor = WorldWind.Color.WHITE;
+
+        var shapePolyline = [
+            new WorldWind.Location(-45, -90),
+            new WorldWind.Location(45, 90)
+        ];
+        var surfacePolylineSpanTheGlobe = new WorldWind.SurfacePolyline(shapePolyline, new WorldWind.ShapeAttributes(shapeAttributes));
+        shapesLayer.addRenderable(surfacePolylineSpanTheGlobe);
 
         // Add the shapes layer to the World Window's layer list.
         wwd.addLayer(shapesLayer);
