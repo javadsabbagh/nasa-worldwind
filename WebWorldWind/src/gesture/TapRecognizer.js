@@ -18,6 +18,7 @@ define([
          * Constructs a tap gesture recognizer.
          * @alias TapRecognizer
          * @constructor
+         * @augments GestureRecognizer
          * @classdesc A concrete gesture recognizer subclass that looks for single or multiple taps.
          */
         var TapRecognizer = function (target) {
@@ -52,6 +53,30 @@ define([
         };
 
         TapRecognizer.prototype = Object.create(GestureRecognizer.prototype);
+
+        Object.defineProperties(TapRecognizer.prototype, {
+            /**
+             * Returns the X coordinate of this recognizer's tap location.
+             * @type {Number}
+             * @memberof TapRecognizer.prototype
+             */
+            clientX: {
+                get: function () {
+                    return this.taps[0].location[0];
+                }
+            },
+
+            /**
+             * Returns the Y coordinate of this recognizer's tap location.
+             * @type {Number}
+             * @memberof TapRecognizer.prototype
+             */
+            clientY: {
+                get: function () {
+                    return this.taps[0].location[1];
+                }
+            }
+        });
 
         /**
          * @returns {Vec2}
