@@ -220,12 +220,14 @@ define([
                     Logger.logMessage(Logger.LEVEL_SEVERE, "WorldWindow", "addEventListener", "missingListener"));
             }
 
+            var thisWorldWindow = this;
             var entry = this.eventListeners[type];
             if (!entry) {
                 entry = {
                     listeners: [],
                     callback: function (event) { // calls listeners in reverse registration order
                         for (var i = entry.listeners.length - 1; i >= 0; i--) {
+                            event.worldWindow = thisWorldWindow;
                             entry.listeners[i](event);
                         }
                     }
