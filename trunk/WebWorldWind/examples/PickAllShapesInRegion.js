@@ -79,19 +79,16 @@ requirejs(['../src/WorldWind',
 
         var layerManger = new LayerManager('divLayerManager', wwd);
 
+        // Now set up to handle picking.
+
         var highlightedItems = [];
 
-        wwd.addEventListener("mousemove", function (e) {
-            handlePick(e.clientX, e.clientY);
-        });
+        var handlePick = function (o) {
+            // The input argument is either an Event or a TapRecognizer. Both have the same properties for determining
+            // the mouse or tap location.
+            var x = o.clientX,
+                y = o.clientY;
 
-        var tapRecognizer = new WorldWind.TapRecognizer(wwd);
-        tapRecognizer.addGestureListener(function (recognizer) {
-            var location = recognizer.location();
-            handlePick(location[0], location[1]);
-        });
-
-        var handlePick = function (x, y) {
             var redrawRequired = highlightedItems.length > 0;
 
             // De-highlight any highlighted placemarks.
@@ -126,4 +123,10 @@ requirejs(['../src/WorldWind',
             }
         };
 
+        // Listen for mouse moves and highlight the placemarks that the cursor rolls over.
+        wwd.addEventListener("mousemove", handlePick);
+
+        // Listen for taps on mobile devices and highlight the placemarks that the user taps.
+        var tapRecognizer = new WorldWind.TapRecognizer(wwd);
+        tapRecognizer.addGestureListener(handlePick);
     });
