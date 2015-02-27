@@ -135,7 +135,7 @@ define([
          * The default number of intervals the ellipse generates.
          * @type {number}
          */
-        SurfaceEllipse.DEFAULT_NUM_INTERVALS = 32;
+        SurfaceEllipse.DEFAULT_NUM_INTERVALS = 64;
 
         return SurfaceEllipse;
     });

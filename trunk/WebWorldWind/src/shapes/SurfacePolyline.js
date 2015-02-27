@@ -51,7 +51,10 @@ define([
              * This shape's locations, specified as an array locations.
              * @type {Array}
              */
-            this.locations = locations;
+            this.boundaries = locations;
+
+            // Internal use only.
+            this.isInteriorInhibited = true;
         };
 
         SurfacePolyline.prototype = Object.create(SurfaceShape.prototype);

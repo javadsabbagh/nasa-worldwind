@@ -56,22 +56,15 @@ define([
             // Parameterize top level subdivision in one place.
 
             // TilesInTopLevel describes the most coarse tile structure.
-            this.numRowsTilesInTopLevel = 4; // baseline: 4
-            this.numColumnsTilesInTopLevel = 8; // baseline: 8
+            this.numRowsTilesInTopLevel = 4;
+            this.numColumnsTilesInTopLevel = 8;
 
             // The maximum number of levels that will ever be tessellated.
-            this.maximumSubdivisionDepth = 15; // baseline: 15
+            this.maximumSubdivisionDepth = 20;
 
             // tileWidth, tileHeight - the number of subdivisions a single tile has; this determines the sampling grid.
-            this.tileWidth = 32; // baseline: 32
-            this.tileHeight = 32; // baseline: 32
-
-            // detailHintOrigin - a parameter that describes the size of the sampling grid when fully zoomed in.
-            // The size of the tile sampling grid when fully zoomed in is related to the logarithm base 10 of this parameter.
-            // A parameter of 2 will have a sampling size approximately 10 times finer than a parameter of 1.
-            // Parameters which result in changes of a factor of two are: 1.1, 1.4, 1.7, 2.0.
-            this.detailHintOrigin = 1.1; // baseline: 1.1
-            this.detailHint = 0;
+            this.tileWidth = 256;
+            this.tileHeight = 256;
 
             /**
              * The collection of levels.
@@ -116,7 +109,7 @@ define([
              *
              * @type {number}
              */
-            this.SPLIT_SCALE = 1.9; // JWW uses 2.9;
+            this.SPLIT_SCALE = 2.9;
         };
 
         /**
