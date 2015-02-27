@@ -47,20 +47,13 @@ requirejs(['../src/WorldWind',
 
         // Now set up to handle picking.
 
-        // Listen for mouse moves and highlight the placemarks that the cursor rolls over.
-        wwd.addEventListener("mousemove", function (e) {
-            handlePick(e.clientX, e.clientY);
-        });
-
-        // Listen for taps on mobile devices and highlight the placemarks that the user taps.
-        var tapRecognizer = new WorldWind.TapRecognizer(wwd);
-        tapRecognizer.addGestureListener(function (recognizer) {
-            var location = recognizer.location();
-            handlePick(location[0], location[1]);
-        });
-
         // The common pick-handling function.
-        var handlePick = function (x, y) {
+        var handlePick = function (o) {
+            // The input argument is either an Event or a TapRecognizer. Both have the same properties for determining
+            // the mouse or tap location.
+            var x = o.clientX,
+                y = o.clientY;
+
             // Perform the pick. Must first convert from window coordinates to canvas coordinates, which are
             // relative to the upper left corner of the canvas rather than the upper left corner of the page.
             var pickList = wwd.pick(wwd.canvasCoordinates(x, y));
@@ -77,4 +70,11 @@ requirejs(['../src/WorldWind',
                 }
             }
         }
+
+        // Listen for mouse moves and highlight the placemarks that the cursor rolls over.
+        wwd.addEventListener("mousemove", handlePick);
+
+        // Listen for taps on mobile devices and highlight the placemarks that the user taps.
+        var tapRecognizer = new WorldWind.TapRecognizer(wwd);
+        tapRecognizer.addGestureListener(handlePick);
     });
