@@ -565,7 +565,13 @@ define([
             dc.terrain.pick(dc);
 
             if (!this.pickTerrainOnly) {
+                this.drawContext.surfaceShapeTileBuilder = this.surfaceShapeTileBuilder;
+                this.surfaceShapeTileBuilder.clear();
+
                 this.drawLayers();
+
+                this.surfaceShapeTileBuilder.doRender(dc);
+
                 if (!this.deferOrderedRendering) {
                     this.drawOrderedRenderables();
                 }
