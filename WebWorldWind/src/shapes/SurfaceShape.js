@@ -11,6 +11,7 @@ define([
         '../error/ArgumentError',
         '../geom/Location',
         '../util/Logger',
+        '../pick/PickedObject',
         '../render/Renderable',
         '../geom/Sector',
         '../shapes/ShapeAttributes',
@@ -21,6 +22,7 @@ define([
               ArgumentError,
               Location,
               Logger,
+              PickedObject,
               Renderable,
               Sector,
               ShapeAttributes,
@@ -534,78 +536,83 @@ define([
         };
 
         // Internal function. Intentionally not documented.
-        SurfaceShape.prototype.renderToTexture = function(ctx2D, xScale, yScale, dx, dy) {
+        SurfaceShape.prototype.renderToTexture = function(dc, ctx2D, xScale, yScale, dx, dy) {
             var idx,
                 len,
-                path,
+                path = [],
                 idxPath,
                 lenPath,
-                location,
-                x,
-                y;
+                pickColor,
+                isPicking = dc.pickingMode;
+
+            if (isPicking) {
+                pickColor = dc.uniquePickColor();
+            }
 
             ctx2D.lineJoin = "round";
 
-            if (!this.isInteriorInhibited && this.attributes.drawInterior) {
-                ctx2D.fillStyle = this.attributes.interiorColor.toHexString(false);
+            if (isPicking || (!this.isInteriorInhibited && this.attributes.drawInterior)) {
+                ctx2D.fillStyle = isPicking ? pickColor.toHexString(false) : this.attributes.interiorColor.toHexString(false);
 
                 for (idx = 0, len = this.interiorGeometry.length; idx < len; idx += 1) {
-                    path = this.interiorGeometry[idx];
+                    idxPath = 0;
+                    lenPath = this.outlineGeometry[idx].length * 2;
+                    path.splice(0);
 
-                    ctx2D.beginPath();
+                    if (this.transformPath(this.interiorGeometry[idx], xScale, yScale, dx, dy, path)) {
+                        ctx2D.beginPath();
 
-                    x = path[0].longitude * xScale + dx;
-                    y = path[0].latitude * yScale + dy;
+                        ctx2D.moveTo(path[idxPath++], path[idxPath++]);
 
-                    ctx2D.moveTo(x, y);
+                        while (idxPath < lenPath) {
+                            ctx2D.lineTo(path[idxPath++], path[idxPath++]);
+                        }
 
-                    for (idxPath = 1, lenPath = path.length; idxPath < lenPath; idxPath += 1) {
-                        location = path[idxPath];
+                        ctx2D.closePath();
 
-                        x = location.longitude * xScale + dx;
-                        y = location.latitude * yScale + dy;
-
-                        ctx2D.lineTo(x, y);
+                        ctx2D.fill();
                     }
-
-                    ctx2D.closePath();
-
-                    ctx2D.fill();
                 }
             }
 
             if (this.attributes.drawOutline) {
-                ctx2D.lineWidth = 2 * this.attributes.outlineWidth;
-                ctx2D.strokeStyle = this.attributes.outlineColor.toHexString(false);
+                ctx2D.lineWidth = 4 * this.attributes.outlineWidth;
+                ctx2D.strokeStyle = isPicking ? pickColor.toHexString(false) : this.attributes.outlineColor.toHexString(false);
 
-                var pattern = this.attributes.outlineStipplePattern,
-                    factor = this.attributes.outlineStippleFactor;
-
-                if (pattern != 0xffff && factor > 0) {
-                    var lineDash = this.getLineDash(pattern, 4 * factor);
-                    ctx2D.setLineDash(lineDash);
-                }
+                // TODO: stippling has major negative performance impact. Investigate!
+                //var pattern = this.attributes.outlineStipplePattern,
+                //    factor = this.attributes.outlineStippleFactor;
+                //
+                //if (!isPicking && pattern != 0xffff && factor > 0) {
+                //    var lineDash = this.getLineDash(pattern, 4 * factor);
+                //    ctx2D.setLineDash(lineDash);
+                //}
+                //else {
+                //    ctx2D.setLineDash([1, 0]);
+                //}
 
                 for (idx = 0, len = this.outlineGeometry.length; idx < len; idx += 1) {
-                    path = this.outlineGeometry[idx];
-                    ctx2D.beginPath();
+                    idxPath = 0;
+                    lenPath = this.outlineGeometry[idx].length * 2;
+                    path.splice(0);
 
-                    x = path[0].longitude * xScale + dx;
-                    y = path[0].latitude * yScale + dy;
+                    if (this.transformPath(this.outlineGeometry[idx], xScale, yScale, dx, dy, path)) {
+                        ctx2D.beginPath();
 
-                    ctx2D.moveTo(x, y);
+                        ctx2D.moveTo(path[idxPath++], path[idxPath++]);
 
-                    for (idxPath = 1, lenPath = path.length; idxPath < lenPath; idxPath += 1) {
-                        location = path[idxPath];
+                        while  (idxPath < lenPath) {
+                            ctx2D.lineTo(path[idxPath++], path[idxPath++]);
+                        }
 
-                        x = location.longitude * xScale + dx;
-                        y = location.latitude * yScale + dy;
-
-                        ctx2D.lineTo(x, y);
+                        ctx2D.stroke();
                     }
-
-                    ctx2D.stroke();
                 }
+            }
+
+            if (isPicking) {
+                var po = new PickedObject(pickColor.clone(), this, null, dc.currentLayer, false);
+                dc.resolvePick(po);
             }
         };
 
@@ -660,6 +667,42 @@ define([
             }
 
             return lineDash;
+        };
+
+        //
+        // Internal use only.
+        // Transform a path and compute its extrema.
+        // Return an indicator of the path is "big enough".
+        SurfaceShape.prototype.transformPath = function(path, xScale, yScale, dx, dy, result) {
+            var x, y, xMin, yMin, xMax, yMax, location;
+
+            location = path[0];
+
+            x = location.longitude * xScale + dx;
+            y = location.latitude * yScale + dy;
+
+            xMin = xMax = x;
+            yMin = yMax = y;
+
+            result.push(x);
+            result.push(y);
+
+            for (var idx = 1, len = path.length; idx < len; idx += 1) {
+                location = path[idx];
+
+                x = location.longitude * xScale + dx;
+                y = location.latitude * yScale + dy;
+
+                xMin = Math.min(xMin, x);
+                xMax = Math.max(xMax, x);
+                yMin = Math.min(yMin, y);
+                yMax = Math.max(yMax, y);
+
+                result.push(x);
+                result.push(y);
+            }
+
+            return (xMax - xMin) >= 2 || (yMax - yMin) >= 2;
         };
 
         /**

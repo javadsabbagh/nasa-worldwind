@@ -10,11 +10,13 @@ define([
         '../error/ArgumentError',
         '../util/Logger',
         '../geom/Matrix',
+        '../shapes/SurfaceShapeTile',
         '../shaders/SurfaceTileRendererProgram'
     ],
     function (ArgumentError,
               Logger,
               Matrix,
+              SurfaceShapeTile,
               SurfaceTileRendererProgram) {
         "use strict";
 
@@ -30,6 +32,9 @@ define([
             // Scratch values to avoid constantly recreating these matrices.
             this.texMaskMatrix = Matrix.fromIdentity();
             this.texSamplerMatrix = Matrix.fromIdentity();
+
+            // Internal. Intentionally not documented.
+            this.isSurfaceShapeTileRendering = false;
         };
 
         /**
@@ -59,6 +64,8 @@ define([
             if (!terrain)
                 return;
 
+            this.isSurfaceShapeTileRendering = surfaceTiles[0] instanceof SurfaceShapeTile;
+
             // For each terrain tile, render it for each overlapping surface tile.
             program = this.beginRendering(dc, opacity);
             terrain.beginRendering(dc);
@@ -78,8 +85,8 @@ define([
                                         if (surfaceTile.pickColor) {
                                             program.loadColor(gl, surfaceTile.pickColor);
                                         } else {
-                                            // Unlikely to be picking without a pick color, but don't draw in this case
-                                            continue;
+                                            // Surface shape tiles don't use a pick color. Pick colors are encoded into
+                                            // the colors of the individual shapes drawn into the tile.
                                         }
                                     }
 
@@ -113,7 +120,7 @@ define([
                 program = dc.findAndBindProgram(gl, SurfaceTileRendererProgram);
             program.loadTexSampler(gl, WebGLRenderingContext.TEXTURE0);
 
-            if (dc.pickingMode) {
+            if (dc.pickingMode && !this.isSurfaceShapeTileRendering) {
                 program.loadModulateColor(gl, true);
             } else {
                 program.loadModulateColor(gl, false);

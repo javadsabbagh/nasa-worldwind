@@ -64,6 +64,12 @@ define([
              */
             this.cacheKey = null;
 
+            /**
+             * Internal use only. Intentionally undocumented.
+             * @type {number}
+             */
+            this.pickSequence = 0;
+
             this.createCtx2D();
         };
 
@@ -185,7 +191,7 @@ define([
             for (var idx = 0, len = this.surfaceShapes.length; idx < len; idx += 1) {
                 var shape = this.surfaceShapes[idx];
 
-                shape.renderToTexture(ctx2D, xScale, yScale, xOffset, yOffset);
+                shape.renderToTexture(dc, ctx2D, xScale, yScale, xOffset, yOffset);
             }
 
             var texture = new Texture(gl, canvas);
@@ -212,7 +218,8 @@ define([
                 this.sector.maxLongitude.toString() + "," +
                 this.level.levelNumber.toString() + "," +
                 this.row.toString() + "," +
-                this.column.toString();
+                this.column.toString() + "," +
+                this.pickSequence.toString();
             }
 
             return this.cacheKey;

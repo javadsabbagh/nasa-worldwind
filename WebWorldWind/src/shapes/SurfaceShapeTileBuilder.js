@@ -60,7 +60,7 @@ define([
             this.numColumnsTilesInTopLevel = 8;
 
             // The maximum number of levels that will ever be tessellated.
-            this.maximumSubdivisionDepth = 20;
+            this.maximumSubdivisionDepth = 15;
 
             // tileWidth, tileHeight - the number of subdivisions a single tile has; this determines the sampling grid.
             this.tileWidth = 256;
@@ -95,7 +95,7 @@ define([
              * The collection of top level surface shape tiles, from which actual tiles are derived.
              * @type {SurfaceShapeTile[]}}
              */
-            this.topLevelTiles = null;
+            this.topLevelTiles = [];
 
             /**
              * Accumulator of all sectors for surface shapes
@@ -136,9 +136,26 @@ define([
          * @param {DrawContext} dc The drawing context.
          */
         SurfaceShapeTileBuilder.prototype.doRender = function(dc) {
+            var savedTiles, savedTopLevelTiles;
+
+            if (dc.pickingMode) {
+                SurfaceShapeTileBuilder.pickSequence += 1;
+
+                savedTiles = this.surfaceShapeTiles;
+                savedTopLevelTiles = this.topLevelTiles;
+
+                this.surfaceShapeTiles = [];
+                this.topLevelTiles = [];
+            }
+
             this.buildTiles(dc);
 
             dc.surfaceTileRenderer.renderTiles(dc, this.surfaceShapeTiles, 1);
+
+            if (dc.pickingMode) {
+                this.surfaceShapeTiles = savedTiles;
+                this.topLevelTiles = savedTopLevelTiles;
+            }
         };
 
         /**
@@ -290,7 +307,7 @@ define([
             // If this tile meets the current rendering criteria, add it to the current tile list. This tile's object list
             // is cleared after the tile update operation.
             if (this.meetsRenderCriteria(dc, levels, tile)) {
-                this.addTile(tile);
+                this.addTile(dc, tile);
                 return;
             }
 
@@ -360,9 +377,18 @@ define([
         /**
          * Adds the specified tile to this tile builder's surface tile collection.
          *
+         * @param {DrawContext} dc The draw context.
          * @param {SurfaceShapeTile} tile The tile to add.
          */
-        SurfaceShapeTileBuilder.prototype.addTile = function(tile) {
+        SurfaceShapeTileBuilder.prototype.addTile = function(dc, tile) {
+            if (dc.pickingMode) {
+                tile.pickSequence = SurfaceShapeTileBuilder.pickSequence;
+            }
+
+            if (!tile.hasTexture(dc)) {
+                tile.updateTexture(dc);
+            }
+
             this.surfaceShapeTiles.push(tile);
         };
 
@@ -382,8 +408,9 @@ define([
         };
 
         SurfaceShapeTileBuilder.prototype.createTopLevelTiles = function() {
-            this.topLevelTiles = [];
-            Tile.createTilesForLevel(this.levels.firstLevel(), this, this.topLevelTiles);
+            if (this.topLevelTiles.length < 1) {
+                Tile.createTilesForLevel(this.levels.firstLevel(), this, this.topLevelTiles);
+            }
         };
 
         /**
@@ -403,7 +430,7 @@ define([
 
             tile.update(dc);
 
-            return tile.extent.intersectsFrustum(dc.navigatorState.frustumInModelCoordinates);
+            return tile.extent.intersectsFrustum(dc.pickingMode ? dc.pickFrustum : dc.navigatorState.frustumInModelCoordinates);
         };
 
         /**
@@ -429,6 +456,8 @@ define([
          * @param {DrawContext} dc the draw context the tiles relate to.
          */
         SurfaceShapeTileBuilder.prototype.updateTiles = function(dc) {
+            // TODO: obsolete???
+            return;
             if (this.surfaceShapeTiles.length < 1) {
                 return;
             }
@@ -447,6 +476,14 @@ define([
                 }
             }
         };
+
+        /**
+         * Internal use only.
+         * Count of pick operations. This is used to give a surface shape tile a unique pick sequence number if it is
+         * participating in picking.
+         * @type {number}
+         */
+        SurfaceShapeTileBuilder.pickSequence = 0;
 
         return SurfaceShapeTileBuilder;
     }
