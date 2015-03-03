@@ -613,18 +613,21 @@ define([
         WorldWindow.prototype.createTerrain2DContiguous = function (dc) {
             this.terrainCenter = null;
             dc.globe.offset = 0;
+            dc.globeStateKey = dc.globe.stateKey;
             if (dc.globe.intersectsFrustum(dc.navigatorState.frustumInModelCoordinates)) {
                 this.terrainCenter = dc.globe.tessellator.tessellate(dc);
             }
 
             this.terrainRight = null;
             dc.globe.offset = 1;
+            dc.globeStateKey = dc.globe.stateKey;
             if (dc.globe.intersectsFrustum(dc.navigatorState.frustumInModelCoordinates)) {
                 this.terrainRight = dc.globe.tessellator.tessellate(dc);
             }
 
             this.terrainLeft = null;
             dc.globe.offset = -1;
+            dc.globeStateKey = dc.globe.stateKey;
             if (dc.globe.intersectsFrustum(dc.navigatorState.frustumInModelCoordinates)) {
                 this.terrainLeft = dc.globe.tessellator.tessellate(dc);
             }
