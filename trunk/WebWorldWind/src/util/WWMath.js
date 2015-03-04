@@ -6,16 +6,17 @@
  * @version $Id$
  */
 define([
+        '../geom/Angle',
         '../error/ArgumentError',
         '../geom/Line',
         '../util/Logger',
-        '../geom/Rectangle',
-        '../geom/Vec3'],
-    function (ArgumentError,
+        '../geom/Rectangle'
+    ],
+    function (Angle,
+              ArgumentError,
               Line,
               Logger,
-              Rectangle,
-              Vec3) {
+              Rectangle) {
         "use strict";
         /**
          * Provides math constants and functions.
@@ -259,7 +260,7 @@ define([
              * Computes the near clip distance that corresponds to a specified far clip distance and resolution at the far clip
              * plane.
              *
-             * This computes a near clip distance appropriate for use in [perspectiveFrustumRect]{@link WWMath#perspectiveFrustumRect}
+             * This computes a near clip distance appropriate for use in [perspectiveFrustumRect]{@link WWMath#perspectiveFrustumRectangle}
              * and [setToPerspectiveProjection]{@link Matrix#setToPerspectiveProjection}. This returns zero if either the distance or the
              * resolution are zero.
              *
@@ -295,7 +296,7 @@ define([
              * Computes the maximum near clip distance for a perspective projection that avoids clipping an object at a given
              * distance from the eye point.
              *
-             * This computes a near clip distance appropriate for use in [perspectiveFrustumRect]{@link WWMath#perspectiveFrustumRect}
+             * This computes a near clip distance appropriate for use in [perspectiveFrustumRect]{@link WWMath#perspectiveFrustumRectangle}
              * and [setToPerspectiveProjection]{@link Matrix#setToPerspectiveProjection}. The given distance should specify the
              * smallest distance between the eye and the object being viewed, but may be an approximation if an exact distance is not
              * required.
@@ -438,18 +439,18 @@ define([
                         "The specified distance is negative."));
                 }
 
-                var frustRect,
+                var frustumRect,
                     xPixelSize,
                     yPixelSize;
 
                 // Compute the dimensions of a rectangle in model coordinates carved out of the frustum at the given distance along
                 // the negative z axis, also in model coordinates.
-                frustRect = WWMath.perspectiveFrustumRectangle(viewport, distanceToSurface);
+                frustumRect = WWMath.perspectiveFrustumRectangle(viewport, distanceToSurface);
 
                 // Compute the pixel size in model coordinates as a ratio of the rectangle dimensions to the viewport dimensions.
                 // The resultant units are model coordinates per pixel (usually meters per pixel).
-                xPixelSize = frustRect.width / viewport.width;
-                yPixelSize = frustRect.height / viewport.height;
+                xPixelSize = frustumRect.width / viewport.width;
+                yPixelSize = frustumRect.height / viewport.height;
 
                 // Return the maximum of the x and y pixel sizes. These two sizes are usually equivalent but we select the maximum
                 // in order to correctly handle the case where the x and y pixel sizes differ.
@@ -504,8 +505,17 @@ define([
              * @param {number} value The value to determine the sign of.
              * @returns {number} 1, -1, or 0, depending on the sign of the value.
              */
-            signum: function(value) {
+            signum: function (value) {
                 return value > 0 ? 1 : value < 0 ? -1 : 0;
+            },
+
+            /**
+             * Calculates the Gudermannian inverse used to unproject Mercator projections.
+             * @param {Number} latitude The latitude in degrees.
+             * @returns {Number} The Gudermannian inverse for the specified latitude.
+             */
+            gudermannianInverse: function (latitude) {
+                return Math.log(Math.tan(Math.PI / 4 + (latitude * Angle.DEGREES_TO_RADIANS) / 2)) / Math.PI;
             }
         };
 
