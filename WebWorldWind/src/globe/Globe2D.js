@@ -98,7 +98,7 @@ define([
              * @type {Sector}
              */
             projectionLimits: {
-                get: function() {
+                get: function () {
                     return this._projection.projectionLimits;
                 }
             },
@@ -157,11 +157,10 @@ define([
         };
 
         // Documented in superclass.
-        Globe2D.prototype.computePointsForSector = function (sector, numLat, numLon, elevations,
-                                                             referencePoint, result) {
+        Globe2D.prototype.computePointsForGrid = function (sector, numLat, numLon, elevations, referencePoint, result) {
 
-            return this.projection.geographicToCartesianGrid(this, sector, numLat, numLon, elevations,
-                referencePoint, this.offsetVector, result);
+            return this.projection.geographicToCartesianGrid(this, sector, numLat, numLon, elevations, referencePoint,
+                this.offsetVector, result);
         };
 
         /**
@@ -279,7 +278,7 @@ define([
                 return false;
             }
 
-            t = - sz / vz; // intersection distance, simplified for the XY plane
+            t = -sz / vz; // intersection distance, simplified for the XY plane
             if (t < 0) { // intersection is behind the ray's origin
                 return false;
             }

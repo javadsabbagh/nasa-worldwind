@@ -66,7 +66,10 @@ define([
                 xf = x - x0,
                 yf = y - y0;
 
-            return WWMath.interpolate(yf, WWMath.interpolate(xf, x0y0, x1y0), WWMath.interpolate(xf, x0y1, x1y1));
+            return (1 - xf) * (1 - yf) * x0y0 +
+                xf * (1 - yf) * x1y0 +
+                (1 - xf) * yf * x0y1 +
+                xf * yf * x1y1;
         };
 
         /**
@@ -74,12 +77,11 @@ define([
          * @param {Sector} sector The sector for which to return the elevations.
          * @param {number} numLat The number of sample points in the longitudinal direction.
          * @param {number} numLon The number of sample points in the latitudinal direction.
-         * @param {number} verticalExaggeration The vertical exaggeration to apply to the elevations.
          * @param {Number[]} result An array in which to return the computed elevations.
          * @throws {ArgumentError} If either the specified sector or result argument is null or undefined, or if the
          * specified number of sample points in either direction is less than 1.
          */
-        ElevationImage.prototype.elevationsForSector = function (sector, numLat, numLon, verticalExaggeration, result) {
+        ElevationImage.prototype.elevationsForGrid = function (sector, numLat, numLon, result) {
             if (!sector) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "ElevationImage", "elevationsForSector", "missingSector"));
@@ -102,26 +104,19 @@ define([
                 maxLonSelf = this.sector.maxLongitude,
                 deltaLatSelf = maxLatSelf - minLatSelf,
                 deltaLonSelf = maxLonSelf - minLonSelf,
-                minLatOther = sector.minLatitude,
-                maxLatOther = sector.maxLatitude,
-                minLonOther = sector.minLongitude,
-                maxLonOther = sector.maxLongitude,
-                deltaLatOther = (maxLatOther - minLatOther) / (numLat > 1 ? numLat - 1 : 1),
-                deltaLonOther = (maxLonOther - minLonOther) / (numLon > 1 ? numLon - 1 : 1),
-                lat = minLatOther,
-                lon = minLonOther,
-                index = 0,
+                minLat = sector.minLatitude,
+                maxLat = sector.maxLatitude,
+                minLon = sector.minLongitude,
+                maxLon = sector.maxLongitude,
+                deltaLat = (maxLat - minLat) / (numLat > 1 ? numLat - 1 : 1),
+                deltaLon = (maxLon - minLon) / (numLon > 1 ? numLon - 1 : 1),
+                lat, lon,
+                i, j, index = 0,
                 pixels = this.imageData;
 
-            for (var j = 0; j < numLat; j++) {
-                // Explicitly set the first and last row to minLat and maxLat, respectively, rather than using the
-                // accumulated lat value, in order to ensure that the Cartesian points of adjacent sectors match perfectly.
-                if (j == 0) {
-                    lat = minLatOther;
-                } else if (j === numLat - 1) {
-                    lat = maxLatOther;
-                } else {
-                    lat += deltaLatOther;
+            for (j = 0, lat = minLat; j < numLat; j += 1, lat += deltaLat) {
+                if (j === numLat - 1) {
+                    lat = maxLat; // explicitly set the last lat to the max latitude to ensure alignment
                 }
 
                 if (lat >= minLatSelf && lat <= maxLatSelf) {
@@ -131,15 +126,9 @@ define([
                         y1 = Math.floor(WWMath.clamp(y0 + 1, 0, this.imageHeight - 1)),
                         yf = y - y0;
 
-                    for (var i = 0; i < numLon; i++) {
-                        // Explicitly set the first and last row to minLon and maxLon, respectively, rather than using the
-                        // accumulated lon value, in order to ensure that the Cartesian points of adjacent sectors match perfectly.
-                        if (i == 0) {
-                            lon = minLonOther;
-                        } else if (i === numLon - 1) {
-                            lon = maxLonOther;
-                        } else {
-                            lon += deltaLonOther;
+                    for (i = 0, lon = minLon; i < numLon; i += 1, lon += deltaLon) {
+                        if (i === numLon - 1) {
+                            lon = maxLon; // explicitly set the last lon to the max longitude to ensure alignment
                         }
 
                         if (lon >= minLonSelf && lon <= maxLonSelf) {
@@ -154,11 +143,10 @@ define([
                                 x0y1 = pixels[x0 + y1 * this.imageWidth],
                                 x1y1 = pixels[x1 + y1 * this.imageWidth];
 
-                            result[index] = WWMath.interpolate(yf,
-                                WWMath.interpolate(xf, x0y0, x1y0), WWMath.interpolate(xf, x0y1, x1y1));
-                            result[index] *= verticalExaggeration;
-                            //if (isNaN(result[index]))
-                            //    console.log(result[index]);
+                            result[index] = (1 - xf) * (1 - yf) * x0y0 +
+                                xf * (1 - yf) * x1y0 +
+                                (1 - xf) * yf * x0y1 +
+                                xf * yf * x1y1;
                         }
 
                         index++;

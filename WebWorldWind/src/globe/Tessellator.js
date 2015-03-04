@@ -23,7 +23,8 @@ define([
         '../globe/Terrain',
         '../globe/TerrainTile',
         '../globe/TerrainTileList',
-        '../util/Tile'
+        '../util/Tile',
+        '../util/WWUtil'
     ],
     function (ArgumentError,
               Globe,
@@ -41,7 +42,8 @@ define([
               Terrain,
               TerrainTile,
               TerrainTileList,
-              Tile) {
+              Tile,
+              WWUtil) {
         "use strict";
 
         /**
@@ -92,51 +94,49 @@ define([
             this.vertexTexCoordLocation = -1;
             this.modelViewProjectionMatrixLocation = -1;
 
-            this.texCoords = undefined;
+            this.texCoords = null;
             this.texCoordVboCacheKey = 'global_tex_coords';
 
-            this.indices = undefined;
-            this.numIndices = undefined;
+            this.indices = null;
+            this.numIndices = null;
             this.indicesVboCacheKey = 'global_indices';
 
-            this.indicesNorth = undefined;
-            this.numIndicesNorth = undefined;
+            this.indicesNorth = null;
+            this.numIndicesNorth = null;
             this.indicesNorthVboCacheKey = 'global_north_indices';
 
-            this.indicesSouth = undefined;
-            this.numIndicesSouth = undefined;
+            this.indicesSouth = null;
+            this.numIndicesSouth = null;
             this.indicesSouthVboCacheKey = 'global_south_indices';
 
-            this.indicesWest = undefined;
-            this.numIndicesWest = undefined;
+            this.indicesWest = null;
+            this.numIndicesWest = null;
             this.indicesWestVboCacheKey = 'global_west_indices';
 
-            this.indicesEast = undefined;
-            this.numIndicesEast = undefined;
+            this.indicesEast = null;
+            this.numIndicesEast = null;
             this.indicesEastVboCacheKey = 'global_east_indices';
 
-            this.indicesLoresNorth = undefined;
-            this.numIndicesLoresNorth = undefined;
+            this.indicesLoresNorth = null;
+            this.numIndicesLoresNorth = null;
             this.indicesLoresNorthVboCacheKey = 'global_lores_north_indices';
 
-            this.indicesLoresSouth = undefined;
-            this.numIndicesLoresSouth = undefined;
+            this.indicesLoresSouth = null;
+            this.numIndicesLoresSouth = null;
             this.indicesLoresSouthVboCacheKey = 'global_lores_south_indices';
 
-            this.indicesLoresWest = undefined;
-            this.numIndicesLoresWest = undefined;
+            this.indicesLoresWest = null;
+            this.numIndicesLoresWest = null;
             this.indicesLoresWestVboCacheKey = 'global_lores_west_indices';
 
-            this.indicesLoresEast = undefined;
-            this.numIndicesLoresEast = undefined;
+            this.indicesLoresEast = null;
+            this.numIndicesLoresEast = null;
             this.indicesLoresEastVboCacheKey = 'global_lores_east_indices';
 
-            this.outlineIndices = undefined;
-            this.numOutlineIndices = undefined;
+            this.outlineIndices = null;
             this.outlineIndicesVboCacheKey = 'global_outline_indices';
 
-            this.wireframeIndices = undefined;
-            this.numWireframeIndices = undefined;
+            this.wireframeIndices = null;
             this.wireframeIndicesVboCacheKey = 'global_wireframe_indices';
 
             this.scratchMatrix = Matrix.fromIdentity();
@@ -193,8 +193,7 @@ define([
             }
 
             this.refineNeighbors(dc);
-
-            this.finishTessellating();
+            this.finishTessellating(dc);
 
             this.lastTerrain = this.currentTiles.length === 0 ? null
                 : new Terrain(dc.globe, this, this.currentTiles, dc.verticalExaggeration);
@@ -258,7 +257,6 @@ define([
             // bound, and therefore must look up the location of attributes by name.
             this.vertexPointLocation = program.attributeLocation(gl, "vertexPoint");
             this.vertexTexCoordLocation = program.attributeLocation(gl, "vertexTexCoord");
-            this.vertexElevationLocation = program.attributeLocation(gl, "vertexElevation");
             this.modelViewProjectionMatrixLocation = program.uniformLocation(gl, "mvpMatrix");
             gl.enableVertexAttribArray(this.vertexPointLocation);
 
@@ -496,7 +494,7 @@ define([
 
             gl.drawElements(
                 WebGLRenderingContext.LINES,
-                this.numWireframeIndices,
+                this.wireframeIndices.length,
                 WebGLRenderingContext.UNSIGNED_SHORT,
                 0);
         };
@@ -529,7 +527,7 @@ define([
 
             gl.drawElements(
                 WebGLRenderingContext.LINE_LOOP,
-                this.numOutlineIndices,
+                this.outlineIndices.length,
                 WebGLRenderingContext.UNSIGNED_SHORT,
                 0);
         };
@@ -567,11 +565,6 @@ define([
         };
 
         Tessellator.prototype.addTile = function (dc, tile) {
-            if (this.mustRegenerateTileGeometry(dc, tile)) {
-                this.regenerateTileGeometry(dc, tile);
-            }
-
-            //this.currentTiles.addTile(tile);
             // Insert tile at index idx.
             var idx = this.tiles.length;
             this.tiles.push(tile);
@@ -756,11 +749,15 @@ define([
             }
         };
 
-        Tessellator.prototype.finishTessellating = function () {
+        Tessellator.prototype.finishTessellating = function (dc) {
             for (var idx = 0, len = this.tiles.length; idx < len; idx += 1) {
                 var tile = this.tiles[idx];
 
                 this.setNeighbors(tile);
+
+                if (this.mustRegenerateTileGeometry(dc, tile)) {
+                    this.regenerateTileGeometry(dc, tile);
+                }
 
                 this.currentTiles.addTile(tile);
             }
@@ -853,8 +850,7 @@ define([
         Tessellator.prototype.buildTileVertices = function (dc, tile) {
             var numLat = tile.tileHeight + 1, // num points in each dimension is 1 more than the number of tile cells
                 numLon = tile.tileWidth + 1,
-                refPoint = tile.referencePoint,
-                ve = dc.verticalExaggeration;
+                refPoint = tile.referencePoint;
 
             // Allocate space for the tile's elevations.
             if (!this.scratchElevations) {
@@ -867,31 +863,35 @@ define([
             }
 
             // Retrieve the elevations for all points in the tile. The returned values include vertical exaggeration.
-            dc.globe.elevationsForSector(tile.sector, numLat, numLon, tile.texelSize, ve, this.scratchElevations);
+            WWUtil.fillArray(this.scratchElevations, 0);
+            dc.globe.elevationsForGrid(tile.sector, numLat, numLon, tile.texelSize, this.scratchElevations);
 
             // Compute the tile's Cartesian coordinates relative to a local origin, called the reference point.
-            dc.globe.computePointsForSector(tile.sector, numLat, numLon, this.scratchElevations, refPoint, tile.points);
+            WWUtil.multiplyArray(this.scratchElevations, dc.verticalExaggeration);
+            dc.globe.computePointsForGrid(tile.sector, numLat, numLon, this.scratchElevations, refPoint, tile.points);
 
             // Establish a transform that is used later to move the tile coordinates into place relative to the globe.
             tile.transformationMatrix.setTranslation(refPoint[0], refPoint[1], refPoint[2]);
         };
 
         Tessellator.prototype.buildSharedGeometry = function (tile) {
-            if (this.sharedGeometry)
-                return;
-
-            this.buildTexCoords(tile.tileWidth, tile.tileHeight);
-
             // TODO: put all indices into a single buffer
 
-            // Build the surface-tile indices.
-            this.buildIndices(tile.tileWidth, tile.tileHeight);
+            if (!this.texCoords) {
+                this.buildTexCoords(tile.tileWidth, tile.tileHeight);
+            }
 
-            // Build the wireframe indices.
-            this.buildWireframeIndices(tile.tileWidth, tile.tileHeight);
+            if (!this.indices) {
+                this.buildIndices(tile.tileWidth, tile.tileHeight);
+            }
 
-            // Build the outline indices.
-            this.buildOutlineIndices(tile.tileWidth, tile.tileHeight);
+            if (!this.wireframeIndices) {
+                this.buildWireframeIndices(tile.tileWidth, tile.tileHeight);
+            }
+
+            if (!this.outlineIndices) {
+                this.buildOutlineIndices(tile.tileWidth, tile.tileHeight);
+            }
         };
 
         Tessellator.prototype.buildTexCoords = function (tileWidth, tileHeight) {
@@ -1268,7 +1268,6 @@ define([
             }
 
             this.wireframeIndices = indices;
-            this.numWireframeIndices = numIndices;
         };
 
         Tessellator.prototype.buildOutlineIndices = function (tileWidth, tileHeight) {
@@ -1322,7 +1321,6 @@ define([
             }
 
             this.outlineIndices = indices;
-            this.numOutlineIndices = numIndices;
         };
 
         Tessellator.prototype.cacheSharedGeometryVBOs = function (dc) {
