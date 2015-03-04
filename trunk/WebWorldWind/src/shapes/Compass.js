@@ -52,7 +52,7 @@ define([
 
             if (!imagePath) {
                 // Scale the default image to half size.
-                this.imageScale = 0.5;
+                this.imageScale = 0.4;
             }
         };
 
