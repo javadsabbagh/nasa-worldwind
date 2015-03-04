@@ -111,6 +111,7 @@ define([
             this.detailHint = 0;
             this.currentRetrievals = [];
             this.absentResourceList = new AbsentResourceList(3, 50e3);
+            this.mapAncestorToTile = true;
 
             this.pickEnabled = false;
         };
@@ -230,8 +231,16 @@ define([
 
             if (this.currentAncestorTile) {
                 if (this.isTileTextureInMemory(dc, this.currentAncestorTile)) {
-                    tile.fallbackTile = this.currentAncestorTile;
-                    this.currentTiles.push(tile);
+                    if (this.mapAncestorToTile) {
+                        // Set up to map the ancestor tile into the current one.
+                        tile.fallbackTile = this.currentAncestorTile;
+                        this.currentTiles.push(tile);
+                    } else {
+                        // Just enque the ancestor tile and don't enque the current one. This is necessary when the
+                        // texture coordinate mapping from the current tile to its ancestor is not straightforward,
+                        // as is the case for Mercator tiles.
+                        this.currentTiles.push(this.currentAncestorTile);
+                    }
                 }
             }
         };
@@ -274,17 +283,20 @@ define([
 
                 image.onload = function () {
                     Logger.log(Logger.LEVEL_INFO, "Image retrieval succeeded: " + url);
-                    var texture = new Texture(gl, image);
-                    cache.putResource(imagePath, texture, texture.size);
-
+                    var texture = layer.createTexture(dc, tile, image);
                     layer.removeFromCurrentRetrievals(imagePath);
-                    layer.currentTilesInvalid = true;
-                    layer.absentResourceList.unmarkResourceAbsent(imagePath);
 
-                    // Send an event to request a redraw.
-                    var e = document.createEvent('Event');
-                    e.initEvent(WorldWind.REDRAW_EVENT_TYPE, true, true);
-                    dc.canvas.dispatchEvent(e);
+                    if (texture) {
+                        cache.putResource(imagePath, texture, texture.size);
+
+                        layer.currentTilesInvalid = true;
+                        layer.absentResourceList.unmarkResourceAbsent(imagePath);
+
+                        // Send an event to request a redraw.
+                        var e = document.createEvent('Event');
+                        e.initEvent(WorldWind.REDRAW_EVENT_TYPE, true, true);
+                        dc.canvas.dispatchEvent(e);
+                    }
                 };
 
                 image.onerror = function () {
@@ -297,6 +309,10 @@ define([
                 image.crossOrigin = 'anonymous';
                 image.src = url;
             }
+        };
+
+        TiledImageLayer.prototype.createTexture = function (dc, tile, image) {
+            return  new Texture(dc.currentGlContext, image);
         };
 
         TiledImageLayer.prototype.removeFromCurrentRetrievals = function (imagePath) {

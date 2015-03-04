@@ -60,6 +60,10 @@ define([],
                 return false;
             }
 
+            if (entry.permanent) {
+                return true;
+            }
+
             var timeSinceLastMark = Date.now() - entry.timeOfLastMark;
 
             if (timeSinceLastMark > this.tryAgainInterval) {
@@ -89,6 +93,26 @@ define([],
 
             entry.numTrys = entry.numTrys + 1;
             entry.timeOfLastMark = Date.now();
+        };
+
+        /**
+         * Marks a resource attempt as having failed permanently.
+         * @param {String} resourceId The resource identifier.
+         */
+        AbsentResourceList.prototype.markResourceAbsentPermanently = function (resourceId) {
+            var entry = this.possiblyAbsent[resourceId];
+
+            if (!entry) {
+                entry = {
+                    timeOfLastMark: Date.now(),
+                    numTrys: 0
+                };
+                this.possiblyAbsent[resourceId] = entry;
+            }
+
+            entry.numTrys = entry.numTrys + 1;
+            entry.timeOfLastMark = Date.now();
+            entry.permanent = true;
         };
 
         /**

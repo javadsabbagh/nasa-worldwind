@@ -11,6 +11,9 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './error/ArgumentError',
         './shaders/BasicProgram',
         './shaders/BasicTextureProgram',
+        './layer/BingAerialLayer',
+        './layer/BingAerialWithLabelsLayer',
+        './layer/BingRoadsLayer',
         './layer/BingWMSLayer',
         './layer/BMNGLandsatLayer',
         './layer/BMNGLayer',
@@ -117,6 +120,9 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               ArgumentError,
               BasicProgram,
               BasicTextureProgram,
+              BingAerialLayer,
+              BingAerialWithLabelsLayer,
+              BingRoadsLayer,
               BingWMSLayer,
               BMNGLandsatLayer,
               BMNGLayer,
@@ -352,6 +358,9 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['ArgumentError'] = ArgumentError;
         WorldWind['BasicProgram'] = BasicProgram;
         WorldWind['BasicTextureProgram'] = BasicTextureProgram;
+        WorldWind['BingAerialLayer'] = BingAerialLayer;
+        WorldWind['BingAerialWithLabelsLayer'] = BingAerialWithLabelsLayer;
+        WorldWind['BingRoadsLayer'] = BingRoadsLayer;
         WorldWind['BingWMSLayer'] = BingWMSLayer;
         WorldWind['BMNGLandsatLayer'] = BMNGLandsatLayer;
         WorldWind['BMNGLayer'] = BMNGLayer;
