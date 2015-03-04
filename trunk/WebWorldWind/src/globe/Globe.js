@@ -187,8 +187,7 @@ define([
          * @throws {ArgumentError} if the specified sector, elevations array or results arrays are null or undefined, or
          * if the lengths of any of the arrays are insufficient.
          */
-        Globe.prototype.computePointsForSector = function (sector, numLat, numLon, elevations,
-                                                           referencePoint, result) {
+        Globe.prototype.computePointsForGrid = function (sector, numLat, numLon, elevations, referencePoint, result) {
             if (!sector) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "Globe",
                     "computePointsFromPositions", "missingSector"));
@@ -237,8 +236,6 @@ define([
             // Iterate over the latitude and longitude coordinates in the specified sector, computing the Cartesian
             // point corresponding to each latitude and longitude.
             for (latIndex = 0, lat = minLat; latIndex < numLat; latIndex++, lat += deltaLat) {
-                // Explicitly set the first and last row to minLat and maxLat, respectively, rather than using the
-                // accumulated lat value, in order to ensure that the Cartesian points of adjacent sectors match.
                 if (latIndex === numLat - 1) {
                     lat = maxLat; // explicitly set the last lat to the max longitude to ensure alignment
                 }
@@ -386,7 +383,7 @@ define([
          * @param {number} longitude The locations' longitude.
          * @returns {number} The radius at the specified location.
          */
-        Globe.prototype.radiusAt = function(latitude, longitude) {
+        Globe.prototype.radiusAt = function (latitude, longitude) {
             var sinLat = Math.sin(latitude * Angle.DEGREES_TO_RADIANS),
                 rpm = this.equatorialRadius / Math.sqrt(1.0 - this.eccentricitySquared * sinLat * sinLat);
 
@@ -602,8 +599,7 @@ define([
             return this.elevationModel.elevationAtLocation(latitude, longitude);
         };
 
-        Globe.prototype.elevationsForSector = function (sector, numLatitude, numLongitude, targetResolution,
-                                                        verticalExaggeration, result) {
+        Globe.prototype.elevationsForGrid = function (sector, numLatitude, numLongitude, targetResolution, result) {
             if (!sector) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Globe", "elevationsForSector", "missingSector"));
@@ -619,8 +615,7 @@ define([
                     "elevationsForSector", "missingArray"));
             }
 
-            return this.elevationModel.elevationsForSector(sector, numLatitude, numLongitude, targetResolution,
-                verticalExaggeration, result);
+            return this.elevationModel.elevationsForGrid(sector, numLatitude, numLongitude, targetResolution, result);
         };
 
         return Globe;

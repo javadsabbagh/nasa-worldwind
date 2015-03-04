@@ -98,7 +98,6 @@ define([
          * @param {Number} numLatitude The number of latitudinal sample locations within the sector.
          * @param {Number} numLongitude The number of longitudinal sample locations within the sector.
          * @param {Number} targetResolution The desired elevation resolution.
-         * @param {Number} verticalExaggeration The vertical exaggeration to apply to the elevations.
          * @param {Number[]} result An array of size numLatitude x numLongitude to contain the requested elevations.
          * This array must be allocated when passed to this function.
          * @returns {Number} The resolution actually achieved, which may be greater than that requested if the
@@ -107,9 +106,8 @@ define([
          * specified numLatitude or numLongitude values is less than 1, or the result array is not of sufficient length
          * to hold numLatitude x numLongitude values.
          */
-        ZeroElevationModel.prototype.elevationsForSector = function (sector, numLatitude, numLongitude,
-                                                                     targetResolution, verticalExaggeration,
-                                                                     result) {
+        ZeroElevationModel.prototype.elevationsForGrid = function (sector, numLatitude, numLongitude, targetResolution,
+                                                                   result) {
             if (!sector) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "ZeroElevationModel", "elevationsForSector", "missingSector"));

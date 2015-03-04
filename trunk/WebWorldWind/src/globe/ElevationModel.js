@@ -280,16 +280,14 @@ define([
          * @param {Number} numLatitude The number of latitudinal sample locations within the sector.
          * @param {Number} numLongitude The number of longitudinal sample locations within the sector.
          * @param {Number} targetResolution The desired elevation resolution.
-         * @param {Number} verticalExaggeration The vertical exaggeration to apply to the elevations.
          * @param {Number[]} result An array in which to return the requested elevations.
          * @returns {Number} The resolution actually achieved, which may be greater than that requested if the
          * elevation data for the requested resolution is not currently available.
          * @throws {ArgumentError} If the specified sector or result array is null or undefined, or if either of the
          * specified numLatitude or numLongitude values is less than one.
          */
-        ElevationModel.prototype.elevationsForSector = function (sector, numLatitude, numLongitude,
-                                                                 targetResolution, verticalExaggeration,
-                                                                 result) {
+        ElevationModel.prototype.elevationsForGrid = function (sector, numLatitude, numLongitude, targetResolution,
+                                                               result) {
             if (!sector) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "ElevationModel", "elevationsForSector", "missingSector"));
@@ -332,16 +330,15 @@ define([
 
             if (this.pixelIsPoint) {
                 return this.sectorElevationsFromPointElevations(sector, numLatitude, numLongitude, targetResolution,
-                    verticalExaggeration, result);
+                    result);
             } else {
                 return this.sectorElevationsFromAreaElevations(sector, numLatitude, numLongitude, targetResolution,
-                    verticalExaggeration, result);
+                    result);
             }
         };
 
         ElevationModel.prototype.sectorElevationsFromPointElevations = function (sector, numLatitude, numLongitude,
-                                                                                 targetResolution, verticalExaggeration,
-                                                                                 result) {
+                                                                                 targetResolution, result) {
             var maxResolution = 0,
                 resolution;
 
@@ -350,7 +347,7 @@ define([
                     image = tile.image();
 
                 if (image) {
-                    image.elevationsForSector(sector, numLatitude, numLongitude, verticalExaggeration, result);
+                    image.elevationsForGrid(sector, numLatitude, numLongitude, result);
                     resolution = tile.level.texelSize;
 
                     if (maxResolution < resolution) {
@@ -365,8 +362,7 @@ define([
         };
 
         ElevationModel.prototype.sectorElevationsFromAreaElevations = function (sector, numLatitude, numLongitude,
-                                                                                targetResolution, verticalExaggeration,
-                                                                                result) {
+                                                                                targetResolution, result) {
             // For each lat/lon in sector
             //  Compute the lat/lon of the four surrounding area pixels.
             //  Look up the area elevations in the current-tiles list.

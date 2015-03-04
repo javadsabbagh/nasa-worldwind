@@ -95,6 +95,39 @@ define([
                 }
 
                 return newPath;
+            },
+
+            /**
+             * Sets each element of an array to a specified value. This function is intentionally generic, and works
+             * with any data structure with a length property whose elements may be referenced using array index syntax.
+             * @param array The array to fill.
+             * @param value The value to assign to each array element.
+             */
+            fillArray: function (array, value) {
+                if (!array) {
+                    return;
+                }
+
+                for (var i = 0, len = array.length; i < len; i++) {
+                    array[i] = value;
+                }
+            },
+
+            /**
+             * Multiplies each element of an array by a specified value and assigns each element to the result. This
+             * function is intentionally generic, and works with any data structure with a length property whose
+             * elements may be referenced using array index syntax.
+             * @param array The array to fill.
+             * @param value The value to multiply by each array element.
+             */
+            multiplyArray: function (array, value) {
+                if (!array) {
+                    return;
+                }
+
+                for (var i = 0, len = array.length; i < len; i++) {
+                    array[i] *= value;
+                }
             }
         };
 
