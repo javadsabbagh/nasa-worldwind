@@ -98,6 +98,10 @@ define([
             return this.surfaceShapes;
         };
 
+        SurfaceShapeTile.prototype.hasShape = function(surfaceShape) {
+            return this.surfaceShapes.indexOf(surfaceShape) >= 0;
+        };
+
         /**
          * The sector that bounds this tile.
          * @returns {Sector}

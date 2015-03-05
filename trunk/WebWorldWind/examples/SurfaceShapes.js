@@ -184,30 +184,13 @@ requirejs([
             firstY = -1;
 
         var indicateShape = function(shape) {
-            var kindOfShape;
-            if (shape instanceof WorldWind.SurfaceCircle) {
-                kindOfShape = "A surface circle";
-            }
-            else if (shape instanceof WorldWind.SurfaceEllipse) {
-                kindOfShape = "A surface ellipse";
-            }
-            else if (shape instanceof WorldWind.SurfacePolygon) {
-                kindOfShape = "A surface polygon";
-            }
-            else if (shape instanceof WorldWind.SurfacePolyline) {
-                kindOfShape = "A surface polyline";
-            }
-            else if (shape instanceof WorldWind.SurfaceRectangle) {
-                kindOfShape = "A surface rectangle";
-            }
-            else if (shape instanceof WorldWind.SurfaceSector) {
-                kindOfShape = "A surface sector";
-            }
-            else {
-                kindOfShape = "No shape";
+            if (!shape) {
+                return;
             }
 
-            alert(kindOfShape + " was picked!");
+            var color = shape.attributes.interiorColor;
+            shape.attributes.interiorColor = shape.attributes.outlineColor;
+            shape.attributes.outlineColor = color;
         };
 
         var handleMouseUp = function (o) {
@@ -231,9 +214,6 @@ requirejs([
                 for (var p = 0; p < pickList.objects.length; p++) {
                     indicateShape(pickList.objects[p].userObject);
                 }
-            }
-            else {
-                indicateShape(null);
             }
 
             // Update the window if we changed anything.
