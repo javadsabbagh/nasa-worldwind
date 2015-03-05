@@ -93,7 +93,7 @@ define([
 
             /**
              * The collection of top level surface shape tiles, from which actual tiles are derived.
-             * @type {SurfaceShapeTile[]}}
+             * @type {SurfaceShapeTile[]}
              */
             this.topLevelTiles = [];
 
