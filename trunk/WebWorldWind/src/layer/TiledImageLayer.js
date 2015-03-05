@@ -151,7 +151,7 @@ define([
         };
 
         TiledImageLayer.prototype.isLayerInView = function (dc) {
-            return dc.terrain || dc.terrain.sector.intersects(this.levels.sector);
+            return dc.terrain && dc.terrain.sector && dc.terrain.sector.intersects(this.levels.sector);
         };
 
         TiledImageLayer.prototype.createTopLevelTiles = function (dc) {
