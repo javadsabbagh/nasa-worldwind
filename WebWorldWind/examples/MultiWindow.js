@@ -34,23 +34,21 @@ requirejs(['../src/WorldWind'], function () {
         return pathLayer;
     };
 
-    var pathLayer = makePathLayer();
+    var pathLayer = makePathLayer(),
+        imageryLayer = new WorldWind.BingAerialWithLabelsLayer(); // Create the shared imagery layer
 
     var wwd1 = new WorldWind.WorldWindow("canvasOne");
-    wwd1.addLayer(new WorldWind.BMNGLandsatLayer());
-    wwd1.addLayer(new WorldWind.BingWMSLayer());
+    wwd1.addLayer(imageryLayer);
     wwd1.addLayer(pathLayer);
     wwd1.redraw();
 
     var wwd2 = new WorldWind.WorldWindow("canvasTwo");
-    wwd2.addLayer(new WorldWind.BMNGLandsatLayer());
-    wwd2.addLayer(new WorldWind.BingWMSLayer());
+    wwd2.addLayer(imageryLayer);
     wwd2.addLayer(pathLayer);
     wwd2.redraw();
 
     var wwd3 = new WorldWind.WorldWindow("canvasThree");
-    wwd3.addLayer(new WorldWind.BMNGLandsatLayer());
-    wwd3.addLayer(new WorldWind.BingWMSLayer());
+    wwd3.addLayer(imageryLayer);
     wwd3.addLayer(pathLayer);
     wwd3.redraw();
 });

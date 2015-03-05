@@ -15,10 +15,18 @@ requirejs(['../src/WorldWind',
         WorldWind.Logger.setLoggingLevel(WorldWind.Logger.LEVEL_WARNING);
 
         var wwd = new WorldWind.WorldWindow("canvasOne");
-        wwd.addLayer(new WorldWind.BMNGOneImageLayer());
-        wwd.addLayer(new WorldWind.BMNGLandsatLayer());
-        wwd.addLayer(new WorldWind.BingWMSLayer());
-        wwd.addLayer(new WorldWind.CompassLayer);
+
+        var layers = [
+            {layer: new WorldWind.BMNGLayer(), enabled: true},
+            {layer: new WorldWind.BMNGLandsatLayer(), enabled: false},
+            {layer: new WorldWind.BingAerialWithLabelsLayer(), enabled: true},
+            {layer: new WorldWind.CompassLayer(), enabled: true}
+        ];
+
+        for (var l = 0; l < layers.length; l++) {
+            layers[l].layer.enabled = layers[l].enabled;
+            wwd.addLayer(layers[l].layer);
+        }
 
         var images = [
             "plain-black.png",

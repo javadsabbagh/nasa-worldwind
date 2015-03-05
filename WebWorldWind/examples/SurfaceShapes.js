@@ -25,8 +25,17 @@ requirejs([
         /**
          * Added imagery layers.
          */
-        wwd.addLayer(new WorldWind.BMNGLandsatLayer()); // Blue Marble + Landsat
-        wwd.addLayer(new WorldWind.BingWMSLayer()); // Bing
+        var layers = [
+            {layer: new WorldWind.BMNGLayer(), enabled: true},
+            {layer: new WorldWind.BMNGLandsatLayer(), enabled: false},
+            {layer: new WorldWind.BingAerialWithLabelsLayer(), enabled: true},
+            {layer: new WorldWind.CompassLayer(), enabled: true}
+        ];
+
+        for (var l = 0; l < layers.length; l++) {
+            layers[l].layer.enabled = layers[l].enabled;
+            wwd.addLayer(layers[l].layer);
+        }
         
         var shapesLayer = new WorldWind.RenderableLayer("Surface Shapes"),
             shapeAttributes = new WorldWind.ShapeAttributes(null);
