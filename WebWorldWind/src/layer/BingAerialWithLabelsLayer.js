@@ -19,10 +19,10 @@ define([
         "use strict";
 
         /**
-         * Constructs a Bing WMS layer.
+         * Constructs a Bing Aerial with Labels layer.
          * @alias BingAerialLayer
          * @constructor
-         * @classdesc Displays a Bing layer using WMS.
+         * @classdesc Displays a Bing Aerial layer with roads and labels.
          */
         var BingAerialWithLabelsLayer = function () {
             BingTiledImageLayer.call(this, "Bing Aerial with Labels");
