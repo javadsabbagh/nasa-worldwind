@@ -95,30 +95,29 @@ define([
         /**
          * Returns the elevations at locations within a specified sector.
          * @param {Sector} sector The sector for which to determine the elevations.
-         * @param {Number} numLatitude The number of latitudinal sample locations within the sector.
-         * @param {Number} numLongitude The number of longitudinal sample locations within the sector.
+         * @param {Number} numLat The number of latitudinal sample locations within the sector.
+         * @param {Number} numLon The number of longitudinal sample locations within the sector.
          * @param {Number} targetResolution The desired elevation resolution.
-         * @param {Number[]} result An array of size numLatitude x numLongitude to contain the requested elevations.
+         * @param {Number[]} result An array of size numLat x numLon to contain the requested elevations.
          * This array must be allocated when passed to this function.
          * @returns {Number} The resolution actually achieved, which may be greater than that requested if the
          * elevation data for the requested resolution is not currently available.
          * @throws {ArgumentError} If the specified sector or result array is null or undefined, if either of the
-         * specified numLatitude or numLongitude values is less than 1, or the result array is not of sufficient length
-         * to hold numLatitude x numLongitude values.
+         * specified numLat or numLon values is less than 1, or the result array is not of sufficient length
+         * to hold numLat x numLon values.
          */
-        ZeroElevationModel.prototype.elevationsForGrid = function (sector, numLatitude, numLongitude, targetResolution,
-                                                                   result) {
+        ZeroElevationModel.prototype.elevationsForGrid = function (sector, numLat, numLon, targetResolution, result) {
             if (!sector) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "ZeroElevationModel", "elevationsForSector", "missingSector"));
             }
 
-            if (numLatitude <= 0 || numLongitude <= 0) {
+            if (numLat <= 0 || numLon <= 0) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "ZeroElevationModel",
-                    "elevationsForSector", "numLatitude or numLongitude is less than 1"));
+                    "elevationsForSector", "numLat or numLon is less than 1"));
             }
 
-            if (!result || result.length < numLatitude * numLongitude) {
+            if (!result || result.length < numLat * numLon) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "ZeroElevationModel",
                     "elevationsForSector", "missingArray"));
             }
