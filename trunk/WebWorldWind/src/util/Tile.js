@@ -123,18 +123,9 @@ define([
 
             /**
              * A key that uniquely identifies this tile within a level set.
-             * @type {string}
+             * @type {String}
              */
-            this.tileKey = this.level.levelNumber.toString() + "." + this.row.toString() + "." + this.column.toString();
-
-            /**
-             * Describes the tiles in the immediate neighborhood of this tile.
-             * <p>
-             * It is possible that there may be no neighbors in any given direction. This can happen if the tessellator
-             * doesn't generate any tile in that direction. If that is the case, the tile in that direction will be 'undefined'.
-             * @type {{north: undefined, south: undefined, east: undefined, west: undefined}}
-             */
-            this.neighbor = {'north': undefined, 'south': undefined, 'east': undefined, 'west': undefined};
+            this.tileKey = level.levelNumber.toString() + "." + row.toString() + "." + column.toString();
 
             this.extentTimestamp = undefined;
             this.extentVerticalExaggeration = undefined;
@@ -272,6 +263,7 @@ define([
             var globe = dc.globe,
                 eyePos = dc.eyePosition;
 
+            // TODO This approach does not behave as expected as the eye point crosses the anti-meridian.
             // Compute the point on the tile that is nearest to the eye point. Use the minimum elevation because it provides a
             // reasonable estimate for distance, and the eye point always gets closer to the point as it moves closer to the
             // terrain surface.

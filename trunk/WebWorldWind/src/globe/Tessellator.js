@@ -141,6 +141,7 @@ define([
 
             this.scratchMatrix = Matrix.fromIdentity();
             this.scratchElevations = null;
+            this.scratchPrevElevations = null;
 
             this.corners = {};
             this.tiles = [];
@@ -316,7 +317,7 @@ define([
             this.scratchMatrix.setToMultiply(dc.navigatorState.modelviewProjection, terrainTile.transformationMatrix);
             GpuProgram.loadUniformMatrix(gl, this.scratchMatrix, this.modelViewProjectionMatrixLocation);
 
-            var vboCacheKey = dc.globeStateKey + terrainTile.geometryVboCacheKey,
+            var vboCacheKey = dc.globeStateKey + terrainTile.tileKey,
                 vbo = gpuResourceCache.resourceForKey(vboCacheKey);
             if (!vbo) {
                 vbo = gl.createBuffer();
@@ -324,12 +325,12 @@ define([
                 gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, terrainTile.points, WebGLRenderingContext.STATIC_DRAW);
                 dc.frameStatistics.incrementVboLoadCount(1);
                 gpuResourceCache.putResource(vboCacheKey, vbo, terrainTile.points.length * 3 * 4);
-                terrainTile.geometryVboTimestamp = terrainTile.geometryTimestamp;
+                terrainTile.pointsVboStateKey = terrainTile.pointsStateKey;
             }
-            else if (terrainTile.geometryVboTimestamp != terrainTile.geometryTimestamp) {
+            else if (terrainTile.pointsVboStateKey != terrainTile.pointsStateKey) {
                 gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, vbo);
                 gl.bufferSubData(WebGLRenderingContext.ARRAY_BUFFER, 0, terrainTile.points);
-                terrainTile.geometryVboTimestamp = terrainTile.geometryTimestamp;
+                terrainTile.pointsVboStateKey = terrainTile.pointsStateKey;
             }
             else {
                 dc.currentGlContext.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, vbo);
@@ -378,10 +379,11 @@ define([
                 WebGLRenderingContext.UNSIGNED_SHORT,
                 0);
 
-            var neighbor = terrainTile.neighbor,
-                levelNumber = terrainTile.level.levelNumber;
+            var level = terrainTile.level,
+                neighborLevel;
 
-            if (neighbor.north && neighbor.north.level.levelNumber < levelNumber) {
+            neighborLevel = terrainTile.neighborLevel(WorldWind.NORTH);
+            if (neighborLevel && neighborLevel.compare(level) < 0) {
                 var indicesLoresNorthVbo = gpuResourceCache.resourceForKey(this.indicesLoresNorthVboCacheKey);
                 gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, indicesLoresNorthVbo);
 
@@ -402,7 +404,8 @@ define([
                     0);
             }
 
-            if (neighbor.south && neighbor.south.level.levelNumber < levelNumber) {
+            neighborLevel = terrainTile.neighborLevel(WorldWind.SOUTH);
+            if (neighborLevel && neighborLevel.compare(level) < 0) {
                 var indicesLoresSouthVbo = gpuResourceCache.resourceForKey(this.indicesLoresSouthVboCacheKey);
                 gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, indicesLoresSouthVbo);
 
@@ -423,7 +426,8 @@ define([
                     0);
             }
 
-            if (neighbor.west && neighbor.west.level.levelNumber < levelNumber) {
+            neighborLevel = terrainTile.neighborLevel(WorldWind.WEST);
+            if (neighborLevel && neighborLevel.compare(level) < 0) {
                 var indicesLoresWestVbo = gpuResourceCache.resourceForKey(this.indicesLoresWestVboCacheKey);
                 gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, indicesLoresWestVbo);
 
@@ -444,7 +448,8 @@ define([
                     0);
             }
 
-            if (neighbor.east && neighbor.east.level.levelNumber < levelNumber) {
+            neighborLevel = terrainTile.neighborLevel(WorldWind.EAST);
+            if (neighborLevel && neighborLevel.compare(level) < 0) {
                 var indicesLoresEastVbo = gpuResourceCache.resourceForKey(this.indicesLoresEastVboCacheKey);
                 gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, indicesLoresEastVbo);
 
@@ -810,19 +815,10 @@ define([
                 westIdx = swCorner.se;
             }
 
-            tile.neighbor = {};
-            if (northIdx >= 0) {
-                tile.neighbor.north = this.tiles[northIdx];
-            }
-            if (southIdx >= 0) {
-                tile.neighbor.south = this.tiles[southIdx];
-            }
-            if (eastIdx >= 0) {
-                tile.neighbor.east = this.tiles[eastIdx];
-            }
-            if (westIdx >= 0) {
-                tile.neighbor.west = this.tiles[westIdx];
-            }
+            tile.setNeighborLevel(WorldWind.NORTH, (northIdx >= 0) ? this.tiles[northIdx].level : null);
+            tile.setNeighborLevel(WorldWind.SOUTH, (southIdx >= 0) ? this.tiles[southIdx].level : null);
+            tile.setNeighborLevel(WorldWind.EAST, (eastIdx >= 0) ? this.tiles[eastIdx].level : null);
+            tile.setNeighborLevel(WorldWind.WEST, (westIdx >= 0) ? this.tiles[westIdx].level : null);
         };
 
         Tessellator.prototype.isTileVisible = function (dc, tile) {
@@ -838,23 +834,25 @@ define([
         };
 
         Tessellator.prototype.mustRegenerateTileGeometry = function (dc, tile) {
-            return tile.geometryTimestamp != this.elevationTimestamp;
+            return tile.pointsStateKey != tile.stateKey;
         };
 
         Tessellator.prototype.regenerateTileGeometry = function (dc, tile) {
             this.buildTileVertices(dc, tile);
             this.buildSharedGeometry(tile);
-            tile.geometryTimestamp = this.elevationTimestamp;
+            tile.pointsStateKey = tile.stateKey;
         };
 
         Tessellator.prototype.buildTileVertices = function (dc, tile) {
             var numLat = tile.tileHeight + 1, // num points in each dimension is 1 more than the number of tile cells
                 numLon = tile.tileWidth + 1,
-                refPoint = tile.referencePoint;
+                refPoint = tile.referencePoint,
+                elevations = this.scratchElevations;
 
             // Allocate space for the tile's elevations.
-            if (!this.scratchElevations) {
-                this.scratchElevations = new Float64Array(numLat * numLon);
+            if (!elevations) {
+                elevations = new Float64Array(numLat * numLon);
+                this.scratchElevations = elevations;
             }
 
             // Allocate space for the tile's Cartesian coordinates.
@@ -862,16 +860,96 @@ define([
                 tile.points = new Float32Array(numLat * numLon * 3);
             }
 
-            // Retrieve the elevations for all points in the tile. The returned values include vertical exaggeration.
-            WWUtil.fillArray(this.scratchElevations, 0);
-            dc.globe.elevationsForGrid(tile.sector, numLat, numLon, tile.texelSize, this.scratchElevations);
+            // Retrieve the elevations for all points in the tile.
+            WWUtil.fillArray(elevations, 0);
+            dc.globe.elevationsForGrid(tile.sector, numLat, numLon, tile.texelSize, elevations);
+
+            // Modify the elevations around the tile's border to match neighbors of lower resolution, if any.
+            if (this.mustAlignNeighborElevations(dc, tile)) {
+                this.alignNeighborElevations(dc, tile, elevations);
+            }
 
             // Compute the tile's Cartesian coordinates relative to a local origin, called the reference point.
-            WWUtil.multiplyArray(this.scratchElevations, dc.verticalExaggeration);
-            dc.globe.computePointsForGrid(tile.sector, numLat, numLon, this.scratchElevations, refPoint, tile.points);
+            WWUtil.multiplyArray(elevations, dc.verticalExaggeration);
+            dc.globe.computePointsForGrid(tile.sector, numLat, numLon, elevations, refPoint, tile.points);
 
             // Establish a transform that is used later to move the tile coordinates into place relative to the globe.
             tile.transformationMatrix.setTranslation(refPoint[0], refPoint[1], refPoint[2]);
+        };
+
+        Tessellator.prototype.mustAlignNeighborElevations = function (dc, tile) {
+            var level = tile.level,
+                northLevel = tile.neighborLevel(WorldWind.NORTH),
+                southLevel = tile.neighborLevel(WorldWind.SOUTH),
+                eastLevel = tile.neighborLevel(WorldWind.EAST),
+                westLevel = tile.neighborLevel(WorldWind.WEST);
+
+            return (northLevel && northLevel.compare(level) < 0) ||
+                (southLevel && southLevel.compare(level) < 0) ||
+                (eastLevel && eastLevel.compare(level) < 0) ||
+                (westLevel && westLevel.compare(level) < 0);
+        };
+
+        Tessellator.prototype.alignNeighborElevations = function (dc, tile, elevations) {
+            var numLat = tile.tileHeight + 1, // num points in each dimension is 1 more than the number of tile cells
+                numLon = tile.tileWidth + 1,
+                level = tile.level,
+                prevNumLat = Math.floor(numLat / 2) + 1, // num prev level points is 1 more than 1/2 the number of cells
+                prevNumLon = Math.floor(numLon / 2) + 1,
+                prevLevel = level.previousLevel(),
+                prevElevations = this.scratchPrevElevations,
+                neighborLevel,
+                i, index, prevIndex;
+
+            // Allocate space for the previous level elevations.
+            if (!prevElevations) {
+                prevElevations = new Float64Array(prevNumLat * prevNumLon);
+                this.scratchPrevElevations = prevElevations;
+            }
+
+            // Retrieve the previous level elevations, using 1/2 the number of tile cells.
+            WWUtil.fillArray(prevElevations, 0);
+            dc.globe.elevationsForGrid(tile.sector, prevNumLat, prevNumLon, prevLevel.texelSize, prevElevations);
+
+            // Use previous level elevations along the north edge when the northern neighbor is lower resolution.
+            neighborLevel = tile.neighborLevel(WorldWind.NORTH);
+            if (neighborLevel && neighborLevel.compare(level) < 0) {
+                index = (numLat - 1) * numLon;
+                prevIndex = (prevNumLat - 1) * prevNumLon;
+                for (i = 0; i < prevNumLon; i++, index += 2, prevIndex += 1) {
+                    elevations[index] = prevElevations[prevIndex];
+                }
+            }
+
+            // Use previous level elevations along the south edge when the southern neighbor is lower resolution.
+            neighborLevel = tile.neighborLevel(WorldWind.SOUTH);
+            if (neighborLevel && neighborLevel.compare(level) < 0) {
+                index = 0;
+                prevIndex = 0;
+                for (i = 0; i < prevNumLon; i++, index += 2, prevIndex += 1) {
+                    elevations[index] = prevElevations[prevIndex];
+                }
+            }
+
+            // Use previous level elevations along the east edge when the eastern neighbor is lower resolution.
+            neighborLevel = tile.neighborLevel(WorldWind.EAST);
+            if (neighborLevel && neighborLevel.compare(level) < 0) {
+                index = numLon - 1;
+                prevIndex = prevNumLon - 1;
+                for (i = 0; i < prevNumLat; i++, index += 2 * numLon, prevIndex += prevNumLon) {
+                    elevations[index] = prevElevations[prevIndex];
+                }
+            }
+
+            // Use previous level elevations along the west edge when the western neighbor is lower resolution.
+            neighborLevel = tile.neighborLevel(WorldWind.WEST);
+            if (neighborLevel && neighborLevel.compare(level) < 0) {
+                index = 0;
+                prevIndex = 0;
+                for (i = 0; i < prevNumLat; i++, index += 2 * numLon, prevIndex += prevNumLon) {
+                    elevations[index] = prevElevations[prevIndex];
+                }
+            }
         };
 
         Tessellator.prototype.buildSharedGeometry = function (tile) {
