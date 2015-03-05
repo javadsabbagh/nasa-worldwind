@@ -42,6 +42,28 @@ define([
         };
 
         /**
+         * Returns the pixel value at a specified xy coordinate in this elevation image. The coordinate origin is the
+         * image's lower left corner, so (0, 0) indicates the lower left pixel and (imageWidth-1, imageHeight-1)
+         * indicates the upper right pixel. This returns 0 if the coordinate indicates a pixel outside of this elevation
+         * image.
+         * @param x The pixel's x coordinate.
+         * @param y The pixel's y coordinate.
+         * @returns {Number} The pixel value at the specified coordinate in this elevation image.
+         */
+        ElevationImage.prototype.pixel = function (x, y) {
+            if (x < 0 || x >= this.imageWidth) {
+                return 0;
+            }
+
+            if (y < 0 || y >= this.imageHeight) {
+                return 0;
+            }
+
+            y = this.imageHeight - y - 1; // flip the y coordinate origin to the lower left corner
+            return this.imageData[x + y * this.imageWidth];
+        };
+
+        /**
          * Returns the elevation at a specified location.
          * @param {number} latitude The location's latitude.
          * @param {number} longitude The location's longitude.
