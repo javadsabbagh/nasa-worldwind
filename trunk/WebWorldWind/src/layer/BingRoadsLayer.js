@@ -19,16 +19,17 @@ define([
         "use strict";
 
         /**
-         * Constructs a Bing WMS layer.
+         * Constructs a Bing Roads layer.
          * @alias BingAerialLayer
          * @constructor
-         * @classdesc Displays a Bing layer using WMS.
+         * @classdesc Displays a Bing Roads layer.
          */
         var BingRoadsLayer = function () {
             BingTiledImageLayer.call(this, "Bing Roads");
 
             this.urlBuilder = new BingImageryUrlBuilder("Road", null);
 
+            // Disable blank-image detection.
             this.detectBlankImages = false;
         };
 
