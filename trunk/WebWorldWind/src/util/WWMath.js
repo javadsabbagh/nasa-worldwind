@@ -178,6 +178,18 @@ define([
             },
 
             /**
+             * Returns the integer modulus of a specified number. This differs from the <code>%</code> operator in that
+             * the result is always positive when the modulus is positive. For example <code>-1 % 10 = -1</code>,
+             * whereas <code>mod(-1, 10) = 1</code>.
+             * @param {Number} number The number whose modulus to compute.
+             * @param {Number} modulus The modulus.
+             * @returns {Number} The remainder after dividing the number by the modulus.
+             */
+            mod: function (number, modulus) {
+                return ((number % modulus) + modulus) % modulus;
+            },
+
+            /**
              * Returns the maximum of two specified numbers.
              * @param {number} value1 The first value to compare.
              * @param {number} value2 The second value to compare.

@@ -31,6 +31,7 @@ define([
             this.displayName = "Earth Elevation Model";
             this.minElevation = -11000; // Depth of Marianas Trench, in meters
             this.maxElevation = 8850; // Height of Mt. Everest
+            this.pixelIsPoint = false; // World Wind WMS elevation layers return pixel-as-area images
 
             this.urlBuilder = new WmsUrlBuilder("http://worldwind26.arc.nasa.gov/wms",
                 "NASA_SRTM30_900m_Tiled,aster_v2,USGS-NED", "", "1.3.0");
