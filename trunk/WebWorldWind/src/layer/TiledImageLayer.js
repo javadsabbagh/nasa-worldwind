@@ -48,6 +48,7 @@ define([
          * <p>
          * Layers of this type are not pickable. Their pick-enabled flag is initialized to false.
          *
+         * @augments Layer
          * @param {Sector} sector The sector this layer covers.
          * @param {Location} levelZeroDelta The size in latitude and longitude of level zero (lowest resolution) tiles.
          * @param {Number} numLevels The number of levels to define for the layer. Each level is successively one power of two higher

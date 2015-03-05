@@ -20,9 +20,11 @@ define([
 
         /**
          * Constructs a Bing Aerial with Labels layer.
-         * @alias BingAerialLayer
+         * @alias BingAerialWithLabelsLayer
          * @constructor
+         * @augments BingTiledImageLayer
          * @classdesc Displays a Bing Aerial layer with roads and labels.
+         * See also {@link BingAerialLayer} and {@link BingRoadsLayer}.
          */
         var BingAerialWithLabelsLayer = function () {
             BingTiledImageLayer.call(this, "Bing Aerial with Labels");
