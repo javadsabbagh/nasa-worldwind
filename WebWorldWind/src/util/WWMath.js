@@ -169,6 +169,15 @@ define([
             },
 
             /**
+             * Returns the fractional part of a specified number
+             * @param {Number} number The number whose fractional part to compute.
+             * @returns {Number} The fractional part of the specified number: <code>number - floor(number)</code>.
+             */
+            fract: function (number) {
+                return number - Math.floor(number);
+            },
+
+            /**
              * Returns the maximum of two specified numbers.
              * @param {number} value1 The first value to compare.
              * @param {number} value2 The second value to compare.
@@ -502,8 +511,8 @@ define([
 
             /**
              * Determine the sign of a number.
-             * @param {number} value The value to determine the sign of.
-             * @returns {number} 1, -1, or 0, depending on the sign of the value.
+             * @param {Number} value The value to determine the sign of.
+             * @returns {Number} 1, -1, or 0, depending on the sign of the value.
              */
             signum: function (value) {
                 return value > 0 ? 1 : value < 0 ? -1 : 0;
