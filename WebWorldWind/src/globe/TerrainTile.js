@@ -45,29 +45,80 @@ define([
             this.points = null;
 
             /**
-             * Indicates the date and time at which this tile's terrain geometry was computed.
-             * This is used to invalidate the terrain geometry when the globe's elevations change.
-             * @type {number}
+             * Indicates the state of this tile when the model coordinate points were last updated. This is used to
+             * invalidate the points when this tile's state changes.
+             * @type {String}
              */
-            this.geometryTimestamp = 0;
+            this.pointsStateKey = null;
 
             /**
-             * Indicates the date and time at which this tile's terrain geometry VBO was loaded.
-             * This is used to invalidate the terrain geometry when the globe's elevations change.
-             * @type {number}
+             * Indicates the state of this tile when the model coordinate VBO was last uploaded to GL. This is used to
+             * invalidate the VBO when the tile's state changes.
+             * @type {String}
              */
-            this.geometryVboTimestamp = 0;
+            this.pointsVboStateKey = null;
 
-            /**
-             * The GPU resource cache ID for this tile's model coordinates VBO.
-             * @type {null}
-             */
-            this.geometryVboCacheKey = level.levelNumber.toString() + "." + row.toString() + "." + column.toString();
+            // Internal use. Intentionally not documented.
+            this.neighborMap = {};
+            this.neighborMap[WorldWind.NORTH] = null;
+            this.neighborMap[WorldWind.SOUTH] = null;
+            this.neighborMap[WorldWind.EAST] = null;
+            this.neighborMap[WorldWind.WEST] = null;
 
-            this.scratchArray = [];
+            // Internal use. Intentionally not documented.
+            this._stateKey = null;
+
+            // Internal use. Intentionally not documented.
+            this._elevationTimestamp = null;
+
+            // Internal use. Intentionally not documented.
+            this.scratchArray = []; // TODO Would using Float64Array make any difference in surfacePoint behavior?
         };
 
         TerrainTile.prototype = Object.create(Tile.prototype);
+
+        Object.defineProperties(TerrainTile.prototype, {
+            /**
+             * A string identifying the state of this tile as a function of the elevation model's timestamp and this
+             * tile's neighbors. Used to compare states during rendering to determine whether cached values must be
+             * updated. Applications typically do not interact with this property.
+             * @type {String}
+             * @memberof TerrainTile.prototype
+             * @readonly
+             */
+            stateKey: {
+                get: function () {
+                    if (!this._stateKey) {
+                        this._stateKey = this.computeStateKey();
+                    }
+
+                    return this._stateKey;
+                }
+            }
+        });
+
+        /**
+         * Indicates the level of the tile adjacent to this tile in a specified direction. This returns null when this
+         * tile has no neighbor in that direction.
+         * @param {String} direction The cardinal direction. Must be one of WorldWind.NORTH, WorldWind.SOUTH,
+         * WorldWind.EAST or WorldWind.WEST.
+         * @returns {Level} The neighbor tile's level in the specified direction, or null if there is no neighbor.
+         */
+        TerrainTile.prototype.neighborLevel = function (direction) {
+            return this.neighborMap[direction];
+        };
+
+        /**
+         * Specifies the level of the tile adjacent to this tile in a specified direction.
+         * @param {String} direction The cardinal direction. Must be one of WorldWind.NORTH, WorldWind.SOUTH,
+         * WorldWind.EAST or WorldWind.WEST.
+         * @param {Level} level The neighbor tile's level in the specified direction, or null to indicate that there is
+         * no neighbor in that direction.
+         */
+        TerrainTile.prototype.setNeighborLevel = function (direction, level) {
+            this.neighborMap[direction] = level;
+            this._stateKey = null; // cause updates to any neighbor-dependent cached state
+        };
 
         /**
          * Computes a point on the terrain at a specified location.
@@ -144,6 +195,27 @@ define([
             result[2] += this.referencePoint[2];
 
             return result;
+        };
+
+        TerrainTile.prototype.update = function (dc) {
+            Tile.prototype.update.call(this, dc);
+
+            var elevationTimestamp = dc.globe.elevationTimestamp();
+            if (this._elevationTimestamp != elevationTimestamp) {
+                this._elevationTimestamp = elevationTimestamp;
+                this._stateKey = null; // cause updates to any elevation-dependent cached state
+            }
+        };
+
+        TerrainTile.prototype.computeStateKey = function () {
+            var array = [];
+            array.push(this._elevationTimestamp);
+            array.push(this.neighborMap[WorldWind.NORTH] ? this.neighborMap[WorldWind.NORTH].compare(this.level) : 0);
+            array.push(this.neighborMap[WorldWind.SOUTH] ? this.neighborMap[WorldWind.SOUTH].compare(this.level) : 0);
+            array.push(this.neighborMap[WorldWind.EAST] ? this.neighborMap[WorldWind.EAST].compare(this.level) : 0);
+            array.push(this.neighborMap[WorldWind.WEST] ? this.neighborMap[WorldWind.WEST].compare(this.level) : 0);
+
+            return array.join(".");
         };
 
         return TerrainTile;

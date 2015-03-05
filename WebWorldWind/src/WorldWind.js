@@ -273,6 +273,12 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
             CLAMP_TO_GROUND: "clampToGround",
 
             /**
+             * Indicates the cardinal direction east.
+             * @constant
+             */
+            EAST: "east",
+
+            /**
              * The ENDED gesture recognizer state. Continuous gesture recognizers transition to this state from either
              * the BEGAN state or the CHANGED state when the current input no longer represents the gesture.
              * @constant
@@ -297,6 +303,12 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
              * @constant
              */
             LINEAR: "linear",
+
+            /**
+             * Indicates the cardinal direction north.
+             * @constant
+             */
+            NORTH: "north",
 
             /**
              * Indicates that the associated parameters are fractional values of the virtual rectangle's width or
@@ -350,7 +362,19 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
              * Indicates a rhumb path -- a path of constant bearing.
              * @constant
              */
-            RHUMB_LINE: "rhumbLine"
+            RHUMB_LINE: "rhumbLine",
+
+            /**
+             * Indicates the cardinal direction south.
+             * @constant
+             */
+            SOUTH: "south",
+
+            /**
+             * Indicates the cardinal direction west.
+             * @constant
+             */
+            WEST: "west"
         };
 
         WorldWind['AbstractError'] = AbstractError;

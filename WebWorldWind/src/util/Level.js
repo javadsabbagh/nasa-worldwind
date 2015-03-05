@@ -53,7 +53,7 @@ define([
 
             /**
              * The level set that this level is a member of.
-             * @type {WWLevelSet}
+             * @type {LevelSet}
              */
             this.parent = parent;
 
@@ -106,7 +106,7 @@ define([
          * @returns {Level} The previous level, or null if this is the first level.
          */
         Level.prototype.previousLevel = function () {
-            return this.parent.level(this.levelNumber - 1);
+            return this.parent.firstLevel() != this ? this.parent.level(this.levelNumber - 1) : null;
         };
 
         /**
@@ -115,14 +115,14 @@ define([
          * @returns {Level} The next level, or null if this is the last level.
          */
         Level.prototype.nextLevel = function () {
-            return this.parent.level(this.levelNumber + 1);
+            return this.parent.lastLevel() != this ? this.parent.level(this.levelNumber + 1) : null;
         };
 
         /**
          * Compare this level's ordinal to that of a specified level.
          * @param {Level} that The level to compare this one to.
-         * @returns {Number} 0 if the two ordinals are equivalent. 1 if the specified level's ordinal is greater than
-         * this level's ordinal. -1 if the specified level's ordinal is less than this level's ordinal.
+         * @returns {Number} 0 if the two ordinals are equivalent. -1 if this level's ordinal is less than the specified
+         * level's ordinal. 1 if this level's ordinal is greater than the specified level's ordinal.
          * @throws {ArgumentError} If the specified level is null or undefined.
          */
         Level.prototype.compare = function (that) {
@@ -133,10 +133,10 @@ define([
             }
 
             if (this.levelNumber < that.levelNumber)
-                return 1;
+                return -1;
 
             if (this.levelNumber > that.levelNumber)
-                return -1;
+                return 1;
 
             return 0;
         };
