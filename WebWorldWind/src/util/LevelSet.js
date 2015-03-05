@@ -116,7 +116,11 @@ define([
          * @returns {Level} The requested level, or null if the level does not exist.
          */
         LevelSet.prototype.level = function(levelNumber) {
-            return this.levels[levelNumber];
+            if (levelNumber < 0 || levelNumber >= this.levels.length) {
+                return nil;
+            } else {
+                return this.levels[levelNumber];
+            }
         };
 
         /**

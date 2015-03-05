@@ -106,7 +106,7 @@ define([
          * @returns {Level} The previous level, or null if this is the first level.
          */
         Level.prototype.previousLevel = function () {
-            return this.parent.firstLevel() != this ? this.parent.level(this.levelNumber - 1) : null;
+            return this.parent.level(this.levelNumber - 1);
         };
 
         /**
@@ -115,7 +115,7 @@ define([
          * @returns {Level} The next level, or null if this is the last level.
          */
         Level.prototype.nextLevel = function () {
-            return this.parent.lastLevel() != this ? this.parent.level(this.levelNumber + 1) : null;
+            return this.parent.level(this.levelNumber + 1);
         };
 
         /**

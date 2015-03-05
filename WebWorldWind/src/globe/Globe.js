@@ -599,23 +599,23 @@ define([
             return this.elevationModel.elevationAtLocation(latitude, longitude);
         };
 
-        Globe.prototype.elevationsForGrid = function (sector, numLatitude, numLongitude, targetResolution, result) {
+        Globe.prototype.elevationsForGrid = function (sector, numLat, numLon, targetResolution, result) {
             if (!sector) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Globe", "elevationsForSector", "missingSector"));
             }
 
-            if (numLatitude <= 0 || numLongitude <= 0) {
+            if (numLat <= 0 || numLon <= 0) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "Globe",
-                    "elevationsForSector", "numLatitude or numLongitude is less than 1"));
+                    "elevationsForSector", "numLat or numLon is less than 1"));
             }
 
-            if (!result || result.length < numLatitude * numLongitude) {
+            if (!result || result.length < numLat * numLon) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "Globe",
                     "elevationsForSector", "missingArray"));
             }
 
-            return this.elevationModel.elevationsForGrid(sector, numLatitude, numLongitude, targetResolution, result);
+            return this.elevationModel.elevationsForGrid(sector, numLat, numLon, targetResolution, result);
         };
 
         return Globe;
