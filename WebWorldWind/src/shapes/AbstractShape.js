@@ -132,6 +132,10 @@ define([
                 return;
             }
 
+            if (!dc.terrain && (this.altitudeMode != WorldWind.ABSOLUTE)) {
+                return;
+            }
+
             this.establishCurrentData(dc);
 
             if (dc.globe.projectionLimits && !this.isWithinProjectionLimits(dc)) {
