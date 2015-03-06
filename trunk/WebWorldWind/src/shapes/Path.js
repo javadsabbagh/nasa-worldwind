@@ -485,7 +485,7 @@ define([
                     gl.depthMask(false);
                 }
                 program.loadColor(gl, dc.pickingMode ? pickColor : color);
-                program.loadOpacity(gl, dc.pickingMode ? 1 : opacity);
+                program.loadOpacity(gl, dc.pickingMode ? (opacity > 0 ? 1 : 0) : opacity);
 
                 gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, 0, 0);
                 gl.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, numPoints);
