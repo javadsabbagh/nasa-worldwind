@@ -22,15 +22,15 @@ requirejs(['../src/WorldWind',
         wwd.addLayer(new WorldWind.BMNGLayer());
 
         // Add the Bing Aerial layer but turn it off by default.
-        var layer = new WorldWind.BingAerialLayer();
+        var layer = new WorldWind.BingAerialLayer(null);
         layer.enabled = false;
         wwd.addLayer(layer);
 
         // Add the Bing Aerial with Labels layer and leave it on by default.
-        wwd.addLayer(new WorldWind.BingAerialWithLabelsLayer());
+        wwd.addLayer(new WorldWind.BingAerialWithLabelsLayer(null));
 
         // Add the Bing Roads layer but turn it off by default.
-        layer = new WorldWind.BingRoadsLayer();
+        layer = new WorldWind.BingRoadsLayer(null);
         layer.enabled = false;
         wwd.addLayer(layer);
 

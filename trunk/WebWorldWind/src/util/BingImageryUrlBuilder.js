@@ -22,12 +22,27 @@ define([
          * @constructor
          * @classdesc Provides a factory to create URLs for Bing image requests.
          * @param {String} imagerySet The name of the imagery set to display.
-         * @param {String} bingMapsKey The Bing Maps key to use for the image requests.
-         *
+         * @param {String} bingMapsKey The Bing Maps key to use for the image requests. If null or undefined, the key at
+         * WorldWind.BingMapsKey is used. If that is null or undefined, the default World Wind Bing Maps key is used,
+         * but this fallback is provided only for non-production use. If you are using Web World Wind in an app or a
+         * web page, you must obtain your own key from the
+         * [Bing Maps Portal]{@link https://www.microsoft.com/maps/choose-your-bing-maps-API.aspx}
+         * and either pass it as a parameter to this constructor or specify it as the property WorldWind.BingMapsKey.
          */
         var BingImageryUrlBuilder = function (imagerySet, bingMapsKey) {
+            var wwBingMapsKey = "AkttWCS8p6qzxvx5RH3qUcCPgwG9nRJ7IwlpFGb14B0rBorB5DvmXr2Y_eCUNIxH";
+
             if (!bingMapsKey) {
-                bingMapsKey = "AkttWCS8p6qzxvx5RH3qUcCPgwG9nRJ7IwlpFGb14B0rBorB5DvmXr2Y_eCUNIxH";
+                bingMapsKey = WorldWind.BingMapsKey;
+
+                if (!bingMapsKey) {
+                    bingMapsKey = wwBingMapsKey;
+                }
+
+                if (bingMapsKey === wwBingMapsKey) {
+                    bingMapsKey = wwBingMapsKey;
+                    BingImageryUrlBuilder.showBingMapsKeyWarning();
+                }
             }
 
             this.imagerySet = imagerySet;
@@ -48,6 +63,18 @@ define([
                 e.initEvent(WorldWind.REDRAW_EVENT_TYPE, true, true);
                 window.dispatchEvent(e);
             })
+        };
+
+        BingImageryUrlBuilder.showBingMapsKeyWarning = function () {
+            if (!BingImageryUrlBuilder.keyMessagePrinted) {
+                BingImageryUrlBuilder.keyMessagePrinted = true;
+
+                Logger.log(Logger.LEVEL_WARNING, "WARNING: You are using a limited use, non-production Bing Maps key.\n" +
+                "If you are developing an app or a web page this violates the Bing Terms of Use.\n" +
+                "Please visit https://www.microsoft.com/maps/choose-your-bing-maps-API.aspx to obtain your own key for your application.\n" +
+                "Specify that key to World Wind by setting the WorldWind.BingMapsKey property to your key " +
+                "prior to creating any Bing Maps layers.\n");
+            }
         };
 
         /**

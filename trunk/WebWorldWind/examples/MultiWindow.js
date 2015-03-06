@@ -35,7 +35,7 @@ requirejs(['../src/WorldWind'], function () {
     };
 
     var pathLayer = makePathLayer(),
-        imageryLayer = new WorldWind.BingAerialWithLabelsLayer(); // Create the shared imagery layer
+        imageryLayer = new WorldWind.BingAerialWithLabelsLayer(null); // Create the shared imagery layer
 
     var wwd1 = new WorldWind.WorldWindow("canvasOne");
     wwd1.addLayer(imageryLayer);
