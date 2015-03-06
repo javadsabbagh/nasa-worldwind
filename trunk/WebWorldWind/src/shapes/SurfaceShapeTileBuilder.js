@@ -110,18 +110,6 @@ define([
              * @type {number}
              */
             this.SPLIT_SCALE = 2.9;
-
-            // Internal use only. Intentionally not documented.
-            this.surfaceShapesChanged = [];
-
-            // Internal use only. Intentionally not documented.
-            var self = this;
-            this.shapeListener = function(surfaceShape) {
-                var idx = self.surfaceShapesChanged.indexOf(surfaceShape);
-                if (idx == -1) {
-                    self.surfaceShapesChanged.push(surfaceShape);
-                }
-            };
         };
 
         /**
@@ -139,8 +127,6 @@ define([
          */
         SurfaceShapeTileBuilder.prototype.insertSurfaceShape = function(surfaceShape) {
             this.surfaceShapes.push(surfaceShape);
-
-            surfaceShape.addListener(this.shapeListener);
         };
 
         /**
@@ -399,23 +385,7 @@ define([
                 tile.pickSequence = SurfaceShapeTileBuilder.pickSequence;
             }
 
-            var isTextureUpdateNeeded = false;
-
-            if (tile.hasTexture(dc)) {
-                for (var idx = 0, len = this.surfaceShapesChanged.length; idx < len; idx += 1) {
-                    var surfaceShape = this.surfaceShapesChanged[idx];
-
-                    if (tile.hasShape(surfaceShape)) {
-                        isTextureUpdateNeeded = true;
-                        break;
-                    }
-                }
-            }
-            else {
-                isTextureUpdateNeeded = true;
-            }
-
-            if (isTextureUpdateNeeded) {
+            if (!tile.hasTexture(dc)) {
                 tile.updateTexture(dc);
             }
 

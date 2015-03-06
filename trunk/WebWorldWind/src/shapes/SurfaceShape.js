@@ -165,66 +165,9 @@ define([
              * @type {boolean}
              */
             this.isInteriorInhibited = false;
-
-            // Internal use only. Intentionally not documented.
-            this.listeners = [];
-
-            var notifyListeners = this.notifyListeners,
-                self = this;
-            attributes.addListener(function (shapeAttributes) {
-                notifyListeners(self);
-            });
         };
 
         SurfaceShape.prototype = Object.create(Renderable.prototype);
-
-        /**
-         * Add a listener to this surface shape. The listener will be called whenever the surface shape changes.
-         * @param listener
-         */
-        SurfaceShape.prototype.addListener = function(listener) {
-            if (!listener) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceShape", "addListener",
-                        "missingListener"));
-            }
-
-            if (typeof listener != "function") {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceShape", "addListener",
-                        "The specified listener is not a function."));
-            }
-
-            var index = this.listeners.indexOf(listener);
-            if (index == -1) {
-                this.listeners.push(listener);
-            }
-        };
-
-        /**
-         * Remove a listener from this surface shape.
-         * @param listener
-         */
-        SurfaceShape.prototype.removeListener = function(listener) {
-            if (!listener) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceShape", "removeListener",
-                        "missingListener"));
-            }
-
-            var index = this.listeners.indexOf(listener);
-            if (index != -1) {
-                this.listeners.splice(index, 1);
-            }
-        };
-
-        // Internal use only. Intentionally not documented.
-        SurfaceShape.prototype.notifyListeners = function(self) {
-            for (var idx = 0, len = self.listeners.length; idx < len; idx += 1) {
-                var listener = self.listeners[idx];
-                listener.call(listener, self);
-            }
-        };
 
         /**
          * Returns this shape's area in square meters.
