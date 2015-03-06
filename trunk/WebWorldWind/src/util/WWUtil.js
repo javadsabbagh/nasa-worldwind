@@ -128,6 +128,57 @@ define([
                 for (var i = 0, len = array.length; i < len; i++) {
                     array[i] *= value;
                 }
+            },
+
+            // Used to form unique function names for JSONP callback functions.
+            jsonpCounter: 0,
+
+            /**
+             * Request a resource using JSONP.
+             * @param {String} url The url to receive the request.
+             * @param {String} parameterName The JSONP callback function key required by the server. Typically
+             * "jsonp" or "callback".
+             * @param {Function} callback The function to invoke when the request succeeds. The function receives
+             * one argument, the JSON payload of the JSONP request.
+             */
+            jsonp: function (url, parameterName, callback) {
+
+                // Generate a unique function name for the JSONP callback.
+                var functionName = "gov_nasa_worldwind_jsonp_" + WWUtil.jsonpCounter++;
+
+                // Define a JSONP callback function. Assign it to global scope the browser can find it.
+                window[functionName] = function (jsonData) {
+                    // Remove the JSONP callback from global scope.
+                    delete window[functionName];
+
+                    // Call the client's callback function.
+                    callback(jsonData);
+                };
+
+                // Append the callback query parameter to the URL.
+                var jsonpUrl = url + (url.indexOf('?') === -1 ? '?' : '&');
+                jsonpUrl += parameterName + "=" + functionName;
+
+                // Create a script element for the browser to invoke.
+                var script = document.createElement('script');
+                script.async = true;
+                script.src = jsonpUrl;
+
+                // Prepare to add the script to the document's head.
+                var head = document.getElementsByTagName('head')[0];
+
+                // Set up to remove the script element once it's invoked.
+                var cleanup = function () {
+                    script.onload = undefined;
+                    script.onerror = undefined;
+                    head.removeChild(script);
+                };
+
+                script.onload = cleanup;
+                script.onerror = cleanup;
+
+                // Add the script element to the document, causing the browser to invoke it.
+                head.appendChild(script);
             }
         };
 

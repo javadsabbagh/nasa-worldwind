@@ -136,8 +136,8 @@ define([
             if (this.currentTilesInvalid
                 || !this.lasTtMVP || !dc.navigatorState.modelviewProjection.equals(this.lasTtMVP)
                 || dc.globeStateKey != this.lastGlobeStateKey) {
-                this.assembleTiles(dc);
                 this.currentTilesInvalid = false;
+                this.assembleTiles(dc);
             }
 
             this.lasTtMVP = dc.navigatorState.modelviewProjection;
@@ -279,8 +279,10 @@ define([
                     gl = dc.currentGlContext,
                     layer = this;
 
-                if (!url)
+                if (!url) {
+                    this.currentTilesInvalid = true;
                     return;
+                }
 
                 image.onload = function () {
                     Logger.log(Logger.LEVEL_INFO, "Image retrieval succeeded: " + url);

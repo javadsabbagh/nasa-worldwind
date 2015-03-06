@@ -8,10 +8,12 @@
  */
 define([
         '../error/ArgumentError',
-        '../util/Logger'
+        '../util/Logger',
+        '../util/WWUtil'
     ],
     function (ArgumentError,
-              Logger) {
+              Logger,
+              WWUtil) {
         "use strict";
 
         /**
@@ -30,31 +32,22 @@ define([
 
             this.imagerySet = imagerySet;
 
-            //// Retrieve the metadata for the imagery set.
-            //
-            //var xhr = new XMLHttpRequest(),
-            //    url = "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/" + imagerySet + "/0,0?zl=1&key="
-            //        + bingMapsKey;
-            //
-            //xhr.open("GET", url, true);
-            //xhr.response = "arrayBuffer";
-            //xhr.onreadystatechange = function () {
-            //    if (xhr.readyState === 4 && xhr.status === 200) {
-            //        var contentType = xhr.getResponseHeader("content-type"),
-            //            response = JSON.parse(String.fromCharCode.apply(null, new Uint8Array(xhr.response)));
-            //        console.log(response);
-            //    }
-            //};
-            //
-            //xhr.onerror = function () {
-            //    console.log("Error for " + url);
-            //};
-            //
-            //xhr.ontimeout = function () {
-            //    console.log("Timeout for " + url);
-            //};
-            //
-            //xhr.send(null);
+            // Retrieve the metadata for the imagery set.
+
+            var url = "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/" + imagerySet + "/0,0?zl=1&key="
+                + bingMapsKey;
+
+            // Use JSONP to request the metadata. Can't use XmlHTTPRequest because the virtual earth server doesn't
+            // allow cross-origin requests for metadata retrieval.
+            var thisObject = this;
+            WWUtil.jsonp(url, "jsonp", function (jsonData) {
+                thisObject.imageUrl = jsonData.resourceSets[0].resources[0].imageUrl;
+
+                // Send an event to request a redraw.
+                var e = document.createEvent('Event');
+                e.initEvent(WorldWind.REDRAW_EVENT_TYPE, true, true);
+                window.dispatchEvent(e);
+            })
         };
 
         /**
@@ -75,23 +68,25 @@ define([
                         "The image format is null or undefined."));
             }
 
-            var sb = "http://ecn.t3.tiles.virtualearth.net/tiles/";
-
-            if (this.imagerySet === "Aerial") {
-                sb += "a";
-            } else if (this.imagerySet === "AerialWithLabels") {
-                sb += "h";
-            } else if (this.imagerySet === "Road") {
-                sb += "r";
-            } else {
-                sb += "a";
+            if (!this.imageUrl) {
+                // Can't do anything until we get the metadata back from the server.
+                return null;
             }
 
-            sb += this.quadKeyFromLevelRowColumn(tile.level.levelNumber, tile.row, tile.column);
+            // The quad key identifies the specific image tile for the requested tile.
+            var quadKey = this.quadKeyFromLevelRowColumn(tile.level.levelNumber, tile.row, tile.column),
+                url;
 
-            sb += ".jpeg?g=3299";
+            // Modify the original image URL to request the tile.
+            if (this.imagerySet === "Aerial") {
+                url = this.imageUrl.replace(/a3/, "a" + quadKey);
+            } else if (this.imagerySet === "AerialWithLabels") {
+                url = this.imageUrl.replace(/h3/, "h" + quadKey);
+            } else if (this.imagerySet === "Road") {
+                url = this.imageUrl.replace(/r3/, "r" + quadKey);
+            }
 
-            return sb;
+            return url;
         };
 
         BingImageryUrlBuilder.prototype.quadKeyFromLevelRowColumn = function (levelNumber, row, column) {
