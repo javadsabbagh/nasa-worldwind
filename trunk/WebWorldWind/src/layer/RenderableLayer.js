@@ -71,7 +71,7 @@ define([
         RenderableLayer.prototype.removeRenderable = function (renderable) {
             var index = this.renderables.indexOf(renderable);
             if (index >= 0) {
-                this.renderables.slice(index, 1);
+                this.renderables.splice(index, 1);
             }
         };
 
@@ -79,7 +79,7 @@ define([
          * Removes all renderables from this layer.
          */
         RenderableLayer.prototype.removeAllRenderables = function () {
-            this.renderables.slice(0, this.renderables.length);
+            this.renderables.splice(0, this.renderables.length);
         };
 
         RenderableLayer.prototype.doRender = function (dc) {
