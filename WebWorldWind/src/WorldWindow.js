@@ -558,6 +558,8 @@ define([
             if (!this.deferOrderedRendering) {
                 this.drawOrderedRenderables();
             }
+
+            dc.screenCreditController.drawCredits(dc);
         };
 
         // Internal function. Intentionally not documented.

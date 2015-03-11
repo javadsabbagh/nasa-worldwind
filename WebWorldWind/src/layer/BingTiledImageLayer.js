@@ -12,14 +12,16 @@ define([
         '../geom/Sector',
         '../layer/TiledImageLayer',
         '../geom/Vec2',
-        '../util/WWMath'
+        '../util/WWMath',
+        '../util/WWUtil'
     ],
     function (Angle,
               Location,
               Sector,
               TiledImageLayer,
               Vec2,
-              WWMath) {
+              WWMath,
+              WWUtil) {
         "use strict";
 
         /**
@@ -58,9 +60,18 @@ define([
                 new Vec2(20, 235),
                 new Vec2(235, 235)
             ];
+
+            this.creditImage = WWUtil.currentUrlSansFilePart() + "/../images/powered-by-bing.png"
         };
 
         BingTiledImageLayer.prototype = Object.create(TiledImageLayer.prototype);
+
+        BingTiledImageLayer.prototype.doRender = function (dc) {
+            TiledImageLayer.prototype.doRender.call(this, dc);
+            if (this.inCurrentFrame) {
+                dc.screenCreditController.addImageCredit(this.creditImage);
+            }
+        };
 
         // Overridden from TiledImageLayer.
         BingTiledImageLayer.prototype.createTopLevelTiles = function (dc) {
