@@ -38,15 +38,8 @@ requirejs([
         }
         
         var shapesLayer = new WorldWind.RenderableLayer("Surface Shapes"),
-            shapeAttributes = new WorldWind.ShapeAttributes(null);
-
-        // Set up the common shape attributes.
-        shapeAttributes.imageScale = 1;
-        shapeAttributes.imageOffset = new WorldWind.Offset(
-            WorldWind.OFFSET_FRACTION, 0.5,
-            WorldWind.OFFSET_FRACTION, 0.0);
-        shapeAttributes.imageColor = WorldWind.Color.WHITE;
-        shapeAttributes.outlineWidth = 2;
+            shapeAttributes = new WorldWind.ShapeAttributes(null),
+            highlightShapeAttributes;
 
         // Set up some shape attributes to customize for the next shape.
         shapeAttributes.interiorColor = WorldWind.Color.RED;
@@ -60,6 +53,11 @@ requirejs([
         ];
         var surfacePolygonVancouverLondonTokyo = new WorldWind.SurfacePolygon(shapeBoundariesVancouverLondonTokyo,
             new WorldWind.ShapeAttributes(shapeAttributes));
+
+        highlightShapeAttributes = new WorldWind.ShapeAttributes(shapeAttributes);
+        highlightShapeAttributes.interiorColor = WorldWind.Color.WHITE;
+        surfacePolygonVancouverLondonTokyo.highlightAttributes = highlightShapeAttributes;
+
         shapesLayer.addRenderable(surfacePolygonVancouverLondonTokyo);
 
         // Set up some shape attributes to customize for the next shape.
@@ -76,6 +74,11 @@ requirejs([
         ];
         var surfacePolygonManilaLaSydney = new WorldWind.SurfacePolygon(shapeBoundariesManilaLaSydney,
             new WorldWind.ShapeAttributes(shapeAttributes));
+
+        highlightShapeAttributes = new WorldWind.ShapeAttributes(shapeAttributes);
+        highlightShapeAttributes.interiorColor = WorldWind.Color.WHITE;
+        surfacePolygonManilaLaSydney.highlightAttributes = highlightShapeAttributes;
+
         shapesLayer.addRenderable(surfacePolygonManilaLaSydney);
 
         // Set up some shape attributes to customize for the next shape.
@@ -88,11 +91,21 @@ requirejs([
         // Create a 10 km circle centered on Miami.
         var surfaceCircleMiami = new WorldWind.SurfaceCircle(new WorldWind.Location(25.769185, -80.194173), 10000,
             new WorldWind.ShapeAttributes(shapeAttributes));
+
+        highlightShapeAttributes = new WorldWind.ShapeAttributes(shapeAttributes);
+        highlightShapeAttributes.interiorColor = WorldWind.Color.WHITE;
+        surfaceCircleMiami.highlightAttributes = highlightShapeAttributes;
+
         shapesLayer.addRenderable(surfaceCircleMiami);
 
         // Create a sector that corresponds to the state of Colorado.
         var surfaceSectorColorado = new WorldWind.SurfaceSector(new WorldWind.Sector(37, 41, -109, -102),
             new WorldWind.ShapeAttributes(shapeAttributes));
+
+        highlightShapeAttributes = new WorldWind.ShapeAttributes(shapeAttributes);
+        highlightShapeAttributes.interiorColor = WorldWind.Color.WHITE;
+        surfaceSectorColorado.highlightAttributes = highlightShapeAttributes;
+
         shapesLayer.addRenderable(surfaceSectorColorado);
 
         // Set up some shape attributes to customize for the next shape.
@@ -105,6 +118,11 @@ requirejs([
         // Create a 1000x2000 rectangle near the south pole.
         var surfaceRectangleAntarctica = new WorldWind.SurfaceRectangle(new WorldWind.Location(-88, 45), 1000000, 2000000,
             new WorldWind.ShapeAttributes(shapeAttributes));
+
+        highlightShapeAttributes = new WorldWind.ShapeAttributes(shapeAttributes);
+        highlightShapeAttributes.interiorColor = WorldWind.Color.WHITE;
+        surfaceRectangleAntarctica.highlightAttributes = new WorldWind.ShapeAttributes(highlightShapeAttributes);
+
         shapesLayer.addRenderable(surfaceRectangleAntarctica);
 
         //
@@ -134,6 +152,8 @@ requirejs([
             new WorldWind.Location(47.623264, -122.354092)
         ];
         var surfacePolygonSeattleCenter = new WorldWind.SurfacePolygon(shapeBoundarySeattleCenter, new WorldWind.ShapeAttributes(shapeAttributes));
+        shapeAttributes.outlineColor = WorldWind.Color.YELLOW;
+        surfacePolygonSeattleCenter.highlightAttributes = new WorldWind.ShapeAttributes(shapeAttributes);
         shapesLayer.addRenderable(surfacePolygonSeattleCenter);
 
         // Shape attributes for the Key Arena.
@@ -146,6 +166,8 @@ requirejs([
         // Create a rectangle around Key Arena.
         var surfaceRectangleKeyArena = new WorldWind.SurfaceRectangle(new WorldWind.Location(47.622105, -122.354009), 125, 125,
             new WorldWind.ShapeAttributes(shapeAttributes));
+        shapeAttributes.outlineColor = WorldWind.Color.YELLOW;
+        surfaceRectangleKeyArena.highlightAttributes = new WorldWind.ShapeAttributes(shapeAttributes);
         shapesLayer.addRenderable(surfaceRectangleKeyArena);
 
         // Shape attributes for the Space Needle.
@@ -158,6 +180,8 @@ requirejs([
         // Create a 30m circle around the Space Needle in Seattle.
         var surfaceCircleSpaceNeedle = new WorldWind.SurfaceCircle(new WorldWind.Location(47.620504, -122.349277), 30,
             new WorldWind.ShapeAttributes(shapeAttributes));
+        shapeAttributes.outlineColor = WorldWind.Color.YELLOW;
+        surfaceCircleSpaceNeedle.highlightAttributes = new WorldWind.ShapeAttributes(shapeAttributes);
         shapesLayer.addRenderable(surfaceCircleSpaceNeedle);
 
         // Set up some shape attributes to customize for the next shape.
@@ -174,6 +198,18 @@ requirejs([
         // Add the shapes layer to the World Window's layer list.
         wwd.addLayer(shapesLayer);
 
+        var shapesCirclePerfLayer = new WorldWind.RenderableLayer("SurfaceCircle Perf Test");
+        perfTestBullseyes(shapesCirclePerfLayer);
+        wwd.addLayer(shapesCirclePerfLayer);
+
+        var shapesRectanglePerfLayer = new WorldWind.RenderableLayer("SurfaceRectangle Perf Test");
+        perfTestSpiral(shapesRectanglePerfLayer);
+        wwd.addLayer(shapesRectanglePerfLayer);
+
+        var shapesPolygonPerfLayer = new WorldWind.RenderableLayer("SurfacePolygon Perf Test");
+        perfTestSponge(shapesPolygonPerfLayer);
+        wwd.addLayer(shapesPolygonPerfLayer);
+
         // Draw the World Window for the first time.
         wwd.redraw();
 
@@ -182,33 +218,6 @@ requirejs([
 
         var firstX = -1,
             firstY = -1;
-
-        var indicateShape = function(shape) {
-            var kindOfShape;
-            if (shape instanceof WorldWind.SurfaceCircle) {
-                kindOfShape = "A surface circle";
-            }
-            else if (shape instanceof WorldWind.SurfaceEllipse) {
-                kindOfShape = "A surface ellipse";
-            }
-            else if (shape instanceof WorldWind.SurfacePolygon) {
-                kindOfShape = "A surface polygon";
-            }
-            else if (shape instanceof WorldWind.SurfacePolyline) {
-                kindOfShape = "A surface polyline";
-            }
-            else if (shape instanceof WorldWind.SurfaceRectangle) {
-                kindOfShape = "A surface rectangle";
-            }
-            else if (shape instanceof WorldWind.SurfaceSector) {
-                kindOfShape = "A surface sector";
-            }
-            else {
-                kindOfShape = "No shape";
-            }
-
-            alert(kindOfShape + " was picked!");
-        };
 
         var handleMouseUp = function (o) {
             // The input argument is either an Event or a TapRecognizer. Both have the same properties for determining
@@ -229,15 +238,11 @@ requirejs([
             // Highlight the items picked.
             if (pickList.objects.length > 0) {
                 for (var p = 0; p < pickList.objects.length; p++) {
-                    indicateShape(pickList.objects[p].userObject);
+                    var shape = pickList.objects[p].userObject;
+                    shape.highlighted = !shape.highlighted;
                 }
-            }
-            else {
-                indicateShape(null);
-            }
 
-            // Update the window if we changed anything.
-            if (pickList.objects.length > 0) {
+                // Update the window.
                 wwd.redraw();
             }
         };
@@ -261,4 +266,134 @@ requirejs([
         // Listen for taps on mobile devices and highlight the placemarks that the user taps.
         var tapRecognizer = new WorldWind.TapRecognizer(wwd);
         tapRecognizer.addGestureListener(handlePick);
-    });
+    },
+
+    perfTestBullseyes = function(layer) {
+        var center = new WorldWind.Location(39.883635, -98.545936);
+
+        var shapeAttributesRed = new WorldWind.ShapeAttributes(null);
+        shapeAttributesRed.interiorColor = WorldWind.Color.RED;
+
+        var shapeAttributesWhite = new WorldWind.ShapeAttributes(null);
+        shapeAttributesWhite.interiorColor = WorldWind.Color.WHITE;
+
+        var shapeAttributesYellow = new WorldWind.ShapeAttributes(null);
+        shapeAttributesYellow.interiorColor = WorldWind.Color.YELLOW;
+
+        var isRed = true,
+            numCircles = 0;
+
+        for (var radius = 1000000; radius > 10; radius *= 0.75) {
+            var shapeCircle;
+            if (isRed) {
+                shapeCircle = new WorldWind.SurfaceCircle(center, radius, shapeAttributesRed);
+                shapeCircle.highlightAttributes = shapeAttributesYellow;
+            }
+            else {
+                shapeCircle = new WorldWind.SurfaceCircle(center, radius, shapeAttributesWhite);
+                shapeCircle.highlightAttributes = shapeAttributesYellow;
+            }
+            layer.addRenderable(shapeCircle);
+
+            isRed = !isRed;
+            numCircles += 1;
+        }
+
+        // For debugging only.
+        // console.log("Number of shapeCircles generated: " + numCircles.toString());
+    },
+
+    perfTestSpiral = function(layer) {
+        var center = new WorldWind.Location(20.395127, -170.264684);
+
+        var shapeAttributesRed = new WorldWind.ShapeAttributes(null);
+        shapeAttributesRed.interiorColor = WorldWind.Color.RED;
+        shapeAttributesRed.outlineColor = WorldWind.Color.BLACK;
+        shapeAttributesRed.outlineWidth = 1;
+
+        var shapeAttributesWhite = new WorldWind.ShapeAttributes(null);
+        shapeAttributesWhite.interiorColor = WorldWind.Color.WHITE;
+        shapeAttributesWhite.outlineColor = WorldWind.Color.BLACK;
+        shapeAttributesWhite.outlineWidth = 1;
+
+        var shapeAttributesYellow = new WorldWind.ShapeAttributes(null);
+        shapeAttributesYellow.interiorColor = WorldWind.Color.YELLOW;
+
+        var isRed = true,
+            heading = 0;
+
+        var numRectangles = 0;
+
+        for (var radius = 5000000; radius > 10; radius *= 0.85) {
+            var shapeRectangle;
+            if (isRed) {
+                shapeRectangle = new WorldWind.SurfaceRectangle(center, radius, radius, shapeAttributesRed);
+                shapeRectangle.highlightAttributes = shapeAttributesYellow;
+                shapeRectangle.heading = heading;
+            }
+            else {
+                shapeRectangle = new WorldWind.SurfaceRectangle(center, radius, radius, shapeAttributesWhite);
+                shapeRectangle.highlightAttributes = shapeAttributesYellow;
+                shapeRectangle.heading = heading;
+            }
+            layer.addRenderable(shapeRectangle);
+
+            isRed = !isRed;
+            heading += 10;
+            numRectangles += 1;
+        }
+
+        // For debugging only.
+        // console.log("Number of ShapeEllipse generated: " + numRectangles.toString());
+    },
+
+    perfTestSponge = function(layer) {
+        var shapeAttributesRed = new WorldWind.ShapeAttributes(null);
+        shapeAttributesRed.interiorColor = WorldWind.Color.RED;
+        shapeAttributesRed.outlineColor = WorldWind.Color.BLACK;
+        shapeAttributesRed.outlineWidth = 1;
+
+        var shapeAttributesWhite = new WorldWind.ShapeAttributes(null);
+        shapeAttributesWhite.interiorColor = WorldWind.Color.WHITE;
+        shapeAttributesWhite.outlineColor = WorldWind.Color.BLACK;
+        shapeAttributesWhite.outlineWidth = 1;
+
+        var shapeAttributesYellow = new WorldWind.ShapeAttributes(null);
+        shapeAttributesYellow.interiorColor = WorldWind.Color.YELLOW;
+
+        perfTestSpongeStep(layer, 6,
+            new WorldWind.Location(28.047267, -75.841301),
+            new WorldWind.Location(24.701435, -56.791009),
+            new WorldWind.Location(38.440259, -62.855462),
+            shapeAttributesRed, shapeAttributesWhite, shapeAttributesYellow);
+    },
+
+    perfTestSpongeStep = function(layer, depth, location0, location1, location2, shapeAttributeEven, shapeAttributeOdd, shapeAttributeHighlight) {
+        var shapeBoundary = [
+            location0,
+            location1,
+            location2
+        ];
+
+        var shapePolygon = new WorldWind.SurfacePolygon(shapeBoundary, shapeAttributeEven);
+        shapePolygon.highlightAttributes = shapeAttributeHighlight;
+
+        layer.addRenderable(shapePolygon);
+
+        if (depth < 0) {
+            return;
+        }
+
+        var location01 = new WorldWind.Location(0, 0),
+            location12 = new WorldWind.Location(0, 0),
+            location20 = new WorldWind.Location(0, 0);
+
+        WorldWind.Location.interpolateGreatCircle(0.5, location0, location1, location01);
+        WorldWind.Location.interpolateGreatCircle(0.5, location1, location2, location12);
+        WorldWind.Location.interpolateGreatCircle(0.5, location2, location0, location20);
+
+        perfTestSpongeStep(layer, depth - 1, location0, location01, location20, shapeAttributeOdd, shapeAttributeEven, shapeAttributeHighlight);
+        perfTestSpongeStep(layer, depth - 1, location1, location12, location01, shapeAttributeOdd, shapeAttributeEven, shapeAttributeHighlight);
+        perfTestSpongeStep(layer, depth - 1, location2, location20, location12, shapeAttributeOdd, shapeAttributeEven, shapeAttributeHighlight);
+    }
+);

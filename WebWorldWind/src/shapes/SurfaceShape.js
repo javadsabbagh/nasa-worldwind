@@ -165,9 +165,30 @@ define([
              * @type {boolean}
              */
             this.isInteriorInhibited = false;
+
+            // Internal use only. Intentionally not documented.
+            this.lastUpdatedTime = Date.now();
         };
 
         SurfaceShape.prototype = Object.create(Renderable.prototype);
+
+        Object.defineProperties(SurfaceShape.prototype, {
+            /**
+             * Indicates whether this shape displays with its highlight attributes rather than its normal attributes.
+             * @memberof SurfaceShape.prototype
+             * @type {boolean}
+             * @default false
+             */
+            highlighted: {
+                get: function() {
+                    return this._highlighted;
+                },
+                set: function(value) {
+                    this._highlighted = value;
+                    this.lastUpdatedTime = Date.now();
+                }
+            }
+        });
 
         /**
          * Returns this shape's area in square meters.
@@ -543,7 +564,8 @@ define([
                 idxPath,
                 lenPath,
                 pickColor,
-                isPicking = dc.pickingMode;
+                isPicking = dc.pickingMode,
+                attributes = (this.highlighted ? (this.highlightAttributes || this.attributes) : this.attributes);
 
             if (isPicking) {
                 pickColor = dc.uniquePickColor();
@@ -551,8 +573,8 @@ define([
 
             ctx2D.lineJoin = "round";
 
-            if (isPicking || (!this.isInteriorInhibited && this.attributes.drawInterior)) {
-                ctx2D.fillStyle = isPicking ? pickColor.toHexString(false) : this.attributes.interiorColor.toHexString(false);
+            if (!this.isInteriorInhibited && attributes.drawInterior) {
+                ctx2D.fillStyle = isPicking ? pickColor.toHexString(false) : attributes.interiorColor.toHexString(false);
 
                 for (idx = 0, len = this.interiorGeometry.length; idx < len; idx += 1) {
                     idxPath = 0;
@@ -575,9 +597,9 @@ define([
                 }
             }
 
-            if (this.attributes.drawOutline) {
-                ctx2D.lineWidth = 4 * this.attributes.outlineWidth;
-                ctx2D.strokeStyle = isPicking ? pickColor.toHexString(false) : this.attributes.outlineColor.toHexString(false);
+            if (attributes.drawOutline && attributes.outlineWidth > 0) {
+                ctx2D.lineWidth = 4 * attributes.outlineWidth;
+                ctx2D.strokeStyle = isPicking ? pickColor.toHexString(false) : attributes.outlineColor.toHexString(false);
 
                 // TODO: stippling has major negative performance impact. Investigate!
                 //var pattern = this.attributes.outlineStipplePattern,
