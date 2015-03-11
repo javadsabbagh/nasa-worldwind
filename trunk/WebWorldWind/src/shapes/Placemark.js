@@ -120,6 +120,14 @@ define([
              */
             this.enableLeaderLinePicking = false;
 
+            /**
+             * Indicates whether this placemark's image should be re-retrieved even if it has already been retrieved.
+             * Set this property to true when the image has changed but has the same image path.
+             * The property is set to false when the image is re-retrieved.
+             * @type {boolean}
+             */
+            this.updateImage = true;
+
             // Internal use only. Intentionally not documented.
             this.activeAttributes = null;
 
@@ -367,8 +375,9 @@ define([
             if (this.activeAttributes && this.activeAttributes.imagePath) {
                 this.activeTexture = dc.gpuResourceCache.resourceForKey(this.activeAttributes.imagePath);
 
-                if (!this.activeTexture) {
+                if (!this.activeTexture || this.updateImage) {
                     dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, this.activeAttributes.imagePath);
+                    this.updateImage = false;
                 }
             }
         };

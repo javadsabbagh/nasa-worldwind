@@ -66,6 +66,9 @@ define([
              * @type {string}
              */
             this.displayName = "Surface Image";
+
+            // Internal. Indicates whether the image needs to be updated in the GPU resource cache.
+            this.imagePathWasUpdated = true;
         };
 
         SurfaceImage.prototype = Object.create(SurfaceTile.prototype);
