@@ -125,6 +125,7 @@ define(function () {
             missingTexture: "The specified texture is null or undefined.",
             missingTile: "The specified tile is null or undefined.",
             missingType: "The specified type is null or undefined.",
+            missingUrl: "The specified URL is null or undefined",
             missingVector: "The specified vector is null or undefined.",
             missingViewport: "The specified viewport is null or undefined.",
             missingWorldWindow: "The specified World Window is null or undefined.",

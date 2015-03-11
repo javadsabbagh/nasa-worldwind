@@ -22,6 +22,7 @@ define([
         '../geom/Plane',
         '../geom/Position',
         '../geom/Rectangle',
+        '../render/ScreenCreditController',
         '../geom/Sector',
         '../shapes/SurfaceShapeTileBuilder',
         '../render/SurfaceTileRenderer',
@@ -45,6 +46,7 @@ define([
               Plane,
               Position,
               Rectangle,
+              ScreenCreditController,
               Sector,
               SurfaceShapeTileBuilder,
               SurfaceTileRenderer,
@@ -249,6 +251,8 @@ define([
              * @type {SurfaceShapeTileBuilder}
              */
             this.surfaceShapeTileBuilder = null;
+
+            this.screenCreditController = new ScreenCreditController();
         };
 
         // Internal use. Intentionally not documented.
@@ -272,6 +276,7 @@ define([
             this.pickRectangle = null;
             this.pickFrustum = null;
             this.objectsAtPickPoint.clear();
+            this.screenCreditController.clear();
         };
 
         /**
