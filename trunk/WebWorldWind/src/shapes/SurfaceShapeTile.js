@@ -65,10 +65,16 @@ define([
             this.cacheKey = null;
 
             /**
-             * Internal use only. Intentionally undocumented.
+             * Internal use only. Intentionally not documented.
              * @type {number}
              */
             this.pickSequence = 0;
+
+            // Internal use only. Intentionally not documented.
+            this.lastUpdatedTime = 0;
+
+            // Internal use only. Intentionally not documented.
+            this.prevSurfaceShapes = [];
 
             this.createCtx2D();
         };
@@ -79,6 +85,12 @@ define([
          * Clear all collected surface shapes.
          */
         SurfaceShapeTile.prototype.clearShapes = function() {
+            // Exchange previous and next surface shape lists to avoid allocating memory.
+            var swap = this.prevSurfaceShapes;
+            this.prevSurfaceShapes = this.surfaceShapes;
+            this.surfaceShapes = swap;
+
+            // Clear out next surface shape list.
             this.surfaceShapes.splice(0);
         };
 
@@ -120,6 +132,50 @@ define([
          */
         SurfaceShapeTile.prototype.addAllSurfaceShapes = function(shapes) {
             this.surfaceShapes.concat(shapes);
+        };
+
+        // Internal use only. Intentionally not documented.
+        SurfaceShapeTile.prototype.needsUpdate = function(dc) {
+            var idx, len, surfaceShape;
+
+            // If the number of shapes have changed, ... (cheap test)
+            if (this.prevSurfaceShapes.length != this.surfaceShapes.length) {
+                return true;
+            }
+
+            // If previous shapes have been removed, ...
+            for (idx = 0, len = this.prevSurfaceShapes; idx < len; idx += 1) {
+                surfaceShape = this.prevSurfaceShapes[idx];
+
+                if (this.surfaceShapes.indexOf(surfaceShape) < 0) {
+                    return true;
+                }
+            }
+
+            // If next shapes added, ...
+            for (idx = 0, len = this.surfaceShapes; idx < len; idx += 1) {
+                surfaceShape = this.surfaceShapes[idx];
+
+                if (this.prevSurfaceShapes.indexOf(surfaceShape) < 0) {
+                    return true;
+                }
+            }
+
+            // If the time stamp of the shape is newer than the time stamp of the tile, ...
+            for (idx = 0, len = this.surfaceShapes.length; idx < len; idx += 1) {
+                surfaceShape = this.surfaceShapes[idx];
+                if (surfaceShape.lastUpdatedTime > this.lastUpdatedTime) {
+                    return true;
+                }
+            }
+
+            // If a texture does not already exist, ...
+            if (!this.hasTexture(dc)) {
+                return true;
+            }
+
+            // If you get here, the texture can be reused.
+            return false;
         };
 
         /**
@@ -202,6 +258,8 @@ define([
 
             gpuResourceCache.putResource(this.gpuCacheKey, texture, texture.size);
 
+            this.lastUpdatedTime = Date.now();
+
             return texture;
         };
 
@@ -212,13 +270,7 @@ define([
         SurfaceShapeTile.prototype.getCacheKey = function() {
             if (!this.cacheKey) {
                 this.cacheKey = "SurfaceShapeTile:" +
-                this.sector.minLatitude.toString() + "," +
-                this.sector.minLongitude.toString() + "," +
-                this.sector.maxLatitude.toString() + "," +
-                this.sector.maxLongitude.toString() + "," +
-                this.level.levelNumber.toString() + "," +
-                this.row.toString() + "," +
-                this.column.toString() + "," +
+                this.tileKey + "," +
                 this.pickSequence.toString();
             }
 

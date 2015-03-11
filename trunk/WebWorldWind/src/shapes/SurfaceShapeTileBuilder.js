@@ -110,6 +110,13 @@ define([
              * @type {number}
              */
             this.SPLIT_SCALE = 2.9;
+
+            // Internal use only. Intentionally not documented.
+            this.nextTileSet = {};
+            this.prevTileSet = {};
+
+            // Internal use only. Intentionally not documented.
+            this.pickMode = false;
         };
 
         /**
@@ -174,6 +181,8 @@ define([
                     Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceShapeTileBuilder", "buildTiles", "missingDc"));
             }
 
+            this.pickMode = dc.pickingMode;
+
             if (!this.surfaceShapes || this.surfaceShapes.length < 1) {
                 return;
             }
@@ -184,7 +193,6 @@ define([
 
             // Assemble the current visible tiles and update their associated textures if necessary.
             this.assembleTiles(dc);
-            this.updateTiles(dc);
 
             // Clean up references to all surface shapes to avoid dangling references. The surface shape list is no
             // longer needed, now that the shapes are held by each tile.
@@ -229,7 +237,7 @@ define([
 
             // Store the top level tiles in a set to ensure that each top level tile is added only once. Store the tiles
             // that intersect each surface shape in a set to ensure that each object is added to a tile at most once.
-            var /* Set<Object> */ intersectingTiles = {}; //new HashSet<Object>();
+            var intersectingTiles = {};
 
             // Iterate over the current surface shapes, adding each surface shape to the top level tiles that it
             // intersects. This produces a set of top level tiles containing the surface shapes that intersect each
@@ -259,6 +267,9 @@ define([
                     }
                 }
             }
+
+            this.prevTileSet = this.nextTileSet;
+            this.nextTileSet = {};
 
             // Add each top level tile or its descendants to the current tile list.
             //for (var idxTile = 0, lenTiles = this.topLevelTiles.length; idxTile < lenTiles; idxTile += 1) {
@@ -384,8 +395,12 @@ define([
             if (dc.pickingMode) {
                 tile.pickSequence = SurfaceShapeTileBuilder.pickSequence;
             }
+            else {
+                // Save tile reference for future recycling.
+                this.nextTileSet[tile.tileKey] = tile;
+            }
 
-            if (!tile.hasTexture(dc)) {
+            if (tile.needsUpdate(dc)) {
                 tile.updateTexture(dc);
             }
 
@@ -393,8 +408,13 @@ define([
         };
 
         /**
+         * Internal use only.
+         *
          * Returns a new SurfaceObjectTile corresponding to the specified {@code sector}, {@code level}, {@code row},
          * and {@code column}.
+         *
+         * CAUTION: it is assumed that there exists a single SurfaceShapeTileBuilder. This algorithm might be invalid if there
+         * are more of them (or it might actually work, although it hasn't been tested in that context).
          *
          * @param {Sector} sector       The tile's Sector.
          * @param {Level} level         The tile's Level in a {@link LevelSet}.
@@ -404,7 +424,20 @@ define([
          * @return {SurfaceShapeTile} a new SurfaceShapeTile.
          */
         SurfaceShapeTileBuilder.prototype.createTile = function(sector, level, row, column) {
-            return new SurfaceShapeTile(sector, level, row, column);
+            var tile,
+                tileKey = level.levelNumber.toString() + "." + row.toString() + "." + column.toString();
+
+            // If a tile was previously created EXACTLY for this level, row, and column, recycle it.
+            // This has a major performance benefit because the shape lists and textures will likely be the same.
+            if (!this.pickMode && this.prevTileSet.hasOwnProperty(tileKey)) {
+                tile = this.prevTileSet[tileKey];
+                delete this.prevTileSet[tileKey];
+            }
+            else {
+                tile = new SurfaceShapeTile(sector, level, row, column);
+            }
+
+            return tile;
         };
 
         SurfaceShapeTileBuilder.prototype.createTopLevelTiles = function() {
@@ -445,36 +478,6 @@ define([
          */
         SurfaceShapeTileBuilder.prototype.meetsRenderCriteria = function(dc, levels, tile) {
             return tile.level.levelNumber == levels.lastLevel().levelNumber || !tile.mustSubdivide(dc, this.SPLIT_SCALE);
-        };
-
-        /**
-         * Updates each surface shape tile in the surface shape tile collection. This is typically
-         * called after {@link #assembleTiles(DrawContext)} to update the assembled tiles.
-         * <p/>
-         * This method does nothing if <code>currentTiles</code> is empty.
-         *
-         * @param {DrawContext} dc the draw context the tiles relate to.
-         */
-        SurfaceShapeTileBuilder.prototype.updateTiles = function(dc) {
-            // TODO: obsolete???
-            return;
-            if (this.surfaceShapeTiles.length < 1) {
-                return;
-            }
-
-            // The tile drawing rectangle has the same dimension as the current tile viewport, but it's lower left corner
-            // is placed at the origin. This is because the orthographic projection setup by OGLRenderToTextureSupport
-            // maps (0, 0) to the lower left corner of the drawing region, therefore we can drop the (x, y) offset when
-            // drawing pixels to the texture, as (0, 0) is automatically mapped to (x, y). Since we've created the tiles
-            // from a LevelSet where each level has equivalent dimension, we assume that tiles in the current tile list
-            // have equivalent dimension.
-
-            for (var idx = 0, len = this.surfaceShapeTiles.length; idx < len; idx += 1) {
-                var tile = this.surfaceShapeTiles[idx];
-                if (!tile.hasTexture(dc)) {
-                    tile.updateTexture(dc);
-                }
-            }
         };
 
         /**
