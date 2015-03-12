@@ -571,7 +571,7 @@ define([
                 pickColor = dc.uniquePickColor();
             }
 
-            ctx2D.lineJoin = "round";
+            //ctx2D.lineJoin = "round";
 
             if (!this.isInteriorInhibited && attributes.drawInterior) {
                 ctx2D.fillStyle = isPicking ? pickColor.toHexString(false) : attributes.interiorColor.toHexString(false);
@@ -601,17 +601,16 @@ define([
                 ctx2D.lineWidth = 4 * attributes.outlineWidth;
                 ctx2D.strokeStyle = isPicking ? pickColor.toHexString(false) : attributes.outlineColor.toHexString(false);
 
-                // TODO: stippling has major negative performance impact. Investigate!
-                //var pattern = this.attributes.outlineStipplePattern,
-                //    factor = this.attributes.outlineStippleFactor;
-                //
-                //if (!isPicking && pattern != 0xffff && factor > 0) {
-                //    var lineDash = this.getLineDash(pattern, 4 * factor);
-                //    ctx2D.setLineDash(lineDash);
-                //}
-                //else {
-                //    ctx2D.setLineDash([1, 0]);
-                //}
+                var pattern = this.attributes.outlineStipplePattern,
+                    factor = this.attributes.outlineStippleFactor;
+
+                if (!isPicking && pattern != 0xffff && factor > 0) {
+                    var lineDash = this.getLineDash(pattern, 4 * factor);
+                    ctx2D.setLineDash(lineDash);
+                }
+                else {
+                    ctx2D.setLineDash([1, 0]);
+                }
 
                 for (idx = 0, len = this.outlineGeometry.length; idx < len; idx += 1) {
                     idxPath = 0;
@@ -619,15 +618,28 @@ define([
                     path.splice(0);
 
                     if (this.transformPath(this.outlineGeometry[idx], xScale, yScale, dx, dy, path)) {
-                        ctx2D.beginPath();
-
-                        ctx2D.moveTo(path[idxPath++], path[idxPath++]);
+                        // NOTE: this code used to be written as:
+                        //      a single beginPath() call,
+                        //      followed by a single moveTo() call,
+                        //      followed by as many lineTo() calls as there were vertices remaining in the path,
+                        //      followed by a stroke().
+                        // Performance was BAD!
+                        // The code was rewritten this was and it doesn't have any performance issues.
+                        // That shouldn't be the case, but it is.
+                        var x = path[idxPath++],
+                            y = path[idxPath++];
 
                         while  (idxPath < lenPath) {
-                            ctx2D.lineTo(path[idxPath++], path[idxPath++]);
-                        }
+                            ctx2D.beginPath();
+                            ctx2D.moveTo(x, y);
 
-                        ctx2D.stroke();
+                            x = path[idxPath++];
+                            y = path[idxPath++];
+
+                            ctx2D.lineTo(x, y);
+
+                            ctx2D.stroke();
+                        }
                     }
                 }
             }
