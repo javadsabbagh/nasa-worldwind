@@ -9,9 +9,10 @@ package gov.nasa.worldwindx.examples.util;
 import com.jogamp.common.nio.Buffers;
 import gov.nasa.worldwind.View;
 import gov.nasa.worldwind.geom.*;
+import gov.nasa.worldwind.geom.Box;
 import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.terrain.Terrain;
-import gov.nasa.worldwind.util.Logging;
+import gov.nasa.worldwind.util.*;
 
 import javax.media.opengl.*;
 import java.nio.*;
@@ -186,6 +187,19 @@ public class DirectedPath extends Path
     }
 
     protected static final String ARROWS_KEY = "DirectedPath.DirectionArrows";
+    protected static final String ARROWS_EXTENT = "DirectedPath.DirectionArrowsExtent";
+
+    protected boolean intersectsFrustum(DrawContext dc)
+    {
+        // Must override this method to account for the extent of the arrowheads.
+
+        boolean intersects = super.intersectsFrustum(dc);
+        if (intersects || !dc.isPickingMode())
+            return intersects;
+
+        Box box = (Box) this.currentData.getValue(ARROWS_EXTENT);
+        return box == null || dc.getPickFrustums().intersectsAny(box);
+    }
 
     /**
      * {@inheritDoc}
@@ -256,6 +270,14 @@ public class DirectedPath extends Path
 
             thisPole = nextPole;
             polePtA = polePtB;
+        }
+
+        // Create an extent for the arrowheads if we're picking.
+        if (dc.isPickingMode()) {
+            buffer.rewind();
+            Box box = Box.computeBoundingBox(new BufferWrapper.FloatBufferWrapper(buffer), 3);
+            box = box.translate(pathData.getReferencePoint());
+            pathData.setValue(ARROWS_EXTENT, box);
         }
     }
 
