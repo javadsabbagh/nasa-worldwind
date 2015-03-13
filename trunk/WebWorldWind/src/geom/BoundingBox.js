@@ -15,7 +15,8 @@ define([
         '../geom/Plane',
         '../geom/Sector',
         '../geom/Vec3',
-        '../util/WWMath'
+        '../util/WWMath',
+        '../util/WWUtil'
     ],
     function (ArgumentError,
               Frustum,
@@ -25,7 +26,8 @@ define([
               Plane,
               Sector,
               Vec3,
-              WWMath) {
+              WWMath,
+              WWUtil) {
         "use strict";
 
         /**
@@ -91,6 +93,8 @@ define([
             this.tmp1 = new Vec3(0, 0, 0);
             this.tmp2 = new Vec3(0, 0, 0);
             this.tmp3 = new Vec3(0, 0, 0);
+            this.scratchElevations = new Float64Array(9);
+            this.scratchPoints = new Float64Array(3 * this.scratchElevations.length);
         };
 
         /**
@@ -210,20 +214,20 @@ define([
                     Logger.logMessage(Logger.LEVEL_SEVERE, "BoundingBox", "setToSector", "missingGlobe"));
             }
 
-            var minLat = sector.minLatitude,
-                maxLat = sector.maxLatitude,
-                minLon = sector.minLongitude,
-                maxLon = sector.maxLongitude,
-                cenLat = sector.centroidLatitude(),
-                cenLon = sector.centroidLongitude();
+            // Compute the cartesian points for a 3x3 geographic grid. This grid captures enough detail to bound the
+            // sector. Use minimum elevation at the corners and max elevation everywhere else.
+            var elevations = this.scratchElevations,
+                points = this.scratchPoints;
 
-            // Compute the centroid point with the maximum elevation. This point is used to compute the local coordinate axes
-            // at the sector's centroid, and to capture the maximum vertical dimension below.
-            globe.computePointFromPosition(cenLat, cenLon, maxElevation, this.tmp1);
+            WWUtil.fillArray(elevations, maxElevation);
+            elevations[0] = elevations[2] = elevations[6] = elevations[8] = minElevation;
+            globe.computePointsForGrid(sector, 3, 3, elevations, Vec3.ZERO, points);
 
-            // Compute the local coordinate axes. Since we know this box is bounding a geographic sector, we use the local
-            // coordinate axes at its centroid as the box axes. Using these axes results in a box that has +-10% the volume of
-            // a box with axes derived from a principal component analysis.
+            // Compute the local coordinate axes. Since we know this box is bounding a geographic sector, we use the
+            // local coordinate axes at its centroid as the box axes. Using these axes results in a box that has +-10%
+            // the volume of a box with axes derived from a principal component analysis, but is faster to compute.
+            var index = 12; // index to the center point's X coordinate
+            this.tmp1.set(points[index], points[index + 1], points[index + 2]);
             WWMath.localCoordinateAxesAtPoint(this.tmp1, globe, this.r, this.s, this.t);
 
             // Find the extremes along each axis.
@@ -231,97 +235,13 @@ define([
                 sExtremes = [Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY],
                 tExtremes = [Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY];
 
-            // A point at the centroid captures the maximum vertical dimension.
-            this.adjustExtremes(this.r, rExtremes, this.s, sExtremes, this.t, tExtremes, this.tmp1);
-
-            // Bottom-left corner with min elevation.
-            globe.computePointFromPosition(minLat, minLon, minElevation, this.tmp1);
-            this.adjustExtremes(this.r, rExtremes, this.s, sExtremes, this.t, tExtremes, this.tmp1);
-
-            // Bottom-left corner with max elevation.
-            globe.computePointFromPosition(minLat, minLon, maxElevation, this.tmp1);
-            this.adjustExtremes(this.r, rExtremes, this.s, sExtremes, this.t, tExtremes, this.tmp1);
-
-            // Bottom-right corner with min elevation.
-            globe.computePointFromPosition(minLat, maxLon, minElevation, this.tmp1);
-            this.adjustExtremes(this.r, rExtremes, this.s, sExtremes, this.t, tExtremes, this.tmp1);
-
-            // Bottom-right corner with max elevation.
-            globe.computePointFromPosition(minLat, maxLon, maxElevation, this.tmp1);
-            this.adjustExtremes(this.r, rExtremes, this.s, sExtremes, this.t, tExtremes, this.tmp1);
-
-            // Top-right corner with min elevation.
-            globe.computePointFromPosition(maxLat, maxLon, minElevation, this.tmp1);
-            this.adjustExtremes(this.r, rExtremes, this.s, sExtremes, this.t, tExtremes, this.tmp1);
-
-            // Top-right corner with max elevation.
-            globe.computePointFromPosition(maxLat, maxLon, maxElevation, this.tmp1);
-            this.adjustExtremes(this.r, rExtremes, this.s, sExtremes, this.t, tExtremes, this.tmp1);
-
-            // Top-left corner with min elevation.
-            globe.computePointFromPosition(maxLat, minLon, minElevation, this.tmp1);
-            this.adjustExtremes(this.r, rExtremes, this.s, sExtremes, this.t, tExtremes, this.tmp1);
-
-            // Top-left corner with max elevation.
-            globe.computePointFromPosition(maxLat, minLon, maxElevation, this.tmp1);
-            this.adjustExtremes(this.r, rExtremes, this.s, sExtremes, this.t, tExtremes, this.tmp1);
-
-            if (minLat < 0 && maxLat > 0) {
-                // If the sector spans the equator then the curvature of all four edges needs to be considered. The extreme points
-                // along the top and bottom edges are located at their mid-points and the extreme points along the left and right
-                // edges are on the equator. Add points with the longitude of the sector's centroid but with the sector's min and
-                // max latitude, and add points with the sector's min and max longitude but with latitude at the equator. See
-                // WWJINT-225.
-                globe.computePointFromPosition(minLat, cenLon, maxElevation, this.tmp1);
-                this.adjustExtremes(this.r, rExtremes, this.s, sExtremes, this.t, tExtremes, this.tmp1);
-
-                globe.computePointFromPosition(maxLat, cenLon, maxElevation, this.tmp1);
-                this.adjustExtremes(this.r, rExtremes, this.s, sExtremes, this.t, tExtremes, this.tmp1);
-
-                globe.computePointFromPosition(0, minLon, maxElevation, this.tmp1);
-                this.adjustExtremes(this.r, rExtremes, this.s, sExtremes, this.t, tExtremes, this.tmp1);
-
-                globe.computePointFromPosition(0, maxLon, maxElevation, this.tmp1);
-                this.adjustExtremes(this.r, rExtremes, this.s, sExtremes, this.t, tExtremes, this.tmp1);
-            }
-            else if (minLat < 0) {
-                // If the sector is located entirely in the southern hemisphere, then the curvature of its top edge needs to be
-                // considered. The extreme point along the top edge is located at its mid-point. Add a point with the longitude
-                // of the sector's centroid but with the sector's max latitude. See WWJINT-225.
-                globe.computePointFromPosition(maxLat, cenLon, maxElevation, this.tmp1);
-                this.adjustExtremes(this.r, rExtremes, this.s, sExtremes, this.t, tExtremes, this.tmp1);
-            }
-            else {
-                // If the sector is located entirely within the northern hemisphere then the curvature of its bottom edge needs to
-                // be considered. The extreme point along the bottom edge is located at its mid-point. Add a point with the
-                // longitude of the sector's centroid but with the sector's min latitude. See WWJINT-225.
-                globe.computePointFromPosition(minLat, cenLon, maxElevation, this.tmp1);
-                this.adjustExtremes(this.r, rExtremes, this.s, sExtremes, this.t, tExtremes, this.tmp1);
-            }
-
-            if (maxLon - minLon > 180) { // Need to compute more points to ensure the box encompasses the full sector.
-                // Centroid latitude, longitude midway between min longitude and centroid longitude.
-                var lon = 0.5 * (minLon + cenLon);
-                globe.computePointFromPosition(cenLat, lon, maxElevation, this.tmp1);
-                this.adjustExtremes(this.r, rExtremes, this.s, sExtremes, this.t, tExtremes, this.tmp1);
-
-                // Centroid latitude, longitude midway between centroid longitude and max longitude.
-                lon = 0.5 * (maxLon + cenLon);
-                globe.computePointFromPosition(cenLat, lon, maxElevation, this.tmp1);
-                this.adjustExtremes(this.r, rExtremes, this.s, sExtremes, this.t, tExtremes, this.tmp1);
-
-                // Centroid latitude, longitude at min longitude.
-                globe.computePointFromPosition(cenLat, minLon, maxElevation, this.tmp1);
-                this.adjustExtremes(this.r, rExtremes, this.s, sExtremes, this.t, tExtremes, this.tmp1);
-
-                // Centroid latitude, longitude at max longitude.
-                globe.computePointFromPosition(cenLat, maxLon, maxElevation, this.tmp1);
+            for (var i = 0, len = points.length; i < len; i += 3) {
+                this.tmp1.set(points[i], points[i + 1], points[i + 2]);
                 this.adjustExtremes(this.r, rExtremes, this.s, sExtremes, this.t, tExtremes, this.tmp1);
             }
 
             // Sort the axes from most prominent to least prominent. The frustum intersection methods in WWBoundingBox assume
             // that the axes are defined in this way.
-
             if (rExtremes[1] - rExtremes[0] < sExtremes[1] - sExtremes[0]) {
                 this.swapAxes(this.r, rExtremes, this.s, sExtremes);
             }

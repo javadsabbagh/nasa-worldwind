@@ -12,14 +12,14 @@ define([
         '../util/Logger',
         '../geom/Sector',
         '../geom/Vec3',
-        '../util/WWMath'
+        '../util/WWUtil'
     ],
     function (ArgumentError,
               BoundingBox,
               Logger,
               Sector,
               Vec3,
-              WWMath) {
+              WWUtil) {
         "use strict";
 
         /**
@@ -79,31 +79,6 @@ define([
             this.column = column;
 
             /**
-             * The Cartesian bounding box of this tile.
-             * @type {BoundingBox}
-             */
-            this.extent = null;
-
-            /**
-             * The tile's local origin in model coordinates. Any model coordinate points associates with the tile
-             * should be relative to this point.
-             * @type {Vec3}
-             */
-            this.referencePoint = null;
-
-            /**
-             * The minimum elevation within the tile's sector.
-             * @type {Number}
-             */
-            this.minElevation = 0;
-
-            /**
-             * The maximum elevation within the tile's sector.
-             * @type {Number}
-             */
-            this.maxElevation = 0;
-
-            /**
              * The width in pixels or cells of this tile's associated resource.
              * @type {Number}
              */
@@ -127,9 +102,33 @@ define([
              */
             this.tileKey = level.levelNumber.toString() + "." + row.toString() + "." + column.toString();
 
-            this.extentTimestamp = undefined;
-            this.extentVerticalExaggeration = undefined;
-            this.nearestPoint = new Vec3(0, 0, 0); // scratch variable used in mustSubdivide
+            /**
+             * The Cartesian bounding box of this tile.
+             * @type {BoundingBox}
+             */
+            this.extent = null;
+
+            /**
+             * The tile's local origin in model coordinates. Any model coordinate points associates with the tile
+             * should be relative to this point.
+             * @type {Vec3}
+             */
+            this.referencePoint = null;
+
+            // Internal use only. Intentionally not documented.
+            this.samplePoints = null;
+
+            // Internal use only. Intentionally not documented.
+            this.sampleElevations = null;
+
+            // Internal use only. Intentionally not documented.
+            this.updateTimestamp = null;
+
+            // Internal use only. Intentionally not documented.
+            this.updateVerticalExaggeration = null;
+
+            // Internal use only. Intentionally not documented.
+            this.updateGlobeStateKey = null;
         };
 
         /**
@@ -159,6 +158,27 @@ define([
                 + 8 // min and max height
                 + (4 + 32) // nearest point
                 + 8; // extent timestamp and vertical exaggeration
+        };
+
+        /**
+         * Computes an approximate distance from this tile to a specified vector.
+         * @param {Vec3} vector The vector to compute the distance to.
+         * @returns {number} The distance between this tile and the vector.
+         */
+        Tile.prototype.distanceTo = function (vector) {
+            var px = vector[0], py = vector[1], pz = vector[2],
+                dx, dy, dz,
+                points = this.samplePoints,
+                distance = Number.POSITIVE_INFINITY;
+
+            for (var i = 0, len = points.length; i < len; i += 3) {
+                dx = px - points[i];
+                dy = py - points[i + 1];
+                dz = pz - points[i + 2];
+                distance = Math.min(distance, dx * dx + dy * dy + dz * dz); // minimum squared distance
+            }
+
+            return Math.sqrt(distance);
         };
 
         /**
@@ -260,89 +280,89 @@ define([
          * @returns {boolean} <code>true</code> if the tile should be subdivided, otherwise <code>false</code>.
          */
         Tile.prototype.mustSubdivide = function (dc, detailFactor) {
-            var globe = dc.globe,
-                eyePos = dc.eyePosition;
-
-            // TODO This approach does not behave as expected as the eye point crosses the anti-meridian.
-            // Compute the point on the tile that is nearest to the eye point. Use the minimum elevation because it provides a
-            // reasonable estimate for distance, and the eye point always gets closer to the point as it moves closer to the
-            // terrain surface.
-            var nearestLat = WWMath.clamp(eyePos.latitude, this.sector.minLatitude, this.sector.maxLatitude),
-                nearestLon = WWMath.clamp(eyePos.longitude, this.sector.minLongitude, this.sector.maxLongitude),
-                minHeight = this.minElevation * dc.verticalExaggeration;
-
-            globe.computePointFromPosition(nearestLat, nearestLon, minHeight, this.nearestPoint);
-
-            // Compute the cell size and distance to the nearest point on the tile. Cell size is radius * radian texel size.
-            var cellSize = Math.max(globe.equatorialRadius, globe.polarRadius) * this.texelSize,
-                distance = this.nearestPoint.distanceTo(dc.navigatorState.eyePoint);
-
-            // Split when the cell height (length of a texel) becomes greater than the specified fraction of the eye distance.
-            // The fraction is specified as a power of 10. For example, a detail factor of 3 means split when the cell height
-            // becomes more than one thousandth of the eye distance. Another way to say it is, use the current tile if the cell
-            // height is less than the specified fraction of the eye distance.
+            // Split when the cell height (length of a texel) becomes greater than the specified fraction of the eye
+            // distance. The fraction is specified as a power of 10. For example, a detail factor of 3 means split when
+            // the cell height becomes more than one thousandth of the eye distance. Another way to say it is, use the
+            // current tile if the cell height is less than the specified fraction of the eye distance.
             //
-            // Note: It's tempting to instead compare a screen pixel size to the texel size, but that calculation is window-
-            // size dependent and results in selecting an excessive number of tiles when the window is large.
+            // Note: It's tempting to instead compare a screen pixel size to the texel size, but that calculation is
+            // window-size dependent and results in selecting an excessive number of tiles when the window is large.
+
+            var cellSize = dc.globe.equatorialRadius * this.texelSize,
+                distance = this.distanceTo(dc.navigatorState.eyePoint);
 
             return cellSize > distance * Math.pow(10, -detailFactor);
         };
 
         /**
-         * Updates this tile's frame-dependent properties according to the specified draw context.
+         * Updates this tile's frame-dependent properties as necessary, according to the specified draw context.
          * <p>
-         * The tile's frame-dependent properties include the extent (bounding volume), referencePoint, minElevation and
-         * maxElevation. These properties are dependent on the tile's sector and the elevation values currently in memory, and
-         * change when the globe's elevations change or when the scene's vertical exaggeration changes. Therefore <code>update</code>
-         * must be called once per frame before these properties are used. <code>update</code> intelligently determines when it is
-         * necessary to recompute these properties, and does nothing if the elevations or the vertical exaggeration have not
-         * changed since the last call.
+         * The tile's frame-dependent properties, include the extent (bounding volume). These properties are dependent
+         * on the tile's sector and the elevation values currently in memory, and change when those dependencies change.
+         * Therefore <code>update</code> must be called once per frame before the extent and any other frame-dependent
+         * properties are used. <code>update</code> intelligently determines when it is necessary to recompute these
+         * properties, and does nothing if the state of all dependencies has not changed since the last call.
          * @param {DrawContext} dc The current draw context.
          */
         Tile.prototype.update = function (dc) {
-            var globe = dc.globe,
-                elevationTimestamp = globe.elevationTimestamp(),
+            var elevationTimestamp = dc.globe.elevationTimestamp(),
                 verticalExaggeration = dc.verticalExaggeration,
                 globeStateKey = dc.globeStateKey;
 
-            if (!this.extentTimestamp || this.extentTimestamp != elevationTimestamp
-                || this.extentVerticalExaggeration != verticalExaggeration
-                || this.extentGlobeStateKey != globeStateKey) {
-                // Compute the minimum and maximum elevations for this tile's sector, or use zero if the globe has no elevations
-                // in this tile's coverage area. In the latter case the globe does not modify the result parameter.
-                var extremes = globe.minAndMaxElevationsForSector(this.sector);
-                if (extremes === null)
-                    extremes = [0, 0];
-                this.minElevation = extremes[0];
-                this.maxElevation = extremes[1];
+            if (this.updateTimestamp != elevationTimestamp
+                || this.updateVerticalExaggeration != verticalExaggeration
+                || this.updateGlobeStateKey != globeStateKey) {
 
-                // Multiply the minimum and maximum elevations by the scene's vertical exaggeration. This ensures that the
-                // elevations to used build the terrain are contained by this tile's extent.
-                var minHeight = this.minElevation * verticalExaggeration,
-                    maxHeight = this.maxElevation * verticalExaggeration;
-                if (minHeight == maxHeight) {
-                    minHeight = maxHeight + 10; // TODO: Determine if this is necessary.
-                }
-
-                // Compute a bounding box for this tile that contains the terrain surface in the tile's coverage area.
-                if (!this.extent) {
-                    this.extent = new BoundingBox();
-                }
-                this.extent.setToSector(this.sector, globe, minHeight, maxHeight);
-
-                // Compute the reference point used as a local coordinate origin for the tile.
-                if (!this.referencePoint) {
-                    this.referencePoint = new Vec3(0, 0, 0);
-                }
-                globe.computePointFromPosition(this.sector.centroidLatitude(), this.sector.centroidLongitude(), minHeight, this.referencePoint);
-
-                // Set the geometry extent to the globe's elevation timestamp on which the geometry is based. This ensures that
-                // the geometry timestamp can be reliably compared to the elevation timestamp in subsequent frames.
-                this.extentTimestamp = elevationTimestamp;
-                this.extentVerticalExaggeration = verticalExaggeration;
-                this.extentGlobeStateKey = globeStateKey;
-
+                this.doUpdate(dc);
                 dc.frameStatistics.incrementTileUpdateCount(1);
+
+                // Set the geometry extent to the globe's elevation timestamp on which the geometry is based. This
+                // ensures that the geometry timestamp can be reliably compared to the elevation timestamp in subsequent
+                // frames.
+                this.updateTimestamp = elevationTimestamp;
+                this.updateVerticalExaggeration = verticalExaggeration;
+                this.updateGlobeStateKey = globeStateKey;
+            }
+        };
+
+        /**
+         * Updates this tile's frame-dependent properties according to the specified draw context.
+         * @param {DrawContext} dc The current draw context.
+         */
+        Tile.prototype.doUpdate = function (dc) {
+            // Compute the minimum and maximum world coordinate height for this tile's sector by multiplying the minimum
+            // and maximum elevations by the scene's vertical exaggeration. This ensures that the elevations to used
+            // build the terrain are contained by this tile's extent. Use zero if the globe as no elevations in this
+            // tile's sector.
+            var globe = dc.globe,
+                verticalExaggeration = dc.verticalExaggeration,
+                extremes = globe.minAndMaxElevationsForSector(this.sector),
+                minHeight = extremes ? (extremes[0] * verticalExaggeration) : 0,
+                maxHeight = extremes ? (extremes[1] * verticalExaggeration) : 0;
+            if (minHeight == maxHeight) {
+                minHeight = maxHeight + 10; // TODO: Determine if this is necessary.
+            }
+
+            // Compute a bounding box for this tile that contains the terrain surface in the tile's coverage area.
+            if (!this.extent) {
+                this.extent = new BoundingBox();
+            }
+            this.extent.setToSector(this.sector, globe, minHeight, maxHeight);
+
+            // Compute the cartesian points for a 3x3 geographic grid. This grid captures sufficiently close sample
+            // points in order to estimate the distance from the viewer to this tile.
+            if (!this.samplePoints) {
+                this.sampleElevations = new Float64Array(9);
+                this.samplePoints = new Float64Array(3 * this.sampleElevations.length);
+            }
+            WWUtil.fillArray(this.sampleElevations, 0.5 * (minHeight + maxHeight));
+            globe.computePointsForGrid(this.sector, 3, 3, this.sampleElevations, Vec3.ZERO, this.samplePoints);
+
+            // Compute the reference point used as a local coordinate origin for the tile.
+            if (!this.referencePoint) {
+                this.referencePoint = new Vec3(0, 0, 0);
+                globe.computePointFromPosition(this.sector.centroidLatitude(), this.sector.centroidLongitude(), 0,
+                    this.referencePoint);
             }
         };
 
