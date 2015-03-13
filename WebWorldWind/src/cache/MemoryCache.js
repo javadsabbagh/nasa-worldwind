@@ -172,6 +172,7 @@ define([
             }
 
             this.usedCapacity += size;
+            this.freeCapacity = this.capacity - this.usedCapacity;
 
             cacheEntry = {
                 key: key,
@@ -283,9 +284,10 @@ define([
             // until the cache capacity reaches the low water and the cache has enough free capacity for the required
             // space.
 
-            for (var entry in this.entries) {
-                if (entry.hasOwnProperty('lastUsedTime')) {
-                    sortedEntries.push(entry);
+            var sizeAtStart = this.usedCapacity;
+            for (var key in this.entries) {
+                if (this.entries.hasOwnProperty(key)) {
+                    sortedEntries.push(this.entries[key]);
                 }
             }
 
