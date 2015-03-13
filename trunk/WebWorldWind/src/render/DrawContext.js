@@ -541,7 +541,7 @@ define([
          * @returns {Color} A unique color.
          */
         DrawContext.prototype.uniquePickColor = function () {
-            var color = this.pickColor.nextColor();
+            var color = this.pickColor.nextColor().clone();
 
             return color.equals(this.clearColor) ? color.nextColor() : color;
         };
