@@ -564,7 +564,9 @@ define([
 
         // Internal function. Intentionally not documented.
         WorldWindow.prototype.doPick = function (dc) {
-            dc.terrain.pick(dc);
+            if (dc.terrain) {
+                dc.terrain.pick(dc);
+            }
 
             if (!this.pickTerrainOnly) {
                 this.drawContext.surfaceShapeTileBuilder = this.surfaceShapeTileBuilder;
