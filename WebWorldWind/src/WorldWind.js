@@ -78,6 +78,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './shapes/ScreenText',
         './geom/Sector',
         './shapes/ShapeAttributes',
+        './formats/shapefile/Shapefile',
         './layer/ShowTessellationLayer',
         './error/SingletonError',
         './shapes/SurfaceImage',
@@ -187,6 +188,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               ScreenText,
               Sector,
               ShapeAttributes,
+              Shapefile,
               ShowTessellationLayer,
               SingletonError,
               SurfaceImage,
@@ -305,6 +307,11 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
             LINEAR: "linear",
 
             /**
+             * Indicates a multi-point shape, typically within a shapefile.
+             */
+            MULTI_POINT: "multiPoint",
+
+            /**
              * Indicates the cardinal direction north.
              * @constant
              */
@@ -331,6 +338,21 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
              * @constant
              */
             OFFSET_PIXELS: "pixels",
+
+            /**
+             * Indicates a point shape, typically within a shapefile.
+             */
+            POINT: "point",
+
+            /**
+             * Indicates a polyline shape, typically within a shapefile.
+             */
+            POLYLINE: "polyline",
+
+            /**
+             * Indicates a polygon shape, typically within a shapefile.
+             */
+            POLYGON: "polygon",
 
             /**
              * The POSSIBLE gesture recognizer state. Gesture recognizers in this state are idle when there is no input
@@ -449,6 +471,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['ScreenImage'] = ScreenImage;
         WorldWind['Sector'] = Sector;
         WorldWind['ShapeAttributes'] = ShapeAttributes;
+        WorldWind['Shapefile'] = Shapefile;
         WorldWind['ShowTessellationLayer'] = ShowTessellationLayer;
         WorldWind['SingletonError'] = SingletonError;
         WorldWind['SurfaceImage'] = SurfaceImage;
