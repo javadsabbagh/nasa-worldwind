@@ -585,7 +585,7 @@ define([
                 sector = Tile.computeSector(level, row, column);
 
             tile = this.createTile(sector, level, row, column);
-            this.tileCache.putEntry(tileKey, tile, tile.size);
+            this.tileCache.putEntry(tileKey, tile, tile.size());
 
             return tile;
         };
