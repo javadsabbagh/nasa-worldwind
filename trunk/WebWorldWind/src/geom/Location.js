@@ -847,12 +847,12 @@ define([
             var tanDistance = -Math.tan(lat0) / Math.cos(az);
             var distance = Math.atan(tanDistance);
 
-            var extremeDistance1 = (distance + (Math.PI / 2.0)) * Angle.RADIANS_TO_DEGREES;
-            var extremeDistance2 = (distance - (Math.PI / 2.0)) * Angle.RADIANS_TO_DEGREES;
+            var extremeDistance1 = distance + (Math.PI / 2.0);
+            var extremeDistance2 = distance - (Math.PI / 2.0);
 
             return [
-                Location.greatCircleEndPosition(location, azimuth, extremeDistance1),
-                Location.greatCircleEndPosition(location, azimuth, extremeDistance2)
+                Location.greatCircleLocation(location, azimuth, extremeDistance1),
+                Location.greatCircleLocation(location, azimuth, extremeDistance2)
             ];
         };
 
@@ -861,35 +861,34 @@ define([
          *
          * @param {Location} p          Location of the starting location.
          * @param {number} azimuth      Great circle azimuth angle (clockwise from North) in degrees.
-         * @param {number} pathLength   Angular arc distance to travel indegrees
+         * @param {number} pathLengthRadians   Angular arc distance to travel in radians.
          *
          * @return {Location} Location on the great circle arc.
          */
-        Location.greatCircleEndPosition = function(p, azimuth, pathLength) {
+        Location.greatCircleLocation = function(p, azimuth, pathLengthRadians) {
             if (!p) {
                 throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "Location", "greatCircleEndPosition", "missingLocation"));
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Location", "greatCircleLocation", "missingLocation"));
             }
 
             var azimuthRadians = azimuth * Angle.DEGREES_TO_RADIANS;
             var latRadians = p.latitude * Angle.DEGREES_TO_RADIANS;
             var lonRadians = p.longitude * Angle.DEGREES_TO_RADIANS;
-            var distance = pathLength * Angle.DEGREES_TO_RADIANS;
 
-            if (distance == 0) {
+            if (pathLengthRadians == 0) {
                 return p;
             }
 
             // Taken from "Map Projections - A Working Manual", page 31, equation 5-5 and 5-6.
             var endLatRadians =
-                Math.asin(Math.sin(latRadians) * Math.cos(distance) +
-                Math.cos(latRadians) * Math.sin(distance) * Math.cos(azimuthRadians));
+                Math.asin(Math.sin(latRadians) * Math.cos(pathLengthRadians) +
+                Math.cos(latRadians) * Math.sin(pathLengthRadians) * Math.cos(azimuthRadians));
             var endLonRadians =
                 lonRadians +
                 Math.atan2(
-                    Math.sin(distance) * Math.sin(azimuthRadians),
-                    Math.cos(latRadians) * Math.cos(distance) -
-                        Math.sin(latRadians) * Math.sin(distance) * Math.cos(azimuthRadians)
+                    Math.sin(pathLengthRadians) * Math.sin(azimuthRadians),
+                    Math.cos(latRadians) * Math.cos(pathLengthRadians) -
+                        Math.sin(latRadians) * Math.sin(pathLengthRadians) * Math.cos(azimuthRadians)
                 );
 
             if (isNaN(endLatRadians) || isNaN(endLonRadians)) {
