@@ -112,7 +112,7 @@ define([
             // azimuth runs positive clockwise from north and through 360 degrees.
             var azimuth = (Math.PI / 2.0) - (Math.acos(xLength / distance) * WWMath.signum(yLength) - this.heading * Angle.DEGREES_TO_RADIANS);
 
-            this.boundaries[idx] = Location.greatCircleEndPosition(this.center, azimuth * Angle.RADIANS_TO_DEGREES, (distance / globeRadius) * Angle.RADIANS_TO_DEGREES);
+            this.boundaries[idx] = Location.greatCircleLocation(this.center, azimuth * Angle.RADIANS_TO_DEGREES, distance / globeRadius);
 
         };
 
