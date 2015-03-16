@@ -89,6 +89,15 @@ define([
         };
 
         /**
+         * Removes all resources from this cache.
+         */
+        MemoryCache.prototype.clear = function () {
+            this.entries = {};
+            this.freeCapacity = this.capacity;
+            this.usedCapacity = 0;
+        };
+
+        /**
          * Sets the capacity of this cache to a specified value.
          * @param {Number} capacity The capacity of this cache. If the specified capacity is less than this cache's
          * low-water value, the low-water value is set to 85% of the specified capacity.
