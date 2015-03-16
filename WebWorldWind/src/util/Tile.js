@@ -265,7 +265,7 @@ define([
             if (!childList) {
                 childList = this.subdivide(level, tileFactory);
                 if (childList) {
-                    cache.putEntry(this.tileKey, childList, 4 * childList[0].size);
+                    cache.putEntry(this.tileKey, childList, 4 * childList[0].size());
                 }
             }
 
