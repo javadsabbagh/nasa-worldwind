@@ -41,7 +41,7 @@ requirejs(['../src/WorldWind',
                 ll, path, attributes;
 
             for (var i = 0; i < numPositions; i++) {
-                ll = WorldWind.Location.greatCircleLocation(startPosition, heading, i * dLength);
+                ll = WorldWind.Location.greatCircleLocation(startPosition, heading, i * dLength, new WorldWind.Location(0, 0));
                 positions.push(new WorldWind.Position(ll.latitude, ll.longitude, startPosition.altitude))
             }
 
@@ -77,8 +77,7 @@ requirejs(['../src/WorldWind',
             startPosition = new WorldWind.Position(45, -120, 100e3),
             numPaths = 500,
             numPositions = 10,
-            pathLength = 5 * WorldWind.Angle.DEGREES_TO_RADIANS,
-            pathsLayer = new WorldWind.RenderableLayer();
+            pathLength = 5 * WorldWind.Angle.DEGREES_TO_RADIANS;
 
         makePaths(pathsLayer, startPosition, numPaths, pathLength, numPositions);
         pathsLayer.displayName = "Paths";

@@ -851,53 +851,9 @@ define([
             var extremeDistance2 = distance - (Math.PI / 2.0);
 
             return [
-                Location.greatCircleLocation(location, azimuth, extremeDistance1),
-                Location.greatCircleLocation(location, azimuth, extremeDistance2)
+                Location.greatCircleLocation(location, azimuth, extremeDistance1, new Location(0, 0)),
+                Location.greatCircleLocation(location, azimuth, extremeDistance2, new Location(0,0))
             ];
-        };
-
-        /**
-         * Computes the location on a great circle arc with the given starting location, azimuth, and arc distance.
-         *
-         * @param {Location} p          Location of the starting location.
-         * @param {number} azimuth      Great circle azimuth angle (clockwise from North) in degrees.
-         * @param {number} pathLengthRadians   Angular arc distance to travel in radians.
-         *
-         * @return {Location} Location on the great circle arc.
-         */
-        Location.greatCircleLocation = function(p, azimuth, pathLengthRadians) {
-            if (!p) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "Location", "greatCircleLocation", "missingLocation"));
-            }
-
-            var azimuthRadians = azimuth * Angle.DEGREES_TO_RADIANS;
-            var latRadians = p.latitude * Angle.DEGREES_TO_RADIANS;
-            var lonRadians = p.longitude * Angle.DEGREES_TO_RADIANS;
-
-            if (pathLengthRadians == 0) {
-                return p;
-            }
-
-            // Taken from "Map Projections - A Working Manual", page 31, equation 5-5 and 5-6.
-            var endLatRadians =
-                Math.asin(Math.sin(latRadians) * Math.cos(pathLengthRadians) +
-                Math.cos(latRadians) * Math.sin(pathLengthRadians) * Math.cos(azimuthRadians));
-            var endLonRadians =
-                lonRadians +
-                Math.atan2(
-                    Math.sin(pathLengthRadians) * Math.sin(azimuthRadians),
-                    Math.cos(latRadians) * Math.cos(pathLengthRadians) -
-                        Math.sin(latRadians) * Math.sin(pathLengthRadians) * Math.cos(azimuthRadians)
-                );
-
-            if (isNaN(endLatRadians) || isNaN(endLonRadians)) {
-                return p;
-            }
-
-            return new Location(
-                Angle.normalizedDegreesLatitude(endLatRadians * Angle.RADIANS_TO_DEGREES),
-                Angle.normalizedDegreesLongitude(endLonRadians * Angle.RADIANS_TO_DEGREES));
         };
 
         /**
