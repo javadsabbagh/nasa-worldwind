@@ -121,7 +121,8 @@ define([
                 var azimuth = (Math.PI / 2.0) -
                     (Math.acos(xLength / distance) * WWMath.signum(yLength) - this.heading * Angle.DEGREES_TO_RADIANS);
 
-                this.boundaries[i] = Location.greatCircleLocation(this.center, azimuth * Angle.RADIANS_TO_DEGREES, distance / globeRadius);
+                this.boundaries[i] = Location.greatCircleLocation(this.center, azimuth * Angle.RADIANS_TO_DEGREES,
+                    distance / globeRadius, new Location(0, 0));
             }
         };
 
