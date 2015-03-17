@@ -569,7 +569,7 @@ function makeLostContextSimulatingCanvas(canvas) {
               throw "can not restore. webglcontestlost listener did not call event.preventDefault";
             }
             freeResources();
-            resetToInitialState(unwrappedContext_);
+            resetToInitialState(wrappedContext_);
             contextLost_ = false;
             numCalls_ = 0;
             canRestore_ = false;
