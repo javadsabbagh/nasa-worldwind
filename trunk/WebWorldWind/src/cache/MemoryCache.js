@@ -81,11 +81,6 @@ define([
              * @protected
              */
             this.listeners = [];
-
-            // Internal. Intentionally not documented.
-            // Cache counter used to indicate the least recently used entry. Incremented each time an entry is accessed and
-            // assigned to the associated entry's lastUsed ivar.
-            this.entryUsedCounter = 0;
         };
 
         /**
@@ -139,7 +134,7 @@ define([
             if (!cacheEntry)
                 return null;
 
-            cacheEntry.lastUsed = this.entryUsedCounter++;
+            cacheEntry.lastUsed = Date.now();
 
             return cacheEntry.entry;
         };
@@ -187,7 +182,7 @@ define([
                 key: key,
                 entry: entry,
                 size: size,
-                lastUsed: this.entryUsedCounter++
+                lastUsed: Date.now()
             };
 
             this.entries[key] = cacheEntry;
