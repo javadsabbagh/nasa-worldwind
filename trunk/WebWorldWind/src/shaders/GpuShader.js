@@ -45,8 +45,8 @@ define([
             var shader = gl.createShader(shaderType);
             if (!shader) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "GpuShader", "constructor",
-                    "Unable to create shader of type "
-                    + shaderType == WebGLRenderingContext.VERTEX_SHADER ? "VERTEX_SHADER." : "FRAGMENT_SHADER."));
+                    "Unable to create shader of type " +
+                    (shaderType == WebGLRenderingContext.VERTEX_SHADER ? "VERTEX_SHADER." : "FRAGMENT_SHADER.")));
             }
 
             if (!this.compile(gl, shader, shaderType, shaderSource)) {
