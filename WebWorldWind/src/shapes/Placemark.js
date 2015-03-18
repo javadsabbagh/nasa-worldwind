@@ -451,6 +451,7 @@ define([
             // Tell the program which texture unit to use.
             program.loadTextureUnit(gl, WebGLRenderingContext.TEXTURE0);
             program.loadModulateColor(gl, dc.pickingMode);
+            program.loadOpacity(gl, !dc.pickingMode ? this.layer.opacity : 1);
 
             // The currentTexture field is used to avoid re-specifying textures unnecessarily. Clear it to start.
             Placemark.currentTexture = null;
@@ -552,12 +553,10 @@ define([
             // pick color to mask off transparent pixels.
             program.loadTextureEnabled(gl, true);
 
-            // Set the pick color for picking or the color, opacity and texture if not picking.
             if (dc.pickingMode) {
                 program.loadColor(gl, this.pickColor);
             } else {
                 program.loadColor(gl, this.activeAttributes.imageColor);
-                program.loadOpacity(gl, this.layer.opacity);
             }
 
             this.texCoordMatrix.setToIdentity();
@@ -586,7 +585,6 @@ define([
 
                     program.loadTextureMatrix(gl, this.texCoordMatrix);
                     program.loadColor(gl, this.activeAttributes.labelAttributes.color);
-                    program.loadOpacity(gl, this.layer.opacity);
 
                     textureBound = this.labelTexture.bind(dc);
                     program.loadTextureEnabled(gl, textureBound);
