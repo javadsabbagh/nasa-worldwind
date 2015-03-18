@@ -129,5 +129,13 @@ define([
             return true;
         };
 
+        /**
+         * Returns a string representation of this object.
+         * @returns {String} A string representation of this object.
+         */
+        Rectangle.prototype.toString = function () {
+            return this.x + ", " + this.y + ", " + this.width + ", " + this.height;
+        };
+
         return Rectangle;
     });
