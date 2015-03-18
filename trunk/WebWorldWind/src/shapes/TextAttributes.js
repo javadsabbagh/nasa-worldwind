@@ -18,7 +18,6 @@ define([
 
         /**
          * Constructs a text attributes bundle.
-         * The defaults indicate white, 14px text centered on the specified geographic position.
          * @alias TextAttributes
          * @constructor
          * @classdesc Holds attributes applied to [Text]{@link Text} shapes and [Placemark]{@link Placemark} labels.
@@ -27,20 +26,88 @@ define([
          * in which case the new instance contains default attributes.
          */
         var TextAttributes = function (attributes) {
+            this._color = attributes ? attributes._color : new Color(1, 1, 1, 1);
+            this._font = attributes ? attributes._font : new Font(14);
+            this._offset = attributes ? attributes._offset
+                : new Offset(WorldWind.OFFSET_FRACTION, 0.5, WorldWind.OFFSET_FRACTION, 0.0);
+            this._scale = attributes ? attributes._scale : 1;
+            this._depthTest = attributes ? attributes._depthTest : false;
+
+            /**
+             * Indicates whether this object's state key is invalid. Subclasses must set this value to true when their
+             * attributes change. The state key will be automatically computed the next time it's requested. This flag
+             * will be set to false when that occurs.
+             * @type {boolean}
+             * @protected
+             */
+            this.stateKeyInvalid = true;
+        };
+
+        /**
+         * Computes the state key for this attributes object. Subclasses that define additional attributes must
+         * override this method, call it from that method, and append the state of their attributes to its
+         * return value.
+         * @returns {String} The state key for this object.
+         * @protected
+         */
+        TextAttributes.prototype.computeStateKey = function () {
+            return "c " + this._color.toHexString(true) +
+                " f " + this._font.toString() +
+                " o " + this._offset.toString() +
+                " s " + this._scale +
+                " dt " + this._depthTest;
+        };
+
+        Object.defineProperties(TextAttributes.prototype, {
+            /**
+             * A string identifying the state of this attributes object. The string encodes the current values of all
+             * this object's properties. It's typically used to validate cached representations of shapes associated
+             * with this attributes object.
+             * @type {Boolean}
+             * @readonly
+             * @memberof TextAttributes.prototype
+             */
+            stateKey: {
+                get: function () {
+                    if (this.stateKeyInvalid) {
+                        this._stateKey = this.computeStateKey();
+                        this.stateKeyInvalid = false;
+                    }
+                    return this._stateKey;
+                }
+            },
 
             /**
              * The text color.
              * @type {Color}
-             * @default White (0, 0, 0, 1)
+             * @default White (1, 1, 1, 1)
+             * @memberof TextAttributes.prototype
              */
-            this.color = (attributes && attributes.color) ? attributes.color : new Color( 1, 1, 1, 1);
+            color: {
+                get: function () {
+                    return this._color;
+                },
+                set: function (value) {
+                    this._color = value;
+                    this.stateKeyInvalid = true;
+                }
+            },
 
             /**
              * The text size, face and other characteristics, as described in [Font]{@link Font}.
              * @type {Font}
              * @default Those of [Font]{@link Font}, but with size of 14px and center justification.
+             * @memberof TextAttributes.prototype
              */
-            this.font = (attributes && attributes.font) ? attributes.font : new Font(14);
+            font: {
+                get: function () {
+                    return this._font;
+                },
+                set: function (value) {
+                    this._font = value;
+                    this.stateKeyInvalid = true;
+                }
+            },
 
             /**
              * Indicates the location of the text relative to its geographic position.
@@ -48,16 +115,33 @@ define([
              * @type {Offset}
              * @default 0.5, 0.0, both fractional (Places the text's horizontal center and vertical bottom at the
              * geographic position.)
+             * @memberof TextAttributes.prototype
              */
-            this.offset = (attributes && attributes.offset) ? attributes.offset
-                : new Offset(WorldWind.OFFSET_FRACTION, 0.5, WorldWind.OFFSET_FRACTION, 0.0);
+            offset: {
+                get: function () {
+                    return this._offset;
+                },
+                set: function (value) {
+                    this._offset = value;
+                    this.stateKeyInvalid = true;
+                }
+            },
 
             /**
              * Indicates the amount to scale the text. A value of 0 makes the text disappear.
              * @type {Number}
              * @default 1.0
+             * @memberof TextAttributes.prototype
              */
-            this.scale = (attributes && attributes.scale) ? attributes.scale : 1;
+            scale: {
+                get: function () {
+                    return this._scale;
+                },
+                set: function (value) {
+                    this._scale = value;
+                    this.stateKeyInvalid = true;
+                }
+            },
 
             /**
              * Indicates whether the text should be depth-tested against other objects in the scene. If true,
@@ -65,9 +149,18 @@ define([
              * the text will not be occluded by terrain and other objects.
              * @type {boolean}
              * @default false
+             * @memberof TextAttributes.prototype
              */
-            this.depthTest = false;
-        };
+            depthTest: {
+                get: function () {
+                    return this._depthTest;
+                },
+                set: function (value) {
+                    this._depthTest = value;
+                    this.stateKeyInvalid = true;
+                }
+            }
+        });
 
         return TextAttributes;
     });

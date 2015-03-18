@@ -78,7 +78,7 @@ requirejs(['../src/WorldWind',
             WorldWind.OFFSET_FRACTION, 0.5,
             WorldWind.OFFSET_FRACTION, 1.0);
         placemarkAttributes.labelAttributes.color = WorldWind.Color.YELLOW;
-        placemarkAttributes.drawLeaderline = true;
+        placemarkAttributes.drawLeaderLine = true;
         placemarkAttributes.leaderLineAttributes.outlineColor = WorldWind.Color.RED;
 
         // For each placemark image, create a placemark with a label.

@@ -170,6 +170,10 @@ define([
             }
         });
 
+        /**
+         * Returns a string representation of this object.
+         * @returns {String} A string representation of this object.
+         */
         Font.prototype.toString = function () {
             if (!this._toString || !this._fontString) {
                 this._toString = this.fontString + " " + this.horizontalAlignment;

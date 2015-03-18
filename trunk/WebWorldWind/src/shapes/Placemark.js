@@ -621,7 +621,7 @@ define([
 
         // Internal. Intentionally not documented.
         Placemark.prototype.mustDrawLeaderLine = function (dc) {
-            return this.activeAttributes.drawLeaderline && this.activeAttributes.leaderLineAttributes
+            return this.activeAttributes.drawLeaderLine && this.activeAttributes.leaderLineAttributes
                 && (!dc.pickingMode || this.enableLeaderLinePicking);
         };
 
