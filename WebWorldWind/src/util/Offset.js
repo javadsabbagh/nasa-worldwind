@@ -85,5 +85,13 @@ define(['../geom/Vec2'
             return new Vec2(x, y);
         };
 
+        /**
+         * Returns a string representation of this object.
+         * @returns {String} A string representation of this object.
+         */
+        Offset.prototype.toString = function () {
+            return this.xUnits + " " + this.x + " " + this.yUnits + " " + this.y;
+        };
+
         return Offset;
     });

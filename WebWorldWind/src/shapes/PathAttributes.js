@@ -30,16 +30,34 @@ define([
 
             ShapeAttributes.call(this, attributes);
 
+            // Documented with its property accessor below.
+            this._drawVerticals = attributes ? attributes._drawVerticals : false;
+        };
+
+        PathAttributes.prototype = Object.create(ShapeAttributes.prototype);
+
+        PathAttributes.prototype.computeStateKey = function () {
+            return ShapeAttributes.prototype.computeStateKey.call(this) + " dv " + this._drawVerticals;
+        };
+
+        Object.defineProperties(PathAttributes.prototype, {
             /**
              * Indicates whether this shape should draw vertical lines extending from the specified positions to the
              * ground.
              * @type {boolean}
              * @default false
+             * @memberof PathAttributes.prototype
              */
-            this.drawVerticals = attributes ? attributes.drawVerticals : false;
-        };
-
-        PathAttributes.prototype = Object.create(ShapeAttributes.prototype);
+            drawVerticals: {
+                get: function () {
+                    return this._drawVerticals;
+                },
+                set: function (value) {
+                    this._drawVerticals = value;
+                    this.stateKeyInvalid = true;
+                }
+            }
+        });
 
         return PathAttributes;
     });
