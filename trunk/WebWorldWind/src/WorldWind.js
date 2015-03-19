@@ -80,7 +80,6 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './shapes/ShapeAttributes',
         './formats/shapefile/Shapefile',
         './layer/ShowTessellationLayer',
-        './error/SingletonError',
         './shapes/SurfaceImage',
         './shapes/SurfaceCircle',
         './shapes/SurfaceEllipse',
@@ -190,7 +189,6 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               ShapeAttributes,
               Shapefile,
               ShowTessellationLayer,
-              SingletonError,
               SurfaceImage,
               SurfaceCircle,
               SurfaceEllipse,
@@ -473,7 +471,6 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['ShapeAttributes'] = ShapeAttributes;
         WorldWind['Shapefile'] = Shapefile;
         WorldWind['ShowTessellationLayer'] = ShowTessellationLayer;
-        WorldWind['SingletonError'] = SingletonError;
         WorldWind['SurfaceImage'] = SurfaceImage;
         WorldWind['SurfaceCircle'] = SurfaceCircle;
         WorldWind['SurfaceEllipse'] = SurfaceEllipse;
