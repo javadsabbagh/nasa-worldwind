@@ -6,6 +6,10 @@
  * @exports MemoryCacheListener
  * @version $Id$
  */
+/**
+ * Defines an interface for {@link MemoryCache} listeners.
+ * @interface MemoryCacheListener
+ */
 define([
         '../util/Logger',
         '../error/UnsupportedOperationError'
@@ -17,8 +21,6 @@ define([
         /**
          * @alias MemoryCacheListener
          * @constructor
-         * @classdesc Defines an interface for {@link MemoryCache} listeners.
-         * This is an interface class and is not meant to be instantiated directly.
          */
         var MemoryCacheListener = function () {};
 
