@@ -10,12 +10,12 @@ define(function () {
     "use strict";
 
     /**
-     * Constructs an error with a specified message. This is an abstract class and not meant to be
-     * instantiated directly.
+     * Constructs an error with a specified name and message.
      * @alias AbstractError
      * @constructor
      * @abstract
-     * @classdesc Provides an abstract base class for error classes.
+     * @classdesc Provides an abstract base class for error classes. This class is not meant to be instantiated
+     * directly but used only by subclasses.
      * @param {String} name The error's name.
      * @param {String} message The message.
      */
@@ -26,7 +26,7 @@ define(function () {
 
     /**
      * Returns the message and stack trace associated with this error.
-     * @returns {string} The message and stack trace associated with this error.
+     * @returns {String} The message and stack trace associated with this error.
      */
     AbstractError.prototype.toString = function () {
         var str = this.name + ': ' + this.message;
