@@ -103,8 +103,7 @@ define([], function () {
         /**
          * Indicates whether a specified value is within the normal range of latitude, [-90, 90].
          * @param {Number} degrees The value to test, in degrees.
-         * @returns {boolean} <code>true</code> if the value is within the normal range of latitude, otherwise
-         * <code>false</code>.
+         * @returns {Boolean} true if the value is within the normal range of latitude, otherwise false.
          */
         isValidLatitude: function (degrees) {
             return degrees >= -90 && degrees <= 90;
@@ -113,8 +112,7 @@ define([], function () {
         /**
          * Indicates whether a specified value is within the normal range of longitude, [-180, 180].
          * @param {Number} degrees The value to test, in degrees.
-         * @returns {boolean} <code>true</code> if the value is within the normal range of longitude, otherwise
-         * <code>false</code>.
+         * @returns {boolean} true if the value is within the normal range of longitude, otherwise false.
          */
         isValidLongitude: function (degrees) {
             return degrees >= -180 && degrees <= 180;
@@ -123,7 +121,7 @@ define([], function () {
         /**
          * Returns a string representation of a specified value in degrees.
          * @param {Number} degrees The value for which to compute the string.
-         * @returns {string} The computed string, which is a decimal degrees value followed by the degree symbol.
+         * @returns {String} The computed string, which is a decimal degrees value followed by the degree symbol.
          */
         toString: function (degrees) {
             return degrees.toString() + '\u00B0';
@@ -132,7 +130,7 @@ define([], function () {
         /**
          * Returns a decimal degrees string representation of a specified value in degrees.
          * @param {Number} degrees The value for which to compute the string.
-         * @returns {string} The computed string, which is a decimal degrees value followed by the degree symbol.
+         * @returns {String} The computed string, which is a decimal degrees value followed by the degree symbol.
          */
         toDecimalDegreesString: function (degrees) {
             return degrees.toString() + '\u00B0';
@@ -141,7 +139,7 @@ define([], function () {
         /**
          * Returns a degrees-minutes-seconds string representation of a specified value in degrees.
          * @param {Number} degrees The value for which to compute the string.
-         * @returns {string} The computed string in degrees, minutes and decimal seconds.
+         * @returns {String} The computed string in degrees, minutes and decimal seconds.
          */
         toDMSString: function (degrees) {
             var sign,
@@ -173,7 +171,7 @@ define([], function () {
         /**
          * Returns a degrees-minutes string representation of a specified value in degrees.
          * @param {Number} degrees The value for which to compute the string.
-         * @returns {string} The computed string in degrees and decimal minutes.
+         * @returns {String} The computed string in degrees and decimal minutes.
          */
         toDMString: function (degrees) {
             var sign,
