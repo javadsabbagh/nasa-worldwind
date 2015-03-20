@@ -267,7 +267,9 @@ public class PointPlacemarkAttributes implements Exportable
     {
         this.image = image;
 
-        this.setImageAddress(this.image != null ? UUID.randomUUID().toString() : null);
+        if (this.image != null) {
+            this.setImageAddress(UUID.randomUUID().toString());
+        }
     }
 
     /**
