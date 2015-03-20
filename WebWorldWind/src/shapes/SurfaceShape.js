@@ -226,16 +226,17 @@ define([
             for (var idx = 1, len = locations.length; idx < len; idx += 1) {
                 var next = locations[idx];
 
-                //this.subdivideEdge(prev, next, this.locations);
                 this.interpolateEdge(prev, next, this.locations);
                 this.locations.push(next);
 
                 prev = next;
             }
 
-            //this.subdivideEdge(prev, first, this.locations);
-            this.interpolateEdge(prev, first, this.locations);
-            this.locations.push(first);
+            if (!this.isInteriorInhibited) {
+                // Force the closing of the border.
+                this.interpolateEdge(prev, first, this.locations);
+                this.locations.push(first);
+            }
         };
 
         SurfaceShape.prototype.interpolateEdge = function(start, end, locations) {
