@@ -113,7 +113,9 @@ public class PointPlacemarkAttributes implements Exportable
             this.setUsePointAsDefaultImage(attrs.isUsePointAsDefaultImage());
             this.setDrawImage(attrs.isDrawImage());
             this.setDrawLabel(attrs.isDrawLabel());
-            this.setImage(attrs.getImage());
+
+            // Calling setImage has side effects, so just assign the current value without calling setImage.
+            this.image = attrs.image;
         }
     }
 
@@ -267,9 +269,7 @@ public class PointPlacemarkAttributes implements Exportable
     {
         this.image = image;
 
-        if (this.image != null) {
-            this.setImageAddress(UUID.randomUUID().toString());
-        }
+        this.setImageAddress(this.image != null ? UUID.randomUUID().toString() : null);
     }
 
     /**
