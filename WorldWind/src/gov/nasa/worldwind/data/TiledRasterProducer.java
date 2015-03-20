@@ -11,10 +11,11 @@ import gov.nasa.worldwind.cache.*;
 import gov.nasa.worldwind.exception.WWRuntimeException;
 import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.util.*;
-import org.w3c.dom.Document;
+import org.w3c.dom.*;
 
 import java.io.File;
 import java.lang.Thread;
+import java.util.Map;
 
 /**
  * @author dcollins
@@ -197,6 +198,11 @@ public abstract class TiledRasterProducer extends AbstractDataStoreProducer
 
         // Install the data descriptor for this tiled raster set.
         this.installConfigFile(this.productionParams);
+
+        if (AVKey.SERVICE_NAME_LOCAL_RASTER_SERVER.equals(this.productionParams.getValue(AVKey.SERVICE_NAME)))
+        {
+            this.installRasterServerConfigFile(this.productionParams);
+        }
     }
 
     protected String validateProductionParameters(AVList parameters)
@@ -312,11 +318,7 @@ public abstract class TiledRasterProducer extends AbstractDataStoreProducer
         // and longitude, then we re-define the level set parameters using values known to fit in those limits.
         if (!this.isWithinLatLonLimits(sector, levelZeroTileDelta, tileOrigin))
         {
-            String message
-                = "TiledRasterProducer: native tiling is outside lat/lon limits. Falling back to default tiling.";
-            Logging.logger().warning(message);
-
-            levelZeroTileDelta = LatLon.fromDegrees(DEFAULT_LEVEL_ZERO_TILE_DELTA, DEFAULT_LEVEL_ZERO_TILE_DELTA);
+            levelZeroTileDelta = this.computeIntegralLevelZeroTileDelta(levelZeroTileDelta);
             params.setValue(AVKey.LEVEL_ZERO_TILE_DELTA, levelZeroTileDelta);
 
             tileOrigin = new LatLon(Angle.NEG90, Angle.NEG180);
@@ -324,11 +326,27 @@ public abstract class TiledRasterProducer extends AbstractDataStoreProducer
 
             numLevels = this.computeNumLevels(levelZeroTileDelta, rasterTileDelta);
             params.setValue(AVKey.NUM_LEVELS, numLevels);
-
-            int numLevelsNeeded = isDataSetLarge ? this.computeNumLevels(desiredLevelZeroDelta, rasterTileDelta) : 1;
-            numEmptyLevels = (numLevels > numLevelsNeeded) ? (numLevels - numLevelsNeeded) : 0;
-            params.setValue(AVKey.NUM_EMPTY_LEVELS, numEmptyLevels);
         }
+    }
+
+    protected LatLon computeIntegralLevelZeroTileDelta(LatLon originalDelta)
+    {
+        // Find a level zero tile delta that's an integral factor of each dimension.
+
+        double latDelta = Math.floor(originalDelta.latitude.degrees);
+        double lonDelta = Math.floor(originalDelta.longitude.degrees);
+
+        while (180 % latDelta != 0)
+        {
+            ++latDelta;
+        }
+
+        while (360 % lonDelta != 0)
+        {
+            ++lonDelta;
+        }
+
+        return LatLon.fromDegrees(latDelta, lonDelta);
     }
 
     protected boolean isDataSetLarge(Iterable<? extends DataRaster> rasters, int largeThreshold)
@@ -926,7 +944,7 @@ public abstract class TiledRasterProducer extends AbstractDataStoreProducer
      * @param params the parameters which describe the configuration document's contents.
      *
      * @return the configuration document, or null if the parameter list is null or does not contain the required
-     *         parameters.
+     * parameters.
      */
     protected abstract Document createConfigDoc(AVList params);
 
@@ -1018,7 +1036,7 @@ public abstract class TiledRasterProducer extends AbstractDataStoreProducer
      * @param params the parameters which describe the install location.
      *
      * @return the configuration file install location, or null if the parameter list is null or does not contain the
-     *         required parameters.
+     * required parameters.
      */
     protected File getConfigFileInstallLocation(AVList params)
     {
@@ -1040,6 +1058,145 @@ public abstract class TiledRasterProducer extends AbstractDataStoreProducer
             return null;
 
         return new File(fileStoreLocation + File.separator + cacheName);
+    }
+
+    protected void installRasterServerConfigFile(AVList productionParams)
+    {
+        File configFile = this.getConfigFileInstallLocation(productionParams);
+        String configFilePath = configFile.getAbsolutePath().replace(".xml", ".RasterServer.xml");
+
+        Document configDoc = WWXML.createDocumentBuilder(true).newDocument();
+        Element root = WWXML.setDocumentElement(configDoc, "RasterServer");
+        WWXML.setTextAttribute(root, "version", "1.0");
+
+        Sector extent = null;
+        if (productionParams.hasKey(AVKey.SECTOR))
+        {
+            Object o = productionParams.getValue(AVKey.SECTOR);
+            if (null != o && o instanceof Sector)
+            {
+                extent = (Sector) o;
+            }
+        }
+        if (null != extent)
+        {
+            WWXML.appendSector(root, "Sector", extent);
+        }
+        else
+        {
+            String message = Logging.getMessage("generic.MissingRequiredParameter", AVKey.SECTOR);
+            Logging.logger().severe(message);
+            throw new WWRuntimeException(message);
+        }
+
+        Element sources = configDoc.createElementNS(null, "Sources");
+        for (DataRaster raster : this.getDataRasters())
+        {
+            if (raster instanceof CachedDataRaster)
+            {
+                try
+                {
+                    this.appendSource(sources, (CachedDataRaster) raster);
+                }
+                catch (Throwable t)
+                {
+                    String reason = WWUtil.extractExceptionReason(t);
+                    Logging.logger().warning(reason);
+                }
+            }
+            else
+            {
+                String message = Logging.getMessage("TiledRasterProducer.UnrecognizedRasterType",
+                    raster.getClass().getName(), raster.getStringValue(AVKey.DATASET_NAME));
+                Logging.logger().severe(message);
+                throw new WWRuntimeException(message);
+            }
+        }
+
+        AVList rasterServerProperties = new AVListImpl();
+
+        String[] keysToCopy = new String[]{AVKey.DATA_CACHE_NAME, AVKey.DATASET_NAME, AVKey.DISPLAY_NAME};
+        WWUtil.copyValues(productionParams, rasterServerProperties, keysToCopy, false);
+
+        this.appendProperties(root, rasterServerProperties);
+
+        // add sources
+        root.appendChild(sources);
+
+        WWXML.saveDocumentToFile(configDoc, configFilePath);
+    }
+
+    protected void appendProperties(Element context, AVList properties)
+    {
+        if (null == context || properties == null)
+        {
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        // add properties
+        for (Map.Entry<String, Object> entry : properties.getEntries())
+        {
+            sb.setLength(0);
+            String key = entry.getKey();
+            sb.append(properties.getValue(key));
+            String value = sb.toString();
+            if (WWUtil.isEmpty(key) || WWUtil.isEmpty(value))
+            {
+                continue;
+            }
+
+            Element property = WWXML.appendElement(context, "Property");
+            WWXML.setTextAttribute(property, "name", key);
+            WWXML.setTextAttribute(property, "value", value);
+        }
+    }
+
+    protected void appendSource(Element sources, CachedDataRaster raster) throws WWRuntimeException
+    {
+        Object o = raster.getDataSource();
+        if (WWUtil.isEmpty(o))
+        {
+            String message = Logging.getMessage("nullValue.DataSourceIsNull");
+            Logging.logger().fine(message);
+            throw new WWRuntimeException(message);
+        }
+
+        File f = WWIO.getFileForLocalAddress(o);
+        if (WWUtil.isEmpty(f))
+        {
+            String message = Logging.getMessage("TiledRasterProducer.UnrecognizedDataSource", o);
+            Logging.logger().fine(message);
+            throw new WWRuntimeException(message);
+        }
+
+        Element source = WWXML.appendElement(sources, "Source");
+        WWXML.setTextAttribute(source, "type", "file");
+        WWXML.setTextAttribute(source, "path", f.getAbsolutePath());
+
+        AVList params = raster.getParams();
+        if (null == params)
+        {
+            String message = Logging.getMessage("nullValue.ParamsIsNull");
+            Logging.logger().fine(message);
+            throw new WWRuntimeException(message);
+        }
+
+        Sector sector = raster.getSector();
+        if (null == sector && params.hasKey(AVKey.SECTOR))
+        {
+            o = params.getValue(AVKey.SECTOR);
+            if (o instanceof Sector)
+            {
+                sector = (Sector) o;
+            }
+        }
+
+        if (null != sector)
+        {
+            WWXML.appendSector(source, "Sector", sector);
+        }
     }
 
     //**************************************************************//

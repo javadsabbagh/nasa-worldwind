@@ -172,6 +172,11 @@ public class InstallDTED extends ApplicationTemplate
             params.setValue(AVKey.DATA_CACHE_NAME, cacheName);
             params.setValue(AVKey.DATASET_NAME, displayName);
 
+            // Instruct the raster producer to produce only three initial levels and to create the remaining
+            // tiles at whatever level is needed on the fly when the elevations are subsequently used.
+            params.setValue(AVKey.TILED_RASTER_PRODUCER_LIMIT_MAX_LEVEL, 2); // three initial levels
+            params.setValue(AVKey.SERVICE_NAME, AVKey.SERVICE_NAME_LOCAL_RASTER_SERVER); // on-the-fly tile creation
+
             // Create a TiledImageProducer to install the imagery.
             this.producer = new TiledElevationProducer();
             this.producer.setStoreParameters(params);
