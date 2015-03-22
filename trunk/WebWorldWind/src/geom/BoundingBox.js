@@ -99,7 +99,7 @@ define([
 
         /**
          * Sets this bounding box such that it minimally encloses a specified collection of points.
-         * @param {Float32Array} points to contain.
+         * @param {Float32Array} points The points to contain.
          * @returns {BoundingBox} This bounding box set to contain the specified points.
          * @throws {ArgumentError} If the specified list of points is null, undefined or empty.
          */
@@ -338,8 +338,7 @@ define([
         /**
          * Indicates whether this bounding box intersects a specified frustum.
          * @param {Frustum} frustum The frustum of interest.
-         * @returns {boolean} <code>true</code> if the specified frustum intersects this bounding box, otherwise
-         * <code>false</code>.
+         * @returns {boolean} true if the specified frustum intersects this bounding box, otherwise false.
          * @throws {ArgumentError} If the specified frustum is null or undefined.
          */
         BoundingBox.prototype.intersectsFrustum = function (frustum) {

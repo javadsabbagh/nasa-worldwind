@@ -49,6 +49,8 @@ define([
             this._planes = [this._left, this._right, this._top, this._bottom, this._near, this._far];
         };
 
+        // These accessors are defined in order to prevent changes that would make the properties inconsistent with the
+        // planes array.
         Object.defineProperties(Frustum.prototype, {
             /**
              * This frustum's left plane.
