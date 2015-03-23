@@ -12,7 +12,7 @@ import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.util.*;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL2;
 import java.awt.*;
 import java.awt.geom.*;
 import java.util.Arrays;
@@ -62,6 +62,11 @@ public class SurfaceText extends AbstractSurfaceObject implements GeographicText
     protected double pixelSizeInMeters;
     /** Scaling factor applied to the text to maintain a constant geographic size. */
     protected double scale;
+
+    /**
+     * The lower-left location of the text box after applying offset.
+     */
+    protected LatLon drawLocation;
 
     /**
      * Create a new surface text object.
@@ -403,6 +408,11 @@ public class SurfaceText extends AbstractSurfaceObject implements GeographicText
     protected void applyDrawTransform(DrawContext dc, SurfaceTileDrawContext sdc)
     {
         Vec4 point = new Vec4(this.location.getLongitude().degrees, this.location.getLatitude().degrees, 1);
+        // If the text box spans the anti-meridian and we're drawing tiles to the right of the anti-meridian, then we
+        // need to map the translation into coordinates relative to that side of the anti-meridian.
+        if (Math.signum(sdc.getSector().getMinLongitude().degrees) != Math.signum(this.drawLocation.longitude.degrees)) {
+            point = new Vec4(this.location.getLongitude().degrees - 360, this.location.getLatitude().degrees, 1);
+        }
         point = point.transformBy4(sdc.getModelviewMatrix());
 
         GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
@@ -482,7 +492,7 @@ public class SurfaceText extends AbstractSurfaceObject implements GeographicText
      *
      * @return The sector covered by the surface text.
      */
-    protected Sector computeSector(DrawContext dc)
+    protected Sector[] computeSector(DrawContext dc)
     {
         // Compute text extent depending on distance from eye
         Globe globe = dc.getGlobe();
@@ -506,12 +516,22 @@ public class SurfaceText extends AbstractSurfaceObject implements GeographicText
         double dxRadians = (point.getX() * metersPerPixel) / radius;
         double dyRadians = (point.getY() * metersPerPixel) / radius;
 
-        return new Sector(
-            this.location.latitude.addRadians(dyRadians),
-            this.location.latitude.addRadians(heightInRadians + dyRadians),
-            this.location.longitude.addRadians(dxRadians),
-            this.location.longitude.addRadians(widthInRadians + dxRadians)
-        );
+        double minLat = this.location.latitude.addRadians(dyRadians).degrees;
+        double maxLat = this.location.latitude.addRadians(dyRadians + heightInRadians).degrees;
+        double minLon = this.location.longitude.addRadians(dxRadians).degrees;
+        double maxLon = this.location.longitude.addRadians(dxRadians + widthInRadians).degrees;
+
+        this.drawLocation = LatLon.fromDegrees(minLat, minLon);
+
+        if (maxLon > 180) {
+            // Split the bounding box into two sectors, one to each side of the anti-meridian.
+            Sector[] sectors = new Sector[2];
+            sectors[0] = Sector.fromDegrees(minLat, maxLat, minLon, 180);
+            sectors[1] = Sector.fromDegrees(minLat, maxLat, -180, maxLon - 360);
+            return sectors;
+        } else {
+            return new Sector[] {Sector.fromDegrees(minLat, maxLat, minLon, maxLon)};
+        }
     }
 
     /**
