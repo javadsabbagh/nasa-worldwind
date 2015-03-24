@@ -499,8 +499,10 @@ public abstract class TiledImageLayer extends AbstractLayer
         // field of view and a the default field of view. In a perspective projection, decreasing the field of view by
         // 50% has the same effect on object size as decreasing the distance between the eye and the object by 50%.
         // The detail hint is reduced for tiles above 75 degrees north and below 75 degrees south.
-        double detailScale = Math.pow(10,
-            -this.getDetailFactor() * (Math.abs(sector.getMinLatitude().degrees) >= 75 ? 0.9 : 1));
+        double s = this.getDetailFactor();
+        if (sector.getMinLatitude().degrees >= 75 || sector.getMaxLatitude().degrees <= -75)
+            s *= 0.9;
+        double detailScale = Math.pow(10, -s);
         double fieldOfViewScale = dc.getView().getFieldOfView().tanHalfAngle() / Angle.fromDegrees(45).tanHalfAngle();
         fieldOfViewScale = WWMath.clamp(fieldOfViewScale, 0, 1);
 
