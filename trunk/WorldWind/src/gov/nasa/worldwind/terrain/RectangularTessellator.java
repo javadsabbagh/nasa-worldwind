@@ -594,7 +594,10 @@ public class RectangularTessellator extends WWObjectImpl implements Tessellator
         // than one thousandth of the eye distance. The field of view scale is specified as a ratio between the current
         // field of view and a the default field of view. In a perspective projection, decreasing the field of view by
         // 50% has the same effect on object size as decreasing the distance between the eye and the object by 50%.
-        double detailScale = Math.pow(10, -this.computeTileResolutionTarget(dc, tile));
+        // The detail hint is reduced by 50% for tiles above 75 degrees north and below 75 degrees south.
+        double s = this.computeTileResolutionTarget(dc, tile)
+            * (Math.abs(tile.getSector().getMinLatitude().degrees) >= 75 ? 0.5 : 1);
+        double detailScale = Math.pow(10, -s);
         double fieldOfViewScale = dc.getView().getFieldOfView().tanHalfAngle() / Angle.fromDegrees(45).tanHalfAngle();
         fieldOfViewScale = WWMath.clamp(fieldOfViewScale, 0, 1);
 
