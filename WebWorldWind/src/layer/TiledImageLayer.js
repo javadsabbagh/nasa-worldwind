@@ -255,7 +255,11 @@ define([
         };
 
         TiledImageLayer.prototype.tileMeetsRenderingCriteria = function (dc, tile) {
-            return tile.level.isLastLevel() || !tile.mustSubdivide(dc, this.detailHintOrigin + this.detailHint);
+            var s = this.detailHintOrigin + this.detailHint;
+            if (tile.sector.minLatitude >= 75 || tile.sector.maxLatitude <= -75) {
+                s *= 0.9;
+            }
+            return tile.level.isLastLevel() || !tile.mustSubdivide(dc, s);
         };
 
         TiledImageLayer.prototype.isTileTextureInMemory = function (dc, tile) {
