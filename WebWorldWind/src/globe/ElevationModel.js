@@ -301,7 +301,7 @@ define([
                 image = null;
 
             for (var i = level.levelNumber; i >= 0; i--) {
-                tile = this.tileCache.entryForKey(i.toString() + "." + r.toString() + "." + c.toString());
+                tile = this.tileCache.entryForKey(i + "." + r + "." + c);
                 if (tile) {
                     image = tile.image();
                     if (image) {
@@ -574,7 +574,7 @@ define([
 
         // Intentionally not documented.
         ElevationModel.prototype.tileForLevel = function (levelNumber, row, column) {
-            var tileKey = levelNumber.toString() + "." + row.toString() + "." + column.toString(),
+            var tileKey = levelNumber + "." + row + "." + column,
                 tile = this.tileCache.entryForKey(tileKey);
 
             if (tile) {
