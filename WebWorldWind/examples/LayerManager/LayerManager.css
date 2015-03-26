@@ -62,21 +62,16 @@ li {
 }
 
 .layerEnabled {
-    background-color: #d7666b;
-    color: #fff;
-    text-shadow: 2px 2px 1px #914141;
-    border-top: 1px solid #e99295;
-    border-bottom: 1px solid #914141;
 }
 
 .layerDisabled {
-}
-
-.layerVisible {
     background-color: #d7666b;
     color: #fff;
     text-shadow: 2px 2px 1px #914141;
     border-top: 1px solid #e99295;
     border-bottom: 1px solid #914141;
+}
+
+.layerVisible {
     font-style: italic;
 }
