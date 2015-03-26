@@ -142,6 +142,11 @@ define([
                 return;
             }
 
+            // Use the last computed extent to see if this shape is out of view.
+            if (this.currentData.extent && !this.intersectsFrustum(dc)) {
+                return;
+            }
+
             this.determineActiveAttributes(dc);
             if (!this.activeAttributes) {
                 return;
@@ -150,6 +155,7 @@ define([
             var orderedRenderable = this.makeOrderedRenderable(dc);
             if (orderedRenderable) {
 
+                // Use the updated extent to see if this shape is out of view.
                 if (!this.intersectsFrustum(dc)) {
                     return;
                 }
