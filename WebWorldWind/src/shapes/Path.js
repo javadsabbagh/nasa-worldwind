@@ -206,19 +206,42 @@ define([
             }
         });
 
-        // Overridden from AbstractShape base class.
-        Path.prototype.doMakeOrderedRenderable = function (dc) {
-            // See if the current shape data can be re-used.
-            if (this.currentData.tessellatedPoints
-                && (this.altitudeMode === WorldWind.ABSOLUTE || !this.currentData.isExpired)
-                && this.currentData.drawInterior === this.activeAttributes.drawInterior
-                && this.currentData.drawVerticals === this.activeAttributes.drawVerticals) {
-                return this;
+        // Internal. Determines whether this shape's geometry must be re-computed.
+        Path.prototype.mustGenerateGeometry = function (dc) {
+            if (!this.currentData.tessellatedPoints) {
+                return true;
             }
 
+            if (this.currentData.drawInterior !== this.activeAttributes.drawInterior
+                || this.currentData.drawVerticals !== this.activeAttributes.drawVerticals) {
+                return true;
+            }
+
+            if (!this.followTerrain && this.currentData.numSubSegments !== this.numSubSegments) {
+                return true;
+            }
+
+            if (this.followTerrain && this.currentData.terrainConformance !== this.terrainConformance) {
+                return true;
+            }
+
+            if (this.altitudeMode === WorldWind.ABSOLUTE) {
+                return false;
+            }
+
+            return this.currentData.isExpired
+        };
+
+        // Overridden from AbstractShape base class.
+        Path.prototype.doMakeOrderedRenderable = function (dc) {
             // A null reference position is a signal that there are no positions to render.
             if (!this.referencePosition || this._positions.length < 2) {
                 return null;
+            }
+
+            // See if the current shape data can be re-used.
+            if (!this.mustGenerateGeometry(dc)) {
+                return this;
             }
 
             // Set the transformation matrix to correspond to the reference position.
@@ -239,6 +262,8 @@ define([
             this.currentData.tessellatedPoints = tessellatedPoints;
             this.currentData.drawInterior = this.activeAttributes.drawInterior;
             this.currentData.drawVerticals = this.activeAttributes.drawVerticals;
+            this.currentData.numSubSegments = this.numSubSegments;
+            this.currentData.terrainConformance = this.terrainConformance;
             this.resetExpiration(this.currentData);
             this.currentData.fillVbo = true;
 
