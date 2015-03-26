@@ -10,6 +10,7 @@ define([
         '../error/ArgumentError',
         '../util/Logger',
         '../geom/Matrix',
+        '../cache/MemoryCache',
         '../render/Renderable',
         '../shapes/ShapeAttributes',
         '../error/UnsupportedOperationError',
@@ -18,6 +19,7 @@ define([
     function (ArgumentError,
               Logger,
               Matrix,
+              MemoryCache,
               Renderable,
               ShapeAttributes,
               UnsupportedOperationError,
@@ -73,7 +75,7 @@ define([
 
             // Internal use only. Intentionally not documented.
             // Holds the per-globe data generated during makeOrderedRenderable.
-            this.shapeDataCache = {};
+            this.shapeDataCache = new MemoryCache(3, 2);
 
             // Internal use only. Intentionally not documented.
             // The shape-data-cache data that is for the currently active globe. This field is made current prior to
@@ -124,7 +126,7 @@ define([
         });
 
         AbstractShape.prototype.reset = function () {
-            this.shapeDataCache = {};
+            this.shapeDataCache.clear(false);
         };
 
         AbstractShape.prototype.render = function (dc) {
@@ -175,7 +177,7 @@ define([
          * @param {DrawContext} dc The current draw context.
          */
         AbstractShape.prototype.renderOrdered = function (dc) {
-            this.currentData = this.shapeDataCache[dc.globeStateKey];
+            this.currentData = this.shapeDataCache.entryForKey(dc.globeStateKey);
 
             this.beginDrawing(dc);
             try {
@@ -247,11 +249,11 @@ define([
 
         // Internal. Intentionally not documented.
         AbstractShape.prototype.establishCurrentData = function (dc) {
-            this.currentData = this.shapeDataCache[dc.globeStateKey];
+            this.currentData = this.shapeDataCache.entryForKey(dc.globeStateKey);
             if (!this.currentData) {
                 this.currentData = this.createShapeDataObject();
                 this.resetExpiration(this.currentData);
-                this.shapeDataCache[dc.globeStateKey] = this.currentData;
+                this.shapeDataCache.putEntry(dc.globeStateKey, this.currentData, 1);
             }
 
             this.currentData.isExpired = !this.isShapeDataCurrent(dc, this.currentData);
