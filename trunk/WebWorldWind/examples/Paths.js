@@ -46,6 +46,7 @@ requirejs(['../src/WorldWind',
         var pathAttributes = new WorldWind.PathAttributes(null);
         pathAttributes.outlineColor = WorldWind.Color.BLUE;
         pathAttributes.interiorColor = new WorldWind.Color(0, 1, 1, 0.5);
+        pathAttributes.drawVerticals = true;
         path.attributes = pathAttributes;
         var highlightAttributes = new WorldWind.PathAttributes(pathAttributes);
         highlightAttributes.outlineColor = WorldWind.Color.RED;
