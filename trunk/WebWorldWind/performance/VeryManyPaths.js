@@ -75,9 +75,9 @@ requirejs(['../src/WorldWind',
 
         var pathsLayer = new WorldWind.RenderableLayer(),
             startPosition = new WorldWind.Position(45, -120, 100e3),
-            numPaths = 500,
-            numPositions = 10,
-            pathLength = 5 * WorldWind.Angle.DEGREES_TO_RADIANS;
+            numPaths = 2000,
+            numPositions = 30,
+            pathLength = 10 * WorldWind.Angle.DEGREES_TO_RADIANS;
 
         makePaths(pathsLayer, startPosition, numPaths, pathLength, numPositions);
         pathsLayer.displayName = "Paths";
