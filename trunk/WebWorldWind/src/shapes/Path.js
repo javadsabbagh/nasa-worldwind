@@ -210,6 +210,7 @@ define([
         Path.prototype.doMakeOrderedRenderable = function (dc) {
             // See if the current shape data can be re-used.
             if (this.currentData.tessellatedPoints
+                && (this.altitudeMode === WorldWind.ABSOLUTE || !this.currentData.isExpired)
                 && this.currentData.drawInterior === this.activeAttributes.drawInterior
                 && this.currentData.drawVerticals === this.activeAttributes.drawVerticals) {
                 return this;
@@ -238,6 +239,8 @@ define([
             this.currentData.tessellatedPoints = tessellatedPoints;
             this.currentData.drawInterior = this.activeAttributes.drawInterior;
             this.currentData.drawVerticals = this.activeAttributes.drawVerticals;
+            this.resetExpiration(this.currentData);
+            this.currentData.fillVbo = true;
 
             // Create the extent from the Cartesian points. Those points are relative to this path's reference point, so
             // translate the computed extent to the reference point.
@@ -276,7 +279,7 @@ define([
                 dc.terrain.surfacePointForMode(posB.latitude, posB.longitude, posB.altitude, this._altitudeMode, ptB);
                 eyeDistance = navState.eyePoint.distanceTo(ptA);
                 pixelSize = navState.pixelSizeAtDistance(eyeDistance);
-                if (ptA.distanceTo(ptB) < pixelSize * 8) {
+                if (ptA.distanceTo(ptB) < pixelSize * 8 && this.altitudeMode !== WorldWind.ABSOLUTE) {
                     tessellatedPositions.push(posB); // distance is short so no need for sub-segments
                 } else {
                     this.makeSegment(dc, posA, posB, ptA, ptB, tessellatedPositions);
@@ -434,13 +437,13 @@ define([
 
         // Private. Intentionally not documented.
         Path.prototype.mustDrawInterior = function (dc) {
-            return this.activeAttributes.drawInterior && !(this._altitudeMode === WorldWind.CLAMP_TO_GROUND);
+            return this.activeAttributes.drawInterior && this._altitudeMode !== WorldWind.CLAMP_TO_GROUND;
         };
 
         // Private. Intentionally not documented.
         Path.prototype.mustDrawVerticals = function (dc) {
             return this.activeAttributes.drawOutline && this.activeAttributes.drawVerticals
-                && !this.altitudeMode === WorldWind.CLAMP_TO_GROUND;
+                && this.altitudeMode !== WorldWind.CLAMP_TO_GROUND;
         };
 
         // Overridden from AbstractShape base class.
@@ -453,23 +456,27 @@ define([
 
             this.applyMvpMatrix(dc);
 
-            if (!currentData.vboKey) {
-                currentData.vboKey = dc.gpuResourceCache.generateCacheKey();
+            if (!currentData.vboCacheKey) {
+                currentData.vboCacheKey = dc.gpuResourceCache.generateCacheKey();
             }
 
-            vboId = dc.gpuResourceCache.resourceForKey(currentData.vboKey);
+            vboId = dc.gpuResourceCache.resourceForKey(currentData.vboCacheKey);
             if (!vboId) {
                 vboId = gl.createBuffer();
-                dc.gpuResourceCache.putResource(currentData.vboKey, vboId, numPoints * 3 * 4);
+                dc.gpuResourceCache.putResource(this.currentData.vboCacheKey, vboId,
+                    currentData.tessellatedPoints.length * 4);
+                currentData.fillVbo = true;
+            }
 
-                gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, vboId);
+            // Bind and if necessary fill the VBO. We fill the VBO here rather than in doMakeOrderedRenderable so that
+            // there's no possibility of the VBO being ejected from the cache between the time it's filled and
+            // the time it's used.
+            gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, vboId);
+            if (currentData.fillVbo) {
                 gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, currentData.tessellatedPoints,
                     WebGLRenderingContext.STATIC_DRAW);
-            } else {
-                gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, vboId);
-                gl.bufferSubData(WebGLRenderingContext.ARRAY_BUFFER, 0, currentData.tessellatedPoints);
+                dc.frameStatistics.incrementVboLoadCount(1);
             }
-            dc.frameStatistics.incrementVboLoadCount(1);
 
             program.loadTextureEnabled(gl, false);
 
@@ -521,30 +528,31 @@ define([
                 gl.drawArrays(WebGLRenderingContext.LINE_STRIP, 0, nPts);
 
                 if (this.mustDrawVerticals(dc)) {
-                    if (!currentData.verticalIndicesCacheKey) {
-                        currentData.verticalIndicesCacheKey = dc.gpuResourceCache.generateCacheKey();
+                    if (!currentData.verticalIndicesVboCacheKey) {
+                        currentData.verticalIndicesVboCacheKey = dc.gpuResourceCache.generateCacheKey();
                     }
 
-                    vboId = dc.gpuResourceCache.resourceForKey(currentData.verticalIndicesCacheKey);
+                    vboId = dc.gpuResourceCache.resourceForKey(currentData.verticalIndicesVboCacheKey);
                     if (!vboId) {
                         vboId = gl.createBuffer();
-                        dc.gpuResourceCache.putResource(currentData.verticalIndicesCacheKey, vboId,
+                        dc.gpuResourceCache.putResource(currentData.verticalIndicesVboCacheKey, vboId,
                             currentData.verticalIndices.length * 4);
+                        currentData.fillVbo = true;
+                    }
 
-                        gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, vboId);
+                    gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, vboId);
+                    if (currentData.fillVbo) {
                         gl.bufferData(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, currentData.verticalIndices,
                             WebGLRenderingContext.STATIC_DRAW);
-                    } else {
-                        gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, vboId);
-                        gl.bufferSubData(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, 0, currentData.verticalIndices);
+                        dc.frameStatistics.incrementVboLoadCount(1);
                     }
-                    dc.frameStatistics.incrementVboLoadCount(1);
 
                     gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, 0, 0);
                     gl.drawElements(WebGLRenderingContext.LINES, currentData.verticalIndices.length,
                         WebGLRenderingContext.UNSIGNED_SHORT, 0);
                 }
             }
+            currentData.fillVbo = false;
 
             if (dc.pickingMode) {
                 var po = new PickedObject(pickColor, this.pickDelegate ? this.pickDelegate : this, null, dc.currentLayer,

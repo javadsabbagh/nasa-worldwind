@@ -242,10 +242,13 @@ define([
         // Internal. Intentionally not documented.
         AbstractShape.prototype.establishCurrentData = function (dc) {
             this.currentData = this.shapeDataCache[dc.globeStateKey];
-            if (!this.currentData || !this.isShapeDataCurrent(dc, this.currentData)) {
+            if (!this.currentData) {
                 this.currentData = this.createShapeDataObject();
+                this.resetExpiration(this.currentData);
                 this.shapeDataCache[dc.globeStateKey] = this.currentData;
             }
+
+            this.currentData.isExpired = !this.isShapeDataCurrent(dc, this.currentData);
         };
 
         /**
@@ -258,10 +261,13 @@ define([
         AbstractShape.prototype.createShapeDataObject = function () {
             return {
                 transformationMatrix: Matrix.fromIdentity(),
-                referencePoint: new Vec3(0, 0, 0),
-                // The random addition in the line below keeps all shapes from regenerating during the same frame.
-                expiryTime: Date.now() + this.expirationInterval + 1e3 * Math.random()
+                referencePoint: new Vec3(0, 0, 0)
             };
+        };
+
+        AbstractShape.prototype.resetExpiration = function (shapeData) {
+            // The random addition in the line below prevents all shapes from regenerating during the same frame.
+            shapeData.expiryTime = Date.now() + this.expirationInterval + 1e3 * Math.random();
         };
 
         /**
