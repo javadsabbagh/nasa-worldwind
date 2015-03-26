@@ -428,8 +428,8 @@ public class WorldWindowGLCanvas extends GLCanvas implements WorldWindow, Proper
     @Override
     public synchronized void removePropertyChangeListener(String propertyName, PropertyChangeListener listener)
     {
-        super.removePropertyChangeListener(listener);
-        this.wwd.removePropertyChangeListener(listener);
+        super.removePropertyChangeListener(propertyName, listener);
+        this.wwd.removePropertyChangeListener(propertyName, listener);
     }
 
     @Override
