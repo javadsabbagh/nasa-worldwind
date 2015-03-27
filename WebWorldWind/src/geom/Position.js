@@ -51,7 +51,7 @@ define([
         /**
          * A Position with latitude, longitude and altitude all 0.
          * @constant
-         * @type {Location}
+         * @type {Position}
          */
         Position.ZERO = new Position(0, 0, 0);
 
@@ -70,13 +70,13 @@ define([
         };
 
         /**
-         * Sets this position to the latitude and longitude of a specified position.
+         * Sets this position to the latitude, longitude and altitude of a specified position.
          * @param {Position} position The position to copy.
          * @returns {Position} This position, set to the values of the specified position.
          * @throws {ArgumentError} If the specified position is null or undefined.
          */
         Position.prototype.copy = function (position) {
-            if (!position instanceof Position) {
+            if (!position) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Position", "copy", "missingPosition"));
             }
@@ -89,10 +89,9 @@ define([
         };
 
         /**
-         * Indicates whether this position is equal to a specified position.
+         * Indicates whether this position has the same latitude, longitude and altitude as a specified position.
          * @param {Position} position The position to compare with this one.
-         * @returns {boolean} <code>true</code> if this position is equal to the specified one, otherwise
-         * <code>false</code>.
+         * @returns {Boolean} true if this position is equal to the specified one, otherwise false.
          */
         Position.prototype.equals = function (position) {
             return position
@@ -102,7 +101,7 @@ define([
         };
 
         /**
-         * Compute a position along a great circle path at a specified distance between two specified positions.
+         * Computes a position along a great circle path at a specified distance between two specified positions.
          * @param {Number} amount The fraction of the path between the two positions at which to compute the new
          * position. This number should be between 0 and 1. If not, it is clamped to the nearest of those values.
          * @param {Position} position1 The starting position.
@@ -132,7 +131,7 @@ define([
         };
 
         /**
-         * Compute a position along a rhumb path at a specified distance between two specified positions.
+         * Computes a position along a rhumb path at a specified distance between two specified positions.
          * @param {Number} amount The fraction of the path between the two positions at which to compute the new
          * position. This number should be between 0 and 1. If not, it is clamped to the nearest of those values.
          * @param {Position} position1 The starting position.
@@ -162,7 +161,7 @@ define([
         };
 
         /**
-         * Compute a position along a linear path at a specified distance between two specified positions.
+         * Computes a position along a linear path at a specified distance between two specified positions.
          * @param {Number} amount The fraction of the path between the two positions at which to compute the new
          * position. This number should be between 0 and 1. If not, it is clamped to the nearest of those values.
          * @param {Position} position1 The starting position.
@@ -191,6 +190,10 @@ define([
             return result;
         };
 
+        /**
+         * Returns a string representation of this position.
+         * @returns {String}
+         */
         Position.prototype.toString = function () {
             return "(" + this.latitude.toString() + "\u00b0, " + this.longitude.toString() + "\u00b0, "
                 + this.altitude.toString();
