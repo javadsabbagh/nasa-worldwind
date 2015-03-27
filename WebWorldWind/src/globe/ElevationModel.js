@@ -36,11 +36,14 @@ define([
          * @alias ElevationModel
          * @constructor
          * @classdesc Represents the elevations for an area, often but not necessarily the whole globe.
+         * <p>
+         *     While this class can be used as-is, it is intended to be a base class for more concrete elevation
+         *     models, such as {@link EarthElevationModel}.
          * @param {Sector} coverageSector The sector this elevation model spans.
          * @param {Location} levelZeroDelta The size of top-level tiles, in degrees.
          * @param {Number} numLevels The number of levels used to represent this elevation model's resolution pyramid.
          * @param {String} retrievalImageFormat The mime type of the elevation data retrieved by this elevation model.
-         * @param {String} cachePath A string unique to this elevation model relative to other elevation model used by
+         * @param {String} cachePath A string unique to this elevation model relative to other elevation models used by
          * the application.
          * @param {Number} tileWidth The number of intervals (cells) in the longitudinal direction of this elevation
          * model's elevation tiles.
@@ -87,23 +90,20 @@ define([
             }
 
             /**
-             * The sector this elevation model spans, as passed to the constructor. This property is intended to be
-             * read-only.
+             * The sector this elevation model spans.
              * @type {Sector}
              * @readonly
              */
             this.coverageSector = coverageSector;
 
             /**
-             * The mime type to use when retrieving elevations, as passed to the constructor.
-             * This property is intended to be read-only.
+             * The mime type to use when retrieving elevations.
              * @type {String}
              * @readonly
              */
             this.retrievalImageFormat = retrievalImageFormat;
 
-            /** A unique string identifying this elevation model, as passed to the constructor.
-             * This property is intended to be read-only.
+            /** A unique string identifying this elevation model relative to other elevation models in use.
              * @type {String}
              * @readonly
              */
@@ -118,36 +118,35 @@ define([
 
             /**
              * Indicates the last time this elevation model changed, in milliseconds since midnight Jan 1, 1970.
-             * @type {number}
+             * @type {Number}
              * @readonly
-             * @default Date.getTime() at construction
+             * @default Date.now() at construction
              */
             this.timestamp = Date.now();
 
             /**
-             * This elevation model's minimum elevation
-             * @type {number}
+             * This elevation model's minimum elevation in meters.
+             * @type {Number}
              * @default 0
              */
             this.minElevation = 0;
 
             /**
-             * This elevation model's maximum elevation.
-             * @type {number}
+             * This elevation model's maximum elevation in meters.
+             * @type {Number}
              */
             this.maxElevation = 0;
 
             /**
-             * Indicates whether the data associated with the elevation model is point data. A value of <code>false</code>
+             * Indicates whether the data associated with this elevation model is point data. A value of false
              * indicates that the data is area data (pixel is area).
-             * @type {boolean}
+             * @type {Boolean}
              * @default true
              */
             this.pixelIsPoint = true;
 
             /**
-             * The level set created during construction of this elevation model.
-             * This property is intended to be read-only.
+             * The {@link LevelSet} created during construction of this elevation model.
              * @type {LevelSet}
              * @readonly
              */
@@ -161,26 +160,19 @@ define([
             this.currentRetrievals = []; // Identifies elevation retrievals in progress
             this.absentResourceList = new AbsentResourceList(3, 5e3);
             this.id = ++ElevationModel.idPool;
-            this._stateKey = "elevationModel " + this.id.toString() + " ";
-        };
 
-        ElevationModel.idPool = 0; // Used to assign unique IDs to elevation models for use in their state key.
-
-        Object.defineProperties(ElevationModel.prototype, {
             /**
              * A string identifying this elevation model's current state. Used to compare states during rendering to
              * determine whether globe-state dependent cached values must be updated. Applications typically do not
-             * interact with this property.
+             * interact with this property. It is primarily used by shapes and terrain generators.
              * @memberof ElevationModel.prototype
              * @readonly
              * @type {String}
              */
-            stateKey: {
-                get: function () {
-                    return this._stateKey;
-                }
-            }
-        });
+            this.stateKey = "elevationModel " + this.id.toString() + " ";
+        };
+
+        ElevationModel.idPool = 0; // Used to assign unique IDs to elevation models for use in their state key.
 
         /**
          * Returns the minimum and maximum elevations within a specified sector.
@@ -242,8 +234,8 @@ define([
          * Returns the elevation at a specified location.
          * @param {Number} latitude The location's latitude in degrees.
          * @param {Number} longitude The location's longitude in degrees.
-         * @returns {Number} The elevation at the specified location. Returns zero if the location is outside the
-         * coverage area of this elevation model.
+         * @returns {Number} The elevation at the specified location, in meters. Returns zero if the location is
+         * outside the coverage area of this elevation model.
          */
         ElevationModel.prototype.elevationAtLocation = function (latitude, longitude) {
             if (!this.coverageSector.containsLocation(latitude, longitude)) {
@@ -258,7 +250,8 @@ define([
          * @param {Sector} sector The sector for which to determine the elevations.
          * @param {Number} numLat The number of latitudinal sample locations within the sector.
          * @param {Number} numLon The number of longitudinal sample locations within the sector.
-         * @param {Number} targetResolution The desired elevation resolution.
+         * @param {Number} targetResolution The desired elevation resolution, in radians. (To compute radians from
+         * meters, divide the number of meters by the globe's radius.)
          * @param {Number[]} result An array in which to return the requested elevations.
          * @returns {Number} The resolution actually achieved, which may be greater than that requested if the
          * elevation data for the requested resolution is not currently available.
@@ -351,12 +344,7 @@ define([
             return maxResolution;
         };
 
-        // Intentionally not documented.
-        ElevationModel.prototype.areaElevationForLocation = function (latitude, longitude) {
-            return 0; // TODO: Area elevation at a location
-        };
-
-        // Intentionally not documented.
+        // Internal. Returns elevations for a grid assuming pixel-is-area.
         ElevationModel.prototype.areaElevationsForGrid = function (sector, numLat, numLon, level, result) {
             var minLat = sector.minLatitude,
                 maxLat = sector.maxLatitude,
@@ -390,7 +378,7 @@ define([
             return level.texelSize; // TODO: return the actual achieved
         };
 
-        // Intentionally not documented.
+        // Internal. Returns an elevation for a location assuming pixel-is-area.
         ElevationModel.prototype.areaElevationForCoord = function (s, t, levelNumber, result, resultIndex) {
             var level, levelWidth, levelHeight,
                 tMin, tMax,
@@ -426,7 +414,7 @@ define([
             }
         };
 
-        // Intentionally not documented.
+        // Internal. Bilinearly interpolates tile-image elevations.
         ElevationModel.prototype.lookupPixels = function (x0, x1, y0, y1, level, retrieveTiles, result) {
             var levelNumber = level.levelNumber,
                 tileWidth = level.tileWidth,
@@ -463,7 +451,7 @@ define([
             return false;
         };
 
-        // Intentionally not documented.
+        // Internal. Intentionally not documented.
         ElevationModel.prototype.lookupImage = function (levelNumber, row, column, retrieveTiles) {
             var tile = this.tileForLevel(levelNumber, row, column),
                 image = tile.image();
@@ -667,6 +655,7 @@ define([
             }
         };
 
+        // Intentionally not documented.
         ElevationModel.prototype.removeFromCurrentRetrievals = function (imagePath) {
             var index = this.currentRetrievals.indexOf(imagePath);
             if (index > -1) {

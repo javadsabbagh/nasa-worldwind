@@ -18,19 +18,20 @@ define([
               LevelRowColumnUrlBuilder) {
         "use strict";
 
-        /**
-         * Constructs an elevation model for Earth using a REST interface to retrieve the elevations from the server.
-         * @alias EarthRestElevationModel
-         * @constructor
-         * @classdesc Represents an Earth elevation model spanning the globe and using a REST interface to retrieve
-         * the elevations from the server.
-         * See [LevelRowColumnUrlBuilder]{@link LevelRowColumnUrlBuilder} for a description of the REST interface.
-         * @param {String} serverAddress The server address of the tile service. May be null, in which case the
-         * current origin is used (see <code>window.location</code>.
-         * @param {String} pathToData The path to the data directory relative to the specified server address.
-         * May be null, in which case the server address is assumed to be the full path to the data directory.
-         * @param {String} displayName The display name to associate with this elevation model.
-         */
+        // THIS CLASS IS NOT YET MEANT TO BE EXPOSED.
+        ///**
+        // * Constructs an elevation model for Earth using a REST interface to retrieve the elevations from the server.
+        // * @alias EarthRestElevationModel
+        // * @constructor
+        // * @classdesc Represents an Earth elevation model spanning the globe and using a REST interface to retrieve
+        // * the elevations from the server.
+        // * See [LevelRowColumnUrlBuilder]{@link LevelRowColumnUrlBuilder} for a description of the REST interface.
+        // * @param {String} serverAddress The server address of the tile service. May be null, in which case the
+        // * current origin is used (see <code>window.location</code>.
+        // * @param {String} pathToData The path to the data directory relative to the specified server address.
+        // * May be null, in which case the server address is assumed to be the full path to the data directory.
+        // * @param {String} displayName The display name to associate with this elevation model.
+        // */
         var EarthRestElevationModel = function (serverAddress, pathToData, displayName) {
             ElevationModel.call(this,
                 Sector.FULL_SPHERE, new Location(20, 20), 12, "application/bil16", "EarthElevations", 150, 150);

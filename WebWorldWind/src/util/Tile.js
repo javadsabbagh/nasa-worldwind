@@ -29,10 +29,10 @@ define([
          * @classdesc Represents a tile of terrain or imagery.
          * Provides a base class for texture tiles used by tiled image layers and elevation tiles used by elevation models.
          * Applications typically do not interact with this class.
-         * @param {Sector} sector The sector represented by the tile.
-         * @param {Level} level The tile's level in a tile pyramid.
-         * @param {Number} row The tile's row in the specified level in a tile pyramid.
-         * @param {Number} column The tile's column in the specified level in a tile pyramid.
+         * @param {Sector} sector The sector represented by this tile.
+         * @param {Level} level This tile's level in a tile pyramid.
+         * @param {Number} row This tile's row in the specified level in a tile pyramid.
+         * @param {Number} column This tile's column in the specified level in a tile pyramid.
          * @throws {ArgumentError} If the specified sector or level is null or undefined or the row or column arguments
          * are less than zero.
          */
@@ -57,24 +57,28 @@ define([
             /**
              * The sector represented by this tile.
              * @type {Sector}
+             * @readonly
              */
             this.sector = sector;
 
             /**
              * The level at which this tile lies in a tile pyramid.
              * @type {Number}
+             * @readonly
              */
             this.level = level;
 
             /**
              * The row in this tile's level in which this tile lies in a tile pyramid.
              * @type {Number}
+             * @readonly
              */
             this.row = row;
 
             /**
              * The column in this tile's level in which this tile lies in a tile pyramid.
              * @type {Number}
+             * @readonly
              */
             this.column = column;
 
@@ -94,11 +98,12 @@ define([
              * The size in radians of pixels or cells of this tile's associated resource.
              * @type {Number}
              */
-            this.texelSize = level.texelSize; // TODO: Can clients draw this directly from the level?
+            this.texelSize = level.texelSize;
 
             /**
              * A key that uniquely identifies this tile within a level set.
              * @type {String}
+             * @readonly
              */
             this.tileKey = level.levelNumber.toString() + "." + row.toString() + "." + column.toString();
 
@@ -134,7 +139,7 @@ define([
         /**
          * Indicates whether this tile is equivalent to a specified tile.
          * @param {Tile} that The tile to check equivalence with.
-         * @returns {boolean} <code>true</code> if this tile is equivalent to the specified one, <code>false</code> if
+         * @returns {boolean} true if this tile is equivalent to the specified one, false if
          * they are not equivalent or the specified tile is null or undefined.
          */
         Tile.prototype.isEqual = function (that) {
@@ -147,6 +152,10 @@ define([
             return this.tileKey == that.tileKey;
         };
 
+        /**
+         * Returns the size of this tile in bytes.
+         * @returns {Number} The size of this tile in bytes.
+         */
         Tile.prototype.size = function () {
             return 4 // child pointer
                 + (4 + 32) // sector
@@ -164,8 +173,14 @@ define([
          * Computes an approximate distance from this tile to a specified vector.
          * @param {Vec3} vector The vector to compute the distance to.
          * @returns {number} The distance between this tile and the vector.
+         * @throws {ArgumentError} If the specified vector is null or undefined.
          */
         Tile.prototype.distanceTo = function (vector) {
+            if (!vector) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Tile", "distanceTo", "missingVector"));
+            }
+
             var px = vector[0], py = vector[1], pz = vector[2],
                 dx, dy, dz,
                 points = this.samplePoints,
@@ -185,8 +200,8 @@ define([
          * Returns the four children formed by subdividing this tile.
          * @param {Level} level The level of the children.
          * @param {TileFactory} tileFactory The tile factory to use to create the children.
-         * @returns {Tile[]} An array containing the four tiles.
-         * @throws {ArgumentError} if the specified tile factory or level is null or undefined.
+         * @returns {Tile[]} An array containing the four child tiles.
+         * @throws {ArgumentError} If the specified tile factory or level is null or undefined.
          */
         Tile.prototype.subdivide = function (level, tileFactory) {
             if (!level) {
@@ -239,14 +254,15 @@ define([
 
         /**
          * Returns the four children formed by subdividing this tile, drawing those children from a specified cache
-         * if they exist.
+         * if they exist there.
          * @param {Level} level The level of the children.
          * @param {TileFactory} tileFactory The tile factory to use to create the children.
-         * @param {MemoryCache} cache A memory cache that may contain pre-existing tiles for one or more of the
-         * child tiles. If non-null, the cache is checked for a child tile prior to creating that tile. If one exists
-         * in the cache it is returned rather than creating a new tile.
+         * @param {MemoryCache} cache A memory cache that may contain pre-existing child tiles. If non-null, the
+         * cache is checked for a child collection prior to creating that tile. If one exists
+         * in the cache it is returned rather than creating a new collection of children. If a new collection is
+         * created, it is added to the cache.
          * @returns {Tile[]} An array containing the four tiles.
-         * @throws {ArgumentError} if the specified tile factory or level is null or undefined.
+         * @throws {ArgumentError} If the specified tile factory or level is null or undefined.
          */
         Tile.prototype.subdivideToCache = function (level, tileFactory, cache) {
             if (!level) {
@@ -261,7 +277,7 @@ define([
                         "The specified tile factory is null or undefined."));
             }
 
-            var childList = cache.entryForKey(this.tileKey);
+            var childList = cache ? cache.entryForKey(this.tileKey) : null;
             if (!childList) {
                 childList = this.subdivide(level, tileFactory);
                 if (childList) {
@@ -277,7 +293,7 @@ define([
          * detail factor.
          * @param {DrawContext} dc The current draw context.
          * @param {Number} detailFactor The detail factor to consider.
-         * @returns {boolean} <code>true</code> if the tile should be subdivided, otherwise <code>false</code>.
+         * @returns {boolean} true If the tile should be subdivided, otherwise false.
          */
         Tile.prototype.mustSubdivide = function (dc, detailFactor) {
             // Split when the cell height (length of a texel) becomes greater than the specified fraction of the eye
@@ -328,6 +344,7 @@ define([
         /**
          * Updates this tile's frame-dependent properties according to the specified draw context.
          * @param {DrawContext} dc The current draw context.
+         * @protected
          */
         Tile.prototype.doUpdate = function (dc) {
             // Compute the minimum and maximum world coordinate height for this tile's sector by multiplying the minimum
@@ -466,10 +483,10 @@ define([
         };
 
         /**
-         * Create all tiles for a specified level number.
+         * Creates all tiles for a specified level number.
          * @param {Level} level The level to create the tiles for.
          * @param {TileFactory} tileFactory The tile factory to use for creating tiles.
-         * @param {Tile[]} result A pre-allocated array in which to return the results.
+         * @param {Tile[]} result An array in which to return the results.
          * @throws {ArgumentError} If any argument is null or undefined.
          */
         Tile.createTilesForLevel = function (level, tileFactory, result) {

@@ -21,6 +21,7 @@ define([
          * @alias Terrain
          * @constructor
          * @classdesc Represents terrain and provides functions for computing points on or relative to the terrain.
+         * Applications do not typically interact directly with this class.
          */
         var Terrain = function (globe, tessellator, terrainTiles, verticalExaggeration) {
 
@@ -72,8 +73,8 @@ define([
          * @param {Number} longitude The location's longitude.
          * @param {Number} offset Distance above the terrain, in meters, at which to compute the point.
          * @param {Vec3} result A pre-allocated Vec3 in which to return the computed point.
-         * @returns {Vec3} The specified result parameter, set to the coordinates of the computed point, or null if
-         * the specified location is not within this terrain.
+         * @returns {Vec3} The specified result parameter, set to the coordinates of the computed point. If the
+         * specfied location is not within this terrain, the associated globe is used to compute the point.
          * @throws {ArgumentError} If the specified result argument is null or undefined.
          */
         Terrain.prototype.surfacePoint = function (latitude, longitude, offset, result) {
@@ -112,9 +113,9 @@ define([
          * @param {Number} offset Distance above the terrain, in meters relative to the specified altitude mode, at
          * which to compute the point.
          * @param {String} altitudeMode The altitude mode to use to compute the point. Recognized values are
-         * <code>WorldWind.ABSOLUTE</code>, <code>WorldWind.CLAMP_TO_GROUND</code> and
-         * <code>WorldWind.RELATIVE_TO_GROUND</code>. The mode <code>WorldWind.ABSOLUTE</code> is used if the
-         * specified mode is null, undefined or unrecognized.
+         * WorldWind.ABSOLUTE, WorldWind.CLAMP_TO_GROUND and
+         * WorldWind.RELATIVE_TO_GROUND. The mode WorldWind.ABSOLUTE is used if the
+         * specified mode is null, undefined or unrecognized, or if the specified location is outside this terrain.
          * @param {Vec3} result A pre-allocated Vec3 in which to return the computed point.
          * @returns {Vec3} The specified result parameter, set to the coordinates of the computed point.
          * @throws {ArgumentError} If the specified result argument is null or undefined.
@@ -178,7 +179,7 @@ define([
 
         /**
          * Restores rendering state after drawing the most recent tile specified to
-         * [beginRenderingTile{@link Tessellator#beginRenderingTile}.
+         * [beginRenderingTile]{@link Terrain#beginRenderingTile}.
          * @param {DrawContext} dc The current draw context.
          * @param {TerrainTile} terrainTile The terrain tile most recently rendered.
          * @throws {ArgumentError} If the specified tile is null or undefined.

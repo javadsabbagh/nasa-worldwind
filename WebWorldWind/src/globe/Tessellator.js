@@ -47,10 +47,10 @@ define([
         "use strict";
 
         /**
-         * Constructs a Tessellator object for a specified globe.
+         * Constructs a Tessellator.
          * @alias Tessellator
          * @constructor
-         * @classdesc Represents a tessellator for a specified globe.
+         * @classdesc Provides terrain tessellation for a globe.
          */
         var Tessellator = function () {
             // Parameterize top level subdivision in one place.
@@ -148,7 +148,7 @@ define([
         };
 
         /**
-         * Tessellates the geometry of the globe associated with this terrain.
+         * Creates the visible terrain of the globe associated with the current draw context.
          * @param {DrawContext} dc The draw context.
          * @returns {Terrain} The computed terrain, or null if terrain could not be computed.
          * @throws {ArgumentError} If the dc is null or undefined.
@@ -202,15 +202,6 @@ define([
             return this.lastTerrain;
         };
 
-        /**
-         * Constructs a tile for a specified sector, level, row and column. Called as a factory method.
-         * @param {Sector} tileSector The sector represented by the tile.
-         * @param {Number} level The tile's level in a tile pyramid.
-         * @param {Number} row The tile's row in the specified level in a tile pyramid.
-         * @param {Number} column The tile's column in the specified level in a tile pyramid.
-         * @throws {ArgumentError} If the specified sector or level is null or undefined or the row or column arguments
-         * are less than zero.
-         */
         Tessellator.prototype.createTile = function (tileSector, level, row, column) {
             if (!tileSector) {
                 throw new ArgumentError(
@@ -235,14 +226,8 @@ define([
         /**
          * Initializes rendering state to draw a succession of terrain tiles.
          * @param {DrawContext} dc The draw context.
-         * @throws {ArgumentError} If the dc is null or undefined.
          */
         Tessellator.prototype.beginRendering = function (dc) {
-            if (!dc) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "Tessellator", "beginRendering", "missingDc"));
-            }
-
             var program = dc.currentProgram; // use the current program; the caller configures other program state
             if (!program) {
                 Logger.logMessage(Logger.LEVEL_INFO, "Tessellator", "beginRendering", "Current Program is empty");
@@ -272,14 +257,8 @@ define([
         /**
          * Restores rendering state after drawing a succession of terrain tiles.
          * @param {DrawContext} dc The draw context.
-         * @throws {ArgumentError} If the dc or the specified tile is null or undefined.
          */
         Tessellator.prototype.endRendering = function (dc) {
-            if (!dc) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "Tessellator", "endRendering", "missingDc"));
-            }
-
             var gl = dc.currentGlContext;
 
             gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, null);
@@ -299,13 +278,9 @@ define([
          * Initializes rendering state for drawing a specified terrain tile.
          * @param {DrawContext} dc The draw context.
          * @param {TerrainTile} terrainTile The terrain tile subsequently drawn via this tessellator's render function.
-         * @throws {ArgumentError} If the dc or the specified tile is null or undefined.
+         * @throws {ArgumentError} If the specified tile is null or undefined.
          */
         Tessellator.prototype.beginRenderingTile = function (dc, terrainTile) {
-            if (!dc) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "Tessellator", "beginRenderingTile", "missingDc"));
-            }
             if (!terrainTile) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Tessellator", "beginRenderingTile", "missingTile"));
@@ -341,10 +316,10 @@ define([
 
         /**
          * Restores rendering state after drawing the most recent tile specified to
-         * [beginRenderingTile{@link Tessellator#beginRenderingTile}.
+         * [beginRenderingTile]{@link Tessellator#beginRenderingTile}.
          * @param {DrawContext} dc The draw context.
          * @param {TerrainTile} terrainTile The terrain tile most recently rendered.
-         * @throws {ArgumentError} If the dc or the specified tile is null or undefined.
+         * @throws {ArgumentError} If the specified tile is null or undefined.
          */
         Tessellator.prototype.endRenderingTile = function (dc, terrainTile) {
             // Intentionally empty until there's some reason to add code here.
@@ -354,13 +329,9 @@ define([
          * Renders a specified terrain tile.
          * @param {DrawContext} dc The draw context.
          * @param {TerrainTile} terrainTile The terrain tile to render.
-         * @throws {ArgumentError} If the dc or the specified tile is null or undefined.
+         * @throws {ArgumentError} If the specified tile is null or undefined.
          */
         Tessellator.prototype.renderTile = function (dc, terrainTile) {
-            if (!dc) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "Tessellator", "renderTile", "missingDc"));
-            }
             if (!terrainTile) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Tessellator", "renderTile", "missingTile"));
@@ -475,12 +446,9 @@ define([
          * Draws outlines of the triangles composing the tile.
          * @param {DrawContext} dc The current draw context.
          * @param {TerrainTile} terrainTile The tile to draw.
+         * @throws {ArgumentError} If the specified tile is null or undefined.
          */
         Tessellator.prototype.renderWireframeTile = function (dc, terrainTile) {
-            if (!dc) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "Tessellator", "renderWireframeTile", "missingDc"));
-            }
             if (!terrainTile) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Tessellator", "renderWireframeTile", "missingTile"));
@@ -508,12 +476,9 @@ define([
          * Draws the outer boundary of a specified terrain tile.
          * @param {DrawContext} dc The current draw context.
          * @param {TerrainTile} terrainTile The tile whose outer boundary to draw.
+         * @throws {ArgumentError} If the specified tile is null or undefined.
          */
         Tessellator.prototype.renderTileOutline = function (dc, terrainTile) {
-            if (!dc) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "Tessellator", "renderTileOutline", "missingDc"));
-            }
             if (!terrainTile) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Tessellator", "renderTileOutline", "missingTile"));

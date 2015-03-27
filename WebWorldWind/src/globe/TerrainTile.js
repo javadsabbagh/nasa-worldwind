@@ -22,12 +22,15 @@ define([
          * Constructs a terrain tile.
          * @alias TerrainTile
          * @constructor
-         * @classdesc Represents a portion of a globe's terrain.
+         * @augments Tile
+         * @classdesc Represents a portion of a globe's terrain. Applications typically do not interact directly with
+         * this class.
          * @param {Sector} sector The sector this tile covers.
          * @param {Level} level The level this tile is associated with.
          * @param {Number} row This tile's row in the associated level.
          * @param {Number} column This tile's column in the associated level.
-         *
+         * @throws {ArgumentError} If the specified sector or level is null or undefined or the row or column arguments
+         * are less than zero.
          */
         var TerrainTile = function (sector, level, row, column) {
             Tile.call(this, sector, level, row, column); // args are checked in the superclass' constructor
@@ -40,7 +43,7 @@ define([
 
             /**
              * The tile's model coordinate points.
-             * @type {null}
+             * @type {Float32Array}
              */
             this.points = null;
 
@@ -72,7 +75,7 @@ define([
             this._elevationTimestamp = null;
 
             // Internal use. Intentionally not documented.
-            this.scratchArray = []; // TODO Would using Float64Array make any difference in surfacePoint behavior?
+            this.scratchArray = [];
         };
 
         TerrainTile.prototype = Object.create(Tile.prototype);
@@ -126,7 +129,7 @@ define([
          * @param {Number} longitude The location's longitude.
          * @param {Vec3} result A pre-allocated Vec3 in which to return the computed point.
          * @returns {Vec3} The result argument set to the computed point.
-         * @throws {ArgumentError} If the specified result is null or undefined.
+         * @throws {ArgumentError} If the specified result argument is null or undefined.
          */
         TerrainTile.prototype.surfacePoint = function (latitude, longitude, result) {
             if (!result) {
@@ -207,6 +210,7 @@ define([
             }
         };
 
+        // Intentionally not documented.
         TerrainTile.prototype.computeStateKey = function () {
             var array = [];
             array.push(this._elevationTimestamp);

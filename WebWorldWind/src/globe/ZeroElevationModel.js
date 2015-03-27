@@ -47,7 +47,7 @@ define([
             this.timestamp = Date.now();
 
             /**
-             * This elevation model's minimum elevation, which is always zero.
+             * This elevation model's minimum elevation, which is always 0.
              * @type {number}
              * @default 0
              * @readonly
@@ -55,7 +55,7 @@ define([
             this.minElevation = 0;
 
             /**
-             * This elevation model's maximum elevation, which is always zero.
+             * This elevation model's maximum elevation, which is always 0.
              * @type {number}
              * @default 0
              * @readonly
@@ -67,33 +67,26 @@ define([
         ZeroElevationModel.prototype = Object.create(ElevationModel.prototype);
 
         /**
-         * Returns the minimum and maximum elevations within a specified sector.
+         * Returns minimum and maximum elevations of 0.
          * @param {Sector} sector The sector for which to determine extreme elevations.
-         * @returns {Number[]} An array containing the minimum and maximum elevations.
-         * @throws {ArgumentError} If the specified sector is null or undefined.
+         * @returns {Number[]} An array containing minimum and maximum elevations of 0.
          */
         ZeroElevationModel.prototype.minAndMaxElevationsForSector = function (sector) {
-            if (!sector) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "ZeroElevationModel", "minAndMaxElevationsForSector",
-                        "missingSector"));
-            }
-
             return [0, 0];
         };
 
         /**
-         * Returns the elevation at a specified location.
+         * Returns 0 as the elevation at a specified location.
          * @param {Number} latitude The location's latitude in degrees.
          * @param {Number} longitude The location's longitude in degrees.
-         * @returns {Number} The elevation at the specified location.
+         * @returns {Number} 0.
          */
         ZeroElevationModel.prototype.elevationAtLocation = function (latitude, longitude) {
             return 0;
         };
 
         /**
-         * Returns the elevations at locations within a specified sector.
+         * Returns the elevations at locations within a specified sector. For this elevation model they are all 0.
          * @param {Sector} sector The sector for which to determine the elevations.
          * @param {Number} numLat The number of latitudinal sample locations within the sector.
          * @param {Number} numLon The number of longitudinal sample locations within the sector.
