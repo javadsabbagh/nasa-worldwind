@@ -380,38 +380,6 @@ define([
         };
 
         /**
-         * Sets the components of this matrix to those of a specified matrix.
-         * @param {Matrix} matrix The matrix whose values to assign to this one.
-         * @returns {Matrix} This matrix with its values set to those of the specific matrix.
-         * @throws {ArgumentError} If the specified matrix in null or undefined.
-         */
-        Matrix.prototype.setToMatrix = function (matrix) { // TODO: remove -- it's redundant with Matrix.copy
-            if (!matrix) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "Matrix", "setToMatrix", "missingMatrix"));
-            }
-
-            this[0] = matrix[0];
-            this[1] = matrix[1];
-            this[2] = matrix[2];
-            this[3] = matrix[3];
-            this[4] = matrix[4];
-            this[5] = matrix[5];
-            this[6] = matrix[6];
-            this[7] = matrix[7];
-            this[8] = matrix[8];
-            this[9] = matrix[9];
-            this[10] = matrix[10];
-            this[11] = matrix[11];
-            this[12] = matrix[12];
-            this[13] = matrix[13];
-            this[14] = matrix[14];
-            this[15] = matrix[15];
-
-            return this;
-        };
-
-        /**
          * Sets this matrix to the transpose of a specified matrix.
          * @param {Matrix} matrix The matrix whose transpose is to be copied.
          * @returns {Matrix} This matrix, with its values set to the transpose of the specified matrix.

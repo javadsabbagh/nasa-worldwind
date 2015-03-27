@@ -611,7 +611,7 @@ define([
 
         // Private. Intentionally not documented.
         Path.prototype.applyMvpMatrix = function (dc) {
-            Path.scratchMatrix.setToMatrix(dc.navigatorState.modelviewProjection);
+            Path.scratchMatrix.copy(dc.navigatorState.modelviewProjection);
             Path.scratchMatrix.multiplyMatrix(this.currentData.transformationMatrix);
             dc.currentProgram.loadModelviewProjection(dc.currentGlContext, Path.scratchMatrix);
         };
@@ -619,7 +619,7 @@ define([
         // Private. Intentionally not documented.
         Path.prototype.applyMvpMatrixForOutline = function (dc) {
             // Causes the outline to stand out from the interior.
-            Path.scratchMatrix.setToMatrix(dc.navigatorState.projection);
+            Path.scratchMatrix.copy(dc.navigatorState.projection);
             Path.scratchMatrix.offsetProjectionDepth(-0.001);
             Path.scratchMatrix.multiplyMatrix(dc.navigatorState.modelview);
             Path.scratchMatrix.multiplyMatrix(this.currentData.transformationMatrix);

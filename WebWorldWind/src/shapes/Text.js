@@ -379,7 +379,7 @@ define([
                 textureBound;
 
             // Compute and specify the MVP matrix.
-            Text.matrix.setToMatrix(dc.screenProjection);
+            Text.matrix.copy(dc.screenProjection);
             Text.matrix.multiplyMatrix(this.imageTransform);
             program.loadModelviewProjection(gl, Text.matrix);
 

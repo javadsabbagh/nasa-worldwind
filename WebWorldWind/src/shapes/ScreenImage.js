@@ -320,7 +320,7 @@ define([
             gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, 0, 0);
 
             // Compute and specify the MVP matrix.
-            ScreenImage.matrix.setToMatrix(dc.screenProjection);
+            ScreenImage.matrix.copy(dc.screenProjection);
             ScreenImage.matrix.multiplyMatrix(this.imageTransform);
 
             if (this.imageRotation !== 0 || this.imageTilt !== 0) {

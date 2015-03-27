@@ -221,7 +221,7 @@ define([
             program = dc.currentProgram;
 
             // Compute and specify the MVP matrix.
-            ScreenCreditController.scratchMatrix.setToMatrix(dc.screenProjection);
+            ScreenCreditController.scratchMatrix.copy(dc.screenProjection);
             ScreenCreditController.scratchMatrix.multiplyMatrix(ScreenCreditController.imageTransform);
             program.loadModelviewProjection(gl, ScreenCreditController.scratchMatrix);
 
@@ -263,7 +263,7 @@ define([
             program = dc.currentProgram;
 
             // Compute and specify the MVP matrix.
-            ScreenCreditController.scratchMatrix.setToMatrix(dc.screenProjection);
+            ScreenCreditController.scratchMatrix.copy(dc.screenProjection);
             ScreenCreditController.scratchMatrix.multiplyMatrix(ScreenCreditController.imageTransform);
             program.loadModelviewProjection(gl, ScreenCreditController.scratchMatrix);
 
