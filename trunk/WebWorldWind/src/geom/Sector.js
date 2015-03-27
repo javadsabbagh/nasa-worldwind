@@ -27,10 +27,10 @@ define([
          * @alias Sector
          * @constructor
          * @classdesc Represents a rectangular region in geographic coordinates in degrees.
-         * @param {Number} minLatitude the sector's minimum latitude in degrees.
-         * @param {Number} maxLatitude the sector's maximum latitude in degrees.
-         * @param {Number} minLongitude the sector's minimum longitude in degrees.
-         * @param {Number} maxLongitude the sector's maximum longitude in degrees.
+         * @param {Number} minLatitude The sector's minimum latitude in degrees.
+         * @param {Number} maxLatitude The sector's maximum latitude in degrees.
+         * @param {Number} minLongitude The sector's minimum longitude in degrees.
+         * @param {Number} maxLongitude The sector's maximum longitude in degrees.
          */
         var Sector = function (minLatitude, maxLatitude, minLongitude, maxLongitude) {
             /**
@@ -69,33 +69,10 @@ define([
          */
         Sector.FULL_SPHERE = new Sector(-90, 90, -180, 180);
 
-        Sector.computeBoundingBox = function (globe, verticalExaggeration, sector, minElevation, maxElevation) {
-            var min = minElevation * verticalExaggeration,
-                max = maxElevation * verticalExaggeration;
-
-            // Ensure that the top and bottom heights are not equal.
-            if (min === max) {
-                max = min + 10;
-            }
-
-            // Create an array for a 3x5 grid of elevations. Use min height at the corners and max height elsewhere.
-            var elevations = [
-                min, max, max, max, min,
-                max, max, max, max, max,
-                min, max, max, max, min
-            ];
-
-            // Compute the Cartesian points for a 3x5 geographic grid. This grid captures enough detail to bound the
-            // sector.
-            var points = new Float32Array(24 * 3),
-                elevationsOut = new Float32Array(24 * 3);
-            globe.computePointsForSector(sector, 3, 5, elevations, new Vec3(0, 0, 0), points, elevationsOut);
-        };
-
         /**
          * Sets this sector's latitudes and longitudes to those of a specified sector.
          * @param {Sector} sector The sector to copy.
-         * @returns {Sector} This sector, initialized to the values of the specified sector.
+         * @returns {Sector} This sector, set to the values of the specified sector.
          * @throws {ArgumentError} If the specified sector is null or undefined.
          */
         Sector.prototype.copy = function (sector) {
@@ -113,8 +90,8 @@ define([
 
         /**
          * Indicates whether this sector has width or height.
-         * @returns {boolean} <code>true</code> if this sector's minimum and maximum latitudes or minimum and maximum
-         * longitudes differ, otherwise <code>false</code>.
+         * @returns {Boolean} true if this sector's minimum and maximum latitudes or minimum and maximum
+         * longitudes do not differ, otherwise false.
          */
         Sector.prototype.isEmpty = function () {
             return this.minLatitude === this.maxLatitude && this.minLongitude === this.maxLongitude;
@@ -138,7 +115,7 @@ define([
 
         /**
          * Returns the angle midway between this sector's minimum and maximum latitudes.
-         * @returns {number} The mid-angle of this sector's minimum and maximum latitudes, in degrees.
+         * @returns {Number} The mid-angle of this sector's minimum and maximum latitudes, in degrees.
          */
         Sector.prototype.centroidLatitude = function () {
             return 0.5 * (this.minLatitude + this.maxLatitude);
@@ -146,7 +123,7 @@ define([
 
         /**
          * Returns the angle midway between this sector's minimum and maximum longitudes.
-         * @returns {number} The mid-angle of this sector's minimum and maximum longitudes, in degrees.
+         * @returns {Number} The mid-angle of this sector's minimum and maximum longitudes, in degrees.
          */
         Sector.prototype.centroidLongitude = function () {
             return 0.5 * (this.minLongitude + this.maxLongitude);
@@ -157,6 +134,7 @@ define([
          * latitude and longitude dimensions.
          * @param {Location} result A pre-allocated {@link Location} in which to return the computed centroid.
          * @returns {Location} The specified result argument containing the computed centroid.
+         * @throws {ArgumentError} If the result argument is null or undefined.
          */
         Sector.prototype.centroid = function (result) {
             if (!result) {
@@ -172,7 +150,7 @@ define([
 
         /**
          * Returns this sector's minimum latitude in radians.
-         * @returns {number} This sector's minimum latitude in radians.
+         * @returns {Number} This sector's minimum latitude in radians.
          */
         Sector.prototype.minLatitudeRadians = function () {
             return this.minLatitude * Angle.DEGREES_TO_RADIANS;
@@ -180,7 +158,7 @@ define([
 
         /**
          * Returns this sector's maximum latitude in radians.
-         * @returns {number} This sector's maximum latitude in radians.
+         * @returns {Number} This sector's maximum latitude in radians.
          */
         Sector.prototype.maxLatitudeRadians = function () {
             return this.maxLatitude * Angle.DEGREES_TO_RADIANS;
@@ -188,7 +166,7 @@ define([
 
         /**
          * Returns this sector's minimum longitude in radians.
-         * @returns {number} This sector's minimum longitude in radians.
+         * @returns {Number} This sector's minimum longitude in radians.
          */
         Sector.prototype.minLongitudeRadians = function () {
             return this.minLongitude * Angle.DEGREES_TO_RADIANS;
@@ -196,7 +174,7 @@ define([
 
         /**
          * Returns this sector's maximum longitude in radians.
-         * @returns {number} This sector's maximum longitude in radians.
+         * @returns {Number} This sector's maximum longitude in radians.
          */
         Sector.prototype.maxLongitudeRadians = function () {
             return this.maxLongitude * Angle.DEGREES_TO_RADIANS;
@@ -206,10 +184,10 @@ define([
          * Modifies this sector to encompass an array of specified locations.
          * @param {Location[]} locations An array of locations. The array may be sparse.
          * @returns {Sector} This sector, modified to encompass all locations in the specified array.
-         * @throws {ArgumentError} If the specified array is null, undefined or empty.
+         * @throws {ArgumentError} If the specified array is null, undefined or empty or has fewer than two locations.
          */
         Sector.prototype.setToBoundingSector = function (locations) {
-            if (!locations || locations.length < 1) {
+            if (!locations || locations.length < 2) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "Sector", "setToBoundingSector",
                     "missingArray"));
             }
@@ -241,14 +219,15 @@ define([
         };
 
         /**
-         * Create bounding sectors for the northern and southern hemispheres???
-         * TODO: Ported directly from Java WW, which didn't have any documentation.
-         * @param {Location[]} locations The locations to split a bounding sector of.
-         * @returns {Sector[]} Either no sectors or a pair of sectors describing the northern and southern hemispheres.
-         * @throws {ArgumentError} If the specified array is null, undefined or empty.
+         * Computes bounding sectors from a list of locations that span the dateline.
+         * @param {Location[]} locations The locations to bound.
+         * @returns {Sector[]} Two sectors, one in the eastern hemisphere and one in the western hemisphere.
+         * Returns null if the computed bounding sector has zero width or height.
+         * @throws {ArgumentError} If the specified array is null, undefined or empty or the number of locations
+         * is less than 2.
          */
         Sector.splitBoundingSectors = function(locations) {
-            if (!locations || locations.length < 1) {
+            if (!locations || locations.length < 2) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "Sector", "splitBoundingSectors",
                     "missingArray"));
             }
@@ -292,7 +271,7 @@ define([
                 lastLocation = location;
             }
 
-            if (minLat == maxLat && minLon == maxLon) {
+            if (minLat === maxLat && minLon === maxLon) {
                 return null;
             }
 
@@ -304,12 +283,13 @@ define([
 
         /**
          * Indicates whether this sector intersects a specified sector.
-         * This sector intersects the specified sector when each of sector's boundaries either overlap with the specified
+         * This sector intersects the specified sector when each sector's boundaries either overlap with the specified
          * sector or are adjacent to the specified sector.
+         * The sectors are assumed to have normalized angles (angles within the range [-90, 90] latitude and
+         * [-180, 180] longitude).
          * @param {Sector} sector The sector to test intersection with. May be null or undefined, in which case this
-         * function returns <code>false</code>.
-         * @returns {boolean} <code>true</code> if the specifies sector intersections this sector, otherwise
-         * <code>false</code>.
+         * function returns false.
+         * @returns {Boolean} true if the specifies sector intersections this sector, otherwise false.
          */
         Sector.prototype.intersects = function (sector) {
             // Assumes normalized angles: [-90, 90], [-180, 180].
@@ -323,10 +303,11 @@ define([
         /**
          * Indicates whether this sector intersects a specified sector exclusive of the sector boundaries.
          * This sector overlaps the specified sector when the union of the two sectors defines a non-empty sector.
+         * The sectors are assumed to have normalized angles (angles within the range [-90, 90] latitude and
+         * [-180, 180] longitude).
          * @param {Sector} sector The sector to test overlap with. May be null or undefined, in which case this
-         * function returns <code>false</code>.
-         * @returns {boolean} <code>true</code> if the specified sector overlaps this sector, otherwise
-         * <code>false</code>.
+         * function returns false.
+         * @returns {Boolean} true if the specified sector overlaps this sector, otherwise false.
          */
         Sector.prototype.overlaps = function (sector) {
             // Assumes normalized angles: [-90, 90], [-180, 180].
@@ -339,12 +320,13 @@ define([
 
         /**
          * Indicates whether this sector fully contains a specified sector.
-         * This sector contains the specified sector when the specified sector's boundaries are completely contained within this
-         * sector's boundaries, or are equal to this sector's boundaries.
+         * This sector contains the specified sector when the specified sector's boundaries are completely contained
+         * within this sector's boundaries, or are equal to this sector's boundaries.
+         * The sectors are assumed to have normalized angles (angles within the range [-90, 90] latitude and
+         * [-180, 180] longitude).
          * @param {Sector} sector The sector to test containment with. May be null or undefined, in which case this
-         * function returns <code>false</code>.
-         * @returns {boolean} <code>true</code> if the specified sector contains this sector, otherwise
-         * <code>false</code>.
+         * function returns false.
+         * @returns {Boolean} true if the specified sector contains this sector, otherwise false.
          */
         Sector.prototype.contains = function (sector) {
             // Assumes normalized angles: [-90, 90], [-180, 180].
@@ -359,7 +341,7 @@ define([
          * Indicates whether this sector contains a specified geographic location.
          * @param {Number} latitude The location's latitude in degrees.
          * @param {Number} longitude The location's longitude in degrees.
-         * @returns {boolean} <code>true</code> if this sector contains the location, otherwise <code>false</code>.
+         * @returns {Boolean} true if this sector contains the location, otherwise false.
          */
         Sector.prototype.containsLocation = function (latitude, longitude) {
             // Assumes normalized angles: [-90, 90], [-180, 180].
