@@ -25,7 +25,8 @@ define([
          * @constructor
          * @classdesc Represents a plane in Cartesian coordinates.
          * The plane's X, Y and Z components indicate the plane's normal vector. The distance component
-         * indicates the plane's distance from the origin relative to its normal. The components are expected to be normalized.
+         * indicates the plane's distance from the origin relative to its unit normal.
+         * The components are expected to be normalized.
          * @param {Number} x The X coordinate of the plane's unit normal vector.
          * @param {Number} y The Y coordinate of the plane's unit normal vector.
          * @param {Number} z The Z coordinate of the plane's unit normal vector.
@@ -39,14 +40,15 @@ define([
             this.normal = new Vec3(x, y, z);
 
             /**
-             * The negative of the plane's distance from the origin.
+             * The plane's distance from the origin.
              * @type {Number}
              */
             this.distance = distance;
         };
 
         /**
-         * Returns the plane that passes through the specified three points. The plane's normal is the cross product of the
+         * Computes a plane that passes through the specified three points.
+         * The plane's normal is the cross product of the
          * two vectors from pb to pa and pc to pa, respectively. The
          * returned plane is undefined if any of the specified points are colinear.
          *
@@ -56,7 +58,7 @@ define([
          *
          * @return {Plane} A plane passing through the specified points.
          *
-         * @throws {ArgumentError} if pa, pb, or pc is null.
+         * @throws {ArgumentError} if pa, pb, or pc is null or undefined.
          */
         Plane.fromPoints = function(pa, pb, pc) {
             if (!pa || !pb || !pc) {
@@ -148,7 +150,7 @@ define([
          *
          * @param {Vec3} endPoint1 The first end point of the line segment.
          * @param {Vec3} endPoint2 The second end point of the line segment.
-         * @returns {boolean} <code>true</code> If the line segment intersects this plane, otherwise <code>false</code>.
+         * @returns {Boolean} true if the line segment intersects this plane, otherwise false.
          */
         Plane.prototype.intersectsSegment = function(endPoint1, endPoint2) {
             var distance1 = this.dot(endPoint1),
@@ -163,7 +165,7 @@ define([
          * @param {Vec3} endPoint1 The first end point of the line segment.
          * @param {Vec3} endPoint2 The second end point of the line segment.
          * @param {Vec3} result A variable in which to return the intersection point of the line segment with this plane.
-         * @returns {boolean} <code>true</code> If the line segment intersects this plane, otherwise <code>false</code>.
+         * @returns {Boolean} true If the line segment intersects this plane, otherwise false.
          */
         Plane.prototype.intersectsSegmentAt = function (endPoint1, endPoint2, result) {
             // Compute the distance from the end-points.
@@ -200,10 +202,10 @@ define([
          * @param {Vec3} pointA the first point.
          * @param {Vec3} pointB the second point.
          *
-         * @return {number} -1 if both points are on the negative side of this plane, +1 if both points are on the
+         * @return {Number} -1 If both points are on the negative side of this plane, +1 if both points are on the
          * positive side of this plane, 0 if the points are on opposite sides of this plane.
          *
-         * @throws {ArgumentError} if either point is null or undefined.
+         * @throws {ArgumentError} If either point is null or undefined.
          */
         Plane.prototype.onSameSide = function (pointA, pointB) {
             if (!pointA || !pointB) {
@@ -224,7 +226,7 @@ define([
         };
 
         /**
-         * Clip a line segment to this plane.
+         * Clips a line segment to this plane.
          * @param {Vec3} pointA The first line segment endpoint.
          * @param {Vec3} pointB The second line segment endpoint.
          *
@@ -236,7 +238,7 @@ define([
          *         the plane. If the segment does not intersect the plane, null is returned. If the segment is coincident
          *         with the plane, the input points are returned, in their input order.
          *
-         * @throws {ArgumentError} if either point is null or undefined.
+         * @throws {ArgumentError} If either point is null or undefined.
          */
         Plane.prototype.clip = function (pointA, pointB) {
             if (!pointA || !pointB) {
