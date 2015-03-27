@@ -49,7 +49,7 @@ define([
         };
 
         /**
-         * Creates a {@link Line} given two specified endpoints.
+         * Creates a line given two specified endpoints.
          * @param {Vec3} pointA The first endpoint.
          * @param {Vec3} pointB The second endpoint.
          * @return {Line} The new line.

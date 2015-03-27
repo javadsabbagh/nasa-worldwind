@@ -73,11 +73,8 @@ define([
             this[15] = m44;
         };
 
-        Matrix.NUM_ELEMENTS = 16;
-
-        Matrix.EPSILON = 1.0e-6;
-
-        Matrix.prototype = new Float64Array(Matrix.NUM_ELEMENTS);
+        // Derives from Float64Array.
+        Matrix.prototype = new Float64Array(16);
 
         /**
          * Creates an identity matrix.
@@ -94,11 +91,13 @@ define([
 
         /**
          * Computes the principal axes of a point collection expressed in a typed array.
-         * @param {Float32Array} points The points for which to compute the axes.
+         * @param {Float32Array} points The points for which to compute the axes,
+         * expressed as X0, Y0, Z0, X1, Y1, Z1, ...
          * @param {Vec3} axis1 A vector in which to return the first (longest) principal axis.
          * @param {Vec3} axis2 A vector in which to return the second (mid-length) principal axis.
          * @param {Vec3} axis3 A vector in which to return the third (shortest) principal axis.
-         * @throws {ArgumentError} If the specified points array or one of the specified axes is null or undefined.
+         * @throws {ArgumentError} If the specified points array is null, undefined or empty, or one of the
+         * specified axes arguments is null or undefined.
          */
         Matrix.principalAxesFromPoints = function (points, axis1, axis2, axis3) {
             if (!points || points.length < 1) {
@@ -193,11 +192,17 @@ define([
         };
 
         /**
-         * Copy a matrix.
+         * Copies the components of a specified matrix to this matrix.
          * @param {Matrix} matrix The matrix to copy.
          * @returns {Matrix} This matrix set to the values of the specified matrix.
+         * @throws {ArgumentError} If the specified matrix is null or undefined.
          */
         Matrix.prototype.copy = function (matrix) {
+            if (!matrix) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Matrix", "copy", "missingMatrix"));
+            }
+
             this[0] = matrix[0];
             this[1] = matrix[1];
             this[2] = matrix[2];
@@ -217,11 +222,11 @@ define([
         };
 
         /**
-         * Indicates whether this matrix is equal to a specified matrix.
+         * Indicates whether the components of this matrix are equal to those of a specified matrix.
          * @param {Matrix} matrix The matrix to test equality with. May be null or undefined, in which case this
-         * function returns <code>false</code>.
-         * @returns {boolean} <code>true</code> if all components of this matrix are equal to the corresponding
-         * components of the specified matrix, otherwise <code>false</code>.
+         * function returns false.
+         * @returns {boolean} true if all components of this matrix are equal to the corresponding
+         * components of the specified matrix, otherwise false.
          */
         Matrix.prototype.equals = function (matrix) {
             return matrix
@@ -244,13 +249,13 @@ define([
         };
 
         /**
-         * Stores this matrix's components in column-major order in the specified array.
+         * Stores this matrix's components in column-major order in a specified array.
          * <p>
          * The array must have space for at least 16 elements. This matrix's components are stored in the array
          * starting with row 0 column 0 in index 0, row 1 column 0 in index 1, row 2 column 0 in index 2, and so on.
          *
-         * @param {Float32Array} result An array of at least 16 elements. Upon return, contains this matrix's components in
-         * column-major.
+         * @param {Float32Array | Float64Array | Number[]} result An array of at least 16 elements. Upon return,
+         * contains this matrix's components in column-major.
          * @returns {Float32Array} The specified result array.
          * @throws {ArgumentError} If the specified result array in null or undefined.
          */
@@ -375,12 +380,12 @@ define([
         };
 
         /**
-         * Sets this matrix to the values of a specified matrix.
+         * Sets the components of this matrix to those of a specified matrix.
          * @param {Matrix} matrix The matrix whose values to assign to this one.
          * @returns {Matrix} This matrix with its values set to those of the specific matrix.
          * @throws {ArgumentError} If the specified matrix in null or undefined.
          */
-        Matrix.prototype.setToMatrix = function (matrix) {
+        Matrix.prototype.setToMatrix = function (matrix) { // TODO: remove -- it's redundant with Matrix.copy
             if (!matrix) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Matrix", "setToMatrix", "missingMatrix"));
@@ -490,7 +495,7 @@ define([
          * value. If any entry is zero, then there's no correlation between the two coordinates defining that entry. If the
          * returned matrix is diagonal, then all three coordinates are uncorrelated, and the specified point is
          * distributed evenly about its mean point.
-         * @param {Float32Array} points The points to consider.
+         * @param {Float32Array | Float64Array | Number[]} points The points to consider.
          * @returns {Matrix} This matrix set to the covariance matrix for the specified list of points.
          * @throws {ArgumentError} If the specified array of points is null, undefined or empty.
          */
@@ -726,7 +731,7 @@ define([
 
         /**
          * Returns the translation components of this matrix.
-         * @param {Vec3} result A pre-allocated {@link Vec3} in which to store the translation components.
+         * @param {Vec3} result A pre-allocated {@link Vec3} in which to return the translation components.
          * @returns {Vec3} The specified result argument set to the translation components of this matrix.
          * @throws {ArgumentError} If the specified result argument is null or undefined.
          */
@@ -745,7 +750,7 @@ define([
 
         /**
          * Returns the rotation angles of this matrix.
-         * @param {Vec3} result A pre-allocated {@link Vec3} in which to store the rotation angles.
+         * @param {Vec3} result A pre-allocated {@link Vec3} in which to return the rotation angles.
          * @returns {Vec3} The specified result argument set to the rotation angles of this matrix. The angles are in
          * degrees.
          * @throws {ArgumentError} If the specified result argument is null or undefined.
@@ -1025,7 +1030,7 @@ define([
          * from 0 to 1.
          * <p>
          * The resultant projection matrix has the effect of preserving coordinates that have already been projected using
-         * [WWNavigatorState project:result:].
+         * [NavigatorState.project]{@link NavigatorState#project}.
          * <p>
          * The viewport is in the OpenGL screen coordinate system, with its origin in the bottom-left corner and axes that extend
          * up and to the right from the origin point.
@@ -1488,14 +1493,14 @@ define([
             return this;
         };
 
-        /**
+        /* Internal. Intentionally not documented.
          * Utility method to solve a linear system with an LU factorization of a matrix.
          * Solves Ax=b, where A is in LU factorized form.
          * Algorithm derived from "Numerical Recipes in C", Press et al., 1988.
          *
-         * @param {Number[]} A an LU factorization of a matrix
-         * @param {Number[]} index permutation vector of that LU factorization
-         * @param {Number[]} b vector to be solved
+         * @param {Number[]} A An LU factorization of a matrix.
+         * @param {Number[]} index Permutation vector of that LU factorization.
+         * @param {Number[]} b Vector to be solved.
          */
             // Method "lubksb" derived from "Numerical Recipes in C", Press et al., 1988
         Matrix.lubksb = function (A, index, b) {
@@ -1530,7 +1535,7 @@ define([
             }
         };
 
-        /**
+        /* Internal. Intentionally not documented.
          * Utility method to perform an LU factorization of a matrix.
          * "ludcmp" is derived from "Numerical Recipes in C", Press et al., 1988.
          *
