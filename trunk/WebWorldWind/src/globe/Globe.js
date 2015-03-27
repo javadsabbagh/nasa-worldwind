@@ -38,13 +38,15 @@ define([
          * @classdesc Represents an ellipsoidal globe. The default configuration represents Earth but may be changed.
          * To configure for another planet, set the globe's equatorial and polar radii properties and its
          * eccentricity-squared property.
-         * <p/>
-         * A globe uses a Cartesian coordinate system in which the Y axis points to the north pole,
-         * the Z axis points to the intersection of the prime meridian and the equator,
-         * and the X axis completes a right-handed coordinate system, is in the equatorial plane and 90 degree east of the Z
-         * axis. The origin of the coordinate system lies at the center of the globe.
+         * <p>
+         * A globe uses a Cartesian coordinate system whose origin is at the globe's center. It's Y axis points to the
+         * north pole, the Z axis points to the intersection of the prime meridian and the equator,
+         * and the X axis completes a right-handed coordinate system, is in the equatorial plane and 90 degrees east
+         * of the Z axis.
+         * <p>
+         *     All Cartesian coordinates and elevations are in meters.
 
-         * @param {ElevationModel} elevationModel The elevation model to use for the globe.
+         * @param {ElevationModel} elevationModel The elevation model to use for this globe.
          * @throws {ArgumentError} If the specified elevation model is null or undefined.
          */
         var Globe = function (elevationModel) {
@@ -89,6 +91,7 @@ define([
             this.scratchPosition = new Position(0, 0, 0);
             this.scratchPoint = new Vec3(0, 0, 0);
 
+            // A unique ID for this globe. Intentionally not documented.
             this.id = ++Globe.idPool;
 
             this._stateKey = "globe " + this.id.toString() + " ";
@@ -118,10 +121,10 @@ define([
          * @param {Number} latitude The position's latitude.
          * @param {Number} longitude The position's longitude.
          * @param {Number} altitude The position's altitude.
-         * @param {Vec3} result A reference to a pre-allocated {@link Vec3} instance to contain the computed X,
+         * @param {Vec3} result A reference to a pre-allocated {@link Vec3} in which to return the computed X,
          * Y and Z Cartesian coordinates.
          * @returns {Vec3} The result argument.
-         * @throws {ArgumentError} If the specified result is null or undefined.
+         * @throws {ArgumentError} If the specified result argument is null or undefined.
          */
         Globe.prototype.computePointFromPosition = function (latitude, longitude, altitude, result) {
             if (!result) {
@@ -147,10 +150,10 @@ define([
          * See this class' Overview section for a description of the Cartesian coordinate system used.
          * @param {Number} latitude The position's latitude.
          * @param {Number} longitude The position's longitude.
-         * @param {Vec3} result A reference to a pre-allocated {@link Vec3} instance to contain the computed X,
+         * @param {Vec3} result A reference to a pre-allocated {@link Vec3} in which to return the computed X,
          * Y and Z Cartesian coordinates.
          * @returns {Vec3} The result argument.
-         * @throws {ArgumentError} If the specified result is null or undefined.
+         * @throws {ArgumentError} If the specified result argument is null or undefined.
          */
         Globe.prototype.computePointFromLocation = function (latitude, longitude, result) {
             if (!result) {
@@ -173,7 +176,7 @@ define([
          * calculation at each position incorporates the associated elevation. There must be numLat x numLon elevations
          * in the array.
          *
-         * @param {Sector} sector The sector in which to compute the points.
+         * @param {Sector} sector The sector for which to compute the points.
          * @param {Number} numLat The number of latitudinal points in the grid.
          * @param {Number} numLon The number of longitudinal points in the grid.
          * @param {Number[]} elevations An array of elevations to incorporate in the point calculations. There must be
@@ -266,7 +269,7 @@ define([
          * @param {Number} z The Z coordinate.
          * @param {Position} result A pre-allocated {@link Position} instance in which to return the computed position.
          * @returns {Position} The specified result position.
-         * @throws {ArgumentError} If the specified result is null or undefined.
+         * @throws {ArgumentError} If the specified result argument is null or undefined.
          */
         Globe.prototype.computePositionFromPoint = function (x, y, z, result) {
             if (!result) {
@@ -379,9 +382,9 @@ define([
 
         /**
          * Computes the radius of this globe at a specified location.
-         * @param {number} latitude The locations' latitude.
-         * @param {number} longitude The locations' longitude.
-         * @returns {number} The radius at the specified location.
+         * @param {Number} latitude The locations' latitude.
+         * @param {Number} longitude The locations' longitude.
+         * @returns {Number} The radius at the specified location.
          */
         Globe.prototype.radiusAt = function (latitude, longitude) {
             var sinLat = Math.sin(latitude * Angle.DEGREES_TO_RADIANS),
@@ -397,7 +400,7 @@ define([
          * @param {Vec3} result A pre-allocated {@Link Vec3} instance in which to return the computed vector. The returned
          * normal vector is unit length.
          * @returns {Vec3} The specified result vector.  The returned normal vector is unit length.
-         * @throws {ArgumentError} If the specified result is null or undefined.
+         * @throws {ArgumentError} If the specified result argument is null or undefined.
          */
         Globe.prototype.surfaceNormalAtLocation = function (latitude, longitude, result) {
             if (!result) {
@@ -427,7 +430,7 @@ define([
          * @param {Vec3} result A pre-allocated {@Link Vec3} instance in which to return the computed vector. The returned
          * normal vector is unit length.
          * @returns {Vec3} The specified result vector.
-         * @throws {ArgumentError} If the specified result is null or undefined.
+         * @throws {ArgumentError} If the specified result argument is null or undefined.
          */
         Globe.prototype.surfaceNormalAtPoint = function (x, y, z, result) {
             if (!result) {
@@ -452,7 +455,7 @@ define([
          * @param {Vec3} result A pre-allocated {@Link Vec3} instance in which to return the computed vector. The returned
          * tangent vector is unit length.
          * @returns {Vec3} The specified result vector.
-         * @throws {ArgumentError} If the specified result is null or undefined.
+         * @throws {ArgumentError} If the specified result argument is null or undefined.
          */
         Globe.prototype.northTangentAtLocation = function (latitude, longitude, result) {
             if (!result) {
@@ -486,14 +489,14 @@ define([
         };
 
         /**
-         * Computes the north-pointing tangent vector to this globe's surface at a specified Cartesian position.
+         * Computes the north-pointing tangent vector to this globe's surface at a specified Cartesian point.
          * @param {Number} x The point's X coordinate.
          * @param {Number} y The point's Y coordinate.
          * @param {Number} z The point's Z coordinate.
          * @param {Vec3} result A pre-allocated {@Link Vec3} instance in which to return the computed vector. The returned
          * tangent vector is unit length.
          * @returns {Vec3} The specified result vector.
-         * @throws {ArgumentError} If the specified result is null or undefined.
+         * @throws {ArgumentError} If the specified result argument is null or undefined.
          */
         Globe.prototype.northTangentAtPoint = function (x, y, z, result) {
             if (!result) {
@@ -509,7 +512,7 @@ define([
         /**
          * Indicates whether this globe intersects a specified frustum.
          * @param {Frustum} frustum The frustum to test.
-         * @returns {boolean} true if this globe intersects the frustum, otherwise false.
+         * @returns {Boolean} true if this globe intersects the frustum, otherwise false.
          * @throws {ArgumentError} If the specified frustum is null or undefined.
          */
         Globe.prototype.intersectsFrustum = function (frustum) {
@@ -539,8 +542,8 @@ define([
          * intersection points behind the line's origin are ignored.
          * @param {Line} line The line to intersect with this globe.
          * @param {Vec3} result A pre-allocated Vec3 in which to return the computed point.
-         * @returns {boolean} <code>true</code> If the ray intersects the globe, otherwise <code>false</code>.
-         * @throws {ArgumentError} If the specified line or result is null or undefined.
+         * @returns {boolean} true If the ray intersects the globe, otherwise false.
+         * @throws {ArgumentError} If the specified line or result argument is null or undefined.
          */
         Globe.prototype.intersectsLine = function (line, result) {
             if (!line) {
@@ -575,7 +578,7 @@ define([
          * Returns this globe's maximum elevation.
          * @returns {Number} This globe's maximum elevation.
          */
-        Globe.prototype.minElevation = function () {
+        Globe.prototype.maxElevation = function () {
             return this.elevationModel.maxElevation
         };
 
@@ -595,10 +598,30 @@ define([
             return this.elevationModel.minAndMaxElevationsForSector(sector);
         };
 
+        /**
+         * Returns the elevation at a specified location.
+         * @param {Number} latitude The location's latitude in degrees.
+         * @param {Number} longitude The location's longitude in degrees.
+         * @returns {Number} The elevation at the specified location, in meters. Returns zero if the location is
+         * outside the coverage area of this elevation model.
+         */
         Globe.prototype.elevationAtLocation = function (latitude, longitude) {
             return this.elevationModel.elevationAtLocation(latitude, longitude);
         };
 
+        /**
+         * Returns the elevations at locations within a specified sector.
+         * @param {Sector} sector The sector for which to determine the elevations.
+         * @param {Number} numLat The number of latitudinal sample locations within the sector.
+         * @param {Number} numLon The number of longitudinal sample locations within the sector.
+         * @param {Number} targetResolution The desired elevation resolution, in radians. (To compute radians from
+         * meters, divide the number of meters by the globe's radius.)
+         * @param {Number[]} result An array in which to return the requested elevations.
+         * @returns {Number} The resolution actually achieved, which may be greater than that requested if the
+         * elevation data for the requested resolution is not currently available.
+         * @throws {ArgumentError} If the specified sector or result array is null or undefined, or if either of the
+         * specified numLat or numLon values is less than one.
+         */
         Globe.prototype.elevationsForGrid = function (sector, numLat, numLon, targetResolution, result) {
             if (!sector) {
                 throw new ArgumentError(

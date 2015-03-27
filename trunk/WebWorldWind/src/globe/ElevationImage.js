@@ -22,10 +22,13 @@ define([
          * @constructor
          * @classdesc Holds elevation values for an elevation tile.
          * This class is typically not used directly by applications.
-         * @param {String} imagePath A string uniquely identifying this elevation image relative to other elevation images.
+         * @param {String} imagePath A string uniquely identifying this elevation image relative to other elevation
+         * images.
          * @param {Sector} sector The sector spanned by this elevation image.
          * @param {Number} imageWidth The number of longitudinal sample points in this elevation image.
          * @param {Number} imageHeight The number of latitudinal sample points in this elevation image.
+         * @throws {ArgumentError} If the specified image path is null, undefined or empty, or the specified
+         * sector is null or undefined.
          */
         var ElevationImage = function (imagePath, sector, imageWidth, imageHeight) {
             if (!imagePath || (imagePath.length < 1)) {
@@ -34,21 +37,56 @@ define([
                         "The specified image path is null, undefined or zero length."));
             }
 
+            if (!sector) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "ElevationImage", "constructor", "missingSector"));
+            }
+
+            /**
+             * The sector spanned by this elevation image.
+             * @type {Sector}
+             * @readonly
+             */
             this.sector = sector;
+
+            /**
+             * A string uniquely identifying this elevation image.
+             * @type {String}
+             * @readonly
+             */
             this.imagePath = imagePath;
+
+            /**
+             * The number of longitudinal sample points in this elevation image.
+             * @type {Number}
+             * @readonly
+             */
             this.imageWidth = imageWidth;
+
+            /**
+             * The number of latitudinal sample points in this elevation image.
+             * @type {Number}
+             * @readonly
+             */
             this.imageHeight = imageHeight;
+
+            /**
+             * The size in bytes of this elevation image.
+             * @type {number}
+             * @readonly
+             */
             this.size = this.imageWidth * this.imageHeight;
         };
 
         /**
-         * Returns the pixel value at a specified xy coordinate in this elevation image. The coordinate origin is the
+         * Returns the pixel value at a specified coordinate in this elevation image. The coordinate origin is the
          * image's lower left corner, so (0, 0) indicates the lower left pixel and (imageWidth-1, imageHeight-1)
          * indicates the upper right pixel. This returns 0 if the coordinate indicates a pixel outside of this elevation
          * image.
-         * @param x The pixel's x coordinate.
-         * @param y The pixel's y coordinate.
+         * @param x The pixel's X coordinate.
+         * @param y The pixel's Y coordinate.
          * @returns {Number} The pixel value at the specified coordinate in this elevation image.
+         * Returns 0 if the coordinate indicates a pixel outside of this elevation image.
          */
         ElevationImage.prototype.pixel = function (x, y) {
             if (x < 0 || x >= this.imageWidth) {
@@ -64,9 +102,9 @@ define([
         };
 
         /**
-         * Returns the elevation at a specified location.
-         * @param {number} latitude The location's latitude.
-         * @param {number} longitude The location's longitude.
+         * Returns the elevation at a specified geographic location.
+         * @param {Number} latitude The location's latitude.
+         * @param {Number} longitude The location's longitude.
          * @returns {Number} The elevation at the specified location.
          */
         ElevationImage.prototype.elevationAtLocation = function (latitude, longitude) {
@@ -95,10 +133,10 @@ define([
         };
 
         /**
-         * Returns the elevations for a specified sector.
+         * Returns elevations for a specified sector.
          * @param {Sector} sector The sector for which to return the elevations.
-         * @param {number} numLat The number of sample points in the longitudinal direction.
-         * @param {number} numLon The number of sample points in the latitudinal direction.
+         * @param {Number} numLat The number of sample points in the longitudinal direction.
+         * @param {Number} numLon The number of sample points in the latitudinal direction.
          * @param {Number[]} result An array in which to return the computed elevations.
          * @throws {ArgumentError} If either the specified sector or result argument is null or undefined, or if the
          * specified number of sample points in either direction is less than 1.
@@ -166,9 +204,9 @@ define([
                                 x1y1 = pixels[x1 + y1 * this.imageWidth];
 
                             result[index] = (1 - xf) * (1 - yf) * x0y0 +
-                                xf * (1 - yf) * x1y0 +
-                                (1 - xf) * yf * x0y1 +
-                                xf * yf * x1y1;
+                            xf * (1 - yf) * x1y0 +
+                            (1 - xf) * yf * x0y1 +
+                            xf * yf * x1y1;
                         }
 
                         index++;
@@ -181,20 +219,18 @@ define([
 
         /**
          * Returns the minimum and maximum elevations within a specified sector.
-         * @param {Sector} sector The sector of interest.
-         * @returns {Number[]} An array containing the minimum and maximum elevations with the specified sector,
+         * @param {Sector} sector The sector of interest. If null or undefined, the minimum and maximum elevations
+         * for the sector associated with this tile are returned.
+         * @returns {Number[]} An array containing the minimum and maximum elevations within the specified sector,
          * or null if the specified sector does not include this elevation image's coverage sector.
-         * @throws {ArgumentError} If either the specified sector or result argument is null or undefined.
          */
         ElevationImage.prototype.minAndMaxElevationsForSector = function (sector) {
-            if (!sector) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "ElevationImage", "minAndMaxElevationsForSector", "missingSector"));
-            }
-
             var result = [];
 
-            if (sector.contains(this.sector)) { // The specified sector completely contains this image; return the image min and max.
+            if (!sector) { // the sector is this sector
+                result[0] = this.minElevation;
+                result[1] = this.maxElevation;
+            } else if (sector.contains(this.sector)) { // The specified sector completely contains this image; return the image min and max.
                 if (result[0] > this.minElevation) {
                     result[0] = this.minElevation;
                 }
@@ -255,8 +291,8 @@ define([
         };
 
         /**
-         * Determines the minimum and maximum elevation within this elevation image and stores those values within
-         * this object.
+         * Determines the minimum and maximum elevations within this elevation image and stores those values within
+         * this object. See [minAndMaxElevationsForSector]{@link ElevationImage#minAndMaxElevationsForSector}
          */
         ElevationImage.prototype.findMinAndMaxElevation = function () {
             if (this.imageData && (this.imageData.length > 0)) {

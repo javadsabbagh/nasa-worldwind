@@ -22,6 +22,7 @@ define([
          * Constructs an Earth elevation model.
          * @alias EarthElevationModel
          * @constructor
+         * @augments ElevationModel
          * @classdesc Provides elevations for Earth. Elevations are drawn from the NASA World Wind elevation service.
          */
         var EarthElevationModel = function () {

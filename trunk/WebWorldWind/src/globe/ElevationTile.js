@@ -20,7 +20,8 @@ define([
          * Constructs an elevation tile.
          * @alias ElevationTile
          * @constructor
-         * @classdesc Represents a region of elevations. Applications typically do not interact with this class.
+         * @augments Tile
+         * @classdesc Represents a region of elevations. Applications typically do not interact directly with this class.
          * @param {Sector} sector The sector this tile covers.
          * @param {Level} level The level this tile is associated with.
          * @param {Number} row This tile's row in the associated level.
@@ -65,6 +66,11 @@ define([
             return Tile.prototype.size.call(this) + this.imagePath.length + 8;
         };
 
+        /**
+         * Returns the {@link ElevationImage} associated with this tile.
+         * @returns {ElevationImage} The elevation image associated with this tile, or null if that image is
+         * currently not in the elevation image cache.
+         */
         ElevationTile.prototype.image = function () {
             return this.memoryCache.entryForKey(this.imagePath);
         };
