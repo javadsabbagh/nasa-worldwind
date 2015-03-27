@@ -514,7 +514,7 @@ define([
                 program.loadColor(gl, dc.pickingMode ? this.pickColor :
                     this.activeAttributes.leaderLineAttributes.outlineColor);
 
-                Placemark.matrix.setToMatrix(dc.navigatorState.modelviewProjection);
+                Placemark.matrix.copy(dc.navigatorState.modelviewProjection);
                 program.loadModelviewProjection(gl, Placemark.matrix);
 
                 if (!this.activeAttributes.leaderLineAttributes.depthTest) {
@@ -544,7 +544,7 @@ define([
             gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, 0, 0);
 
             // Compute and specify the MVP matrix.
-            Placemark.matrix.setToMatrix(dc.screenProjection);
+            Placemark.matrix.copy(dc.screenProjection);
             Placemark.matrix.multiplyMatrix(this.imageTransform);
             program.loadModelviewProjection(gl, Placemark.matrix);
 
@@ -575,7 +575,7 @@ define([
             gl.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 4);
 
             if (this.mustDrawLabel()) {
-                Placemark.matrix.setToMatrix(dc.screenProjection);
+                Placemark.matrix.copy(dc.screenProjection);
                 Placemark.matrix.multiplyMatrix(this.labelTransform);
                 program.loadModelviewProjection(gl, Placemark.matrix);
 
