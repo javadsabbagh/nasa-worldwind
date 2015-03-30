@@ -116,6 +116,14 @@ define([
         });
 
         /**
+         * Indicates whether this is a 2D globe.
+         * @returns {Boolean} true if this is a 2D globe, otherwise false.
+         */
+        Globe.prototype.is2D = function () {
+            return false;
+        };
+
+        /**
          * Computes a Cartesian point from a specified position.
          * See this class' Overview section for a description of the Cartesian coordinate system used.
          * @param {Number} latitude The position's latitude.
