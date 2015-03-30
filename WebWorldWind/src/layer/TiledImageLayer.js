@@ -35,24 +35,25 @@ define([
          * @alias TiledImageLayer
          * @constructor
          * @classdesc
-         * Provides a layer that displays multi-resolution imagery arranged as adjacent tiles. This is the primary World
-         * Wind base class for displaying imagery of this type. While it may be used as a stand-alone class,
-         * it is typically subclassed by classes that identify the remote image server and the local cache path.
+         * Provides a layer that displays multi-resolution imagery arranged as adjacent tiles in a pyramid.
+         * This is the primary World Wind base class for displaying imagery of this type. While it may be used as a
+         * stand-alone class, it is typically subclassed by classes that identify the remote image server.
          * <p>
          * While the image tiles for this class are typically drawn from a remote server such as a WMS server. The actual
-         * retrieval protocol is independent of this class and encapsulated by a class implementing the UrlBuilder
+         * retrieval protocol is independent of this class and encapsulated by a class implementing the {@link UrlBuilder}
          * interface and associated with instances of this class as a property.
          * <p>
          * There is no requirement that image tiles of this class be remote, they may be local or procedurally generated. For
-         * such cases the subclass overrides this class' retrieveTileImage method.
+         * such cases the subclass overrides this class' [retrieveTileImage]{@link TiledImageLayer#retrieveTileImage} method.
          * <p>
-         * Layers of this type are not pickable. Their pick-enabled flag is initialized to false.
+         * Layers of this type are by default not pickable. Their pick-enabled flag is initialized to false.
          *
          * @augments Layer
          * @param {Sector} sector The sector this layer covers.
          * @param {Location} levelZeroDelta The size in latitude and longitude of level zero (lowest resolution) tiles.
-         * @param {Number} numLevels The number of levels to define for the layer. Each level is successively one power of two higher
-         * resolution than the next lower-numbered level. (0 is the lowest resolution level, 1 is twice that resolution, etc.)
+         * @param {Number} numLevels The number of levels to define for the layer. Each level is successively one power
+         * of two higher resolution than the next lower-numbered level. (0 is the lowest resolution level, 1 is twice
+         * that resolution, etc.)
          * Each level contains four times as many tiles as the next lower-numbered level, each 1/4 the geographic size.
          * @param {String} imageFormat The mime type of the image format for the layer's tiles, e.g., <em>image/png</em>.
          * @param {String} cachePath A string uniquely identifying this layer relative to other layers.
@@ -119,6 +120,7 @@ define([
 
         TiledImageLayer.prototype = Object.create(Layer.prototype);
 
+        // Intentionally not documented.
         TiledImageLayer.prototype.createTile = function (sector, level, row, column) {
             var path = this.cachePath + "-layer/" + level.levelNumber + "/" + row + "/" + row + "_" + column + "."
                 + WWUtil.suffixForMimeType(this.retrievalImageFormat);
@@ -126,6 +128,7 @@ define([
             return new ImageTile(sector, level, row, column, path);
         };
 
+        // Documented in superclass.
         TiledImageLayer.prototype.doRender = function (dc) {
             if (!dc.terrain)
                 return;
@@ -150,15 +153,18 @@ define([
             }
         };
 
+        // Documented in superclass.
         TiledImageLayer.prototype.isLayerInView = function (dc) {
             return dc.terrain && dc.terrain.sector && dc.terrain.sector.intersects(this.levels.sector);
         };
 
+        // Documented in superclass.
         TiledImageLayer.prototype.createTopLevelTiles = function (dc) {
             this.topLevelTiles = [];
             Tile.createTilesForLevel(this.levels.firstLevel(), this, this.topLevelTiles);
         };
 
+        // Intentionally not documented.
         TiledImageLayer.prototype.assembleTiles = function (dc) {
             this.currentTiles = [];
 
@@ -179,6 +185,7 @@ define([
             }
         };
 
+        // Intentionally not documented.
         TiledImageLayer.prototype.addTileOrDescendants = function (dc, tile) {
             if (this.tileMeetsRenderingCriteria(dc, tile)) {
                 this.addTile(dc, tile);
@@ -212,6 +219,7 @@ define([
             }
         };
 
+        // Intentionally not documented.
         TiledImageLayer.prototype.addTile = function (dc, tile) {
             tile.fallbackTile = null;
 
@@ -246,6 +254,7 @@ define([
             }
         };
 
+        // Intentionally not documented.
         TiledImageLayer.prototype.isTileVisible = function (dc, tile) {
             if (dc.globe.projectionLimits && !tile.sector.overlaps(dc.globe.projectionLimits)) {
                 return false;
@@ -254,6 +263,7 @@ define([
             return tile.extent.intersectsFrustum(dc.navigatorState.frustumInModelCoordinates);
         };
 
+        // Intentionally not documented.
         TiledImageLayer.prototype.tileMeetsRenderingCriteria = function (dc, tile) {
             var s = this.detailHintOrigin + this.detailHint;
             if (tile.sector.minLatitude >= 75 || tile.sector.maxLatitude <= -75) {
@@ -262,14 +272,23 @@ define([
             return tile.level.isLastLevel() || !tile.mustSubdivide(dc, s);
         };
 
+        // Intentionally not documented.
         TiledImageLayer.prototype.isTileTextureInMemory = function (dc, tile) {
             return dc.gpuResourceCache.containsResource(tile.imagePath);
         };
 
+        // Intentionally not documented.
         TiledImageLayer.prototype.isTextureExpired = function (texture) {
             return this.expiration && this.expiration < new Date().getTime;
         };
 
+        /**
+         * Retrieves the image for the specified tile. Subclasses should override this method in order to retrieve,
+         * compute or otherwise create the image.
+         * @param {DrawContext} dc The current draw context.
+         * @param {ImageTile} tile The tile for which to retrieve the resource.
+         * @protected
+         */
         TiledImageLayer.prototype.retrieveTileImage = function (dc, tile) {
             if (this.currentRetrievals.indexOf(tile.imagePath) < 0) {
                 if (this.absentResourceList.isResourceAbsent(tile.imagePath)) {
@@ -318,10 +337,12 @@ define([
             }
         };
 
+        // Intentionally not documented.
         TiledImageLayer.prototype.createTexture = function (dc, tile, image) {
             return  new Texture(dc.currentGlContext, image);
         };
 
+        // Intentionally not documented.
         TiledImageLayer.prototype.removeFromCurrentRetrievals = function (imagePath) {
             var index = this.currentRetrievals.indexOf(imagePath);
             if (index > -1) {
@@ -329,6 +350,13 @@ define([
             }
         };
 
+        /**
+         * Returns the URL string for the resource.
+         * @param {ImageTile} tile
+         * @param {String} imageFormat The mime type of the image format desired.
+         * @returns {String} The URL string, or null if the string can not be formed.
+         * @protected
+         */
         TiledImageLayer.prototype.resourceUrlForTile = function (tile, imageFormat) {
             if (this.urlBuilder) {
                 return this.urlBuilder.urlForTile(tile, imageFormat);

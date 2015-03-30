@@ -23,69 +23,58 @@ define([
 
             /**
              * This layer's display name.
+             * @type {String}
+             * @default "Layer"
              */
             this.displayName = displayName ? displayName : "Layer";
 
             /**
-             * Indicates whether this layer is displayed.
-             * @type {boolean}
+             * Indicates whether to display this layer.
+             * @type {Boolean}
              * @default true
              */
             this.enabled = true;
 
             /**
              * Indicates whether this layer is pickable.
-             * @type {boolean}
+             * @type {Boolean}
              * @default true
              */
             this.pickEnabled = true;
 
             /**
-             * This layer's opacity, which may be overridden by layer contents. Opacity is in the range
-             * [0, 1], with 1 indicating fully opaque.
-             * @type {number}
+             * This layer's opacity, which is combined with the opacity of shapes within layers.
+             * Opacity is in the range [0, 1], with 1 indicating fully opaque.
+             * @type {Number}
              * @default 1
              */
             this.opacity = 1;
 
             /**
              * The altitude above which this layer is displayed, in meters.
-             * @type {number}
-             * @default -Number.MAX_VALUE
+             * @type {Number}
+             * @default -Number.MAX_VALUE (always displayed)
              */
             this.minActiveAltitude = -Number.MAX_VALUE;
 
             /**
              * The altitude below which this layer is displayed, in meters.
              * @type {Number}
-             * @default Number.MAX_VALUE
+             * @default Number.MAX_VALUE (always displayed)
              */
             this.maxActiveAltitude = Number.MAX_VALUE;
 
             /**
-             * Indicates whether this layer should draw resources from the network when required.
-             * @type {boolean}
-             * @default true
-             */
-            this.networkRetrievalEnabled = true;
-
-            /**
              * Indicates whether elements of this layer were drawn in the most recently generated frame.
-             * @type {boolean}
+             * @type {Boolean}
              */
             this.inCurrentFrame = false;
         };
 
         /**
-         * Disposes of resources held by this layer.
-         */
-        Layer.prototype.dispose = function() {
-            // Override in subclasses to clean up when called.
-        };
-
-        /**
          * Displays this layer. Subclasses should generally not override this method but should instead override the
-         * [doRender]{@link Layer#doRender} method.
+         * [doRender]{@link Layer#doRender} method. This method calls that method after verifying that the layer is
+         * enabled, the eye point is within this layer's active altitudes and the layer is in view.
          * @param {DrawContext} dc The current draw context.
          */
         Layer.prototype.render = function (dc) {
@@ -97,7 +86,7 @@ define([
             if (dc.pickingMode && !this.pickEnabled)
                 return;
 
-            if (!this.isLayerActive(dc))
+            if (!this.withinActiveAltitudes(dc))
                 return;
 
             if (!this.isLayerInView(dc))
@@ -108,21 +97,23 @@ define([
 
         /**
          * Subclass method called to display this layer. Subclasses should implement this method rather than the
-         * [render]{@link Layer#render} method, which determines enable, pick and active status and does not call
-         * this doRender method if the layer should not be displayed.
+         * [render]{@link Layer#render} method, which determines enable, pick and active altitude status and does not
+         * call this doRender method if the layer should not be displayed.
          * @param {DrawContext} dc The current draw context.
+         * @protected
          */
         Layer.prototype.doRender = function (dc) {
             // Default implementation does nothing.
         };
 
         /**
-         * Indicates whether this layer is withing its active-altitude range.
+         * Indicates whether the current eye distance is within this layer's active-altitude range.
          * @param {DrawContext} dc The current draw context.
-         * @returns {boolean} <code>true</code> if this layer is within its active altitude range, otherwise
-         * <code>false</code>.
+         * @returns {boolean} true If the eye distance is greater than or equal to this layer's minimum active
+         * altitude and less than or equal to this layer's maximum active altitude, otherwise false.
+         * @protected
          */
-        Layer.prototype.isLayerActive = function (dc) {
+        Layer.prototype.withinActiveAltitudes = function (dc) {
             var eyePosition = dc.eyePosition;
             if (!eyePosition)
                 return false;
@@ -131,10 +122,12 @@ define([
        };
 
         /**
-         * Indicates whether this layer is within the current view.
+         * Indicates whether this layer is within the current view. Subclasses may override this method and
+         * when called determine whether the layer contents are visible in the current view frustum. The default
+         * implementation always returns true.
          * @param {DrawContext} dc The current draw context.
-         * @returns {boolean} <code>true</code> if this layer is within the current view, otherwise
-         * <code>false</code>.
+         * @returns {boolean} true If this layer is within the current view, otherwise false.
+         * @protected
          */
         Layer.prototype.isLayerInView = function (dc) {
             return true; // default implementation always returns true
