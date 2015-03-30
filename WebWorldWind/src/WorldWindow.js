@@ -120,8 +120,8 @@ define([
 
             /**
              * Indicates that picking will return all objects at the pick point, if any. The top-most object will have
-             * its <code>isOnTop</code> flag set to <code>true</code>.
-             * If deep picking is <code>false</code>, the default, only the top-most object is returned, plus
+             * its isOnTop flag set to true.
+             * If deep picking is false, the default, only the top-most object is returned, plus
              * the picked-terrain object if the pick point is over the terrain.
              * @type {boolean}
              * @default false

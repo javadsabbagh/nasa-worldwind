@@ -20,7 +20,7 @@ define([
          * Constructs a texture for a specified image.
          * @alias Texture
          * @constructor
-         * @classdesc Represents a WebGL texture.
+         * @classdesc Represents a WebGL texture. Applications typically do not interact with this class.
          * @param {WebGLRenderingContext} gl The current WebGL rendering context.
          * @param {Image} image The texture's image.
          * @throws {ArgumentError} If the specified WebGL context or image is null or undefined.

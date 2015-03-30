@@ -22,7 +22,9 @@ define([
          * Constructs an image tile.
          * @alias ImageTile
          * @constructor
-         * @classdesc Represents an image applied to a portion of a globe's terrain.
+         * @classdesc Represents an image applied to a portion of a globe's terrain. Applications typically do not
+         * interact with this class.
+         * @augments Tile
          * @param {Sector} sector The sector this tile covers.
          * @param {Level} level The level this tile is associated with.
          * @param {Number} row This tile's row in the associated level.
@@ -70,7 +72,7 @@ define([
         /**
          * Causes this tile's texture to be active. Implements [SurfaceTile.bind]{@link SurfaceTile#bind}.
          * @param {DrawContext} dc The current draw context.
-         * @returns {boolean} <code>true</code> if the texture was bound successfully, otherwise <code>false</code>.
+         * @returns {Boolean} true if the texture was bound successfully, otherwise false.
          */
         ImageTile.prototype.bind = function (dc) {
             // Attempt to bind in TextureTile first.

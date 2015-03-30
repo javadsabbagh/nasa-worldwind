@@ -57,7 +57,8 @@ define([
         "use strict";
 
         /**
-         * Constructs a DrawContext.
+         * Constructs a DrawContext. Applications do not call this constructor. A draw context is created by a
+         * {@link WorldWindow} during its construction.
          * @alias DrawContext
          * @constructor
          * @classdesc Provides current state during rendering. The current draw context is passed to most rendering
@@ -67,6 +68,7 @@ define([
             /**
              * The starting time of the current frame, in milliseconds.
              * @type {Number}
+             * @readonly
              */
             this.timestamp = Date.now();
 
@@ -131,9 +133,9 @@ define([
             this.screenProjection = Matrix.fromIdentity();
 
             /**
-             * The current clear color, expressed as an array of Number in the order red, green, blue, alpha.
+             * The current clear color.
              * @type {Color}
-             * @default red = 0, green = 0, blue = 0, alpha = 1
+             * @default Color.MEDIUM_GRAY (red = 0.5, green = 0.5, blue = 0.5, alpha = 1)
              */
             this.clearColor = Color.MEDIUM_GRAY;
 
@@ -176,47 +178,45 @@ define([
 
             /**
              * Indicates that picking will return all objects at the pick point, if any. The top-most object will have
-             * its <code>isOnTop</code> flag set to <code>true</code>.
-             * If deep picking is <code>false</code>, the default, only the top-most object is returned, plus
-             * the picked-terrain object if the pick point is over the terrain.
-             * @type {boolean}
+             * its isOnTop flag set to true.
+             * If [deep picking]{@link WorldWindow#deepPicking} is false, the default, only the top-most object is
+             * returned, plus the picked-terrain object if the pick point is over the terrain.
+             * @type {Boolean}
              * @default false
              */
             this.deepPicking = false;
 
             /**
              * Indicates that the current picking operation is in support of region picking.
-             * @type {boolean}
+             * @type {Boolean}
              * @default false
              */
             this.regionPicking = false;
 
-            /**
-             * A unique color variable to use during picking.
-             * @type {Color}
-             */
+            // Internal. Keeps track of the current pick color.
             this.pickColor = new Color(0, 0, 0, 1);
 
             /**
              * The objects at the current pick point.
              * @type {PickedObjectList}
+             * @readonly
              */
             this.objectsAtPickPoint = new PickedObjectList();
 
             /**
              * Indicates whether this draw context is in ordered rendering mode.
-             * @type {boolean}
+             * @type {Boolean}
              */
             this.orderedRenderingMode = false;
 
             /**
-             * A "virtual" canvas for creating texture maps of SVG text.
+             * A canvas for creating texture maps.
              * @type {Canvas}
              */
             this.canvas2D = null;
 
             /**
-             * A 2D context derived from the "virtual" canvas.
+             * A 2D context for this draw context's [canvas property]{@link DrawContext#canvas}.
              */
             this.ctx2D = null;
 
@@ -226,11 +226,8 @@ define([
              */
             this.orderedRenderables = [];
 
-            /**
-             * Provides ordinal IDs to ordered renderables.
-             * @type {number}
-             */
-            this.orderedRenderablesCounter = 0;
+            // Internal. Intentionally not documented. Provides ordinal IDs to ordered renderables.
+            this.orderedRenderablesCounter = 0; // Number
 
             /**
              * A shared TextSupport instance.
@@ -246,12 +243,15 @@ define([
             this.globeStateKey = null;
 
             /**
-             * A surface shape tile builder that is inserted into the draw context whenever a layer might need to
-             * render surface shapes. The entry in the draw context must be reset to null after the layer completes.
+             * The current surface shape tile builder used to create and draw surface shapes.
              * @type {SurfaceShapeTileBuilder}
              */
             this.surfaceShapeTileBuilder = null;
 
+            /**
+             * The screen credit controller responsible for collecting and drawing screen credits.
+             * @type {ScreenCreditController}
+             */
             this.screenCreditController = new ScreenCreditController();
         };
 
@@ -362,7 +362,8 @@ define([
         };
 
         /**
-         * Adds an ordered renderable to the end of this draw context's ordered renderable list.
+         * Adds an ordered renderable to the end of this draw context's ordered renderable list, denoting it as the
+         * most distant from the eye point.
          * @param {OrderedRenderable} orderedRenderable The ordered renderable to add. May be null, in which case the
          * current ordered renderable list remains unchanged.
          */
@@ -469,7 +470,7 @@ define([
         };
 
         /**
-         * Reads the current render buffer colors in a specified rectangle. Used during region picking to identify
+         * Reads the current pick buffer colors in a specified rectangle. Used during region picking to identify
          * the items not occluded.
          * @param {Rectangle} pickRectangle The rectangle for which to read the colors.
          * @returns {{}} An object containing the unique colors in the specified rectangle, excluding the current
@@ -552,9 +553,9 @@ define([
          * If the existing pick rectangle extends beyond the viewport then it is truncated by this method to fit
          * within the viewport.
          * This method assumes that this draw context's pick point or pick rectangle has been set. It returns
-         * <code>false</code> if neither one of these exists.
+         * false if neither one of these exists.
          *
-         * @returns {boolean} <code>true</code> if the pick frustum could be created, otherwise <code>false</code>.
+         * @returns {Boolean} <code>true</code> if the pick frustum could be created, otherwise <code>false</code>.
          */
         DrawContext.prototype.makePickFrustum = function () {
             if (!this.pickPoint && !this.pickRectangle) {
