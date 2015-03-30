@@ -30,6 +30,12 @@ define([
         };
 
         Object.defineProperties(Compass.prototype, {
+            /**
+             * The compass to display.
+             * @type {Compass}
+             * @default {@link Compass}
+             * @memberof CompassLayer.prototype
+             */
             compass: {
                 get: function () {
                     return this._compass;

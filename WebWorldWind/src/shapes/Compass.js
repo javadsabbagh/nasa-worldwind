@@ -51,13 +51,17 @@ define([
             }
 
             if (!imagePath) {
-                // Scale the default image to half size.
+                // Scale the default image.
                 this.imageScale = 0.4;
             }
         };
 
         Compass.prototype = Object.create(ScreenImage.prototype);
 
+        /**
+         * Capture the navigator's heading and tilt and apply it to the compass' screen image.
+         * @param {DrawContext} dc The current draw context.
+         */
         Compass.prototype.render = function (dc) {
             // Capture the navigator's heading and tilt and apply it to the compass' screen image.
             this.imageRotation = dc.navigatorState.heading;

@@ -18,12 +18,7 @@ define([
               WmsUrlBuilder) {
         "use strict";
 
-        /**
-         * Constructs a Bing WMS layer.
-         * @alias BingWMSLayer
-         * @constructor
-         * @classdesc Displays a Bing layer using WMS.
-         */
+        // Intentionally not documented. For diagnostic use only.
         var BingWMSLayer = function () {
             TiledImageLayer.call(this,
                 Sector.FULL_SPHERE, new Location(45, 45), 16, "image/png", "BingWMS", 256, 256);
