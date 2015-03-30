@@ -48,6 +48,8 @@ define([
          * @constructor
          * @augments Navigator
          * @classdesc Represents a navigator that enables the user to pan, zoom and tilt the globe.
+         * This navigator automatically responds to user-input events and gestures.
+         * @param {WorldWindow} worldWindow The world window to associate with this navigator.
          */
         var LookAtNavigator = function (worldWindow) {
             Navigator.call(this, worldWindow);
@@ -78,7 +80,8 @@ define([
 
             /**
              * The distance of the eye from this navigator's look-at position.
-             * @type {number}
+             * @type {Number}
+             * @default 10,000 kilometers
              */
             this.range = 10e6; // TODO: Compute initial range to fit globe in viewport.
 
@@ -160,10 +163,7 @@ define([
 
         LookAtNavigator.prototype = Object.create(Navigator.prototype);
 
-        /**
-         * Returns the navigator state for this navigator's current settings.
-         * @returns {NavigatorState} This navigator's current navigator state.
-         */
+        // Documented in superclass.
         LookAtNavigator.prototype.currentState = function () {
             this.applyLimits();
 
@@ -174,24 +174,21 @@ define([
             return this.currentStateForModelview(modelview);
         };
 
-        LookAtNavigator.prototype.isGlobe2D = function (globe) {
-            return globe.projection != undefined;
-        };
-
-        /**
+        /* INTENTIONALLY NOT DOCUMENTED.
          * Performs navigation changes in response to pan gestures using the primary mouse button or any number of
          * touches.
          *
          * @param recognizer The gesture recognizer that identified the gesture.
          */
         LookAtNavigator.prototype.handlePanOrDrag = function (recognizer) {
-            if (this.isGlobe2D(this.worldWindow.globe)) {
+            if (this.worldWindow.globe.is2D()) {
                 this.handlePanOrDrag2D(recognizer);
             } else {
                 this.handlePanOrDrag3D(recognizer);
             }
         };
 
+        // Intentionally not documented.
         LookAtNavigator.prototype.handlePanOrDrag3D = function (recognizer) {
             var state = recognizer.state,
                 translation = recognizer.translation,
@@ -233,6 +230,7 @@ define([
             }
         };
 
+        // Intentionally not documented.
         LookAtNavigator.prototype.handlePanOrDrag2D = function (recognizer) {
             var state = recognizer.state,
                 translation = recognizer.translation,
@@ -291,7 +289,7 @@ define([
             }
         };
 
-        /**
+        /* INTENTIONALLY NOT DOCUMENTED.
          * Performs navigation changes in response to pan gestures using the secondary mouse button.
          *
          * @param recognizer The gesture recognizer that identified the gesture.
@@ -323,7 +321,7 @@ define([
             }
         };
 
-        /**
+        /* INTENTIONALLY NOT DOCUMENTED.
          * Performs navigation changes in response to two finger pinch gestures.
          *
          * @param recognizer The gesture recognizer that identified the gesture.
@@ -344,7 +342,7 @@ define([
             }
         };
 
-        /**
+        /* INTENTIONALLY NOT DOCUMENTED.
          * Performs navigation changes in response to two finger rotation gestures.
          *
          * @param recognizer The gesture recognizer that identified the gesture.
@@ -365,7 +363,7 @@ define([
             }
         };
 
-        /** 
+        /* INTENTIONALLY NOT DOCUMENTED.
          * Performs navigation changes in response to two finger tilt gestures. 
          *
          * @param recognizer The gesture recognizer that identified the gesture. 
@@ -393,7 +391,7 @@ define([
             }
         };
 
-        /**
+        /* INTENTIONALLY NOT DOCUMENTED.
          * Recognizes wheel gestures indicating navigation. Upon recognizing a gesture this delegates the task of
          * responding to that gesture to one of this navigator's handleWheel* functions, and cancels the default actions
          * associated with the corresponding events.
@@ -420,7 +418,7 @@ define([
             }
         };
 
-        /**
+        /* INTENTIONALLY NOT DOCUMENTED.
          * Translates wheel zoom gestures to changes in this navigator's properties.
          * @param wheelDelta The wheel's translation.
          */
@@ -444,7 +442,7 @@ define([
             this.sendRedrawEvent();
         };
 
-        /**
+        /* INTENTIONALLY NOT DOCUMENTED.
          * Called whenever any of the navigator's gesture recognizers change state. Performs common actions in response
          * to any navigator gesture, such as causing the navigator's World Window to redraw.
          *
@@ -454,7 +452,7 @@ define([
             this.sendRedrawEvent();
         };
 
-        /**
+        /* INTENTIONALLY NOT DOCUMENTED.
          * Limit the navigator's position and orientation appropriately for the current scene.
          */
         LookAtNavigator.prototype.applyLimits = function () {
@@ -476,7 +474,7 @@ define([
             this.roll = Angle.normalizedDegrees(this.roll);
 
             // Apply 2D limits when the globe is 2D.
-            if (this.isGlobe2D(this.worldWindow.globe) && this.enable2DLimits) {
+            if (this.worldWindow.globe.is2D() && this.enable2DLimits) {
                 // Clamp range to prevent more than 360 degrees of visible longitude.
                 var nearDist = this.nearDistance,
                     nearWidth = WWMath.perspectiveFrustumRectangle(this.worldWindow.viewport, nearDist).width,
@@ -488,7 +486,7 @@ define([
             }
         };
 
-        /**
+        /* INTENTIONALLY NOT DOCUMENTED.
          * Sends a redraw event to this navigator's world window.
          */
         LookAtNavigator.prototype.sendRedrawEvent = function () {

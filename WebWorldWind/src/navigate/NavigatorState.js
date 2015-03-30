@@ -35,9 +35,14 @@ define([
          * @constructor
          * @classdesc Represents the state of a navigator.
          * <p>
-         * Properties of NavigatorState objects are meant to be
-         * read-only because they are values captured from a {@link Navigator} upon request. Setting the properties on
-         * NavigatorState instances has no effect on the Navigator from which they came.
+         * Properties of NavigatorState objects are
+         * read-only because they are values captured from a {@link Navigator}. Setting the properties on
+         * a NavigatorState instance has no effect on the Navigator from which they came.
+         * @param {Matrix} modelViewMatrix The navigator's model-view matrix.
+         * @param {Matrix} projectionMatrix The navigator's projection matrix.
+         * @param {Rectangle} viewport The navigator's viewport.
+         * @param {Number} heading The navigator's heading.
+         * @param {Number} tilt The navigator's tilt.
          */
         var NavigatorState = function (modelViewMatrix, projectionMatrix, viewport, heading, tilt) {
 
@@ -65,7 +70,7 @@ define([
 
             /**
              * The navigator's viewport, in WebGL screen coordinates. The viewport places the origin in the bottom-left
-             * corner and has axes that extend up and to the right from the origin point.
+             * corner and has axes that extend up and to the right from the origin.
              * @type {Rectangle}
              */
             this.viewport = viewport;
@@ -149,10 +154,10 @@ define([
          * Transforms the specified model point from model coordinates to WebGL screen coordinates.
          * <p>
          * The resultant screen point is in WebGL screen coordinates, with the origin in the bottom-left corner and
-         * axes that extend up and to the right from the origin point.
+         * axes that extend up and to the right from the origin.
          * <p>
          * This function stores the transformed point in the result argument, and returns true or false to indicate
-         * whether or not the transformation is successful. This returns false if this navigator state's modelview or
+         * whether or not the transformation is successful. It returns false if this navigator state's modelview or
          * projection matrices are malformed, or if the specified model point is clipped by the near clipping plane or
          * the far clipping plane.
          *
@@ -220,19 +225,19 @@ define([
          * to the modelPoint's projected depth value.
          * <p>
          * The resultant screen point is in WebGL screen coordinates, with the origin in the bottom-left corner and axes
-         * that extend up and to the right from the origin point.
+         * that extend up and to the right from the origin.
          * <p>
-         * This stores the transformed point in the result argument, and returns true or false to indicate whether or
-         * not the transformation is successful. This returns false if this navigator state's modelview or projection
+         * This function stores the transformed point in the result argument, and returns true or false to indicate whether or
+         * not the transformation is successful. It returns false if this navigator state's modelview or projection
          * matrices are malformed, or if the modelPoint is clipped by the near clipping plane or the far clipping plane,
          * ignoring the depth offset.
          * <p>
          * The depth offset may be any real number and is typically used to move the screenPoint slightly closer to the
-         * user's eye in order to give it visual priority over nearby points. An offset of zero has no effect. An offset
-         * less than zero brings the screenPoint closer to the eye, while an offset greater than zero pushes the
+         * user's eye in order to give it visual priority over nearby objects or terrain. An offset of zero has no effect.
+         * An offset less than zero brings the screenPoint closer to the eye, while an offset greater than zero pushes the
          * projected screen point away from the eye.
          * <p>
-         * Applying a non-zero depth offset has no effect on on whether the model point is clipped by this method or by
+         * Applying a non-zero depth offset has no effect on whether the model point is clipped by this method or by
          * WebGL. Clipping is performed on the original model point, ignoring the depth offset. The final depth value
          * after applying the offset is clamped to the range [0,1].
          *
@@ -321,10 +326,10 @@ define([
          * Transforms the specified screen point from WebGL screen coordinates to model coordinates.
          * <p>
          * The screen point is understood to be in WebGL screen coordinates, with the origin in the bottom-left corner
-         * and axes that extend up and to the right from the origin point.
+         * and axes that extend up and to the right from the origin.
          * <p>
-         * This stores the transformed point in the result argument, and returns true or false to indicate whether the
-         * transformation is successful. This returns false if this navigator state's modelview or projection matrices
+         * This function stores the transformed point in the result argument, and returns true or false to indicate whether the
+         * transformation is successful. It returns false if this navigator state's modelview or projection matrices
          * are malformed, or if the screenPoint is clipped by the near clipping plane or the far clipping plane.
          *
          * @param {Vec3} screenPoint The screen coordinate point to un-project.
@@ -496,8 +501,8 @@ define([
         /**
          * Computes the approximate size of a pixel at a specified distance from the navigator's eye point.
          * <p>
-         * This method assumes the model of a screen composed of rectangular pixels, where pixel coordinates denote
-         * infinitely thin space between pixels. The units of the returned size are in model coordinates per pixel
+         * This method assumes rectangular pixels, where pixel coordinates denote
+         * infinitely thin spaces between pixels. The units of the returned size are in model coordinates per pixel
          * (usually meters per pixel). This returns 0 if the specified distance is zero. The returned size is undefined
          * if the distance is less than zero.
          *

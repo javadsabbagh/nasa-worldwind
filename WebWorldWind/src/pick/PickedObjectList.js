@@ -26,16 +26,16 @@ define([],
 
         /**
          * Indicates whether this list contains picked objects that are not terrain.
-         * @returns {boolean} <code>true</code> if this list contains objects that are not terrain,
-         * otherwise <code>false</code>.
+         * @returns {Boolean} true if this list contains objects that are not terrain,
+         * otherwise false.
          */
         PickedObjectList.prototype.hasNonTerrainObjects = function () {
             return this.objects.length > 1 || (this.objects.length === 1 && this.terrainObject() == null);
         };
 
         /**
-         * Returns the terrain object within this list, if this list contains one.
-         * @returns {PickedObject} The terrain object, or null if this list does not contain one.
+         * Returns the terrain object within this list, if this list contains a terrain object.
+         * @returns {PickedObject} The terrain object, or null if this list does not contain a terrain object.
          */
         PickedObjectList.prototype.terrainObject = function () {
             for (var i = 0, len = this.objects.length; i < len; i++) {

@@ -26,11 +26,12 @@ define([
         "use strict";
 
         /**
-         * Constructs a base navigator. This is an abstract base class and not intended to be instantiated
-         * directly.
+         * Constructs a base navigator.
          * @alias Navigator
          * @constructor
-         * @classdesc Provides an abstract base class for navigators.
+         * @classdesc Provides an abstract base class for navigators. This class is not meant to be instantiated
+         * directly. See {@Link LookAtNavigator} for a concrete navigator.
+         * @param {WorldWindow} worldWindow The world window to associate with this navigator.
          */
         var Navigator = function (worldWindow) {
             if (!worldWindow) {
@@ -41,24 +42,28 @@ define([
             /**
              * The {@link WorldWindow} associated with this navigator.
              * @type {WorldWindow}
+             * @readonly
              */
             this.worldWindow = worldWindow;
 
             /**
              * This navigator's heading, in degrees clockwise from north.
-             * @type {number}
+             * @type {Number}
+             * @default 0
              */
             this.heading = 0;
 
             /**
              * This navigator's tilt, in degrees.
-             * @type {number}
+             * @type {Number}
+             * @default 0
              */
             this.tilt = 0;
 
             /**
              * This navigator's roll, in degrees.
-             * @type {number}
+             * @type {Number}
+             * @default 0
              */
             this.roll = 0;
 
@@ -79,8 +84,10 @@ define([
         };
 
         /**
-         * Returns the current navigator state for this navigator. This method is meant to be invoked by subclasses,
-         * applications should not call this method directly.
+         * Returns the current navigator state for a specified model-view matrix.
+         * This method is meant to be called only by subclasses;
+         * applications should not call this method.
+         * @protected
          * @param {Matrix} modelviewMatrix The modelview matrix.
          * @returns {NavigatorState} The current navigator state.
          * @throws {ArgumentError} If the specified matrix is null or undefined.

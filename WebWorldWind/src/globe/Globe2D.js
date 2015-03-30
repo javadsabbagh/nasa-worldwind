@@ -137,6 +137,11 @@ define([
             }
         });
 
+        // Documented in superclass.
+        Globe2D.prototype.is2D = function () {
+            return true;
+        };
+
         /**
          * Computes a Cartesian point from a specified position and using the current projection.
          * @param {Number} latitude The position's latitude.
