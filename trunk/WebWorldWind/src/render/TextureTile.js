@@ -20,7 +20,9 @@ define([
          * Constructs a texture tile.
          * @alias TextureTile
          * @constructor
-         * @classdesc Represents an image applied to a portion of a globe's terrain.
+         * @augments Tile
+         * @classdesc Represents an image applied to a portion of a globe's terrain. Applications typically do not
+         * interact with this class.
          * @param {Sector} sector The sector this tile covers.
          * @param {Level} level The level this tile is associated with.
          * @param {Number} row This tile's row in the associated level.
@@ -52,7 +54,7 @@ define([
         /**
          * Causes this tile's texture to be active. Implements [SurfaceTile.bind]{@link SurfaceTile#bind}.
          * @param {DrawContext} dc The current draw context.
-         * @returns {boolean} <code>true</code> if the texture was bound successfully, otherwise <code>false</code>.
+         * @returns {Boolean} true if the texture was bound successfully, otherwise false.
          */
         TextureTile.prototype.bind = function (dc) {
             var texture = dc.gpuResourceCache.resourceForKey(this.gpuCacheKey);

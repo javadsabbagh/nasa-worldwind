@@ -38,7 +38,7 @@ define([
          * @constructor
          * @classdesc Collects and displays screen credits.
          */
-        var ScreenCreditController = function (sector) {
+        var ScreenCreditController = function () {
             // Internal. Intentionally not documented.
             this.imageUrls = [];
 
@@ -67,7 +67,7 @@ define([
         ScreenCreditController.texCoordMatrix = Matrix.fromIdentity(); // scratch variable
 
         /**
-         * Clear all credits from this controller.
+         * Clears all credits from this controller.
          */
         ScreenCreditController.prototype.clear = function () {
             this.imageUrls = [];
@@ -75,7 +75,7 @@ define([
         };
 
         /**
-         * Add an image credit to this controller.
+         * Adds an image credit to this controller.
          * @param {String} imageUrl The URL of the image to display in the credits area.
          * @throws {ArgumentError} If the specified URL is null or undefined.
          */
@@ -91,7 +91,7 @@ define([
         };
 
         /**
-         * Add a string credit to this controller.
+         * Adds a string credit to this controller.
          * @param {String} stringCredit The string to display in the credits area.
          * @throws {ArgumentError} If the specified string is null or undefined.
          */

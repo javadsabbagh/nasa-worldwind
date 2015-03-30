@@ -46,7 +46,7 @@ define([
          * Causes this surface tile to be active, typically by binding the tile's texture in WebGL.
          * Subclasses must override this function.
          * @param {DrawContext} dc The current draw context.
-         * @returns {Boolean} <code>true</code> if the resource was successfully bound, otherwise <code>false</code>.
+         * @returns {Boolean} true if the resource was successfully bound, otherwise false.
          */
         SurfaceTile.prototype.bind = function (dc) {
             throw new UnsupportedOperationError(

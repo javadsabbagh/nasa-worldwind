@@ -25,19 +25,21 @@ define([
 
             /**
              * The display name of the renderable.
-             * @type {string}
+             * @type {String}
+             * @default "Renderable"
              */
             this.displayName = "Renderable";
 
             /**
              * Indicates whether this renderable is displayed.
-             * @type {boolean}
+             * @type {Boolean}
+             * @default true
              */
             this.enabled = true;
 
             /**
-             * Indicates the object to return as the <code>userObject</code> of this placemark when picked. If null,
-             * then this renderable is returned as the <code>userObject</code>.
+             * Indicates the object to return as the userObject of this placemark when picked. If null,
+             * then this renderable is returned as the userObject.
              * @type {Object}
              * @default null
              * @see  [PickedObject.userObject]{@link PickedObject#userObject}
@@ -46,8 +48,8 @@ define([
         };
 
         /**
-         * Render this renderable. Some  shapes actually draw themselves during this call, others only add themselves
-         * to the draw context's ordered rendering list for subsequent drawing when the renderOrdered method is called.
+         * Render this renderable. Some shapes actually draw themselves during this call, others only add themselves
+         * to the draw context's ordered rendering list for subsequent drawing when their renderOrdered method is called.
          * This method is intended to be called by layers such as {@link RenderableLayer} and not by applications.
          * @param {DrawContext} dc The current draw context.
          */
