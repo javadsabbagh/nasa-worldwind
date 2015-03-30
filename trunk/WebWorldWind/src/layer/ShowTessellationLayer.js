@@ -16,7 +16,7 @@ define([
               Layer) {
         "use strict";
 
-        /**
+        /* INTENTIONALLY NOT DOCUMENTED. FOR DIAGNOSTIC USE ONLY.
          * Constructs a layer that displays a globe's tessellated geometry.
          * @alias ShowTessellationLayer
          * @constructor

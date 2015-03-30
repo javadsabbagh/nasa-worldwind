@@ -19,10 +19,11 @@ define([
         "use strict";
 
         /**
-         * Constructs a combined Blue Marble image layer.
+         * Constructs a Blue Marble image layer.
          * @alias BMNGLayer
          * @constructor
-         * @classdesc Displays a combined Blue Marble image layer that spans the entire globe.
+         * @augments TiledImageLayer
+         * @classdesc Displays a Blue Marble image layer that spans the entire globe.
          */
         var BMNGLayer = function () {
             TiledImageLayer.call(this,

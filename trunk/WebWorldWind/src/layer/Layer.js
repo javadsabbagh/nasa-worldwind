@@ -51,14 +51,14 @@ define([
             this.opacity = 1;
 
             /**
-             * The altitude above which this layer is displayed, in meters.
+             * The eye altitude above which this layer is displayed, in meters.
              * @type {Number}
              * @default -Number.MAX_VALUE (always displayed)
              */
             this.minActiveAltitude = -Number.MAX_VALUE;
 
             /**
-             * The altitude below which this layer is displayed, in meters.
+             * The eye altitude below which this layer is displayed, in meters.
              * @type {Number}
              * @default Number.MAX_VALUE (always displayed)
              */
@@ -106,7 +106,7 @@ define([
             // Default implementation does nothing.
         };
 
-        /**
+        /* INTENTIONALLY NOT DOCUMENTED
          * Indicates whether the current eye distance is within this layer's active-altitude range.
          * @param {DrawContext} dc The current draw context.
          * @returns {boolean} true If the eye distance is greater than or equal to this layer's minimum active

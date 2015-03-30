@@ -352,7 +352,7 @@ define([
 
         /**
          * Returns the URL string for the resource.
-         * @param {ImageTile} tile
+         * @param {ImageTile} tile The tile whose image is returned
          * @param {String} imageFormat The mime type of the image format desired.
          * @returns {String} The URL string, or null if the string can not be formed.
          * @protected

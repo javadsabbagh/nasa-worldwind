@@ -22,6 +22,7 @@ define([
          * Constructs a combined Blue Marble and Landsat image layer.
          * @alias BMNGLandsatLayer
          * @constructor
+         * @augments TiledImageLayer
          * @classdesc Displays a combined Blue Marble and Landsat image layer that spans the entire globe.
          */
         var BMNGLandsatLayer = function () {

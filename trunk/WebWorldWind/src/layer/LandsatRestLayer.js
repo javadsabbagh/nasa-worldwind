@@ -28,11 +28,12 @@ define([
          * Constructs a LandSat image layer that uses a REST interface to retrieve its imagery.
          * @alias LandsatRestLayer
          * @constructor
+         * @augments TiledImageLayer
          * @classdesc Displays a LandSat image layer that spans the entire globe. The imagery is obtained from a
          * specified REST tile service.
          * See [LevelRowColumnUrlBuilder]{@link LevelRowColumnUrlBuilder} for a description of the REST interface.
          * @param {String} serverAddress The server address of the tile service. May be null, in which case the
-         * current origin is used (see <code>window.location</code>.
+         * current origin is used (see window.location).
          * @param {String} pathToData The path to the data directory relative to the specified server address.
          * May be null, in which case the server address is assumed to be the full path to the data directory.
          * @param {String} displayName The display name to associate with this layer.
