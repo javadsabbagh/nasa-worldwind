@@ -8,11 +8,9 @@
  */
 define([
         '../shaders/BasicProgram',
-        '../util/Color',
         '../layer/Layer'
     ],
     function (BasicProgram,
-              Color,
               Layer) {
         "use strict";
 
@@ -26,54 +24,87 @@ define([
         var ShowTessellationLayer = function () {
             Layer.call(this, "Show Tessellation");
 
+            /**
+             * Indicates whether to display terrain geometry.
+             * @type {Boolean}
+             * @default true
+             */
+            this.enableTerrainGeometry = true;
+
+            /**
+             * Indicates whether to display terrain geometry extent.
+             * @type {Boolean}
+             * @default false
+             */
+            this.enableTerrainExtent = false;
         };
 
         ShowTessellationLayer.prototype = Object.create(Layer.prototype);
 
+        ShowTessellationLayer.prototype.doRender = function (dc) {
+            try {
+                this.beginRendering(dc);
+
+                if (this.enableTerrainGeometry) {
+                    this.drawTerrainGeometry(dc);
+                }
+
+                if (this.enableTerrainExtent) {
+                    this.drawTerrainExtent(dc);
+                }
+            } finally {
+                this.endRendering(dc)
+            }
+        };
+
         ShowTessellationLayer.prototype.beginRendering = function (dc) {
             var gl = dc.currentGlContext;
-
-            dc.findAndBindProgram(gl, BasicProgram);
             gl.depthMask(false); // Disable depth buffer writes. Diagnostics should not occlude any other objects.
         };
 
         ShowTessellationLayer.prototype.endRendering = function (dc) {
             var gl = dc.currentGlContext;
-
-            dc.bindProgram(gl, null);
             gl.depthMask(true); // re-enable depth buffer writes that were disabled in beginRendering.
         };
 
-        ShowTessellationLayer.prototype.doRender = function (dc) {
+        ShowTessellationLayer.prototype.drawTerrainGeometry = function (dc) {
             if (!dc.terrain || !dc.terrain.tessellator)
                 return;
 
-            var terrain = dc.terrain,
+            var gl = dc.currentGlContext,
+                terrain = dc.terrain,
                 tessellator = terrain.tessellator,
                 surfaceGeometry = terrain.surfaceGeometry,
-                gl = dc.currentGlContext,
-                terrainTile,
-                program;
+                program,
+                terrainTile;
 
-            this.beginRendering(dc);
             try {
-                program = dc.currentProgram;
+                program = dc.findAndBindProgram(gl, BasicProgram);
                 tessellator.beginRendering(dc);
 
-                for (var i = 0, len = surfaceGeometry.length; i < len; i++)
-                {
+                for (var i = 0, len = surfaceGeometry.length; i < len; i++) {
                     terrainTile = surfaceGeometry[i];
-
                     tessellator.beginRenderingTile(dc, terrainTile);
-                    program.loadColor(gl, Color.RED); // wireframe color
+                    program.loadColorComponents(gl, 1, 1, 1, 0.3);
                     tessellator.renderWireframeTile(dc, terrainTile);
-                    program.loadColor(gl, Color.WHITE); // outline color
+                    program.loadColorComponents(gl, 1, 0, 0, 0.6);
                     tessellator.renderTileOutline(dc, terrainTile);
                     tessellator.endRenderingTile(dc, terrainTile);
                 }
+
             } finally {
                 tessellator.endRendering(dc);
-                this.endRendering(dc);
+                dc.bindProgram(gl, null);
+            }
+        };
+
+        ShowTessellationLayer.prototype.drawTerrainExtent = function (dc) {
+            var surfaceGeometry = dc.terrain.surfaceGeometry,
+                terrainTile;
+
+            for (var i = 0, len = surfaceGeometry.length; i < len; i++) {
+                terrainTile = surfaceGeometry[i];
+                terrainTile.extent.render(dc);
             }
         };
 
