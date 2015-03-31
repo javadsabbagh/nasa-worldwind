@@ -234,6 +234,7 @@ define([
                 return;
             }
 
+            this.buildSharedGeometry();
             this.cacheSharedGeometryVBOs(dc);
 
             var gl = dc.currentGlContext,
@@ -299,7 +300,7 @@ define([
                 gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, vbo);
                 gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, terrainTile.points, WebGLRenderingContext.STATIC_DRAW);
                 dc.frameStatistics.incrementVboLoadCount(1);
-                gpuResourceCache.putResource(vboCacheKey, vbo, terrainTile.points.length * 3 * 4);
+                gpuResourceCache.putResource(vboCacheKey, vbo, terrainTile.points.length * 4);
                 terrainTile.pointsVboStateKey = terrainTile.pointsStateKey;
             }
             else if (terrainTile.pointsVboStateKey != terrainTile.pointsStateKey) {
@@ -722,13 +723,8 @@ define([
         Tessellator.prototype.finishTessellating = function (dc) {
             for (var idx = 0, len = this.tiles.length; idx < len; idx += 1) {
                 var tile = this.tiles[idx];
-
                 this.setNeighbors(tile);
-
-                if (this.mustRegenerateTileGeometry(dc, tile)) {
-                    this.regenerateTileGeometry(dc, tile);
-                }
-
+                this.regenerateTileGeometryIfNeeded(dc, tile);
                 this.currentTiles.addTile(tile);
             }
         };
@@ -802,17 +798,16 @@ define([
             return tile.level.isLastLevel() || !tile.mustSubdivide(dc, s);
         };
 
-        Tessellator.prototype.mustRegenerateTileGeometry = function (dc, tile) {
-            return tile.pointsStateKey != tile.stateKey;
+        Tessellator.prototype.regenerateTileGeometryIfNeeded = function (dc, tile) {
+            var stateKey = dc.globeStateKey + tile.stateKey;
+
+            if (!tile.points || tile.pointsStateKey != stateKey) {
+                this.regenerateTileGeometry(dc, tile);
+                tile.pointsStateKey = stateKey;
+            }
         };
 
         Tessellator.prototype.regenerateTileGeometry = function (dc, tile) {
-            this.buildTileVertices(dc, tile);
-            this.buildSharedGeometry(tile);
-            tile.pointsStateKey = tile.stateKey;
-        };
-
-        Tessellator.prototype.buildTileVertices = function (dc, tile) {
             var numLat = tile.tileHeight + 1, // num points in each dimension is 1 more than the number of tile cells
                 numLon = tile.tileWidth + 1,
                 refPoint = tile.referencePoint,
@@ -923,21 +918,23 @@ define([
 
         Tessellator.prototype.buildSharedGeometry = function (tile) {
             // TODO: put all indices into a single buffer
+            var tileWidth = this.levels.tileWidth,
+                tileHeight = this.levels.tileHeight;
 
             if (!this.texCoords) {
-                this.buildTexCoords(tile.tileWidth, tile.tileHeight);
+                this.buildTexCoords(tileWidth, tileHeight);
             }
 
             if (!this.indices) {
-                this.buildIndices(tile.tileWidth, tile.tileHeight);
+                this.buildIndices(tileWidth, tileHeight);
             }
 
             if (!this.wireframeIndices) {
-                this.buildWireframeIndices(tile.tileWidth, tile.tileHeight);
+                this.buildWireframeIndices(tileWidth, tileHeight);
             }
 
             if (!this.outlineIndices) {
-                this.buildOutlineIndices(tile.tileWidth, tile.tileHeight);
+                this.buildOutlineIndices(tileWidth, tileHeight);
             }
         };
 
