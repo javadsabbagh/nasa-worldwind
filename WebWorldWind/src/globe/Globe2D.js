@@ -250,9 +250,8 @@ define([
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "Globe2D",
                     "intersectsFrustum", "missingFrustum"));
             }
-            var bbox = new BoundingBox(Sector.FULL_SPHERE, this, this.elevationModel.minElevation,
-                this.elevationModel.maxElevation);
 
+            var bbox = new BoundingBox();
             bbox.setToSector(Sector.FULL_SPHERE, this, this.elevationModel.minElevation,
                 this.elevationModel.maxElevation);
 
