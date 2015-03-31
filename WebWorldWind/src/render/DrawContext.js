@@ -256,6 +256,8 @@ define([
         };
 
         // Internal use. Intentionally not documented.
+        DrawContext.unitCubeKey = "DrawContextUnitCubeKey";
+        DrawContext.unitCubeElementsKey = "DrawContextUnitCubeElementsKey";
         DrawContext.unitQuadKey = "DrawContextUnitQuadKey";
         DrawContext.unitQuadKey3 = "DrawContextUnitQuadKey3";
 
@@ -701,9 +703,169 @@ define([
         };
 
         /**
-         * Returns the VBO ID of a buffer containing a unit quadrilateral expressed as four 2D vertices at (0, 1), (0, 0),
-         * (1, 1) and (1, 0). The four vertices are in the order required by a triangle strip. The buffer is created
-         * on first use and cached. Subsequent calls to this method return the cached buffer.
+         * Returns the VBO ID of an array buffer containing a unit cube expressed as eight 3D vertices at (0, 1, 0),
+         * (0, 0, 0), (1, 1, 0), (1, 0, 0), (0, 1, 1), (0, 0, 1), (1, 1, 1) and (1, 0, 1). The buffer is created on
+         * first use and cached. Subsequent calls to this method return the cached buffer.
+         * @returns {Object} The VBO ID identifying the array buffer.
+         */
+        DrawContext.prototype.unitCubeBuffer = function () {
+            var vboId = this.gpuResourceCache.resourceForKey(DrawContext.unitCubeKey);
+
+            if (!vboId) {
+                var gl = this.currentGlContext,
+                    points = new Float32Array(24),
+                    i = 0;
+
+                points[i++] = 0; // upper left corner, z = 0
+                points[i++] = 1;
+                points[i++] = 0;
+                points[i++] = 0; // lower left corner, z = 0
+                points[i++] = 0;
+                points[i++] = 0;
+                points[i++] = 1; // upper right corner, z = 0
+                points[i++] = 1;
+                points[i++] = 0;
+                points[i++] = 1; // lower right corner, z = 0
+                points[i++] = 0;
+                points[i++] = 0;
+
+                points[i++] = 0; // upper left corner, z = 1
+                points[i++] = 1;
+                points[i++] = 1;
+                points[i++] = 0; // lower left corner, z = 1
+                points[i++] = 0;
+                points[i++] = 1;
+                points[i++] = 1; // upper right corner, z = 1
+                points[i++] = 1;
+                points[i++] = 1;
+                points[i++] = 1; // lower right corner, z = 1
+                points[i++] = 0;
+                points[i] = 1;
+
+                vboId = gl.createBuffer();
+                gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, vboId);
+                gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, points, WebGLRenderingContext.STATIC_DRAW);
+                gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, null);
+                this.frameStatistics.incrementVboLoadCount(1);
+
+                this.gpuResourceCache.putResource(DrawContext.unitCubeKey, vboId, points.length * 4);
+            }
+
+            return vboId;
+        };
+
+        /**
+         * Returns the VBO ID of a element array buffer containing the tessellation of a unit cube expressed as
+         * a single buffer containing both triangle indices and line indices. This is intended for use in conjunction
+         * with <code>unitCubeBuffer</code>. The unit cube's interior and outline may be rasterized as shown in the
+         * following WebGL pseudocode:
+         * <code><pre>
+         * // Assumes that the VBO returned by unitCubeBuffer is used as the source of vertex positions.
+         * bindBuffer(ELEMENT_ARRAY_BUFFER, drawContext.unitCubeElements());
+         * drawElements(TRIANGLES, 36, UNSIGNED_SHORT, 0); // draw the unit cube interior
+         * drawElements(LINES, 24, UNSIGNED_SHORT, 72); // draw the unit cube outline
+         * </pre></code>
+         * The buffer is created on first use
+         * and cached. Subsequent calls to this method return the cached buffer.
+         * @returns {Object} The VBO ID identifying the element array buffer.
+         */
+        DrawContext.prototype.unitCubeElements = function () {
+            var vboId = this.gpuResourceCache.resourceForKey(DrawContext.unitCubeElementsKey);
+
+            if (!vboId) {
+                var gl = this.currentGlContext,
+                    elems = new Int16Array(60),
+                    i = 0;
+
+                // interior
+
+                elems[i++] = 1; // -z face
+                elems[i++] = 0;
+                elems[i++] = 3;
+                elems[i++] = 3;
+                elems[i++] = 0;
+                elems[i++] = 2;
+
+                elems[i++] = 4; // +z face
+                elems[i++] = 5;
+                elems[i++] = 6;
+                elems[i++] = 6;
+                elems[i++] = 5;
+                elems[i++] = 7;
+
+                elems[i++] = 5; // -y face
+                elems[i++] = 1;
+                elems[i++] = 7;
+                elems[i++] = 7;
+                elems[i++] = 1;
+                elems[i++] = 3;
+
+                elems[i++] = 6; // +y face
+                elems[i++] = 2;
+                elems[i++] = 4;
+                elems[i++] = 4;
+                elems[i++] = 2;
+                elems[i++] = 0;
+
+                elems[i++] = 4; // -x face
+                elems[i++] = 0;
+                elems[i++] = 5;
+                elems[i++] = 5;
+                elems[i++] = 0;
+                elems[i++] = 1;
+
+                elems[i++] = 7; // +x face
+                elems[i++] = 3;
+                elems[i++] = 6;
+                elems[i++] = 6;
+                elems[i++] = 3;
+                elems[i++] = 2;
+
+                // outline
+
+                elems[i++] = 0; // left, -z
+                elems[i++] = 1;
+                elems[i++] = 1; // bottom, -z
+                elems[i++] = 3;
+                elems[i++] = 3; // right, -z
+                elems[i++] = 2;
+                elems[i++] = 2; // top, -z
+                elems[i++] = 0;
+
+                elems[i++] = 4; // left, +z
+                elems[i++] = 5;
+                elems[i++] = 5; // bottom, +z
+                elems[i++] = 7;
+                elems[i++] = 7; // right, +z
+                elems[i++] = 6;
+                elems[i++] = 6; // top, +z
+                elems[i++] = 4;
+
+                elems[i++] = 0; // upper left
+                elems[i++] = 4;
+                elems[i++] = 5; // lower left
+                elems[i++] = 1;
+                elems[i++] = 2; // upper right
+                elems[i++] = 6;
+                elems[i++] = 7; // lower right
+                elems[i] = 3;
+
+                vboId = gl.createBuffer();
+                gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, vboId);
+                gl.bufferData(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, elems, WebGLRenderingContext.STATIC_DRAW);
+                gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, null);
+                this.frameStatistics.incrementVboLoadCount(1);
+
+                this.gpuResourceCache.putResource(DrawContext.unitCubeElementsKey, vboId, elems.length * 2);
+            }
+
+            return vboId;
+        };
+
+        /**
+         * Returns the VBO ID of a buffer containing a unit quadrilateral expressed as four 2D vertices at (0, 1),
+         * (0, 0), (1, 1) and (1, 0). The four vertices are in the order required by a triangle strip. The buffer is
+         * created on first use and cached. Subsequent calls to this method return the cached buffer.
          * @returns {Object} The VBO ID identifying the vertex buffer.
          */
         DrawContext.prototype.unitQuadBuffer = function () {

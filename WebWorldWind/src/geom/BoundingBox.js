@@ -8,6 +8,7 @@
  */
 define([
         '../error/ArgumentError',
+        '../shaders/BasicProgram',
         '../geom/Frustum',
         '../util/Logger',
         '../geom/Matrix',
@@ -19,6 +20,7 @@ define([
         '../util/WWUtil'
     ],
     function (ArgumentError,
+              BasicProgram,
               Frustum,
               Logger,
               Matrix,
@@ -89,13 +91,18 @@ define([
              */
             this.radius = Math.sqrt(3);
 
-            // Internal. Intentionally not documented.
+            // Internal use only. Intentionally not documented.
             this.tmp1 = new Vec3(0, 0, 0);
             this.tmp2 = new Vec3(0, 0, 0);
             this.tmp3 = new Vec3(0, 0, 0);
+
+            // Internal use only. Intentionally not documented.
             this.scratchElevations = new Float64Array(9);
             this.scratchPoints = new Float64Array(3 * this.scratchElevations.length);
         };
+
+        // Internal use only. Intentionally not documented.
+        BoundingBox.scratchMatrix = Matrix.fromIdentity();
 
         /**
          * Sets this bounding box such that it minimally encloses a specified collection of points.
@@ -457,6 +464,52 @@ define([
             tmp = aExtremes[1];
             aExtremes[1] = bExtremes[1];
             bExtremes[1] = tmp;
+        };
+
+        /**
+         * Renders this bounding box in a semi-transparent color with a highlighted outline. This function is intended
+         * for diagnostic use only.
+         * @param dc {DrawContext} dc The current draw context.
+         */
+        BoundingBox.prototype.render = function (dc) {
+            var gl = dc.currentGlContext,
+                matrix = BoundingBox.scratchMatrix,
+                program = dc.findAndBindProgram(gl, BasicProgram);
+
+            try {
+                // Setup to transform unit cube coordinates to this bounding box's local coordinates, as viewed by the
+                // current navigator state.
+                matrix.copy(dc.navigatorState.modelviewProjection);
+                matrix.multiply(
+                    this.r[0], this.s[0], this.t[0], this.center[0],
+                    this.r[1], this.s[1], this.t[1], this.center[1],
+                    this.r[2], this.s[2], this.t[2], this.center[2],
+                    0, 0, 0, 1);
+                matrix.multiplyByTranslation(-0.5, -0.5, -0.5);
+                program.loadModelviewProjection(gl, matrix);
+
+                // Setup to draw the geometry when the eye point is inside or outside the box.
+                gl.disable(WebGLRenderingContext.CULL_FACE);
+
+                // Bind the shared unit cube vertex buffer and element buffer.
+                gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, dc.unitCubeBuffer());
+                gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, dc.unitCubeElements());
+                gl.enableVertexAttribArray(program.vertexPointLocation);
+                gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, 0, 0);
+
+                // Draw bounding box fragments that are below the terrain.
+                program.loadColorComponents(gl, 0, 1, 0, 0.6);
+                gl.drawElements(WebGLRenderingContext.LINES, 24, WebGLRenderingContext.UNSIGNED_SHORT, 72);
+                program.loadColorComponents(gl, 1, 1, 1, 0.3);
+                gl.drawElements(WebGLRenderingContext.TRIANGLES, 36, WebGLRenderingContext.UNSIGNED_SHORT, 0);
+
+            } finally {
+                // Restore World Wind's default WebGL state.
+                gl.enable(WebGLRenderingContext.CULL_FACE);
+                gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, null);
+                gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, null);
+                dc.bindProgram(gl, null);
+            }
         };
 
         return BoundingBox;
