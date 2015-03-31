@@ -29,7 +29,7 @@ define([
          * @alias BasicTextureProgram
          * @constructor
          * @augments GpuProgram
-         * @classdesc BasicTextureProgram is a GLSL program that draws textured geometry.
+         * @classdesc BasicTextureProgram is a GLSL program that draws textured or untextured geometry.
          * @param {WebGLRenderingContext} gl The current WebGL context.
          * @throws {ArgumentError} If the shaders cannot be compiled, or if linking of
          * the compiled shaders into a program fails.
@@ -67,54 +67,63 @@ define([
             /**
              * The WebGL location for this program's 'vertexPoint' attribute.
              * @type {Number}
+             * @readonly
              */
             this.vertexPointLocation = this.attributeLocation(gl, "vertexPoint");
 
             /**
              * The WebGL location for this program's 'vertexTexCoord' attribute.
              * @type {Number}
+             * @readonly
              */
             this.vertexTexCoordLocation = this.attributeLocation(gl, "vertexTexCoord");
 
             /**
              * The WebGL location for this program's 'mvpMatrix' uniform.
              * @type {WebGLUniformLocation}
+             * @readonly
              */
             this.mvpMatrixLocation = this.uniformLocation(gl, "mvpMatrix");
 
             /**
              * The WebGL location for this program's 'color' uniform.
              * @type {WebGLUniformLocation}
+             * @readonly
              */
             this.colorLocation = this.uniformLocation(gl, "color");
 
             /**
              * The WebGL location for this program's 'enableTexture' uniform.
              * @type {WebGLUniformLocation}
+             * @readonly
              */
             this.textureEnabledLocation = this.uniformLocation(gl, "enableTexture");
 
             /**
              * The WebGL location for this program's 'modulateColor' uniform.
              * @type {WebGLUniformLocation}
+             * @readonly
              */
             this.modulateColorLocation = this.uniformLocation(gl, "modulateColor");
 
             /**
              * The WebGL location for this program's 'textureSampler' uniform.
              * @type {WebGLUniformLocation}
+             * @readonly
              */
             this.textureUnitLocation = this.uniformLocation(gl, "textureSampler");
 
             /**
              * The WebGL location for this program's 'texCoordMatrix' uniform.
              * @type {WebGLUniformLocation}
+             * @readonly
              */
             this.textureMatrixLocation = this.uniformLocation(gl, "texCoordMatrix");
 
             /**
              * The WebGL location for this program's 'opacity' uniform.
              * @type {WebGLUniformLocation}
+             * @readonly
              */
             this.opacityLocation = this.uniformLocation(gl, "opacity");
         };
@@ -139,7 +148,7 @@ define([
         BasicTextureProgram.prototype.loadModelviewProjection = function (gl, matrix) {
             if (!matrix) {
                 throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "BasicProgram", "loadModelviewProjection", "missingMatrix"));
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "BasicTextureProgram", "loadModelviewProjection", "missingMatrix"));
             }
 
             GpuProgram.loadUniformMatrix(gl, matrix, this.mvpMatrixLocation);
@@ -155,7 +164,7 @@ define([
         BasicTextureProgram.prototype.loadColor = function (gl, color) {
             if (!color) {
                 throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "BasicProgram", "loadColor", "missingColor"));
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "BasicTextureProgram", "loadColor", "missingColor"));
             }
 
             GpuProgram.loadUniformColor(gl, color, this.colorLocation);
@@ -164,7 +173,7 @@ define([
         /**
          * Loads the specified boolean as the value of this program's 'enableTexture' uniform variable.
          * @param {WebGLRenderingContext} gl The current WebGL context.
-         * @param {Boolean} enable <code>true</code> to enable texturing, <code>false</code> to disable texturing.
+         * @param {Boolean} enable true to enable texturing, false to disable texturing.
          */
         BasicTextureProgram.prototype.loadTextureEnabled = function (gl, enable) {
             GpuProgram.loadUniformInteger(gl, enable ? 1 : 0, this.textureEnabledLocation);
@@ -172,20 +181,20 @@ define([
 
         /**
          * Loads the specified boolean as the value of this program's 'modulateColor' uniform variable. When this
-         * value is true and the value of the textureEnabled variable is true the color uniform of this shader is
+         * value is true and the value of the textureEnabled variable is true, the color uniform of this shader is
          * multiplied by the rounded alpha component of the texture color at each fragment. This causes the color
          * to be either fully opaque or fully transparent depending on the value of the texture color's alpha value.
          * This is used during picking to replace opaque or mostly opaque texture colors with the pick color, and
          * to make all other texture colors transparent.
          * @param {WebGLRenderingContext} gl The current WebGL context.
-         * @param {Boolean} enable <code>true</code> to enable modulation, <code>false</code> to disable modulation.
+         * @param {Boolean} enable true to enable modulation, false to disable modulation.
          */
         BasicTextureProgram.prototype.loadModulateColor = function (gl, enable) {
             GpuProgram.loadUniformInteger(gl, enable ? 1 : 0, this.modulateColorLocation);
         };
 
         /**
-         * Loads the specified boolean as the value of this program's 'textureSampler' uniform variable.
+         * Loads the specified number as the value of this program's 'textureSampler' uniform variable.
          * @param {WebGLRenderingContext} gl The current WebGL context.
          * @param {Number} unit The texture unit.
          */
