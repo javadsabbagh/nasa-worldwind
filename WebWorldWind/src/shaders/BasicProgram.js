@@ -10,14 +10,12 @@ define([
         '../error/ArgumentError',
         '../util/Color',
         '../shaders/GpuProgram',
-        '../util/Logger',
-        '../geom/Matrix'
+        '../util/Logger'
     ],
     function (ArgumentError,
               Color,
               GpuProgram,
-              Logger,
-              Matrix) {
+              Logger) {
         "use strict";
 
         /**
@@ -52,18 +50,21 @@ define([
             /**
              * The WebGL location for this program's 'vertexPoint' attribute.
              * @type {Number}
+             * @readonly
              */
             this.vertexPointLocation = this.attributeLocation(gl, "vertexPoint");
 
             /**
              * The WebGL location for this program's 'mvpMatrix' uniform.
              * @type {WebGLUniformLocation}
+             * @readonly
              */
             this.mvpMatrixLocation = this.uniformLocation(gl, "mvpMatrix");
 
             /**
              * The WebGL location for this program's 'color' uniform.
              * @type {WebGLUniformLocation}
+             * @readonly
              */
             this.colorLocation = this.uniformLocation(gl, "color");
         };

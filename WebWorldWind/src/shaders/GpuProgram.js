@@ -20,6 +20,7 @@ define([
 
         /**
          * Constructs a GPU program with specified source code for vertex and fragment shaders.
+         * This constructor is intended to be called only by subclasses.
          * <p>
          * This constructor creates WebGL shaders for the specified shader sources and attaches them to a new GLSL program. The
          * method compiles the shaders and then links the program if compilation is successful. Use the [bind]{@link GpuProgram#bind}
@@ -190,7 +191,8 @@ define([
          *
          * @param {WebGLRenderingContext} gl The current WebGL context.
          * @param {WebGLProgram} program The WebGL program.
-         * @returns {Boolean} <code>true</code> if linking was successful, otherwise <code>false</code>.
+         * @returns {Boolean} true if linking was successful, otherwise false.
+         * @protected
          */
         GpuProgram.prototype.link = function (gl, program) {
             gl.linkProgram(program);
