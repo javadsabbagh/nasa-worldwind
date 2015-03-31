@@ -245,15 +245,21 @@ define([
         };
 
         /**
-         * Loads a specified pick color to a specified uniform location.
+         * Loads the specified RGBA color components as the value of a GLSL vec4 uniform variable with the specified
+         * location.
+         * <p>
+         * This function multiplies the red, green and blue components by the alpha component prior to loading the color
+         * in the GLSL uniform variable.
          *
          * @param {WebGLRenderingContext} gl The current WebGL context.
-         * @param {Color} color The color to load.
-         * @param {WebGLUniformLocation} location The uniform location to store the color to.
+         * @param {Number} red The red component, a number between 0 and 1.
+         * @param {Number} green The green component, a number between 0 and 1.
+         * @param {Number} blue The blue component, a number between 0 and 1.
+         * @param {Number} alpha The alpha component, a number between 0 and 1.
+         * @param {WebGLUniformLocation} location The location of the uniform variable in the currently bound GLSL program.
          */
-        GpuProgram.loadUniformPickColor = function (gl, color, location) {
-            gl.uniform4f(location, color.red, color.green, color.blue, color.alpha);
-
+        GpuProgram.loadUniformColorComponents = function (gl, red, green, blue, alpha, location) {
+            gl.uniform4f(location, red * alpha, green * alpha, blue * alpha, alpha);
         };
 
         /**

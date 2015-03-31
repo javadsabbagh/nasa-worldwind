@@ -111,5 +111,18 @@ define([
             GpuProgram.loadUniformColor(gl, color, this.colorLocation);
         };
 
+        /**
+         * Loads the specified RGBA color components as the value of this program's 'color' uniform variable.
+         *
+         * @param {WebGLRenderingContext} gl The current WebGL context.
+         * @param {Number} red The red component, a number between 0 and 1.
+         * @param {Number} green The green component, a number between 0 and 1.
+         * @param {Number} blue The blue component, a number between 0 and 1.
+         * @param {Number} alpha The alpha component, a number between 0 and 1.
+         */
+        BasicProgram.prototype.loadColorComponents = function (gl, red, green, blue, alpha) {
+            GpuProgram.loadUniformColorComponents(gl, red, green, blue, alpha, this.colorLocation);
+        };
+
         return BasicProgram;
     });
