@@ -63,11 +63,7 @@ define([
              */
             this.screenOffset = screenOffset;
 
-            /**
-             * The URL of the image to display.
-             * @type {String}
-             * @default null
-             */
+            // Documented with its property accessor below.
             this._imagePath = imagePath;
 
             /**
@@ -95,21 +91,21 @@ define([
 
             /**
              * The amount of rotation to apply to the image, measured in degrees clockwise from the top of the window.
-             * @type {number}
+             * @type {Number}
              * @default 0
              */
             this.imageRotation = 0;
 
             /**
              * The amount of tilt to apply to the image, measured in degrees.
-             * @type {number}
+             * @type {Number}
              * @default 0
              */
             this.imageTilt = 0;
 
             /**
-             * Indicates whether this screen image is drawn.
-             * @type {boolean}
+             * Indicates whether to draw this screen image.
+             * @type {Boolean}
              * @default true
              */
             this.enabled = true;
@@ -117,13 +113,13 @@ define([
             /**
              * This image's opacity. When this screen image is drawn, the actual opacity is the product of
              * this opacity and the opacity of the layer containing this screen image.
-             * @type {number}
+             * @type {Number}
              */
             this.opacity = 1;
 
             /**
-             * Indicates the object to return as the <code>userObject</code> of this shape when picked. If null,
-             * then this shape is returned as the <code>userObject</code>.
+             * Indicates the object to return as the userObject of this shape when picked. If null,
+             * then this shape is returned as the userObject.
              * @type {Object}
              * @default null
              * @see  [PickedObject.userObject]{@link PickedObject#userObject}
@@ -152,6 +148,12 @@ define([
         ScreenImage.prototype = Object.create(Renderable.prototype);
 
         Object.defineProperties(ScreenImage.prototype, {
+            /**
+             * The URL of the image to display.
+             * @type {String}
+             * @default null
+             * @memberof ScreenImage.prototype
+             */
             imagePath: {
                 get: function () {
                     return this._imagePath;
@@ -170,7 +172,7 @@ define([
 
         /**
          * Renders this screen image. This method is typically not called by applications but is called by
-         * [RenderableLayer]{@link RenderableLayer} during rendering. For this shape this method creates and
+         * {@link RenderableLayer} during rendering. For this shape this method creates and
          * enques an ordered renderable with the draw context and does not actually draw the image.
          * @param {DrawContext} dc The current draw context.
          */
@@ -214,6 +216,7 @@ define([
             }
         };
 
+        // Internal. Intentionally not documented.
         ScreenImage.prototype.makeOrderedRenderable = function (dc) {
             var w, h, s, ws, hs,
                 iOffset, sOffset;

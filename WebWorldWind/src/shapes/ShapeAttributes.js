@@ -43,7 +43,7 @@ define([
              * Indicates whether this object's state key is invalid. Subclasses must set this value to true when their
              * attributes change. The state key will be automatically computed the next time it's requested. This flag
              * will be set to false when that occurs.
-             * @type {boolean}
+             * @type {Boolean}
              * @protected
              */
             this.stateKeyInvalid = true;
@@ -76,7 +76,7 @@ define([
              * A string identifying the state of this attributes object. The string encodes the current values of all
              * this object's properties. It's typically used to validate cached representations of shapes associated
              * with this attributes object.
-             * @type {Boolean}
+             * @type {String}
              * @readonly
              * @memberof ShapeAttributes.prototype
              */
@@ -92,7 +92,7 @@ define([
 
             /**
              * Indicates whether the interior of the associated shape is drawn.
-             * @type {boolean}
+             * @type {Boolean}
              * @default true
              * @memberof ShapeAttributes.prototype
              */
@@ -108,7 +108,7 @@ define([
 
             /**
              * Indicates whether the outline of the associated shape is drawn
-             * @type {boolean}
+             * @type {Boolean}
              * @default true
              * @memberof ShapeAttributes.prototype
              */
@@ -124,7 +124,7 @@ define([
 
             /**
              * Indicates whether lighting is applied to the associated shape.
-             * @type {boolean}
+             * @type {Boolean}
              * @default false
              * @memberof ShapeAttributes.prototype
              */
@@ -172,7 +172,7 @@ define([
 
             /**
              * Indicates the associated shape's outline width.
-             * @type {number}
+             * @type {Number}
              * @default 1.0
              * @memberof ShapeAttributes.prototype
              */
@@ -195,7 +195,7 @@ define([
              * <p>
              * To disable outline stippling, either specify a stipple factor of 0 or specify a stipple pattern of
              * all 1 bits, i.e., 0xFFFF.
-             * @type {number}
+             * @type {Number}
              * @default 0xF0F0
              * @memberof ShapeAttributes.prototype
              */
@@ -214,7 +214,7 @@ define([
              * outline stipple pattern is repeated before the next bit is used. For example, if the outline stipple
              * factor is 3, each bit is repeated three times before using the next bit. The specified factor must be
              * either 0 or an integer greater than 0. A stipple factor of 0 indicates no stippling.
-             * @type {number}
+             * @type {Number}
              * @default 0
              * @memberof ShapeAttributes.prototype
              */
@@ -247,7 +247,7 @@ define([
 
             /**
              * Indicates the associated shape's image scale, the amount to scale the shape's image dimensions.
-             * @type {number}
+             * @type {Number}
              * @default 1.0
              * @memberof ShapeAttributes.prototype
              */
@@ -284,7 +284,7 @@ define([
              * Indicates whether the shape should be depth-tested against other objects in the scene. If true,
              * the shape may be occluded by terrain and other objects in certain viewing situations. If false,
              * the shape will not be occluded by terrain and other objects.
-             * @type {boolean}
+             * @type {Boolean}
              * @default true
              * @memberof ShapeAttributes.prototype
              */

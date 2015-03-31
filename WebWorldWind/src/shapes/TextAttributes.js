@@ -63,7 +63,7 @@ define([
              * A string identifying the state of this attributes object. The string encodes the current values of all
              * this object's properties. It's typically used to validate cached representations of shapes associated
              * with this attributes object.
-             * @type {Boolean}
+             * @type {String}
              * @readonly
              * @memberof TextAttributes.prototype
              */
@@ -96,7 +96,7 @@ define([
             /**
              * The text size, face and other characteristics, as described in [Font]{@link Font}.
              * @type {Font}
-             * @default Those of [Font]{@link Font}, but with size of 14px and center justification.
+             * @default Those of [Font]{@link Font}, but with a font size of 14.
              * @memberof TextAttributes.prototype
              */
             font: {
@@ -110,11 +110,11 @@ define([
             },
 
             /**
-             * Indicates the location of the text relative to its geographic position.
-             * May be null, in which case the text's bottom-left corner is placed at the geographic position.
+             * Indicates the location of the text relative to its specified position.
+             * May be null, in which case the text's bottom-left corner is placed at the specified position.
              * @type {Offset}
              * @default 0.5, 0.0, both fractional (Places the text's horizontal center and vertical bottom at the
-             * geographic position.)
+             * specified position.)
              * @memberof TextAttributes.prototype
              */
             offset: {

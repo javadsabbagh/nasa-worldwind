@@ -31,15 +31,15 @@ define([
             this.displayName = "Renderable";
 
             /**
-             * Indicates whether this renderable is displayed.
+             * Indicates whether to display this renderable.
              * @type {Boolean}
              * @default true
              */
             this.enabled = true;
 
             /**
-             * Indicates the object to return as the userObject of this placemark when picked. If null,
-             * then this renderable is returned as the userObject.
+             * Indicates the object to return as the userObject of this shape when picked. If null,
+             * then this shape is returned as the userObject.
              * @type {Object}
              * @default null
              * @see  [PickedObject.userObject]{@link PickedObject#userObject}

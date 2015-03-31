@@ -26,7 +26,7 @@ define([
          * geographic position.
          * @alias PlacemarkAttributes
          * @constructor
-         * @classdesc Holds attributes applied to [Placemark]{@link Placemark} shapes.
+         * @classdesc Holds attributes applied to {@link Placemark} shapes.
          *
          * @param {PlacemarkAttributes} attributes Attributes to initialize this attributes instance to. May be null,
          * in which case the new instance contains default attributes.
@@ -47,7 +47,7 @@ define([
              * Indicates whether this object's state key is invalid. Subclasses must set this value to true when their
              * attributes change. The state key will be automatically computed the next time it's requested. This flag
              * will be set to false when that occurs.
-             * @type {boolean}
+             * @type {Boolean}
              * @protected
              */
             this.stateKeyInvalid = true;
@@ -76,7 +76,7 @@ define([
              * A string identifying the state of this attributes object. The string encodes the current values of all
              * this object's properties. It's typically used to validate cached representations of shapes associated
              * with this attributes object.
-             * @type {Boolean}
+             * @type {String}
              * @readonly
              * @memberof PlacemarkAttributes.prototype
              */
@@ -128,7 +128,7 @@ define([
 
             /**
              * Indicates the amount to scale the placemark's image.
-             * When this attribute bundle has a valid image path the scale is applied to the image's dimensions. Otherwise, the
+             * When this attribute bundle has a valid image path the scale is applied to the image's dimensions. Otherwise the
              * scale indicates the dimensions in pixels of a square drawn at the placemark's geographic position.
              * A scale of 0 causes the placemark to disappear; however, the placemark's label, if any, is still drawn.
              * @type {Number}
@@ -166,9 +166,10 @@ define([
              * Indicates whether the placemark should be depth-tested against other objects in the scene. If true,
              * the placemark may be occluded by terrain and other objects in certain viewing situations. If false,
              * the placemark will not be occluded by terrain and other objects. If this value is true, the placemark's
-             * label, if any, has an independent depth-testing control.
-             * See [TextAttributes.depthTest]{@link TextAttributes#depthTest}.
-             * @type {boolean}
+             * label, if any, has an independent depth-test control.
+             * See [PlacemarkAttributes.labelAttributes]{@link PlacemarkAttributes#labelAttributes}
+             * and [TextAttributes.depthTest]{@link TextAttributes#depthTest}.
+             * @type {Boolean}
              * @default true
              * @memberof PlacemarkAttributes.prototype
              */
@@ -201,7 +202,7 @@ define([
 
             /**
              * Indicates whether to draw a line from the placemark's geographic position to the ground.
-             * @type {boolean}
+             * @type {Boolean}
              * @default false
              * @memberof PlacemarkAttributes.prototype
              */
@@ -216,7 +217,8 @@ define([
             },
 
             /**
-             * The attributes to apply to the leader line if it's drawn.
+             * The attributes to apply to the leader line if it's drawn. If null, the placemark's leader line is
+             * not drawn.
              * @type {PathAttributes}
              * @default The defaults of {@link PathAttributes}
              * @memberof PlacemarkAttributes.prototype

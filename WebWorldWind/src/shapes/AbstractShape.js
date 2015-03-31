@@ -35,10 +35,10 @@ define([
          * @classdesc Provides a base class for shapes other than surface shapes. Implements common attribute handling
          * and rendering flow. This is an abstract class and is meant to be instantiated only by subclasses.
          * <p>
-         *     In order to support simultaneous use of this shape by multiple windows, this shape maintains a cache
-         *     of data computed relative to the globe displayed in each window. During rendering, the data for the
-         *     currently active globe, as indicated in the draw context, is made current. Subsequently called methods
-         *     rely on the existence of the data cache entry.
+         *     In order to support simultaneous use of this shape by multiple windows and 2D globes, this shape
+         *     maintains a cache of data computed relative to the globe displayed in each window. During rendering,
+         *     the data for the currently active globe, as indicated in the draw context, is made current.
+         *     Subsequently called methods rely on the existence of this data cache entry.
          */
         var AbstractShape = function () {
 
@@ -51,7 +51,8 @@ define([
             this.attributes = new ShapeAttributes(null);
 
             /**
-             * This shape's highlight attributes.
+             * This shape's highlight attributes. If null or undefined and this shape's highlight flag is true, this
+             * shape's normal attributes are used. If they in turn are null or undefined, this shape is not drawn.
              * @type {ShapeAttributes}
              * @default null
              */
@@ -61,7 +62,7 @@ define([
              * Indicates whether this shape uses its normal attributes or its highlight attributes when displayed.
              * If true, the highlight attributes are used, otherwise the normal attributes are used. The normal
              * attributes are also used if no highlight attributes have been specified.
-             * @type {boolean}
+             * @type {Boolean}
              * @default false
              */
             this.highlighted = false;
@@ -89,7 +90,7 @@ define([
              * Indicates how long to use terrain-specific shape data before regenerating it, in milliseconds. A value
              * of zero specifies that shape data should be regenerated every frame. While this causes the shape to
              * adapt more frequently to the terrain, it decreases performance.
-             * @type {number}
+             * @type {Number}
              * @default 2000 (milliseconds)
              */
             this.expirationInterval = 2000;
@@ -125,6 +126,11 @@ define([
             }
         });
 
+        /**
+         * Clears this shape's data cache. Should be called by subclasses when state changes that invalidates
+         * cached data.
+         * @protected
+         */
         AbstractShape.prototype.reset = function () {
             this.shapeDataCache.clear(false);
         };
@@ -172,8 +178,8 @@ define([
         };
 
         /**
-         * Draws this shape during ordered rendering. This method is called by the draw context and is not intended to
-         * be called by applications.
+         * Draws this shape during ordered rendering. Implements the {@link OrderedRenderable} interface.
+         * This method is called by the World Window and is not intended to be called by applications.
          * @param {DrawContext} dc The current draw context.
          */
         AbstractShape.prototype.renderOrdered = function (dc) {
@@ -197,7 +203,7 @@ define([
 
         /**
          * Called during rendering. Subclasses must override this method with one that creates and enques an
-         * ordered renderable for this shape. Applications do not call this method.
+         * ordered renderable for this shape if this shape is to be displayed. Applications do not call this method.
          * @param {DrawContext} dc The current draw context.
          * @protected
          */
@@ -207,7 +213,8 @@ define([
         };
 
         /**
-         * Called during ordered rendering. Subclasses must override this method.
+         * Called during ordered rendering. Subclasses must override this method to render the shape using the current
+         * shape data.
          * @param {DrawContext} dc The current draw context.
          * @protected
          */
@@ -273,6 +280,7 @@ define([
             };
         };
 
+        // Intentionally not documented.
         AbstractShape.prototype.resetExpiration = function (shapeData) {
             // The random addition in the line below prevents all shapes from regenerating during the same frame.
             shapeData.expiryTime = Date.now() + this.expirationInterval + 1e3 * Math.random();
@@ -284,7 +292,7 @@ define([
          * class. Applications do not call this method.
          * @param {DrawContext} dc The current draw context.
          * @param {Object} shapeData The object to validate.
-         * @returns {boolean} True if the object is current, otherwise false.
+         * @returns {Boolean} true if the object is current, otherwise false.
          * @protected
          */
         AbstractShape.prototype.isShapeDataCurrent = function (dc, shapeData) {
@@ -301,6 +309,15 @@ define([
             }
         };
 
+        /**
+         * Indicates whether this shape is within the current globe's projection limits. Subclasses may implement
+         * this method to perform the test. The default implementation returns true. Applications do not call this
+         * method.
+         * @param {DrawContext} dc The current draw context.
+         * @returns {Boolean} true if this shape is is within or intersects the current globe's projection limits,
+         * otherwise false.
+         * @protected
+         */
         AbstractShape.prototype.isWithinProjectionLimits = function (dc) {
             return true;
         };

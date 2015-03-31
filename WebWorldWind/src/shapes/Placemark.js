@@ -40,13 +40,13 @@ define([
          * @constructor
          * @augments Renderable
          * @classdesc Represents a Placemark shape. A placemark displays an image, a label and a leader line connecting
-         * the placemark's geographical position to the ground. All three of these items are optional. By default, the
+         * the placemark's geographic position to the ground. All three of these items are optional. By default, the
          * leader line is not pickable. See [enableLeaderLinePicking]{@link Placemark#enableLeaderLinePicking}.
          * <p>
-         * Placemarks may be drawn with either an image or as single-color square with a specified size. When the placemark attributes
-         * have a valid image path the placemark's image is drawn as a rectangle in the image's original dimensions, scaled
-         * by the image scale attribute. Otherwise, the placemark is drawn as a square with width and height equal to the
-         * value of the image scale attribute, in pixels.
+         * Placemarks may be drawn with either an image or as single-color square with a specified size. When the
+         * placemark attributes indicate a valid image path, the placemark's image is drawn as a rectangle in the
+         * image's original dimensions, scaled by the image scale attribute. Otherwise, the placemark is drawn as a
+         * square with width and height equal to the value of the image scale attribute, in pixels.
          * @param {Position} position The placemark's geographic position.
          * @throws {ArgumentError} If the specified position is null or undefined.
          */
@@ -77,7 +77,7 @@ define([
 
             /**
              * Indicates whether this placemark uses its highlight attributes rather than its normal attributes.
-             * @type {boolean}
+             * @type {Boolean}
              * @default false
              */
             this.highlighted = false;
@@ -108,14 +108,14 @@ define([
 
             /**
              * Indicates whether this placemark has visual priority over other shapes in the scene.
-             * @type {boolean}
+             * @type {Boolean}
              * @default false
              */
             this.alwaysOnTop = false;
 
             /**
              * Indicates whether this placemark's leader line, if any, is pickable.
-             * @type {boolean}
+             * @type {Boolean}
              * @default false
              */
             this.enableLeaderLinePicking = false;
@@ -124,7 +124,7 @@ define([
              * Indicates whether this placemark's image should be re-retrieved even if it has already been retrieved.
              * Set this property to true when the image has changed but has the same image path.
              * The property is set to false when the image is re-retrieved.
-             * @type {boolean}
+             * @type {Boolean}
              */
             this.updateImage = true;
 
@@ -203,7 +203,7 @@ define([
 
         /**
          * Renders this placemark. This method is typically not called by applications but is called by
-         * [RenderableLayer]{@link RenderableLayer} during rendering. For this shape this method creates and
+         * {@link RenderableLayer} during rendering. For this shape this method creates and
          * enques an ordered renderable with the draw context and does not actually draw the placemark.
          * @param {DrawContext} dc The current draw context.
          */
