@@ -48,7 +48,7 @@ define([
         };
 
         /**
-         * Copy a vector's components to this vector.
+         * Copies the components of a specified vector to this vector.
          * @param {Vec2} vector The vector to copy.
          * @returns {Vec2} This vector set to the values of the specified vector.
          * @throws {ArgumentError} If the specified vector is null or undefined.

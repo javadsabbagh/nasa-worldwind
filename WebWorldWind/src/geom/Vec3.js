@@ -127,7 +127,7 @@ define([
         };
 
         /**
-         * Copys the components of a specified vector to this vector.
+         * Copies the components of a specified vector to this vector.
          * @param {Vec3} vector The vector to copy.
          * @returns {Vec3} This vector set to the X, Y and Z values of the specified vector.
          * @throws {ArgumentError} If the specified vector is null or undefined.
