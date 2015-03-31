@@ -130,6 +130,43 @@ define([
         Color.TRANSPARENT = new Color(0, 0, 0, 0);
 
         /**
+         * Assigns the components of this color.
+         * @param {Number} red The red component, a number between 0 and 1.
+         * @param {Number} green The green component, a number between 0 and 1.
+         * @param {Number} blue The blue component, a number between 0 and 1.
+         * @param {Number} alpha The alpha component, a number between 0 and 1.
+         * @returns {Color} This color with the specified components assigned.
+         */
+        Color.prototype.set = function (red, green, blue, alpha) {
+            this.red = red;
+            this.green = green;
+            this.blue = blue;
+            this.alpha = alpha;
+
+            return this;
+        };
+
+        /**
+         * Copies the components of a specified color to this color.
+         * @param {Color} color The color to copy.
+         * @returns {Color} This color set to the red, green, blue and alpha values of the specified color.
+         * @throws {ArgumentError} If the specified color is null or undefined.
+         */
+        Color.prototype.copy = function (color) {
+            if (!color) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Color", "copy", "missingColor"));
+            }
+
+            this.red = color.red;
+            this.green = color.green;
+            this.blue = color.blue;
+            this.alpha = color.alpha;
+
+            return this;
+        };
+
+        /**
          * Create a copy of this color.
          * @returns {Color} A new instance containing the color components of this color.
          */
