@@ -27,7 +27,7 @@ define([
          * <p>
          * See also {@link GeographicText}.
          *
-         * @param {Vec2} screenPosition The text's screen position.
+         * @param {Vec2} screenPosition The text's screen position in screen coordinates (upper left origin).
          * @param {String} text The text to display.
          * @throws {ArgumentError} If either the specified screen position or text is null or undefined.
          */
@@ -41,6 +41,8 @@ define([
 
             /**
              * This text's screen position.
+             * The [TextAttributes.offset]{@link TextAttributes#offset} property indicates the relationship of the
+             * text string to this position.
              * @type {Vec2}
              */
             this.screenPosition = screenPosition;
@@ -53,6 +55,7 @@ define([
 
         ScreenText.prototype = Object.create(Text.prototype);
 
+        // Documented in superclass.
         ScreenText.prototype.render = function (dc) {
             // Ensure that this text is drawn only once per frame.
             if (this.lastFrameTime != dc.timestamp) {
@@ -60,6 +63,7 @@ define([
             }
         };
 
+        // Documented in superclass.
         ScreenText.prototype.computeScreenPointAndEyeDistance = function (dc) {
             dc.navigatorState.convertPointToViewport(this.screenPosition, this.screenPoint);
             this.screenPoint[2] = 1;

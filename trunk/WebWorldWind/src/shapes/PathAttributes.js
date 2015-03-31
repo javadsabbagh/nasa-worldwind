@@ -21,7 +21,7 @@ define([
          * @alias PathAttributes
          * @constructor
          * @augments ShapeAttributes
-         * @classdesc Holds attributes applied to World Wind path shapes.
+         * @classdesc Holds attributes applied to World Wind {@link Path} shapes.
          * @param {PathAttributes} attributes An attribute bundle whose properties are used to initially populate
          * the constructed attributes bundle. May be null, in which case the constructed attributes bundle is populated
          * with default attributes.
@@ -44,7 +44,7 @@ define([
             /**
              * Indicates whether this shape should draw vertical lines extending from the specified positions to the
              * ground.
-             * @type {boolean}
+             * @type {Boolean}
              * @default false
              * @memberof PathAttributes.prototype
              */

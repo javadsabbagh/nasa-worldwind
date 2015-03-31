@@ -37,7 +37,7 @@ define([
         "use strict";
 
         /**
-         * Constructs a text shape.
+         * Constructs a text shape. This constructor is intended to be called only by subclasses.
          * @alias Text
          * @constructor
          * @augments Renderable
@@ -105,8 +105,8 @@ define([
             this.altitudeMode = WorldWind.ABSOLUTE;
 
             /**
-             * Indicates the object to return as the <code>userObject</code> of this text when picked. If null,
-             * then this text object is returned as the <code>userObject</code>.
+             * Indicates the object to return as the userObject of this text when picked. If null,
+             * then this text object is returned as the userObject.
              * @type {Object}
              * @default null
              * @see  [PickedObject.userObject]{@link PickedObject#userObject}
@@ -115,7 +115,7 @@ define([
 
             /**
              * Indicates whether this text has visual priority over other shapes in the scene.
-             * @type {boolean}
+             * @type {Boolean}
              * @default false
              */
             this.alwaysOnTop = false;
@@ -206,7 +206,7 @@ define([
 
         /**
          * Draws this shape as an ordered renderable. Applications do not call this function. It is called by
-         * [WorldWindow]{@link WorldWindow} during rendering.
+         * {@link WorldWindow} during rendering. Implements the {@link OrderedRenderable} interface.
          * @param {DrawContext} dc The current draw context.
          */
         Text.prototype.renderOrdered = function (dc) {
@@ -220,6 +220,7 @@ define([
             }
         };
 
+        // Intentionally not documented.
         Text.prototype.makeOrderedRenderable = function (dc) {
             var w, h, s,
                 offset;
@@ -258,6 +259,11 @@ define([
             return this;
         };
 
+        /**
+         * Computes this shape's screen point and eye distance. Subclasses must override this method.
+         * @param {DrawContext} dc The current draw context.
+         * @protected
+         */
         Text.prototype.computeScreenPointAndEyeDistance = function (dc) {
             throw new UnsupportedOperationError(
                 Logger.logMessage(Logger.LEVEL_SEVERE, "Renderable", "render", "abstractInvocation"));

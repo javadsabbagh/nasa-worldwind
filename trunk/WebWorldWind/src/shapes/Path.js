@@ -15,6 +15,7 @@ define([
         '../geom/Location',
         '../util/Logger',
         '../geom/Matrix',
+        '../shapes/PathAttributes',
         '../pick/PickedObject',
         '../geom/Position',
         '../geom/Vec2',
@@ -28,6 +29,7 @@ define([
               Location,
               Logger,
               Matrix,
+              PathAttributes,
               PickedObject,
               Position,
               Vec2,
@@ -39,7 +41,7 @@ define([
          * @alias Path
          * @constructor
          * @augments AbstractShape
-         * @classdesc Represents a line or curve between specified positions. The path is drawn between input
+         * @classdesc Represents a line, curve or curtain between specified positions. The path is drawn between input
          * positions to achieve a specified path type, which can be one of the following:
          * <ul>
          *     <li>[WorldWind.GREAT_CIRCLE]{@link WorldWind#GREAT_CIRCLE}</li>
@@ -58,7 +60,11 @@ define([
          * </ul>
          * If the latter, the path positions' altitudes are ignored.
          * <p>
-         *     Paths have separate attributes for normal display and highlighted display.
+         *     Paths have separate attributes for normal display and highlighted display. It uses the interior and
+         *     outline attributes of {@link ShapeAttributes} but does not use the image attributes.
+         * <p>
+         *     A path displays as a curtain if its [extrude]{@link Path#extrude} property is true. A curtain extends
+         *     from the line formed by the path positions to the ground.
          * @param {Position[]} positions An array containing the path positions.
          * @throws {ArgumentError} If the specified positions array is null or undefined.
          */
@@ -69,6 +75,20 @@ define([
             }
 
             AbstractShape.call(this);
+
+            /**
+             * This shape's normal (non-highlight) attributes.
+             * @type {PathAttributes}
+             */
+            this.attributes = new PathAttributes(null);
+
+            /**
+             * This shape's highlight attributes. If null or undefined and this shape's highlight flag is true, this
+             * shape's normal attributes are used. If they in turn are null or undefined, this shape is not drawn.
+             * @type {PathAttributes}
+             * @default null
+             */
+            this.highlightAttributes = null;
 
             // Private. Documentation is with the defined property below.
             this._positions = positions;
@@ -170,9 +190,9 @@ define([
             /**
              * The type of path to follow when drawing the path. Recognized values are:
              * <ul>
-             * <li>[WorldWind.GREAT_CIRCLE]{@link WorldWind#GREAT_CIRCLE}
-             * <li>[WorldWind.RHUMB_LINE]{@link WorldWind#RHUMB_LINE}
-             * <li>[WorldWind.LINEAR]{@link WorldWind#LINEAR}
+             * <li>[WorldWind.GREAT_CIRCLE]{@link WorldWind#GREAT_CIRCLE}</li>
+             * <li>[WorldWind.RHUMB_LINE]{@link WorldWind#RHUMB_LINE}</li>
+             * <li>[WorldWind.LINEAR]{@link WorldWind#LINEAR}</li>
              * </ul>
              * @type {String}
              * @default WorldWind.GREAT_CIRCLE

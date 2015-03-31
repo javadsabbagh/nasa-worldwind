@@ -41,6 +41,8 @@ define([
 
             /**
              * This text's geographic position.
+             * The [TextAttributes.offset]{@link TextAttributes#offset} property indicates the relationship of the
+             * text string to this position.
              * @type {Position}
              */
             this.position = position;
@@ -64,6 +66,7 @@ define([
             return clone;
         };
 
+        // Documented in superclass.
         GeographicText.prototype.render = function (dc) {
             // Filter out instances outside any projection limits.
             if (dc.globe.projectionLimits
@@ -74,6 +77,7 @@ define([
             Text.prototype.render.call(this, dc);
         };
 
+        // Documented in superclass.
         GeographicText.prototype.computeScreenPointAndEyeDistance = function (dc) {
             // Compute the text's model point and corresponding distance to the eye point.
             dc.terrain.surfacePointForMode(this.position.latitude, this.position.longitude, this.position.altitude,
