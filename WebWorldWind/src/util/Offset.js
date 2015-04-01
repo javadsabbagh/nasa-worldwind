@@ -24,7 +24,8 @@ define(['../geom/Vec2'
          *     <li>[WorldWind.OFFSET_PIXELS]{@link WorldWind#OFFSET_PIXELS}</li>
          * </ul>
          * @param {Number} x The offset in the X dimension.
-         * @param {String} yUnits The type of units specified for the Y dimension. May be one of the following
+         * @param {String} yUnits The type of units specified for the Y dimension, assuming a lower-left Y origin.
+         * May be one of the following:
          * <ul>
          *     <li>[WorldWind.OFFSET_FRACTION]{@link WorldWind#OFFSET_FRACTION}</li>
          *     <li>[WorldWind.OFFSET_INSET_PIXELS]{@link WorldWind#OFFSET_INSET_PIXELS}</li>
@@ -59,6 +60,14 @@ define(['../geom/Vec2'
              * @type {String}
              */
             this.yUnits = yUnits;
+        };
+
+        /**
+         * Creates a new copy of this offset with identical property values.
+         * @returns {Offset} A new offset instance with its property values the same as this one's.
+         */
+        Offset.prototype.clone = function () {
+            return new Offset(this.xUnits, this.x, this.yUnits, this.y);
         };
 
         /**
