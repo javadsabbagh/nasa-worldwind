@@ -22,6 +22,7 @@ define([
          * @constructor
          * @augments Layer
          * @classdesc Provides a layer that contains shapes and other renderables.
+         * @param {String} displayName This layer's display name.
          */
         var RenderableLayer = function (displayName) {
             Layer.call(this, displayName);
