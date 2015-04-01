@@ -101,7 +101,7 @@ define([
              * @param {Number} equatorialRadius The ellipsoid's major radius.
              * @param {Number} polarRadius The ellipsoid's minor radius.
              * @param {Vec3} result A pre-allocated{@Link Vec3} instance in which to return the computed point.
-             * @returns {boolean} <code>true</code> if the line intersects the ellipsoid, otherwise <code>false</code>.
+             * @returns {boolean} true if the line intersects the ellipsoid, otherwise false
              * @throws {ArgumentError} If the specified line or result is null, undefined or not the correct type.
              */
             computeEllipsoidalGlobeIntersection: function (line, equatorialRadius, polarRadius, result) {
@@ -162,7 +162,7 @@ define([
              * Computes the floating-point modulus of a specified number.
              * @param {Number} number The number whose modulus to compute.
              * @param {Number} modulus The modulus.
-             * @returns {Number} The remainder after dividing the number by the modulus: <code>number % modulus</code>.
+             * @returns {Number} The remainder after dividing the number by the modulus: number % modulus.
              */
             fmod: function (number, modulus) {
                 return modulus === 0 ? 0 : number - Math.floor(number / modulus) * modulus;
@@ -171,16 +171,16 @@ define([
             /**
              * Returns the fractional part of a specified number
              * @param {Number} number The number whose fractional part to compute.
-             * @returns {Number} The fractional part of the specified number: <code>number - floor(number)</code>.
+             * @returns {Number} The fractional part of the specified number: number - floor(number).
              */
             fract: function (number) {
                 return number - Math.floor(number);
             },
 
             /**
-             * Returns the integer modulus of a specified number. This differs from the <code>%</code> operator in that
-             * the result is always positive when the modulus is positive. For example <code>-1 % 10 = -1</code>,
-             * whereas <code>mod(-1, 10) = 1</code>.
+             * Returns the integer modulus of a specified number. This differs from the % operator in that
+             * the result is always positive when the modulus is positive. For example -1 % 10 = -1,
+             * whereas mod(-1, 10) = 1.
              * @param {Number} number The number whose modulus to compute.
              * @param {Number} modulus The modulus.
              * @returns {Number} The remainder after dividing the number by the modulus.
@@ -191,9 +191,9 @@ define([
 
             /**
              * Returns the maximum of two specified numbers.
-             * @param {number} value1 The first value to compare.
-             * @param {number} value2 The second value to compare.
-             * @returns {number} The maximum of the two specified values.
+             * @param {Number} value1 The first value to compare.
+             * @param {Number} value2 The second value to compare.
+             * @returns {Number} The maximum of the two specified values.
              */
             max: function (value1, value2) {
                 return value1 > value2 ? value1 : value2;
@@ -201,9 +201,9 @@ define([
 
             /**
              * Computes the axes of a local coordinate system on the specified globe, placing the resultant axes in the specified
-             * _axis_ arguments.
+             * axis arguments.
              *
-             * Upon returning the specified axis arguments contain three orthogonal axes identifying the X, Y, and Z axes. Each
+             * Upon return the specified axis arguments contain three orthogonal axes identifying the X, Y, and Z axes. Each
              * axis has unit length.
              *
              * The local coordinate system is defined such that the Z axis maps to the globe's surface normal at the point, the
@@ -263,9 +263,9 @@ define([
              * Only the globe's ellipsoid is considered; terrain height is not incorporated. This returns zero if the radius is zero
              * or if the altitude is less than or equal to zero.
              *
-             * @param {number} radius The globe's radius, in meters.
-             * @param {number} altitude The viewer's altitude above the globe, in meters.
-             * @returns {number} The distance to the horizon, in model coordinates.
+             * @param {Number} radius The globe's radius, in meters.
+             * @param {Number} altitude The viewer's altitude above the globe, in meters.
+             * @returns {Number} The distance to the horizon, in model coordinates.
              * @throws {ArgumentError} If the specified globe radius is negative.
              */
             horizonDistanceForGlobeRadius: function (radius, altitude) {
@@ -285,10 +285,10 @@ define([
              * and [setToPerspectiveProjection]{@link Matrix#setToPerspectiveProjection}. This returns zero if either the distance or the
              * resolution are zero.
              *
-             * @param {number} farDistance The far clip distance, in meters.
-             * @param {number} farResolution The depth resolution at the far clip plane, in meters.
-             * @param {number} depthBits The number of bit-planes in the depth buffer.
-             * @returns {number} The near clip distance, in meters.
+             * @param {Number} farDistance The far clip distance, in meters.
+             * @param {Number} farResolution The depth resolution at the far clip plane, in meters.
+             * @param {Number} depthBits The number of bit-planes in the depth buffer.
+             * @returns {Number} The near clip distance, in meters.
              * @throws {ArgumentError} If either the distance or resolution is negative, or if the depth bits is less
              * than one.
              */
@@ -326,9 +326,9 @@ define([
              * up and to the right from the origin point.
              *
              * @param {Rectangle} viewport The viewport rectangle, in WebGL screen coordinates.
-             * @param {number} distanceToSurface The distance from the perspective eye point to the nearest object, in
+             * @param {Number} distanceToSurface The distance from the perspective eye point to the nearest object, in
              * meters.
-             * @returns {number} The maximum near clip distance, in meters.
+             * @returns {Number} The maximum near clip distance, in meters.
              * @throws {ArgumentError} If the specified viewport is null or undefined or either its width or height is
              * less than or equal to zero, or if the specified distance is negative.
              */
@@ -383,7 +383,7 @@ define([
              * up and to the right from the origin point.
              *
              * @param {Rectangle} viewport The viewport rectangle, in WebGL screen coordinates.
-             * @param {number} distanceToSurface The distance along the negative Z axis, in model coordinates.
+             * @param {Number} distanceToSurface The distance along the negative Z axis, in model coordinates.
              * @returns {Rectangle} The frustum rectangle, in model coordinates.
              * @throws {ArgumentError} If the specified viewport is null or undefined or either its width or height is
              * less than or equal to zero, or if the specified distance is negative.

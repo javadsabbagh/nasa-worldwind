@@ -26,7 +26,7 @@ define([
             /**
              * Returns the suffix for a specified mime type.
              * @param {String} mimeType The mime type to determine a suffix for.
-             * @returns {string} The suffix for the specified mime type, or null if the mime type is not recognized.
+             * @returns {String} The suffix for the specified mime type, or null if the mime type is not recognized.
              */
             suffixForMimeType: function (mimeType) {
                 if (mimeType === "image/png")
@@ -42,9 +42,9 @@ define([
             },
 
             /**
-             * Returns the current location URL as obtained from <code>window.location</code> with the last path component
+             * Returns the current location URL as obtained from window.location with the last path component
              * removed.
-             * @returns {string} The current location URL with the last path component removed.
+             * @returns {String} The current location URL with the last path component removed.
              */
             currentUrlSansFilePart: function () {
                 var protocol = window.location.protocol,
@@ -65,7 +65,7 @@ define([
             /**
              * Returns the path component of a specified URL.
              * @param {String} url The URL from which to determine the path component.
-             * @returns {string} The path component, or the empty string if the specified URL is null, undefined
+             * @returns {String} The path component, or the empty string if the specified URL is null, undefined
              * or empty.
              */
             urlPath: function (url) {
@@ -101,7 +101,7 @@ define([
              * Sets each element of an array to a specified value. This function is intentionally generic, and works
              * with any data structure with a length property whose elements may be referenced using array index syntax.
              * @param array The array to fill.
-             * @param value The value to assign to each array element.
+             * @param {*} value The value to assign to each array element.
              */
             fillArray: function (array, value) {
                 if (!array) {
@@ -118,7 +118,7 @@ define([
              * function is intentionally generic, and works with any data structure with a length property whose
              * elements may be referenced using array index syntax.
              * @param array The array to fill.
-             * @param value The value to multiply by each array element.
+             * @param {*} value The value to multiply by each array element.
              */
             multiplyArray: function (array, value) {
                 if (!array) {

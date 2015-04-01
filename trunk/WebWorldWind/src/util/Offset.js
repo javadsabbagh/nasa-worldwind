@@ -16,16 +16,20 @@ define(['../geom/Vec2'
          * @alias Offset
          * @constructor
          * @classdesc Specifies an offset relative to a rectangle. Used by [Placemark]{@link Placemark} and
-         * potentially other shapes.
-         * @param {String} xUnits The type of units specified for the X dimension. May be one of
-         * [WorldWind.OFFSET_FRACTION]{@link WorldWind#OFFSET_FRACTION},
-         * or [WorldWind.OFFSET_INSET_PIXELS]{@link WorldWind#OFFSET_INSET_PIXELS},
-         * or [WorldWind.OFFSET_PIXELS]{@link WorldWind#OFFSET_PIXELS}.
+         * other shapes.
+         * @param {String} xUnits The type of units specified for the X dimension. May be one of the following:
+         * <ul>
+         *     <li>[WorldWind.OFFSET_FRACTION]{@link WorldWind#OFFSET_FRACTION}</li>
+         *     <li>[WorldWind.OFFSET_INSET_PIXELS]{@link WorldWind#OFFSET_INSET_PIXELS}</li>
+         *     <li>[WorldWind.OFFSET_PIXELS]{@link WorldWind#OFFSET_PIXELS}</li>
+         * </ul>
          * @param {Number} x The offset in the X dimension.
-         * @param {String} yUnits The type of units specified for the Y dimension. May be one of
-         * [WorldWind.OFFSET_FRACTION]{@link WorldWind#OFFSET_FRACTION},
-         * or [WorldWind.OFFSET_INSET_PIXELS]{@link WorldWind#OFFSET_INSET_PIXELS},
-         * or [WorldWind.OFFSET_PIXELS]{@link WorldWind#OFFSET_PIXELS}.
+         * @param {String} yUnits The type of units specified for the Y dimension. May be one of the following
+         * <ul>
+         *     <li>[WorldWind.OFFSET_FRACTION]{@link WorldWind#OFFSET_FRACTION}</li>
+         *     <li>[WorldWind.OFFSET_INSET_PIXELS]{@link WorldWind#OFFSET_INSET_PIXELS}</li>
+         *     <li>[WorldWind.OFFSET_PIXELS]{@link WorldWind#OFFSET_PIXELS}</li>
+         * </ul>
          * @param {Number} y The offset in the Y dimension.
          */
         var Offset = function (xUnits, x, yUnits, y) {
@@ -43,13 +47,15 @@ define(['../geom/Vec2'
             this.y = y;
 
             /**
-             * The units of this instance's X offset. See this class' overview for a list of the possible values.
+             * The units of this instance's X offset. See this class' constructor description for a list of the
+             * possible values.
              * @type {String}
              */
             this.xUnits = xUnits;
 
             /**
-             * The units of this instance's Y offset. See this class' overview for a list of the possible values.
+             * The units of this instance's Y offset. See this class' constructor description for a list of the
+             * possible values.
              * @type {String}
              */
             this.yUnits = yUnits;

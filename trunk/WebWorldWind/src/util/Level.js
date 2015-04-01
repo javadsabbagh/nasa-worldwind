@@ -84,8 +84,8 @@ define([
 
         /**
          * Indicates whether this level is the lowest resolution level (level 0) within its parent's level set.
-         * @returns {boolean} <code>true</code> If this tile is the lowest resolution in the parent level set,
-         * otherwise <code>false</code>.
+         * @returns {Boolean} true If this tile is the lowest resolution in the parent level set,
+         * otherwise false.
          */
         Level.prototype.isFirstLevel = function () {
             return this.parent.firstLevel() == this;
@@ -93,8 +93,8 @@ define([
 
         /**
          * Indicates whether this level is the highest resolution level within its parent's level set.
-         * @returns {boolean} <code>true</code> If this tile is the highest resolution in the parent level set,
-         * otherwise <code>false</code>.
+         * @returns {Boolean} true If this tile is the highest resolution in the parent level set,
+         * otherwise false.
          */
         Level.prototype.isLastLevel = function () {
             return this.parent.lastLevel() == this;

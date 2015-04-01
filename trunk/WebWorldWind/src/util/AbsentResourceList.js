@@ -20,20 +20,17 @@ define([],
          * @param {Number} minCheckInterval The amount of time to wait between attempts, in milliseconds.
          * @constructor
          */
-
         var AbsentResourceList = function (maxTrys, minCheckInterval) {
 
             /**
              * The number  of attempts to make before the resource is marked as absent.
              * @type {Number}
-             * @readonly
              */
             this.maxTrys = maxTrys;
 
             /**
              * The amount of time to wait before each attempt.
              * @type {Number}
-             * @readonly
              */
             this.minCheckInterval = minCheckInterval;
 
@@ -45,13 +42,14 @@ define([],
              * @default 60,000 milliseconds (one minute)
              */
             this.tryAgainInterval = 60e3; // 60 seconds
+
             this.possiblyAbsent = {};
         };
 
         /**
          * Indicates whether a specified resource is marked as absent.
          * @param {String} resourceId The resource identifier.
-         * @returns {boolean} <code>true</code> if the resource is marked as absent, otherwise <code>false</code>.
+         * @returns {Boolean} true if the resource is marked as absent, otherwise false.
          */
         AbsentResourceList.prototype.isResourceAbsent = function (resourceId) {
             var entry = this.possiblyAbsent[resourceId];
@@ -76,8 +74,9 @@ define([],
 
         /**
          * Marks a resource attempt as having failed. This increments the number-of-tries counter and sets the time
-         * of the last attempt. When this method has been called <code>this.maxTrys</code> times the resource is marked
-         * as absent until this absent resource list's try-again-interval is reached.
+         * of the last attempt. When this method has been called [this.maxTrys]{@link AbsentResourceList#maxTrys}
+         * times the resource is marked as absent until this absent resource list's
+         * [try-again-interval]{@link AbsentResourceList#tryAgainInterval} is reached.
          * @param {String} resourceId The resource identifier.
          */
         AbsentResourceList.prototype.markResourceAbsent = function (resourceId) {
@@ -96,7 +95,8 @@ define([],
         };
 
         /**
-         * Marks a resource attempt as having failed permanently.
+         * Marks a resource attempt as having failed permanently. No attempt will ever again be made to retrieve
+         * the resource.
          * @param {String} resourceId The resource identifier.
          */
         AbsentResourceList.prototype.markResourceAbsentPermanently = function (resourceId) {

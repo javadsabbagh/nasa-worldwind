@@ -15,7 +15,7 @@ define([
         "use strict";
 
         /**
-         * Constructs a URL builder.
+         * Constructs a WMS URL builder.
          * @alias WmsUrlBuilder
          * @constructor
          * @classdesc Provides a factory to create URLs for WMS Get Map requests.
@@ -60,13 +60,13 @@ define([
 
             /**
              * Indicates whether the layer should be requested with transparency.
-             * @type {boolean}
+             * @type {Boolean}
              * @default true
              */
             this.transparent = true;
 
             /**
-             * The WMS version to use.
+             * The WMS version to specify when requesting resources.
              * @type {String}
              * @default 1.3.0
              */
@@ -75,7 +75,7 @@ define([
 
             /**
              * The coordinate reference system to use when requesting layers.
-             * @type {string}
+             * @type {String}
              * @default EPSG:4326
              */
             this.crs = "EPSG:4326";
@@ -133,13 +133,7 @@ define([
             return sb;
         };
 
-        /**
-         * Determines whether a WMS service address is correctly formed and modifies it to be correctly formed if it
-         * is  not.
-         * @param {String} serviceAddress The WMS service address.
-         * @returns {String} The specified service address if it is already well-formed, or the modified address.
-         * @throws {ArgumentError} If the specified address is null or undefined.
-         */
+        // Intentionally not documented.
         WmsUrlBuilder.fixGetMapString = function (serviceAddress) {
             if (!serviceAddress) {
                 throw new ArgumentError(

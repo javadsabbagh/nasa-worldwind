@@ -18,12 +18,12 @@ define([
 
         /**
          * Construct a font descriptor. See the individual attribute descriptions below for possible parameter values.
-         * @param {number} size The size of font.
-         * @param {string} style The style of the font.
-         * @param {string} variant The variant of the font.
-         * @param {number} weight The weight of the font.
-         * @param {string} family The family of the font.
-         * @param {string} horizontalAlignment The vertical alignment of the font.
+         * @param {Number} size The size of font.
+         * @param {String} style The style of the font.
+         * @param {String} variant The variant of the font.
+         * @param {String} weight The weight of the font.
+         * @param {String} family The family of the font.
+         * @param {String} horizontalAlignment The vertical alignment of the font.
          * @alias Font
          * @constructor
          * @classdesc Holds attributes controlling the style, size and other attributes of {@link Text} shapes and
