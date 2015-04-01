@@ -110,6 +110,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './error/UnsupportedOperationError',
         './geom/Vec2',
         './geom/Vec3',
+        './layer/ViewControlsLayer',
         './util/WmsUrlBuilder',
         './WorldWindow',
         './util/WWMath',
@@ -219,6 +220,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               UnsupportedOperationError,
               Vec2,
               Vec3,
+              ViewControlsLayer,
               WmsUrlBuilder,
               WorldWindow,
               WWMath,
@@ -507,6 +509,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['UnsupportedOperationError'] = UnsupportedOperationError;
         WorldWind['Vec2'] = Vec2;
         WorldWind['Vec3'] = Vec3;
+        WorldWind['ViewControlsLayer'] = ViewControlsLayer;
         WorldWind['WmsUrlBuilder'] = WmsUrlBuilder;
         WorldWind['WWMath'] = WWMath;
         WorldWind['WWUtil'] = WWUtil;
