@@ -316,6 +316,12 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
             NORTH: "north",
 
             /**
+             * Indicates a null shape, typically within a shapefile.
+             * @constant
+             */
+            NULL: "null",
+
+            /**
              * Indicates that the associated parameters are fractional values of the virtual rectangle's width or
              * height in the range [0, 1], where 0 indicates the rectangle's origin and 1 indicates the corner
              * opposite its origin.
