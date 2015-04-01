@@ -39,9 +39,10 @@ define([
          * @classdesc Represents a surface shape. This is an abstract base class and is meant to be instantiated
          * only by subclasses.
          * <p>
-         *     Surface shapes other than [SurfacePolyline]{@link SurfacePolyline} have an interior and an outline and utilize
-         *     the corresponding attributes in their associated [ShapeAttributes]{@link ShapeAttributes}. They do not
-         *     utilize image-related attributes.
+         * Surface shapes other than SurfacePolyline {@link SurfacePolyline} have an interior and an outline and utilize
+         * the corresponding attributes in their associated ShapeAttributes {@link ShapeAttributes}. They do not
+         * utilize image-related attributes.
+         *
          * @param {ShapeAttributes} attributes The attributes to apply to this shape. May be null, in which case
          * attributes must be set directly before the shape is drawn.
          */
@@ -51,7 +52,7 @@ define([
 
             /**
              * The shape's display name and label text.
-             * @type {string}
+             * @type {String}
              * @default Surface Shape
              */
             this.displayName = "Surface Shape";
@@ -64,7 +65,7 @@ define([
             this.attributes = attributes ? attributes : new ShapeAttributes(null);
 
             /**
-             * The attributes used when this shape's highlighted flag is <code>true</code>. If null and the
+             * The attributes used when this shape's highlighted flag is true. If null and the
              * highlighted flag is true, this shape's normal attributes are used. If they, too, are null, this
              * shape is not drawn.
              * @type {ShapeAttributes}
@@ -74,14 +75,14 @@ define([
 
             /**
              * Indicates whether this shape displays with its highlight attributes rather than its normal attributes.
-             * @type {boolean}
+             * @type {Boolean}
              * @default false
              */
             this.highlighted = false;
 
             /**
              * Indicates whether this shape is drawn.
-             * @type {boolean}
+             * @type {Boolean}
              * @default true
              */
             this.enabled = true;
@@ -93,7 +94,7 @@ define([
              * <li>WorldWind.RHUMB_LINE</li>
              * <li>WorldWind.LINEAR</li>
              * </ul>
-             * @type {string}
+             * @type {String}
              * @default WorldWind.GREAT_CIRCLE
              */
             this.pathType = WorldWind.GREAT_CIRCLE;
@@ -109,7 +110,7 @@ define([
              * The maximum number of intervals an edge will be broken into. This is the number of intervals that an
              * edge that spans to opposite side of the globe would be broken into. This is strictly an upper bound
              * and the number of edge intervals may be lower if this resolution is not needed.
-             * @type {number}
+             * @type {Number}
              * @default SurfaceShape.DEFAULT_NUM_EDGE_INTERVALS
              */
             this.maximumNumEdgeIntervals = SurfaceShape.DEFAULT_NUM_EDGE_INTERVALS;
@@ -118,7 +119,7 @@ define([
              * A dimensionless number that controls throttling of edge traversal near the poles where edges need to be
              * sampled more closely together.
              * A value of 0 indicates that no polar throttling is to be performed.
-             * @type {number}
+             * @type {Number}
              * @default SurfaceShape.DEFAULT_POLAR_THROTTLE
              */
             this.polarThrottle = SurfaceShape.DEFAULT_POLAR_THROTTLE;
@@ -162,12 +163,15 @@ define([
             /**
              * Internal use only.
              * Inhibit the filling of the interior. This is to be used ONLY by polylines.
-             * @type {boolean}
+             * @type {Boolean}
              */
             this.isInteriorInhibited = false;
 
             // Internal use only. Intentionally not documented.
             this.lastUpdatedTime = Date.now();
+
+            // Internal use only. Intentionally not documented.
+            this.isPrepared = false;
         };
 
         SurfaceShape.prototype = Object.create(Renderable.prototype);
@@ -176,7 +180,7 @@ define([
             /**
              * Indicates whether this shape displays with its highlight attributes rather than its normal attributes.
              * @memberof SurfaceShape.prototype
-             * @type {boolean}
+             * @type {Boolean}
              * @default false
              */
             highlighted: {
@@ -193,8 +197,8 @@ define([
         /**
          * Returns this shape's area in square meters.
          * @param {Globe} globe The globe on which to compute the area.
-         * @param {Boolean} terrainConformant If <code>true</code> the returned area is that of the terrain,
-         * including its hillsides and other undulations. If <code>false</code> the returned area is the shape's
+         * @param {Boolean} terrainConformant If true, the returned area is that of the terrain,
+         * including its hillsides and other undulations. If false, the returned area is the shape's
          * projected area.
          */
         SurfaceShape.prototype.area = function (globe, terrainConformant) {
@@ -211,44 +215,83 @@ define([
 
         // Internal function. Intentionally not documented.
         SurfaceShape.prototype.render = function(dc) {
-            this.computeGeometry(dc);
+            this.prepareBoundaries(dc);
 
             dc.surfaceShapeTileBuilder.insertSurfaceShape(this);
         };
 
         // Internal function. Intentionally not documented.
         SurfaceShape.prototype.interpolateLocations = function(locations) {
-            var first  = locations[0];
+            var first  = locations[0],
+                next = first,
+                prev,
+                isNextFirst = true,
+                isPrevFirst = true,// Don't care initially, this will get set in first iteration.
+                countFirst = 0,
+                isInterpolated = true,
+                idx, len;
 
             this.locations = [first];
 
-            var prev = first;
-            for (var idx = 1, len = locations.length; idx < len; idx += 1) {
-                var next = locations[idx];
+            for (idx = 1, len = locations.length; idx < len; idx += 1) {
+                // Advance to next location, retaining previous location.
+                prev = next;
+                isPrevFirst = isNextFirst;
 
-                this.interpolateEdge(prev, next, this.locations);
+                next = locations[idx];
+
+                // Detect whether the next location and the first location are the same.
+                isNextFirst = next.latitude == first.latitude && next.longitude == first.longitude;
+
+                // Inhibit interpolation if either endpoint if the first location,
+                // except for the first segement which will be the actual first location or that location
+                // as the polygon closes the first time.
+                // All subsequent encounters of the first location are used to connected secondary domains with the
+                // primary domain in multiply-connected geometry (an outer ring with multiple inner rings).
+                isInterpolated = true;
+                if (isNextFirst || isPrevFirst) {
+                    countFirst += 1;
+
+                    if (countFirst > 2) {
+                        isInterpolated = false;
+                    }
+                }
+
+                if (isInterpolated) {
+                    this.interpolateEdge(prev, next, this.locations);
+                }
+
                 this.locations.push(next);
 
                 prev = next;
             }
 
+            // Force the closing of the border.
             if (!this.isInteriorInhibited) {
-                // Force the closing of the border.
-                this.interpolateEdge(prev, first, this.locations);
-                this.locations.push(first);
+                // Avoid duplication if the first endpoint was already emitted.
+                if (prev.latitude != first.latitude || prev.longitude != first.longitude) {
+                    this.interpolateEdge(prev, first, this.locations);
+                    this.locations.push(first);
+                }
             }
         };
 
+        // Internal function. Intentionally not documented.
         SurfaceShape.prototype.interpolateEdge = function(start, end, locations) {
             var distanceRadians = Location.greatCircleDistance(start, end),
-                steps = Math.ceil(this.maximumNumEdgeIntervals * distanceRadians / Math.PI),
-                dt = 1 / steps,
+                steps = Math.round(this.maximumNumEdgeIntervals * distanceRadians / Math.PI),
+                dt,
+                location;
+
+            if (steps > 0) {
+                dt = 1 / steps;
                 location = start;
 
-            for (var t = this.throttledStep(dt, location); t < 1; t += this.throttledStep(dt, location)) {
-                location = new Location(0, 0);
-                Location.interpolateAlongPath(this.pathType, t, start, end, location);
-                locations.push(location);
+                for (var t = this.throttledStep(dt, location); t < 1; t += this.throttledStep(dt, location)) {
+                    location = new Location(0, 0);
+                    Location.interpolateAlongPath(this.pathType, t, start, end, location);
+                    locations.push(location);
+                }
             }
         };
 
@@ -268,6 +311,13 @@ define([
 
         // Internal function. Intentionally not documented.
         SurfaceShape.prototype.prepareBoundaries = function(dc) {
+            if (this.isPrepared) return;
+
+            this.prepareSectors();
+
+            // Some shapes generate boundaries, such as ellipses and sectors;
+            // others don't, such as polylines and polygons.
+            // Handle the latter below.
             if (!this.boundaries) {
                 this.computeBoundaries(dc);
             }
@@ -275,11 +325,15 @@ define([
             if (!this.locations) {
                 this.interpolateLocations(this.boundaries);
             }
+
+            this.prepareGeometry(dc);
+
+            this.isPrepared = true;
         };
 
         /**
-         * Computes the bounding sectors for the shape. There will be more than one if the shape crosses the date line, but
-         * does not enclose a pole.
+         * Computes the bounding sectors for the shape. There will be more than one if the shape crosses the date line,
+         * but does not enclose a pole.
          *
          * @param {DrawContext} dc The drawing context containing a globe.
          *
@@ -293,14 +347,19 @@ define([
 
             this.prepareBoundaries(dc);
 
-            var locations = this.locations;
-            if (!locations) {
-                return null;
+            return this.sectors;
+        };
+
+        // Internal function. Intentionally not documented.
+        SurfaceShape.prototype.prepareSectors = function() {
+            var boundaries = this.boundaries;
+            if (!boundaries) {
+                return;
             }
 
-            this.sector.setToBoundingSector(locations);
+            this.sector.setToBoundingSector(boundaries);
 
-            var pole = this.containsPole(locations);
+            var pole = this.containsPole(boundaries);
             if (pole != Location.poles.NONE) {
                 // If the shape contains a pole, then the bounding sector is defined by the shape's extreme latitude, the
                 // latitude of the pole, and the full range of longitude.
@@ -313,8 +372,8 @@ define([
 
                 this.sectors = [this.sector];
             }
-            else if (Location.locationsCrossDateLine(locations)) {
-                this.sectors = Sector.splitBoundingSectors(locations);
+            else if (Location.locationsCrossDateLine(boundaries)) {
+                this.sectors = Sector.splitBoundingSectors(boundaries);
             }
             else {
                  if (!this.sector.isEmpty()) {
@@ -323,7 +382,7 @@ define([
             }
 
             if (!this.sectors) {
-                return null;
+                return;
             }
 
             // Great circle paths between two latitudes may result in a latitude which is greater or smaller than either of
@@ -332,7 +391,7 @@ define([
                 for (var idx = 0, len = this.sectors.length; idx < len; idx += 1) {
                     var sector = this.sectors[idx];
 
-                    var extremes = Location.greatCircleArcExtremeLocations(locations);
+                    var extremes = Location.greatCircleArcExtremeLocations(boundaries);
 
                     var minLatitude = Math.min(sector.minLatitude, extremes[0].latitude);
                     var maxLatitude = Math.max(sector.maxLatitude, extremes[1].latitude);
@@ -340,20 +399,15 @@ define([
                     this.sectors[idx] = new Sector(minLatitude, maxLatitude, sector.minLongitude, sector.maxLongitude);
                 }
             }
-
-            return this.sectors;
         };
 
         // Internal function. Intentionally not documented.
-        SurfaceShape.prototype.computeGeometry = function(dc) {
+        SurfaceShape.prototype.prepareGeometry = function(dc) {
             var datelineLocations;
-
-            this.prepareBoundaries(dc);
 
             this.interiorGeometry = [];
             this.outlineGeometry = [];
 
-            // TODO: support multiply-connected domains
             var locations = this.locations;
 
             var pole = this.containsPole(locations);
@@ -389,7 +443,7 @@ define([
          *
          * @param {Location[]} locations Locations to test.
          *
-         * @return {number} Location.poles.NORTH if the North Pole is enclosed,
+         * @return {Number} Location.poles.NORTH if the North Pole is enclosed,
          *                  Location.poles.SOUTH if the South Pole is enclosed, or
          *                  Location.poles.NONE if neither pole is enclosed.
          *                  Always returns Location.poles.NONE if {@link #canContainPole()} returns false.
@@ -451,7 +505,7 @@ define([
          * This allows the shape to be "unrolled" when projected in a lat-lon projection.
          *
          * @param {Location[]} locations    Locations to cut at date line. This list is not modified.
-         * @param {number} pole             Pole contained by locations, either AVKey.NORTH or AVKey.SOUTH.
+         * @param {Number} pole             Pole contained by locations, either AVKey.NORTH or AVKey.SOUTH.
          * @param {Globe} globe             Current globe.
          *
          * @return {Location[]} New location list with locations added to correctly handle date line intersection.
@@ -557,7 +611,16 @@ define([
             return locationGroup;
         };
 
-        // Internal function. Intentionally not documented.
+        /**
+         * Internal use only.
+         * Render the shape onto the texture map of the tile.
+         * @param {DrawContext} dc The draw context to render onto.
+         * @param {CanvasRenderingContext2D} ctx2D The rendering context for SVG.
+         * @param {Number} xScale The multiplicative scale factor in the horizontal direction.
+         * @param {Number} yScale The multiplicative scale factor in the vertical direction.
+         * @param {Number} dx The additive offset in the horizontal direction.
+         * @param {Number} dy The additive offset in the vertical direction.
+         */
         SurfaceShape.prototype.renderToTexture = function(dc, ctx2D, xScale, yScale, dx, dy) {
             var idx,
                 len,
@@ -572,8 +635,7 @@ define([
                 pickColor = dc.uniquePickColor();
             }
 
-            //ctx2D.lineJoin = "round";
-
+            // Fill the interior of the shape.
             if (!this.isInteriorInhibited && attributes.drawInterior) {
                 ctx2D.fillStyle = isPicking ? pickColor.toHexString(false) : attributes.interiorColor.toHexString(false);
 
@@ -582,6 +644,8 @@ define([
                     lenPath = this.outlineGeometry[idx].length * 2;
                     path.splice(0);
 
+                    // Convert the geometry to a transformed path that can be drawn directly, and as a side effect,
+                    // detect if the path is smaller than a pixel. If it is, don't bother drawing it.
                     if (this.transformPath(this.interiorGeometry[idx], xScale, yScale, dx, dy, path)) {
                         ctx2D.beginPath();
 
@@ -598,6 +662,7 @@ define([
                 }
             }
 
+            // Draw the outline of the shape.
             if (attributes.drawOutline && attributes.outlineWidth > 0) {
                 ctx2D.lineWidth = 4 * attributes.outlineWidth;
                 ctx2D.strokeStyle = isPicking ? pickColor.toHexString(false) : attributes.outlineColor.toHexString(false);
@@ -614,10 +679,10 @@ define([
                 }
 
                 for (idx = 0, len = this.outlineGeometry.length; idx < len; idx += 1) {
-                    idxPath = 0;
-                    lenPath = this.outlineGeometry[idx].length * 2;
                     path.splice(0);
 
+                    // Convert the geometry to a transformed path that can be drawn directly, and as a side effect,
+                    // detect if the path is smaller than a pixel. If it is, don't bother drawing it.
                     if (this.transformPath(this.outlineGeometry[idx], xScale, yScale, dx, dy, path)) {
                         // NOTE: this code used to be written as:
                         //      a single beginPath() call,
@@ -625,19 +690,45 @@ define([
                         //      followed by as many lineTo() calls as there were vertices remaining in the path,
                         //      followed by a stroke().
                         // Performance was BAD!
-                        // The code was rewritten this was and it doesn't have any performance issues.
+                        // The code was rewritten this way and it doesn't have any performance issues.
                         // That shouldn't be the case, but it is.
-                        var x = path[idxPath++],
-                            y = path[idxPath++];
+                        var xFirst = path[0],
+                            yFirst = path[1],
+                            xPrev = xFirst,
+                            yPrev = yFirst,
+                            xNext = xFirst,
+                            yNext = yFirst,
+                            isPrevFirst = true,
+                            isNextFirst = true,
+                            countFirst = 0;
 
-                        while  (idxPath < lenPath) {
+                        for (idxPath = 2, lenPath = path.length; idxPath < lenPath; ) {
+                            // Remember the previous point in the path.
+                            xPrev = xNext;
+                            yPrev = yNext;
+                            isPrevFirst = isNextFirst;
+
+                            // Extract the next point in the path.
+                            xNext = path[idxPath++];
+                            yNext = path[idxPath++];
+
+                            isNextFirst = xNext == xFirst && yNext == yFirst;
+
+                            // Avoid drawing virtual edges that reconnect to the first point
+                            // when drawing multiply connected domains.
+                            if (isPrevFirst || isNextFirst) {
+                                countFirst += 1;
+
+                                if (countFirst > 2) {
+                                    continue;
+                                }
+                            }
+
+                            // Draw the path one line segment at a time.
                             ctx2D.beginPath();
-                            ctx2D.moveTo(x, y);
+                            ctx2D.moveTo(xPrev, yPrev);
 
-                            x = path[idxPath++];
-                            y = path[idxPath++];
-
-                            ctx2D.lineTo(x, y);
+                            ctx2D.lineTo(xNext, yNext);
 
                             ctx2D.stroke();
                         }
@@ -652,9 +743,10 @@ define([
         };
 
         /**
+         * Internal use only.
          * Compute a dash pattern that SVG can use to render the outline.
-         * @param {number} pattern The pattern that the application specified.
-         * @param {number} spacing The spacing that the application specified.
+         * @param {Number} pattern The pattern that the application specified.
+         * @param {Number} spacing The spacing that the application specified.
          * @return {number[]} The line dash pattern that SVG expects.
          */
         SurfaceShape.prototype.getLineDash = function(pattern, spacing) {
@@ -707,34 +799,74 @@ define([
         //
         // Internal use only.
         // Transform a path and compute its extrema.
+        // In the process of transforming it, optimize out line segments that are too short (shorter than some threshold).
         // Return an indicator of the path is "big enough".
-        SurfaceShape.prototype.transformPath = function(path, xScale, yScale, dx, dy, result) {
-            var x, y, xMin, yMin, xMax, yMax, location;
+        SurfaceShape.prototype.transformPath = function(path, xScale, yScale, xOffset, yOffset, result) {
+            var xPrev, yPrev,
+                xNext, yNext,
+                xFirst, yFirst,
+                xLast, yLast,
+                xMin, yMin,
+                xMax, yMax,
+                dx, dy, dr2,
+                dr2Min = 4, // Squared length of minimum length line that must be drawn.
+                isNextFirst,
+                location, idxResult, idxPath, lenPath;
+
+            idxResult = 0;
 
             location = path[0];
 
-            x = location.longitude * xScale + dx;
-            y = location.latitude * yScale + dy;
+            xFirst = location.longitude * xScale + xOffset;
+            yFirst = location.latitude * yScale + yOffset;
 
-            xMin = xMax = x;
-            yMin = yMax = y;
+            isNextFirst = true;
 
-            result.push(x);
-            result.push(y);
+            xMin = xMax = xPrev = xNext = xFirst;
+            yMin = yMax = yPrev = yNext = yFirst;
 
-            for (var idx = 1, len = path.length; idx < len; idx += 1) {
-                location = path[idx];
+            result[idxResult++] = xNext;
+            result[idxResult++] = yNext;
 
-                x = location.longitude * xScale + dx;
-                y = location.latitude * yScale + dy;
+            for (idxPath = 1, lenPath = path.length; idxPath < lenPath; idxPath += 1) {
+                location = path[idxPath];
 
-                xMin = Math.min(xMin, x);
-                xMax = Math.max(xMax, x);
-                yMin = Math.min(yMin, y);
-                yMax = Math.max(yMax, y);
+                // Capture the last point even it it was optimized out.
+                xLast = xNext;
+                yLast = yNext;
 
-                result.push(x);
-                result.push(y);
+                xNext = location.longitude * xScale + xOffset;
+                yNext = location.latitude * yScale + yOffset;
+
+                // Detect whether the next point is the same as the first point.
+                isNextFirst = (xNext == xFirst) && (yNext == yFirst);
+
+                // Compute the length from the previous point that was emitted to the next point.
+                dx = xNext - xPrev;
+                dy = yNext - yPrev;
+                dr2 = dx * dx + dy * dy;
+
+                // If the line is smaller than a single pixel, accumulate more data before emitting,
+                // unless the point is the same as the first point, in which case it is always emitted.
+                if (isNextFirst || dr2 >= dr2Min) {
+                    xMin = Math.min(xMin, xNext);
+                    xMax = Math.max(xMax, xNext);
+                    yMin = Math.min(yMin, yNext);
+                    yMax = Math.max(yMax, yNext);
+
+                    // If the last point was optimized out because the line it contributed to was too short,
+                    // force it to be emitted.
+                    if (result[idxResult - 2] != xLast || result[idxResult - 1] != yLast) {
+                        result[idxResult++] = xLast;
+                        result[idxResult++] = yLast;
+                    }
+
+                    result[idxResult++] = xNext;
+                    result[idxResult++] = yNext;
+
+                    xPrev = xNext;
+                    yPrev = yNext;
+                }
             }
 
             return (xMax - xMin) >= 2 || (yMax - yMin) >= 2;
@@ -758,13 +890,13 @@ define([
          *      1024        7.5
          *      2048        1.8
          * The errors cited above are upper bounds and the actual error may be lower.
-         * @type {number}
+         * @type {Number}
          */
         SurfaceShape.DEFAULT_NUM_EDGE_INTERVALS = 128;
 
         /**
          * The defualt value for the polar throttle, which slows edge traversal near the poles.
-         * @type {number}
+         * @type {Number}
          */
         SurfaceShape.DEFAULT_POLAR_THROTTLE = 10;
 
