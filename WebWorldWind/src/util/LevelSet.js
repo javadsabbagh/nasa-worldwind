@@ -68,18 +68,21 @@ define([
             /**
              * The sector spanned by this level set.
              * @type {Sector}
+             * @readonly
              */
             this.sector = sector;
 
             /**
              * The geographic size of the lowest resolution (level 0) tiles in this level set.
              * @type {Location}
+             * @readonly
              */
             this.levelZeroDelta = levelZeroDelta;
 
             /**
              * The number of levels in this level set.
              * @type {Number}
+             * @readonly
              */
             this.numLevels = numLevels;
 
@@ -87,6 +90,7 @@ define([
              *  The width in pixels of images associated with tiles in this level set, or the number of sample points
              *  in the longitudinal direction of elevation tiles associated with this level set.
              * @type {Number}
+             * @readonly
              */
             this.tileWidth = tileWidth;
 
@@ -94,6 +98,7 @@ define([
              *  The height in pixels of images associated with tiles in this level set, or the number of sample points
              *  in the latitudinal direction of elevation tiles associated with this level set.
              * @type {Number}
+             * @readonly
              */
             this.tileHeight = tileHeight;
 
@@ -111,13 +116,13 @@ define([
         };
 
         /**
-         * Returns the {@link Level} for a specified level set.
+         * Returns the {@link Level} for a specified level number.
          * @param {Number} levelNumber The number of the desired level.
          * @returns {Level} The requested level, or null if the level does not exist.
          */
         LevelSet.prototype.level = function(levelNumber) {
             if (levelNumber < 0 || levelNumber >= this.levels.length) {
-                return nil;
+                return null;
             } else {
                 return this.levels[levelNumber];
             }

@@ -511,7 +511,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
          * Holds configuration parameters for World Wind. Applications may modify these parameters prior to creating
          * their first World Wind objects. Configuration properties are:
          * <ul>
-         *     <li><code>gpuCacheSize</code>: A number indicating the size in bytes to allocate from GPU memory for
+         *     <li><code>gpuCacheSize</code>: A Number indicating the size in bytes to allocate from GPU memory for
          *     resources such as textures, GLSL programs and buffer objects. Default is 250e6 (250 MB).
          * </ul>
          * @type {{gpuCacheSize: number}}
@@ -519,6 +519,13 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind.configuration = {
             gpuCacheSize: 250e6
         };
+
+        /**
+         * Indicates the Bing Maps key to use when requesting Bing Maps resources.
+         * @type {String}
+         * @default null
+         */
+        WorldWind.BingMapsKey = null;
 
         window.WorldWind = WorldWind;
 

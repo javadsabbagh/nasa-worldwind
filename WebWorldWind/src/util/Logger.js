@@ -45,7 +45,7 @@ define(function () {
 
         /**
          * Indicates the current logging level.
-         * @returns {number} The current logging level.
+         * @returns {Number} The current logging level.
          */
         getLoggingLevel: function () {
             return loggingLevel;
@@ -71,12 +71,14 @@ define(function () {
             }
         },
 
+        // Intentionally not documented.
         makeMessage: function (className, functionName, message) {
             var msg = this.messageTable[message] ? this.messageTable[message] : message;
 
             return className + "." + functionName + ": " + msg;
         },
 
+        // Intentionally not documented.
         logMessage: function (level, className, functionName, message) {
             var msg = this.makeMessage(className, functionName, message);
             this.log(level, msg);
@@ -84,6 +86,7 @@ define(function () {
             return msg;
         },
 
+        // Intentionally not documented.
         messageTable: { // KEEP THIS TABLE IN ALPHABETICAL ORDER
             abstractInvocation: "The function called is abstract and must be overridden in a subclass.",
             indexOutOfRange: "The specified index is out of range.",

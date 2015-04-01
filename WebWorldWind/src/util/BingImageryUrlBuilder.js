@@ -23,11 +23,13 @@ define([
          * @classdesc Provides a factory to create URLs for Bing image requests.
          * @param {String} imagerySet The name of the imagery set to display.
          * @param {String} bingMapsKey The Bing Maps key to use for the image requests. If null or undefined, the key at
-         * WorldWind.BingMapsKey is used. If that is null or undefined, the default World Wind Bing Maps key is used,
+         * [WorldWind.BingMapsKey]{@link WorldWind#BingMapsKey} is used. If that is null or undefined, the default
+         * World Wind Bing Maps key is used,
          * but this fallback is provided only for non-production use. If you are using Web World Wind in an app or a
          * web page, you must obtain your own key from the
          * [Bing Maps Portal]{@link https://www.microsoft.com/maps/choose-your-bing-maps-API.aspx}
-         * and either pass it as a parameter to this constructor or specify it as the property WorldWind.BingMapsKey.
+         * and either pass it as a parameter to this constructor or specify it as the property
+         * [WorldWind.BingMapsKey]{@link WorldWind#BingMapsKey}.
          */
         var BingImageryUrlBuilder = function (imagerySet, bingMapsKey) {
             var wwBingMapsKey = "AkttWCS8p6qzxvx5RH3qUcCPgwG9nRJ7IwlpFGb14B0rBorB5DvmXr2Y_eCUNIxH";
@@ -65,6 +67,7 @@ define([
             })
         };
 
+        // Intentionally not documented.
         BingImageryUrlBuilder.showBingMapsKeyWarning = function () {
             if (!BingImageryUrlBuilder.keyMessagePrinted) {
                 BingImageryUrlBuilder.keyMessagePrinted = true;
@@ -78,21 +81,15 @@ define([
         };
 
         /**
-         * Creates the URL string for a WMS Get Map request.
+         * Creates the URL string for a Bing Maps request.
          * @param {Tile} tile The tile for which to create the URL.
-         * @param {String} imageFormat The image format to request.
-         * @throws {ArgumentError} If the specified tile or image format are null or undefined.
+         * @param {String} imageFormat This argument is not used.
+         * @throws {ArgumentError} If the specified tile is null or undefined.
          */
         BingImageryUrlBuilder.prototype.urlForTile = function (tile, imageFormat) {
             if (!tile) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "BingImageryUrlBuilder", "urlForTile", "missingTile"));
-            }
-
-            if (!imageFormat) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "BingImageryUrlBuilder", "urlForTile",
-                        "The image format is null or undefined."));
             }
 
             if (!this.imageUrl) {
@@ -116,6 +113,7 @@ define([
             return url;
         };
 
+        // Intentionally not documented.
         BingImageryUrlBuilder.prototype.quadKeyFromLevelRowColumn = function (levelNumber, row, column) {
             var digit, mask, key = "";
 
