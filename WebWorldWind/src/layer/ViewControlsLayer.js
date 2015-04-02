@@ -105,6 +105,13 @@ define([
              */
             this.alignment = new Offset(WorldWind.OFFSET_FRACTION, 0, WorldWind.OFFSET_FRACTION, 0);
 
+            /**
+             * The incremental vertical exaggeration to apply each cycle.
+             * @type {Number}
+             * @default 0.01
+             */
+            this.exaggerationIncrement = 0.01;
+
             // These are documented in their property accessors below.
             this._inactiveOpacity = 0.5;
             this._activeOpacity = 1.0;
@@ -130,7 +137,7 @@ define([
             this.fovNarrowControl.enabled = false;
             this.fovWideControl.enabled = false;
 
-            // Put the controls in an array so we can more easily apply bulk operations.
+            // Put the controls in an array so we can easily apply bulk operations.
             this.controls = [
                 this.panControl,
                 this.zoomInControl,
@@ -145,10 +152,12 @@ define([
                 this.fovWideControl
             ];
 
-                for (var i = 0; i < this.controls.length; i++) {
+            for (var i = 0; i < this.controls.length; i++) {
                 this.controls[i].imageOffset = screenOffset.clone();
                 this.controls[i].opacity = this._inactiveOpacity;
             }
+
+            this.setupInteraction();
         };
 
         ViewControlsLayer.prototype = Object.create(Layer.prototype);
@@ -336,6 +345,107 @@ define([
                 this.fovWideControl.screenOffset.y = y + 32;
                 this.fovNarrowControl.render(dc);
                 this.fovWideControl.render(dc);
+            }
+        };
+
+        ViewControlsLayer.prototype.setupInteraction = function () {
+            var wwd = this.wwd,
+                thisLayer = this;
+
+            var handleEvent = function (e) {
+                var topObject;
+
+                if (e.type && (e.type === "mousemove") && thisLayer.highlightedControl) {
+                    thisLayer.highlight(thisLayer.highlightedControl, false);
+                } else if (e.type && (e.type === "mouseup") && thisLayer.activeControl) {
+                    thisLayer.activeControl = null;
+                }
+
+                topObject = wwd.pick(wwd.canvasCoordinates(e.clientX, e.clientY)).topPickedObject();
+                if (topObject && (topObject.userObject instanceof ScreenImage)) {
+                    if (topObject.userObject === thisLayer.panControl) {
+                        thisLayer.handlePan(e, topObject);
+                    } else if (topObject.userObject === thisLayer.zoomInControl
+                        || topObject.userObject === thisLayer.zoomOutControl) {
+                        thisLayer.handleZoom(e, topObject);
+                    } else if (topObject.userObject === thisLayer.headingLeftControl
+                        || topObject.userObject === thisLayer.headingRightControl) {
+                        thisLayer.handleHeading(e, topObject);
+                    } else if (topObject.userObject === thisLayer.tiltUpControl
+                        || topObject.userObject === thisLayer.tiltDownControl) {
+                        thisLayer.handleTilt(e, topObject);
+                    } else if (topObject.userObject === thisLayer.exaggerationUpControl
+                        || topObject.userObject === thisLayer.exaggerationDownControl) {
+                        thisLayer.handleExaggeration(e, topObject);
+                    } else if (topObject.userObject === thisLayer.fovNarrowControl
+                        || topObject.userObject === thisLayer.fovWideControl) {
+                        thisLayer.handleFov(e, topObject);
+                    }
+                }
+            };
+
+            wwd.addEventListener("mousedown", handleEvent);
+            wwd.addEventListener("mouseup", handleEvent);
+            wwd.addEventListener("mousemove", handleEvent);
+
+            var tapRecognizer = new WorldWind.TapRecognizer(wwd);
+            tapRecognizer.addGestureListener(handleEvent);
+        };
+
+        ViewControlsLayer.prototype.handlePan = function (e, pickedObject) {
+            this.handleHighlight(e, pickedObject);
+        };
+
+        ViewControlsLayer.prototype.handleZoom = function (e, pickedObject) {
+            this.handleHighlight(e, pickedObject);
+        };
+
+        ViewControlsLayer.prototype.handleHeading = function (e, pickedObject) {
+            this.handleHighlight(e, pickedObject);
+        };
+
+        ViewControlsLayer.prototype.handleTilt = function (e, pickedObject) {
+            this.handleHighlight(e, pickedObject);
+        };
+
+        ViewControlsLayer.prototype.handleExaggeration = function (e, pickedObject) {
+            this.handleHighlight(e, pickedObject);
+
+            if (e.type === "mousedown") {
+                this.activeControl = pickedObject.userObject;
+
+                var thisLayer = this;
+                var setExaggeration = function () {
+                    if (thisLayer.activeControl) {
+                        if (thisLayer.activeControl === thisLayer.exaggerationUpControl) {
+                            thisLayer.wwd.verticalExaggeration += thisLayer.exaggerationIncrement;
+                        } else if (thisLayer.activeControl === thisLayer.exaggerationDownControl) {
+                            thisLayer.wwd.verticalExaggeration =
+                                Math.max(0, thisLayer.wwd.verticalExaggeration - thisLayer.exaggerationIncrement);
+                        }
+                        thisLayer.wwd.redraw();
+                        setTimeout(setExaggeration, 50);
+                    }
+                };
+                setTimeout(setExaggeration, 50);
+            }
+        };
+
+        ViewControlsLayer.prototype.handleFov = function (e, pickedObject) {
+            this.handleHighlight(e, pickedObject);
+        };
+
+        ViewControlsLayer.prototype.handleHighlight = function (e, pickedObject) {
+            if (e.type === "mousemove") {
+                this.highlight(pickedObject.userObject, true);
+            }
+        };
+
+        ViewControlsLayer.prototype.highlight = function (control, tf) {
+            control.opacity = tf ? this._activeOpacity : this._inactiveOpacity;
+
+            if (tf) {
+                this.highlightedControl = control;
             }
         };
 
