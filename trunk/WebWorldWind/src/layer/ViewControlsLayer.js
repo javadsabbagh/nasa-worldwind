@@ -196,6 +196,10 @@ define([
             // Variable to keep track of pan control center for use during interaction.
             this.panControlCenter = new Vec2(0, 0);
 
+            // Variable to indicate whether the device is a touch device. Set to false until a touch event
+            // occurs.
+            this.isTouchDevice = false;
+
             this.setupInteraction();
         };
 
@@ -207,9 +211,7 @@ define([
                     return this.panControl.enabled;
                 },
                 set: function (value) {
-                    if (!WWUtil.isTouchDevice()) {
-                        this.panControl.enabled = value;
-                    }
+                    this.panControl.enabled = value;
                 }
             },
 
@@ -395,13 +397,20 @@ define([
             var wwd = this.wwd,
                 thisLayer = this;
 
-            var handleEvent = function (e) {
+            var handleMouseEvent = function (e) {
+                // Prevent handling of simulated mouse events on touch devices.
+                if (thisLayer.isTouchDevice) {
+                    return;
+                }
+
                 var topObject;
 
                 if (e.type && (e.type === "mousemove") && thisLayer.highlightedControl) {
                     thisLayer.highlight(thisLayer.highlightedControl, false);
                 } else if (e.type && (e.type === "mouseup") && thisLayer.activeControl) {
                     thisLayer.activeControl = null;
+                    e.preventDefault();
+                    return;
                 }
 
                 topObject = wwd.pick(wwd.canvasCoordinates(e.clientX, e.clientY)).topPickedObject();
@@ -427,14 +436,57 @@ define([
                 }
             };
 
-            wwd.addEventListener("mousedown", handleEvent);
-            wwd.addEventListener("mouseup", handleEvent);
-            wwd.addEventListener("mousemove", handleEvent);
-            window.addEventListener("mouseup", handleEvent);
-            window.addEventListener("mousemove", handleEvent);
+            wwd.addEventListener("mousedown", handleMouseEvent);
+            wwd.addEventListener("mouseup", handleMouseEvent);
+            wwd.addEventListener("mousemove", handleMouseEvent);
+            window.addEventListener("mouseup", handleMouseEvent);
+            window.addEventListener("mousemove", handleMouseEvent);
 
-            var tapRecognizer = new WorldWind.TapRecognizer(wwd);
-            tapRecognizer.addGestureListener(handleEvent);
+            var handleTouchEvent = function (e) {
+                this.isTouchDevice = true;
+
+                // Turn off any highlight. If a button is in use it will be highlighted later.
+                if (thisLayer.highlightedControl) {
+                    thisLayer.highlight(thisLayer.highlightedControl, false);
+                    thisLayer.wwd.redraw();
+                }
+
+                if (e.type && (e.type === "touchend" || e.type === "touchcancel")) {
+                    if (thisLayer.activeControl) {
+                        thisLayer.activeControl = null;
+                        e.preventDefault();
+                    }
+                } else {
+                    var topObject,
+                        touch = e.changedTouches.item(0);
+
+                    topObject = wwd.pick(wwd.canvasCoordinates(touch.clientX, touch.clientY)).topPickedObject();
+                    if (topObject && (topObject.userObject instanceof ScreenImage)) {
+                        if (topObject.userObject === thisLayer.panControl) {
+                            thisLayer.handlePan(e, topObject);
+                        } else if (topObject.userObject === thisLayer.zoomInControl
+                            || topObject.userObject === thisLayer.zoomOutControl) {
+                            thisLayer.handleZoom(e, topObject);
+                        } else if (topObject.userObject === thisLayer.headingLeftControl
+                            || topObject.userObject === thisLayer.headingRightControl) {
+                            thisLayer.handleHeading(e, topObject);
+                        } else if (topObject.userObject === thisLayer.tiltUpControl
+                            || topObject.userObject === thisLayer.tiltDownControl) {
+                            thisLayer.handleTilt(e, topObject);
+                        } else if (topObject.userObject === thisLayer.exaggerationUpControl
+                            || topObject.userObject === thisLayer.exaggerationDownControl) {
+                            thisLayer.handleExaggeration(e, topObject);
+                        } else if (topObject.userObject === thisLayer.fovNarrowControl
+                            || topObject.userObject === thisLayer.fovWideControl) {
+                            thisLayer.handleFov(e, topObject);
+                        }
+                    }
+                }
+            };
+
+            wwd.addEventListener("touchstart", handleTouchEvent);
+            wwd.addEventListener("touchend", handleTouchEvent);
+            wwd.addEventListener("touchcancel", handleTouchEvent);
         };
 
         ViewControlsLayer.prototype.handlePan = function (e, pickedObject) {
@@ -442,9 +494,12 @@ define([
 
             if (e.type === "mousedown" || e.type === "mousemove") {
                 this.currentEventPoint = this.wwd.canvasCoordinates(e.clientX, e.clientY);
+            } else if (e.type === "touchstart") {
+                var touch = e.changedTouches.item(0);
+                this.currentEventPoint = this.wwd.canvasCoordinates(touch.clientX, touch.clientY);
             }
 
-            if (e.type === "mousedown" && e.which === 1) {
+            if ((e.type === "mousedown" && e.which === 1) || (e.type === "touchstart")) {
                 this.activeControl = pickedObject.userObject;
                 e.preventDefault();
 
@@ -473,7 +528,7 @@ define([
         ViewControlsLayer.prototype.handleZoom = function (e, pickedObject) {
             this.handleHighlight(e, pickedObject);
 
-            if (e.type === "mousedown" && e.which === 1) {
+            if ((e.type === "mousedown" && e.which === 1) || (e.type === "touchstart")) {
                 this.activeControl = pickedObject.userObject;
                 e.preventDefault();
 
@@ -496,7 +551,7 @@ define([
         ViewControlsLayer.prototype.handleHeading = function (e, pickedObject) {
             this.handleHighlight(e, pickedObject);
 
-            if (e.type === "mousedown" && e.which === 1) {
+            if ((e.type === "mousedown" && e.which === 1) || (e.type === "touchstart")) {
                 this.activeControl = pickedObject.userObject;
                 e.preventDefault();
 
@@ -519,7 +574,7 @@ define([
         ViewControlsLayer.prototype.handleTilt = function (e, pickedObject) {
             this.handleHighlight(e, pickedObject);
 
-            if (e.type === "mousedown" && e.which === 1) {
+            if ((e.type === "mousedown" && e.which === 1) || (e.type === "touchstart")) {
                 this.activeControl = pickedObject.userObject;
                 e.preventDefault();
 
@@ -544,7 +599,7 @@ define([
         ViewControlsLayer.prototype.handleExaggeration = function (e, pickedObject) {
             this.handleHighlight(e, pickedObject);
 
-            if (e.type === "mousedown" && e.which === 1) {
+            if ((e.type === "mousedown" && e.which === 1) || (e.type === "touchstart")) {
                 this.activeControl = pickedObject.userObject;
                 e.preventDefault();
 
@@ -568,7 +623,7 @@ define([
         ViewControlsLayer.prototype.handleFov = function (e, pickedObject) {
             this.handleHighlight(e, pickedObject);
 
-            if (e.type === "mousedown" && e.which === 1) {
+            if ((e.type === "mousedown" && e.which === 1) || (e.type === "touchstart")) {
                 this.activeControl = pickedObject.userObject;
                 e.preventDefault();
 
@@ -591,7 +646,7 @@ define([
         };
 
         ViewControlsLayer.prototype.handleHighlight = function (e, pickedObject) {
-            if (e.type === "mousemove") {
+            if (e.type === "mousemove" || e.type === "touchstart") {
                 this.highlight(pickedObject.userObject, true);
             }
         };
@@ -601,6 +656,8 @@ define([
 
             if (tf) {
                 this.highlightedControl = control;
+            } else {
+                this.highlightedControl = null;
             }
         };
 
