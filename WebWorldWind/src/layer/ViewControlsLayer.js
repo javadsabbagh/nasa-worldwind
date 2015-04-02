@@ -308,24 +308,32 @@ define([
                 panelOffset, screenOffset,
                 x, y;
 
+            this.inCurrentFrame = false;
+
             // Determine the dimensions of the control panel.
             if (this.showPanControl) {
                 controlPanelWidth += 64;
+                this.inCurrentFrame = true;
             }
             if (this.showZoomControl) {
                 controlPanelWidth += 32;
+                this.inCurrentFrame = true;
             }
             if (this.showHeadingControl) {
                 controlPanelWidth += 32;
+                this.inCurrentFrame = true;
             }
             if (this.showTiltControl) {
                 controlPanelWidth += 32;
+                this.inCurrentFrame = true;
             }
             if (this.showExaggerationControl) {
                 controlPanelWidth += 32;
+                this.inCurrentFrame = true;
             }
             if (this.showFieldOfViewControl) {
                 controlPanelWidth += 32;
+                this.inCurrentFrame = true;
             }
 
             screenOffset = this.placement.offsetForSize(dc.navigatorState.viewport.width,
@@ -403,7 +411,7 @@ define([
                     return;
                 }
 
-                var topObject;
+                var topObject, operation;
 
                 if (e.type && (e.type === "mousemove") && thisLayer.highlightedControl) {
                     thisLayer.highlight(thisLayer.highlightedControl, false);
@@ -414,25 +422,10 @@ define([
                 }
 
                 topObject = wwd.pick(wwd.canvasCoordinates(e.clientX, e.clientY)).topPickedObject();
-                if (topObject && (topObject.userObject instanceof ScreenImage)) {
-                    if (topObject.userObject === thisLayer.panControl) {
-                        thisLayer.handlePan(e, topObject);
-                    } else if (topObject.userObject === thisLayer.zoomInControl
-                        || topObject.userObject === thisLayer.zoomOutControl) {
-                        thisLayer.handleZoom(e, topObject);
-                    } else if (topObject.userObject === thisLayer.headingLeftControl
-                        || topObject.userObject === thisLayer.headingRightControl) {
-                        thisLayer.handleHeading(e, topObject);
-                    } else if (topObject.userObject === thisLayer.tiltUpControl
-                        || topObject.userObject === thisLayer.tiltDownControl) {
-                        thisLayer.handleTilt(e, topObject);
-                    } else if (topObject.userObject === thisLayer.exaggerationUpControl
-                        || topObject.userObject === thisLayer.exaggerationDownControl) {
-                        thisLayer.handleExaggeration(e, topObject);
-                    } else if (topObject.userObject === thisLayer.fovNarrowControl
-                        || topObject.userObject === thisLayer.fovWideControl) {
-                        thisLayer.handleFov(e, topObject);
-                    }
+                operation = thisLayer.determineOperation(e, topObject);
+                if (operation) {
+                    operation.call(thisLayer, e, topObject);
+                    thisLayer.handleHighlight(e, topObject);
                 }
             };
 
@@ -452,34 +445,20 @@ define([
                 }
 
                 if (e.type && (e.type === "touchend" || e.type === "touchcancel")) {
-                    if (thisLayer.activeControl) {
+                    if (thisLayer.activeControl && thisLayer.isCurrentTouch(e)) {
                         thisLayer.activeControl = null;
                         e.preventDefault();
                     }
                 } else {
                     var topObject,
-                        touch = e.changedTouches.item(0);
+                        touch = e.changedTouches.item(0),
+                        operation;
 
                     topObject = wwd.pick(wwd.canvasCoordinates(touch.clientX, touch.clientY)).topPickedObject();
-                    if (topObject && (topObject.userObject instanceof ScreenImage)) {
-                        if (topObject.userObject === thisLayer.panControl) {
-                            thisLayer.handlePan(e, topObject);
-                        } else if (topObject.userObject === thisLayer.zoomInControl
-                            || topObject.userObject === thisLayer.zoomOutControl) {
-                            thisLayer.handleZoom(e, topObject);
-                        } else if (topObject.userObject === thisLayer.headingLeftControl
-                            || topObject.userObject === thisLayer.headingRightControl) {
-                            thisLayer.handleHeading(e, topObject);
-                        } else if (topObject.userObject === thisLayer.tiltUpControl
-                            || topObject.userObject === thisLayer.tiltDownControl) {
-                            thisLayer.handleTilt(e, topObject);
-                        } else if (topObject.userObject === thisLayer.exaggerationUpControl
-                            || topObject.userObject === thisLayer.exaggerationDownControl) {
-                            thisLayer.handleExaggeration(e, topObject);
-                        } else if (topObject.userObject === thisLayer.fovNarrowControl
-                            || topObject.userObject === thisLayer.fovWideControl) {
-                            thisLayer.handleFov(e, topObject);
-                        }
+                    operation = thisLayer.determineOperation(e, topObject);
+                    if (operation) {
+                        operation.call(thisLayer, e, topObject);
+                        thisLayer.handleHighlight(e, topObject);
                     }
                 }
             };
@@ -487,14 +466,50 @@ define([
             wwd.addEventListener("touchstart", handleTouchEvent);
             wwd.addEventListener("touchend", handleTouchEvent);
             wwd.addEventListener("touchcancel", handleTouchEvent);
+            wwd.addEventListener("touchmove", handleTouchEvent);
+        };
+
+        ViewControlsLayer.prototype.determineOperation = function (e, topObject) {
+            var operation = null;
+
+            if (topObject && (topObject.userObject instanceof ScreenImage)) {
+                if (topObject.userObject === this.panControl) {
+                    operation= this.handlePan;
+                } else if (topObject.userObject === this.zoomInControl
+                    || topObject.userObject === this.zoomOutControl) {
+                    operation = this.handleZoom;
+                } else if (topObject.userObject === this.headingLeftControl
+                    || topObject.userObject === this.headingRightControl) {
+                    operation = this.handleHeading;
+                } else if (topObject.userObject === this.tiltUpControl
+                    || topObject.userObject === this.tiltDownControl) {
+                    operation = this.handleTilt;
+                } else if (topObject.userObject === this.exaggerationUpControl
+                    || topObject.userObject === this.exaggerationDownControl) {
+                    operation = this.handleExaggeration;
+                } else if (topObject.userObject === this.fovNarrowControl
+                    || topObject.userObject === this.fovWideControl) {
+                    operation = this.handleFov;
+                }
+            }
+
+            return operation;
+        };
+
+        ViewControlsLayer.prototype.isCurrentTouch = function (e) {
+            for (var i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches.item(i).identifier === this.currentTouchId) {
+                    return true;
+                }
+            }
+
+            return false;
         };
 
         ViewControlsLayer.prototype.handlePan = function (e, pickedObject) {
-            this.handleHighlight(e, pickedObject);
-
             if (e.type === "mousedown" || e.type === "mousemove") {
                 this.currentEventPoint = this.wwd.canvasCoordinates(e.clientX, e.clientY);
-            } else if (e.type === "touchstart") {
+            } else if (e.type === "touchstart" || e.type === "touchmove") {
                 var touch = e.changedTouches.item(0);
                 this.currentEventPoint = this.wwd.canvasCoordinates(touch.clientX, touch.clientY);
             }
@@ -502,6 +517,10 @@ define([
             if ((e.type === "mousedown" && e.which === 1) || (e.type === "touchstart")) {
                 this.activeControl = pickedObject.userObject;
                 e.preventDefault();
+
+                if (e.type === "touchstart") {
+                    this.currentTouchId = e.changedTouches.item(0).identifier;
+                }
 
                 var thisLayer = this;
                 var setLookAtPosition = function () {
@@ -526,11 +545,13 @@ define([
         };
 
         ViewControlsLayer.prototype.handleZoom = function (e, pickedObject) {
-            this.handleHighlight(e, pickedObject);
-
             if ((e.type === "mousedown" && e.which === 1) || (e.type === "touchstart")) {
                 this.activeControl = pickedObject.userObject;
                 e.preventDefault();
+
+                if (e.type === "touchstart") {
+                    this.currentTouchId = e.changedTouches.item(0).identifier;
+                }
 
                 var thisLayer = this;
                 var setRange = function () {
@@ -549,11 +570,13 @@ define([
         };
 
         ViewControlsLayer.prototype.handleHeading = function (e, pickedObject) {
-            this.handleHighlight(e, pickedObject);
-
             if ((e.type === "mousedown" && e.which === 1) || (e.type === "touchstart")) {
                 this.activeControl = pickedObject.userObject;
                 e.preventDefault();
+
+                if (e.type === "touchstart") {
+                    this.currentTouchId = e.changedTouches.item(0).identifier;
+                }
 
                 var thisLayer = this;
                 var setRange = function () {
@@ -572,11 +595,13 @@ define([
         };
 
         ViewControlsLayer.prototype.handleTilt = function (e, pickedObject) {
-            this.handleHighlight(e, pickedObject);
-
             if ((e.type === "mousedown" && e.which === 1) || (e.type === "touchstart")) {
                 this.activeControl = pickedObject.userObject;
                 e.preventDefault();
+
+                if (e.type === "touchstart") {
+                    this.currentTouchId = e.changedTouches.item(0).identifier;
+                }
 
                 var thisLayer = this;
                 var setRange = function () {
@@ -597,11 +622,13 @@ define([
         };
 
         ViewControlsLayer.prototype.handleExaggeration = function (e, pickedObject) {
-            this.handleHighlight(e, pickedObject);
-
             if ((e.type === "mousedown" && e.which === 1) || (e.type === "touchstart")) {
                 this.activeControl = pickedObject.userObject;
                 e.preventDefault();
+
+                if (e.type === "touchstart") {
+                    this.currentTouchId = e.changedTouches.item(0).identifier;
+                }
 
                 var thisLayer = this;
                 var setExaggeration = function () {
@@ -621,11 +648,13 @@ define([
         };
 
         ViewControlsLayer.prototype.handleFov = function (e, pickedObject) {
-            this.handleHighlight(e, pickedObject);
-
             if ((e.type === "mousedown" && e.which === 1) || (e.type === "touchstart")) {
                 this.activeControl = pickedObject.userObject;
                 e.preventDefault();
+
+                if (e.type === "touchstart") {
+                    this.currentTouchId = e.changedTouches.item(0).identifier;
+                }
 
                 var thisLayer = this;
                 var setRange = function () {
@@ -646,7 +675,7 @@ define([
         };
 
         ViewControlsLayer.prototype.handleHighlight = function (e, pickedObject) {
-            if (e.type === "mousemove" || e.type === "touchstart") {
+            if (e.type === "mousemove" || e.type === "touchstart" || e.type === "touchmove") {
                 this.highlight(pickedObject.userObject, true);
             }
         };
