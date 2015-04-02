@@ -179,6 +179,14 @@ define([
 
                 // Add the script element to the document, causing the browser to invoke it.
                 head.appendChild(script);
+            },
+
+            /**
+             * Indicates whether the current device is a touch device.
+             * @returns {Boolean} true if the device is a touch device, otherwise false.
+             */
+            isTouchDevice: function () {
+                return ('ontouchstart' in window);
             }
         };
 
