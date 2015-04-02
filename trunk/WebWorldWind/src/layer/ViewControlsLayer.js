@@ -112,6 +112,33 @@ define([
              */
             this.exaggerationIncrement = 0.01;
 
+            /**
+             * The incremental amount to increase or decrease the eye distance (for zoom) each cycle.
+             * @type {Number}
+             * @default 0.04 (4%)
+             */
+            this.zoomIncrement = 0.04;
+
+            /**
+             * The incremental amount to increase or decrease the heading each cycle, in degrees.
+             * @type {Number}
+             * @default 1.0
+             */
+            this.headingIncrement = 1.0;
+
+            /**
+             * The incremental amount to increase or decrease the tilt each cycle, in degrees.
+             * @type {Number}
+             */
+            this.tiltIncrement = 1.0;
+
+            /**
+             * The incremental amount to narrow or widen the field of view each cycle, in degrees.
+             * @type {Number}
+             * @default 0.1
+             */
+            this.fieldOfViewIncrement = 0.1;
+
             // These are documented in their property accessors below.
             this._inactiveOpacity = 0.5;
             this._activeOpacity = 1.0;
@@ -136,6 +163,11 @@ define([
             // Disable the FOV controls by default.
             this.fovNarrowControl.enabled = false;
             this.fovWideControl.enabled = false;
+
+            // Disable the pan control on touch devices.
+            if (WWUtil.isTouchDevice()) {
+                this.panControl.enabled = false;
+            }
 
             // Put the controls in an array so we can easily apply bulk operations.
             this.controls = [
@@ -168,7 +200,9 @@ define([
                     return this.panControl.enabled;
                 },
                 set: function (value) {
-                    this.panControl.enabled = value;
+                    if (!WWUtil.isTouchDevice()) {
+                        this.panControl.enabled = value;
+                    }
                 }
             },
 
@@ -212,7 +246,7 @@ define([
                 }
             },
 
-            showFovControl: {
+            showFieldOfViewControl: {
                 get: function () {
                     return this.fovNarrowControl.enabled;
                 },
@@ -281,7 +315,7 @@ define([
             if (this.showExaggerationControl) {
                 controlPanelWidth += 32;
             }
-            if (this.showFovControl) {
+            if (this.showFieldOfViewControl) {
                 controlPanelWidth += 32;
             }
 
@@ -338,7 +372,7 @@ define([
                 x += 32;
             }
 
-            if (this.showFovControl) {
+            if (this.showFieldOfViewControl) {
                 this.fovNarrowControl.screenOffset.x = x;
                 this.fovNarrowControl.screenOffset.y = y;
                 this.fovWideControl.screenOffset.x = x;
@@ -398,14 +432,70 @@ define([
 
         ViewControlsLayer.prototype.handleZoom = function (e, pickedObject) {
             this.handleHighlight(e, pickedObject);
+
+            if (e.type === "mousedown") {
+                this.activeControl = pickedObject.userObject;
+
+                var thisLayer = this;
+                var setRange = function () {
+                    if (thisLayer.activeControl) {
+                        if (thisLayer.activeControl === thisLayer.zoomInControl) {
+                            thisLayer.wwd.navigator.range *= (1 - thisLayer.zoomIncrement);
+                        } else if (thisLayer.activeControl === thisLayer.zoomOutControl) {
+                            thisLayer.wwd.navigator.range *= (1 + thisLayer.zoomIncrement);
+                        }
+                        thisLayer.wwd.redraw();
+                        setTimeout(setRange, 50);
+                    }
+                };
+                setTimeout(setRange, 50);
+            }
         };
 
         ViewControlsLayer.prototype.handleHeading = function (e, pickedObject) {
             this.handleHighlight(e, pickedObject);
+
+            if (e.type === "mousedown") {
+                this.activeControl = pickedObject.userObject;
+
+                var thisLayer = this;
+                var setRange = function () {
+                    if (thisLayer.activeControl) {
+                        if (thisLayer.activeControl === thisLayer.headingLeftControl) {
+                            thisLayer.wwd.navigator.heading += thisLayer.headingIncrement;
+                        } else if (thisLayer.activeControl === thisLayer.headingRightControl) {
+                            thisLayer.wwd.navigator.heading -= thisLayer.headingIncrement;
+                        }
+                        thisLayer.wwd.redraw();
+                        setTimeout(setRange, 50);
+                    }
+                };
+                setTimeout(setRange, 50);
+            }
         };
 
         ViewControlsLayer.prototype.handleTilt = function (e, pickedObject) {
             this.handleHighlight(e, pickedObject);
+
+            if (e.type === "mousedown") {
+                this.activeControl = pickedObject.userObject;
+
+                var thisLayer = this;
+                var setRange = function () {
+                    if (thisLayer.activeControl) {
+                        if (thisLayer.activeControl === thisLayer.tiltUpControl) {
+                            thisLayer.wwd.navigator.tilt =
+                                Math.max(0, thisLayer.wwd.navigator.tilt - thisLayer.tiltIncrement);
+                        } else if (thisLayer.activeControl === thisLayer.tiltDownControl) {
+                            thisLayer.wwd.navigator.tilt =
+                                Math.min(90, thisLayer.wwd.navigator.tilt + thisLayer.tiltIncrement);
+                        }
+                        thisLayer.wwd.redraw();
+                        setTimeout(setRange, 50);
+                    }
+                };
+                setTimeout(setRange, 50);
+            }
         };
 
         ViewControlsLayer.prototype.handleExaggeration = function (e, pickedObject) {
@@ -433,6 +523,26 @@ define([
 
         ViewControlsLayer.prototype.handleFov = function (e, pickedObject) {
             this.handleHighlight(e, pickedObject);
+
+            if (e.type === "mousedown") {
+                this.activeControl = pickedObject.userObject;
+
+                var thisLayer = this;
+                var setRange = function () {
+                    if (thisLayer.activeControl) {
+                        if (thisLayer.activeControl === thisLayer.fovWideControl) {
+                            thisLayer.wwd.navigator.fieldOfView =
+                                Math.max(90, thisLayer.wwd.navigator.fieldOfView + thisLayer.fieldOfViewIncrement);
+                        } else if (thisLayer.activeControl === thisLayer.fovNarrowControl) {
+                            thisLayer.wwd.navigator.fieldOfView =
+                                Math.min(0, thisLayer.wwd.navigator.fieldOfView - thisLayer.fieldOfViewIncrement);
+                        }
+                        thisLayer.wwd.redraw();
+                        setTimeout(setRange, 50);
+                    }
+                };
+                setTimeout(setRange, 50);
+            }
         };
 
         ViewControlsLayer.prototype.handleHighlight = function (e, pickedObject) {
