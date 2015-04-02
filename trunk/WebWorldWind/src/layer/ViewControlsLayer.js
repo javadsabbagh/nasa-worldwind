@@ -12,6 +12,7 @@ define([
         '../util/Logger',
         '../util/Offset',
         '../shapes/ScreenImage',
+        '../geom/Vec2',
         '../util/WWUtil'
     ],
     function (ArgumentError,
@@ -19,6 +20,7 @@ define([
               Logger,
               Offset,
               ScreenImage,
+              Vec2,
               WWUtil) {
         "use strict";
 
@@ -139,6 +141,13 @@ define([
              */
             this.fieldOfViewIncrement = 0.1;
 
+            /**
+             * The number of degrees to pan at the surface each cycle.
+             * @type {Number}
+             * @default 0.05
+             */
+            this.panIncrement = 0.05;
+
             // These are documented in their property accessors below.
             this._inactiveOpacity = 0.5;
             this._activeOpacity = 1.0;
@@ -164,11 +173,6 @@ define([
             this.fovNarrowControl.enabled = false;
             this.fovWideControl.enabled = false;
 
-            // Disable the pan control on touch devices.
-            if (WWUtil.isTouchDevice()) {
-                this.panControl.enabled = false;
-            }
-
             // Put the controls in an array so we can easily apply bulk operations.
             this.controls = [
                 this.panControl,
@@ -188,6 +192,9 @@ define([
                 this.controls[i].imageOffset = screenOffset.clone();
                 this.controls[i].opacity = this._inactiveOpacity;
             }
+
+            // Variable to keep track of pan control center for use during interaction.
+            this.panControlCenter = new Vec2(0, 0);
 
             this.setupInteraction();
         };
@@ -329,6 +336,8 @@ define([
                 this.panControl.screenOffset.x = x;
                 this.panControl.screenOffset.y = y;
                 this.panControl.render(dc);
+                this.panControlCenter[0] = x + 32;
+                this.panControlCenter[1] = y + 32;
                 x += 64;
             }
 
@@ -428,6 +437,34 @@ define([
 
         ViewControlsLayer.prototype.handlePan = function (e, pickedObject) {
             this.handleHighlight(e, pickedObject);
+
+            if (e.type === "mousedown" || e.type === "mousemove") {
+                this.currentEventPoint = this.wwd.canvasCoordinates(e.clientX, e.clientY);
+            }
+
+            if (e.type === "mousedown") {
+                this.activeControl = pickedObject.userObject;
+
+                var thisLayer = this;
+                var setLookAtPosition = function () {
+                    if (thisLayer.activeControl) {
+                        var dx = thisLayer.panControlCenter[0] - thisLayer.currentEventPoint[0],
+                            dy = thisLayer.panControlCenter[1]
+                                - (thisLayer.wwd.viewport.height - thisLayer.currentEventPoint[1]),
+                            oldLat = thisLayer.wwd.navigator.lookAtPosition.latitude,
+                            oldLon = thisLayer.wwd.navigator.lookAtPosition.longitude,
+                        // Scale the increment by a constant and the relative distance of the eye to the surface.
+                            scale = thisLayer.panIncrement
+                                * (thisLayer.wwd.navigator.range / thisLayer.wwd.globe.radiusAt(oldLat, oldLon));
+
+                        thisLayer.wwd.navigator.lookAtPosition.latitude = oldLat - dy * scale;
+                        thisLayer.wwd.navigator.lookAtPosition.longitude = oldLon - dx * scale;
+                        thisLayer.wwd.redraw();
+                        setTimeout(setLookAtPosition, 50);
+                    }
+                };
+                setTimeout(setLookAtPosition, 50);
+            }
         };
 
         ViewControlsLayer.prototype.handleZoom = function (e, pickedObject) {
