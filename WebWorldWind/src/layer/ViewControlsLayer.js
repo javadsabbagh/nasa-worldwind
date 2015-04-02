@@ -430,6 +430,8 @@ define([
             wwd.addEventListener("mousedown", handleEvent);
             wwd.addEventListener("mouseup", handleEvent);
             wwd.addEventListener("mousemove", handleEvent);
+            window.addEventListener("mouseup", handleEvent);
+            window.addEventListener("mousemove", handleEvent);
 
             var tapRecognizer = new WorldWind.TapRecognizer(wwd);
             tapRecognizer.addGestureListener(handleEvent);
@@ -442,8 +444,9 @@ define([
                 this.currentEventPoint = this.wwd.canvasCoordinates(e.clientX, e.clientY);
             }
 
-            if (e.type === "mousedown") {
+            if (e.type === "mousedown" && e.which === 1) {
                 this.activeControl = pickedObject.userObject;
+                e.preventDefault();
 
                 var thisLayer = this;
                 var setLookAtPosition = function () {
@@ -470,8 +473,9 @@ define([
         ViewControlsLayer.prototype.handleZoom = function (e, pickedObject) {
             this.handleHighlight(e, pickedObject);
 
-            if (e.type === "mousedown") {
+            if (e.type === "mousedown" && e.which === 1) {
                 this.activeControl = pickedObject.userObject;
+                e.preventDefault();
 
                 var thisLayer = this;
                 var setRange = function () {
@@ -492,8 +496,9 @@ define([
         ViewControlsLayer.prototype.handleHeading = function (e, pickedObject) {
             this.handleHighlight(e, pickedObject);
 
-            if (e.type === "mousedown") {
+            if (e.type === "mousedown" && e.which === 1) {
                 this.activeControl = pickedObject.userObject;
+                e.preventDefault();
 
                 var thisLayer = this;
                 var setRange = function () {
@@ -514,8 +519,9 @@ define([
         ViewControlsLayer.prototype.handleTilt = function (e, pickedObject) {
             this.handleHighlight(e, pickedObject);
 
-            if (e.type === "mousedown") {
+            if (e.type === "mousedown" && e.which === 1) {
                 this.activeControl = pickedObject.userObject;
+                e.preventDefault();
 
                 var thisLayer = this;
                 var setRange = function () {
@@ -538,8 +544,9 @@ define([
         ViewControlsLayer.prototype.handleExaggeration = function (e, pickedObject) {
             this.handleHighlight(e, pickedObject);
 
-            if (e.type === "mousedown") {
+            if (e.type === "mousedown" && e.which === 1) {
                 this.activeControl = pickedObject.userObject;
+                e.preventDefault();
 
                 var thisLayer = this;
                 var setExaggeration = function () {
@@ -561,8 +568,9 @@ define([
         ViewControlsLayer.prototype.handleFov = function (e, pickedObject) {
             this.handleHighlight(e, pickedObject);
 
-            if (e.type === "mousedown") {
+            if (e.type === "mousedown" && e.which === 1) {
                 this.activeControl = pickedObject.userObject;
+                e.preventDefault();
 
                 var thisLayer = this;
                 var setRange = function () {
