@@ -31,11 +31,16 @@ requirejs(['../src/WorldWind',
         var attributeCallback = function(attributes, record) {
             if (record.isPolylineType()) {
                 var pathAttributes = new WorldWind.PathAttributes(null);
+
+                // Modify path attributes as appropriate.
+
                 return pathAttributes;
             }
             else if (record.isPolygonType()) {
                 // Fill the polygon with a random pastel color.
                 var polygonAttributes = new WorldWind.ShapeAttributes(null);
+
+                // Modify polygon attributes as appropriate.
                 var interiorColor = new WorldWind.Color(
                     0.375 + 0.5 * Math.random(),
                     0.375 + 0.5 * Math.random(),
@@ -43,10 +48,14 @@ requirejs(['../src/WorldWind',
                     1.0);
                 polygonAttributes.interiorColor = interiorColor;
                 polygonAttributes.outlineColor = WorldWind.Color.WHITE;
+
                 return polygonAttributes;
             }
             else if (record.isPointType()) {
                 var placemarkAttributes = new WorldWind.PlacemarkAttributes(null);
+
+                // Modify placemark attributes as appropriate.
+
                 return placemarkAttributes;
             }
             else {
@@ -57,24 +66,22 @@ requirejs(['../src/WorldWind',
 
         };
 
-        var worldLoadCallback = function() {
-            worldShapefile.addRenderablesForShapefile(worldShapefileLayer);
-        };
-
-        var usLoadCallback = function() {
-            usShapefile.addRenderablesForShapefile(usShapefileLayer);
+        var callbackForShapefileLoaded = function(layer) {
+            return function(shapefile) {
+                shapefile.addRenderablesForShapefile(layer);
+            };
         };
 
         var shapefileLibrary = WorldWind.WWUtil.currentUrlSansFilePart() + "/../shapefiles/"; // location of the shapefiles
 
         var worldShapefileLayer = new WorldWind.RenderableLayer("World Countries Shapefile");
         var worldShapefile = new WorldWind.Shapefile(shapefileLibrary + "/ne_110m_admin_0_countries/ne_110m_admin_0_countries.shp");
-        worldShapefile.load(worldLoadCallback, attributeCallback);
+        worldShapefile.load(callbackForShapefileLoaded(worldShapefileLayer), attributeCallback);
         wwd.addLayer(worldShapefileLayer);
 
         var usShapefileLayer = new WorldWind.RenderableLayer("US States Shapefile");
         var usShapefile = new WorldWind.Shapefile(shapefileLibrary + "/ne_110m_admin_1_states_provinces_lakes/ne_110m_admin_1_states_provinces_lakes.shp");
-        usShapefile.load(usLoadCallback, attributeCallback);
+        usShapefile.load(callbackForShapefileLoaded(usShapefileLayer), attributeCallback);
         wwd.addLayer(usShapefileLayer);
 
         wwd.redraw();
