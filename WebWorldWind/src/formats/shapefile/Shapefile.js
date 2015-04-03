@@ -23,6 +23,9 @@ define([
         '../../formats/shapefile/PrjFile',
         '../../shapes/ShapeAttributes',
         '../../formats/shapefile/ShapefileRecord',
+        '../../formats/shapefile/ShapefileRecordMultiPoint',
+        '../../formats/shapefile/ShapefileRecordNull',
+        '../../formats/shapefile/ShapefileRecordPoint',
         '../../Formats/shapefile/ShapefileRecordPolygon',
         '../../Formats/shapefile/ShapefileRecordPolyline',
         '../../shapes/SurfacePolygon'
@@ -43,6 +46,9 @@ define([
               PrjFile,
               ShapeAttribute,
               ShapefileRecord,
+              ShapefileRecordMultiPoint,
+              ShapefileRecordNull,
+              ShapefileRecordPoint,
               ShapefileRecordPolygon,
               ShapefileRecordPolyline,
               SurfacePolygon) {
@@ -240,8 +246,10 @@ define([
                     for (var idx = 0, len = points.length; idx < len; idx += 2) {
                         var longitude = points[idx],
                             latitude = points[idx + 1],
-                            elevation = 0,
-                            placemark = new Placemark(latitude, longitude, elevation);
+                            elevation = 100,
+                            position = new Position(latitude, longitude, elevation),
+                            placemark = new Placemark(position);
+                        placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
 
                         placemark.attributes = attributes;
 
@@ -266,8 +274,10 @@ define([
                     for (var idx = 0, len = points.length; idx < len; idx += 2) {
                         var longitude = points[idx],
                             latitude = points[idx + 1],
-                            elevation = 0,
-                            placemark = new Placemark(latitude, longitude, elevation);
+                            elevation = 100,
+                            position = new Position(latitude, longitude, elevation),
+                            placemark = new Placemark(position);
+                        placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
 
                         placemark.attributes = attributes;
 
@@ -294,7 +304,7 @@ define([
                     for (var idx = 0, len = points.length; idx < len; idx += 2) {
                         var longitude = points[idx],
                             latitude = points[idx + 1],
-                            position = new Position(latitude, longitude, 100000);
+                            position = new Position(latitude, longitude, 0);
 
                         positions.push(position);
                     }
