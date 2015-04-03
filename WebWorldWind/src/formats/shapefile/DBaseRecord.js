@@ -100,7 +100,7 @@ define(['../../error/ArgumentError',
 
                 var key = field.getName();
 
-                var value = dbaseFile.readNullTerminatedString(buffer, field.getLength());
+                var value = dbaseFile.readNullTerminatedString(buffer, field.getLength()).trim();
 
                 try {
                     if (field.getType() == DBaseField.TYPE_BOOLEAN) {
@@ -108,7 +108,7 @@ define(['../../error/ArgumentError',
                         this.values[key] = firstChar == 't' || firstChar == 'T' || firstChar == 'Y' || firstChar == 'y';
                     }
                     else if (field.getType() == DBaseField.TYPE_CHAR) {
-                        this.values[key] = value.charAt(0);
+                        this.values[key] = value;
                     }
                     else if (field.getType() == DBaseField.TYPE_DATE) {
                         this.values[key] = new Date(value);
