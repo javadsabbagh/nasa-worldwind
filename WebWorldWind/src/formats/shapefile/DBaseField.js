@@ -166,25 +166,25 @@ define(['../../error/ArgumentError',
 
         /**
          * The description of a character field.
-         * @type {String} The description of a character field.
+         * @type {String}
          */
         DBaseField.TYPE_CHAR = "DBase.FieldTypeChar";
 
         /**
          * The description of a number field.
-         * @type {String} The description of a number field.
+         * @type {String}
          */
         DBaseField.TYPE_NUMBER = "DBase.FieldTypeNumber";
 
         /**
          * The description of a date field.
-         * @type {String} The description of a date field.
+         * @type {String}
          */
         DBaseField.TYPE_DATE = "DBase.FieldTypeDate";
 
         /**
          * The description of a boolean field.
-         * @type {String} The description of a boolean field.
+         * @type {String}
          */
         DBaseField.TYPE_BOOLEAN = "DBase.FieldTypeBoolean";
 
