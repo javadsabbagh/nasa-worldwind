@@ -16,5 +16,6 @@ requirejs(['../src/WorldWind'], function () {
     wwd.addLayer(new WorldWind.BMNGLandsatLayer());
     wwd.addLayer(new WorldWind.BingWMSLayer());
     wwd.addLayer(new WorldWind.CompassLayer);
+    wwd.addLayer(new WorldWind.ViewControlsLayer(wwd));
     wwd.redraw();
 });

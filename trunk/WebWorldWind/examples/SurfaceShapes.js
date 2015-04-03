@@ -29,7 +29,8 @@ requirejs([
             {layer: new WorldWind.BMNGLayer(), enabled: true},
             {layer: new WorldWind.BMNGLandsatLayer(), enabled: false},
             {layer: new WorldWind.BingAerialWithLabelsLayer(null), enabled: true},
-            {layer: new WorldWind.CompassLayer(), enabled: true}
+            {layer: new WorldWind.CompassLayer(), enabled: true},
+            {layer: new WorldWind.ViewControlsLayer(wwd), enabled: true}
         ];
 
         for (var l = 0; l < layers.length; l++) {

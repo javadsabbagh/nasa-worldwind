@@ -34,8 +34,9 @@ requirejs(['../src/WorldWind',
         layer.enabled = false;
         wwd.addLayer(layer);
 
-        // Add a compass.
+        // Add a compass and view controls.
         wwd.addLayer(new WorldWind.CompassLayer);
+        wwd.addLayer(new WorldWind.ViewControlsLayer(wwd));
 
         wwd.redraw();
 

@@ -27,7 +27,8 @@ requirejs(['../src/WorldWind',
             {layer: new WorldWind.BMNGLayer(), enabled: true},
             {layer: new WorldWind.BMNGLandsatLayer(), enabled: false},
             {layer: new WorldWind.BingAerialWithLabelsLayer(null), enabled: true},
-            {layer: new WorldWind.CompassLayer(), enabled: true}
+            {layer: new WorldWind.CompassLayer(), enabled: true},
+            {layer: new WorldWind.ViewControlsLayer(wwd), enabled: true}
         ];
 
         for (var l = 0; l < layers.length; l++) {
@@ -71,7 +72,7 @@ requirejs(['../src/WorldWind',
                         wwd.navigator.heading = 0;
                         wwd.redraw();
                     }
-                    else if (pickList.objects[p].userObject instanceof WorldWind.ScreenImage) {
+                    else if (pickList.objects[p].userObject === screenImage) {
                         console.log("Screen image picked");
                     }
                 }
