@@ -26,8 +26,8 @@ define([
         '../../formats/shapefile/ShapefileRecordMultiPoint',
         '../../formats/shapefile/ShapefileRecordNull',
         '../../formats/shapefile/ShapefileRecordPoint',
-        '../../Formats/shapefile/ShapefileRecordPolygon',
-        '../../Formats/shapefile/ShapefileRecordPolyline',
+        '../../formats/shapefile/ShapefileRecordPolygon',
+        '../../formats/shapefile/ShapefileRecordPolyline',
         '../../shapes/SurfacePolygon'
     ],
     function (Angle,
