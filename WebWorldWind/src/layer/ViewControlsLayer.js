@@ -7,16 +7,20 @@
  * @version $Id$
  */
 define([
+        '../geom/Angle',
         '../error/ArgumentError',
         '../layer/Layer',
+        '../geom/Location',
         '../util/Logger',
         '../util/Offset',
         '../shapes/ScreenImage',
         '../geom/Vec2',
         '../util/WWUtil'
     ],
-    function (ArgumentError,
+    function (Angle,
+              ArgumentError,
               Layer,
+              Location,
               Logger,
               Offset,
               ScreenImage,
@@ -143,11 +147,11 @@ define([
             this.fieldOfViewIncrement = 0.1;
 
             /**
-             * The number of degrees to pan at the surface each cycle.
+             * The scale factor governing the pan speed. Increased values cause faster panning.
              * @type {Number}
-             * @default 0.05
+             * @default 0.001
              */
-            this.panIncrement = 0.05;
+            this.panIncrement = 0.001;
 
             // These are documented in their property accessors below.
             this._inactiveOpacity = 0.5;
@@ -619,10 +623,12 @@ define([
                             oldLon = thisLayer.wwd.navigator.lookAtPosition.longitude,
                         // Scale the increment by a constant and the relative distance of the eye to the surface.
                             scale = thisLayer.panIncrement
-                                * (thisLayer.wwd.navigator.range / thisLayer.wwd.globe.radiusAt(oldLat, oldLon));
+                                * (thisLayer.wwd.navigator.range / thisLayer.wwd.globe.radiusAt(oldLat, oldLon)),
+                            heading = thisLayer.wwd.navigator.heading + (Math.atan2(dx, dy) * Angle.RADIANS_TO_DEGREES),
+                            distance = scale * Math.sqrt(dx * dx + dy * dy);
 
-                        thisLayer.wwd.navigator.lookAtPosition.latitude = oldLat - dy * scale;
-                        thisLayer.wwd.navigator.lookAtPosition.longitude = oldLon - dx * scale;
+                        Location.greatCircleLocation(thisLayer.wwd.navigator.lookAtPosition, heading, -distance,
+                            thisLayer.wwd.navigator.lookAtPosition);
                         thisLayer.wwd.redraw();
                         setTimeout(setLookAtPosition, 50);
                     }
