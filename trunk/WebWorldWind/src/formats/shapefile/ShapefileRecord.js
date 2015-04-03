@@ -294,6 +294,10 @@ define([
 
             this._parts = [this._buffer.getDoubleArray(2)];
 
+            var latitude = this._parts[0][1];
+            var longitude = this._parts[0][0];
+            this._boundingRectangle = [latitude, latitude, longitude, longitude];
+
             // Read the optional Z value.
             if (this.isZType()) {
                 this.readZ(true);
