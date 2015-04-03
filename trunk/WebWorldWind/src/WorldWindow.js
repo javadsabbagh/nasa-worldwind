@@ -185,8 +185,8 @@ define([
          */
         WorldWindow.prototype.canvasCoordinates = function (x, y) {
             var bbox = this.canvas.getBoundingClientRect(),
-                xc = x - bbox.left * (this.canvas.width / bbox.width),
-                yc = y - bbox.top * (this.canvas.height / bbox.height);
+                xc = x - (bbox.left + this.canvas.clientLeft),// * (this.canvas.width / bbox.width),
+                yc = y - (bbox.top + this.canvas.clientTop);// * (this.canvas.height / bbox.height);
 
             return new Vec2(xc, yc);
         };
