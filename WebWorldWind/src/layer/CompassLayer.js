@@ -29,7 +29,9 @@ define([
             this.addRenderable(this._compass);
         };
 
-        Object.defineProperties(Compass.prototype, {
+        CompassLayer.prototype = Object.create(RenderableLayer.prototype);
+
+        Object.defineProperties(CompassLayer.prototype, {
             /**
              * The compass to display.
              * @type {Compass}
@@ -49,8 +51,6 @@ define([
                 }
             }
         });
-
-        CompassLayer.prototype = Object.create(RenderableLayer.prototype);
 
         return CompassLayer;
     });
