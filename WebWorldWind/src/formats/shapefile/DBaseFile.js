@@ -51,7 +51,7 @@ define(['../../error/ArgumentError',
             this.numRecordsRead = 0;
 
             this._completionCallback = null;
-        }
+        };
 
         /**
          * The modification date of the the dBase file.
@@ -338,43 +338,42 @@ define(['../../error/ArgumentError',
 
             for (var length = 0; length < maxLength; length += 1) {
                 var byte = buffer.getByte();
-                if (byte != 0) {
-                    string += String.fromCharCode(byte);
-                }
-                else {
+                if (byte == 0) {
                     break;
                 }
+                string += String.fromCharCode(byte);
             }
+
+            if (this.isStringEmpty(string))
+                return "";
 
             return string;
         };
 
         /**
-         * Indicate whether the character array is empty.
-         * @param {Number[]} bytes The array of characters.
-         * @param {Number} length The length of the character array.
-         * @returns {Boolean} True if the character array if logically empty.
+         * Indicate whether the string is "logically" empty in the dBase sense.
+         * @param {String} string The string of characters.
+         * @returns {Boolean} True if the string is logically empty.
          */
-        DBaseFile.prototype.isStringEmpty = function(bytes, length) {
-            return length <= 0 ||
-                isArrayFilled(bytes, length, 0x20) || // Space character.
-                isArrayFilled(bytes, length, 0x2A); // Asterisk character.
+        DBaseFile.prototype.isStringEmpty = function(string) {
+            return string.length <= 0 ||
+                DBaseFile.isStringFilled(string, 0x20) || // Space character.
+                DBaseFile.isStringFilled(string, 0x2A); // Asterisk character.
         };
 
         /**
-         * Indicates if the character array is filled with constant data of a particular kind.
-         * @param [Number[]} bytes The character array.
-         * @param {Number} length The length of the character array.
+         * Indicates if the string is filled with constant data of a particular kind.
+         * @param {String} string The string of characters.
          * @param {Number} fillValue The character value to test.
          * @returns {Boolean} True if the character array is filled with the specified value.
          */
-        DBaseFile.isArrayFilled = function(bytes, length, fillValue) {
-            if (length <= 0) {
+        DBaseFile.isStringFilled = function(string, fillValue) {
+            if (string.length <= 0) {
                 return false;
             }
 
-            for (var i = 0; i < length; i++) {
-                if (bytes[i] != fillValue)
+            for (var i = 0; i < string.length; i++) {
+                if (string.charAt(i) != fillValue)
                     return false;
             }
 
