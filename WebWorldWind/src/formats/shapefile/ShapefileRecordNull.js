@@ -29,6 +29,10 @@ define(['../../formats/shapefile/Shapefile',
 
         ShapefileRecordNull.prototype = Object.create(ShapefileRecord.prototype);
 
+        ShapefileRecordNull.prototype.readContents = function() {
+            this.readNullContents();
+        };
+
         return ShapefileRecordNull;
     }
 );

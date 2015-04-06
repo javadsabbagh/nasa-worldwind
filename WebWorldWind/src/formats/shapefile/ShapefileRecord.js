@@ -60,12 +60,17 @@ define([
             this._mRange = null;
             this._mValues = null;
 
-
+            // Internal use only. Intentionally not documented.
             this._contentLengthInBytes = -1;
+
+            // Internal use only. Intentionally not documented.
             this._buffer = buffer;
+
+            // Internal use only. Intentionally not documented.
             this._isNormalized = false;
+
+            // Internal use only. Intentionally not documented.
             this._parts = [];
-            this._points = null;
 
             // Prime the input pump.
             this.readRecord();
@@ -276,9 +281,9 @@ define([
          *
          * @throws Error If the shape types do not match.
          */
-        // TODO: fix this to handle the case of NULL records.
         ShapefileRecord.prototype.validateShapeType = function(shapeType) {
-            if (shapeType != this.shapefile.shapeType) {
+            if (shapeType !== this.shapefile.NULL &&
+                shapeType !== this.shapefile.shapeType) {
                 // TODO: throw the correct error
                 throw new Error(
                     Logger.log(Logger.LEVEL_SEVERE, "Shapefile record is not supported.")
@@ -286,6 +291,18 @@ define([
             }
         };
 
+        // Internal use only. Intentionally not documented.
+        ShapefileRecord.prototype.readNullContents = function() {
+            this._numberOfParts = 0;
+            this._numberOfPoints = 0;
+            this._parts = null;
+            this._boundingRectangle = null;
+
+            // Skip over the remaining contents of the record after the record's shape type.
+            this._buffer.seek(this._contentLengthInBytes - ByteBuffer.INT32_SIZE);
+        };
+
+        // Internal use only. Intentionally not documented.
         ShapefileRecord.prototype.readPointContents = function() {
             this._numberOfParts = 1;
             this._firstPartNumber = 0;
@@ -309,6 +326,7 @@ define([
             }
         };
 
+        // Internal use only. Intentionally not documented.
         ShapefileRecord.prototype.readPolylineContents = function() {
             // Read the bounding rectangle.
             var rect = this.shapefile.readBoundingRectangle(this._buffer);
@@ -351,55 +369,7 @@ define([
             }
         };
 
-        ShapefileRecord.prototype.readPolygonContents = function() {
-            // Read the bounding rectangle.
-            var rect = this.shapefile.readBoundingRectangle(this._buffer);
-            this._boundingRectangle = rect.coords;
-
-            // Specify that the record's points should be normalized if the bounding rectangle is normalized. Ignore the
-            // shapefile's normalizePoints property to avoid normalizing records that don't need it.
-            this._isNormalized = rect.isNormalized;
-
-            // Read the number of parts and the number of points.
-            this._numberOfParts = this._buffer.getInt32();
-            this._firstPartNumber = 0;
-            this._lastPartNumber = this._numberOfParts - 1;
-
-            this._numberOfPoints = this._buffer.getInt32();
-
-            // Get a raw view of the data points.
-            var pos = this._buffer.position;
-            this._points = this._buffer.getDoubleArray(this._numberOfPoints);
-            this._buffer.seek(pos);
-
-            if (this._numberOfParts > 0 && this._numberOfPoints > 0) {
-                // Read the part positions.
-                var partPositions = this._buffer.getInt32Array(this.numberOfParts);
-
-                for (var i = 0; i < this.numberOfParts; i++) {
-                    var length = (i == this.numberOfParts - 1) ?
-                    this._numberOfPoints - partPositions[i] :
-                    partPositions[i + 1] - partPositions[i];
-
-                    // Add the record's points to the Shapefile's point buffer, and record this record's part offset in the
-                    // Shapefile's point buffer.
-                    //var offset = this.shapefile.addPoints(this, this.buffer, length);
-                    this._parts[partNumber] = this._buffer.getDoubleArray(numPointsInPart * 2);
-                    ShapefileRecord.normalizeLocations(this._parts[partNumber]);
-                }
-            }
-
-            // Read the optional Z value.
-            if (this.isZType()) {
-                this.readZ(false);
-            }
-
-            // Read the optional measure value.
-            if (this.isMeasureType()) {
-                this.readOptionalMeasures(false);
-            }
-        };
-
+        // Internal use only. Intentionally not documented.
         ShapefileRecord.prototype.readMultiPointContents = function() {
             // Read the bounding rectangle.
             var rect = this.shapefile.readBoundingRectangle(this._buffer);
@@ -415,11 +385,6 @@ define([
 
             this._parts = [this._buffer.getDoubleArray(this._numberOfPoints * 2)];
             ShapefileRecord.normalizeLocations(this._parts[0]);
-
-            // Get a raw view of the data points.
-            var pos = this._buffer.position;
-            this._points = this._buffer.getDoubleArray(this._numberOfPoints * 2);
-            this._buffer.seek(pos);
 
             // Read the optional Z value.
             if (this.isZType()) {
@@ -443,7 +408,7 @@ define([
             }
             else {
                 this._zRange = this._buffer.getDoubleArray(2);
-                this._zValues = this._buffer.getDoubleArray(this.getNumberOfPoints());
+                this._zValues = this._buffer.getDoubleArray(this.numberOfPoints);
             }
         };
 
@@ -452,7 +417,7 @@ define([
          */
         ShapefileRecord.prototype.readOptionalMeasures = function(isPoint) {
             // Measure values are optional.
-            if (this._buffer.hasRemaining() && (this._buffer.limit() - this._buffer.position) >= (this.getNumberOfPoints() * 8)) {
+            if (this._buffer.hasRemaining() && (this._buffer.limit() - this._buffer.position) >= (this.numberOfPoints * 8)) {
                 if (isPoint) {
                     this._mValues = this._buffer.getDoubleArray(1);
                     var m = this._mValues[0];
@@ -460,7 +425,7 @@ define([
                 }
                 else {
                     this._mRange = this._buffer.getDoubleArray(2);
-                    this._mValues = this._buffer.getDoubleArray(this.getNumberOfPoints());
+                    this._mValues = this._buffer.getDoubleArray(this.numberOfPoints);
                 }
             }
         };
@@ -517,7 +482,7 @@ define([
 
         /**
          * Indicate whether the record is of a measure type.
-         * @returns {Boolean} True if the reocird is of a measure type.
+         * @returns {Boolean} True if the record is of a measure type.
          */
         ShapefileRecord.prototype.isMeasureType = function() {
             return this.shapefile.isMeasureType();
