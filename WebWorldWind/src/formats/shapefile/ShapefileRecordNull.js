@@ -18,7 +18,8 @@ define(['../../formats/shapefile/Shapefile',
          * {@link Shapefile} as shapefile records are read.
          * @alias ShapefileRecordNull
          * @constructor
-         * @classdesc Contains the data associated with a shapefile record.
+         * @classdesc Contains the data associated with a null shapefile record.
+         * @augments ShapefileRecord
          * @param {Shapefile} shapefile The shapefile containing this record.
          * @param {ByteBuffer} buffer A buffer descriptor to read data from.
          * @throws {ArgumentError} If either the specified shapefile or buffer are null or undefined.
