@@ -414,7 +414,7 @@ public class DataInstaller extends AVListImpl
         }
     }
 
-    public static void addLayerToWorldWindow(WorldWindow wwd, Element domElement, AVList dataSet, boolean goTo)
+    public static void addLayerToWorldWindow(final WorldWindow wwd, Element domElement, final AVList dataSet, final boolean goTo)
     {
         Layer layer = null;
         try
@@ -436,21 +436,29 @@ public class DataInstaller extends AVListImpl
         if (layer == null)
             return;
 
-        layer.setEnabled(true); // BasicLayerFactory creates layer which is initially disabled
-
-        Layer existingLayer = findLayer(wwd, dataSet.getStringValue(AVKey.DISPLAY_NAME));
-        if (existingLayer != null)
-            wwd.getModel().getLayers().remove(existingLayer);
-
-        removeLayerPreview(wwd, dataSet);
-
-        ApplicationTemplate.insertBeforePlacenames(wwd, layer);
-
-        final Sector sector = (Sector) layer.getValue(AVKey.SECTOR);
-        if (goTo && sector != null && !sector.equals(Sector.FULL_SPHERE))
+        final Layer finalLayer = layer;
+        SwingUtilities.invokeLater(new Runnable()
         {
-            ExampleUtil.goTo(wwd, sector);
-        }
+            @Override
+            public void run()
+            {
+                finalLayer.setEnabled(true); // BasicLayerFactory creates layer which is initially disabled
+
+                Layer existingLayer = findLayer(wwd, dataSet.getStringValue(AVKey.DISPLAY_NAME));
+                if (existingLayer != null)
+                    wwd.getModel().getLayers().remove(existingLayer);
+
+                removeLayerPreview(wwd, dataSet);
+
+                ApplicationTemplate.insertBeforePlacenames(wwd, finalLayer);
+
+                final Sector sector = (Sector) finalLayer.getValue(AVKey.SECTOR);
+                if (goTo && sector != null && !sector.equals(Sector.FULL_SPHERE))
+                {
+                    ExampleUtil.goTo(wwd, sector);
+                }
+            }
+        });
     }
 
     protected static void removeLayerPreview(WorldWindow wwd, AVList dataSet)
@@ -479,8 +487,8 @@ public class DataInstaller extends AVListImpl
 //        wwd.getModel().getLayers().remove(layer);
     }
 
-    public static void addElevationModelToWorldWindow(WorldWindow wwd, Element domElement, AVList dataSet,
-                                                      boolean goTo)
+    public static void addElevationModelToWorldWindow(final WorldWindow wwd, Element domElement, final AVList dataSet,
+                                                      final boolean goTo)
     {
         ElevationModel elevationModel = null;
         try
@@ -502,33 +510,41 @@ public class DataInstaller extends AVListImpl
         if (elevationModel == null)
             return;
 
-        ElevationModel existingElevationModel = findElevationModel(wwd, dataSet.getStringValue(AVKey.DISPLAY_NAME));
-        if (existingElevationModel != null)
-            removeElevationModel(wwd, existingElevationModel);
-
-        ElevationModel defaultElevationModel = wwd.getModel().getGlobe().getElevationModel();
-        if (defaultElevationModel instanceof CompoundElevationModel)
+        final ElevationModel em = elevationModel;
+        SwingUtilities.invokeLater(new Runnable()
         {
-            if (!((CompoundElevationModel) defaultElevationModel).containsElevationModel(elevationModel))
+            @Override
+            public void run()
             {
-                ((CompoundElevationModel) defaultElevationModel).addElevationModel(elevationModel);
+                ElevationModel existingElevationModel = findElevationModel(wwd, dataSet.getStringValue(AVKey.DISPLAY_NAME));
+                if (existingElevationModel != null)
+                    removeElevationModel(wwd, existingElevationModel);
+
+                ElevationModel defaultElevationModel = wwd.getModel().getGlobe().getElevationModel();
+                if (defaultElevationModel instanceof CompoundElevationModel)
+                {
+                    if (!((CompoundElevationModel) defaultElevationModel).containsElevationModel(em))
+                    {
+                        ((CompoundElevationModel) defaultElevationModel).addElevationModel(em);
+                    }
+                }
+                else
+                {
+                    CompoundElevationModel cm = new CompoundElevationModel();
+                    cm.addElevationModel(defaultElevationModel);
+                    cm.addElevationModel(em);
+                    wwd.getModel().getGlobe().setElevationModel(cm);
+                }
+
+                Sector sector = (Sector) em.getValue(AVKey.SECTOR);
+                if (goTo && sector != null && !sector.equals(Sector.FULL_SPHERE))
+                {
+                    ExampleUtil.goTo(wwd, sector);
+                }
+
+                wwd.firePropertyChange(new PropertyChangeEvent(wwd, AVKey.ELEVATION_MODEL, null, em));
             }
-        }
-        else
-        {
-            CompoundElevationModel cm = new CompoundElevationModel();
-            cm.addElevationModel(defaultElevationModel);
-            cm.addElevationModel(elevationModel);
-            wwd.getModel().getGlobe().setElevationModel(cm);
-        }
-
-        Sector sector = (Sector) elevationModel.getValue(AVKey.SECTOR);
-        if (goTo && sector != null && !sector.equals(Sector.FULL_SPHERE))
-        {
-            ExampleUtil.goTo(wwd, sector);
-        }
-
-        wwd.firePropertyChange(new PropertyChangeEvent(wwd, AVKey.ELEVATION_MODEL, null, elevationModel));
+        });
     }
 
     public static DataRasterReaderFactory getReaderFactory()
