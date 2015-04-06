@@ -21,6 +21,7 @@ define([
         '../../shapes/PlacemarkAttributes',
         '../../geom/Position',
         '../../formats/shapefile/PrjFile',
+        '../../layer/RenderableLayer',
         '../../shapes/ShapeAttributes',
         '../../formats/shapefile/ShapefileRecord',
         '../../formats/shapefile/ShapefileRecordMultiPoint',
@@ -39,12 +40,13 @@ define([
               Logger,
               NotYetImplementedError,
               Path,
-              PathAttribute,
+              PathAttributes,
               Placemark,
               PlacemarkAttributes,
               Position,
               PrjFile,
-              ShapeAttribute,
+              RenderableLayer,
+              ShapeAttributes,
               ShapefileRecord,
               ShapefileRecordMultiPoint,
               ShapefileRecordNull,
@@ -135,7 +137,7 @@ define([
              * The layer containing the shapes representing the records in the shapefile. This property is null until
              * the shapefile has been retrieved, parsed and the shapes created and added to the new layer.
              * @memberof Shapefile.prototype
-             * @type {Layer}
+             * @type {RenderableLayer}
              * @readonly
              */
             layer: {
@@ -207,16 +209,16 @@ define([
                     this.requestUrl(this.url);
                 }).bind(this);
 
-                this.attributeFile.load(attributeFileCallback, attributeFileCallback, attributeFileCallback);
+                this.attributeFile.load(attributeFileCallback);
             }).bind(this);
 
-            this.projectionFile.load(projectionFileCallback, projectionFileCallback, projectionFileCallback);
+            this.projectionFile.load(projectionFileCallback);
         };
 
         /**
          * Iterates over this shapefile's records and creates shapes for them. This method may be overridden by
          * subclasses to change the default shape creation behavior.
-         * @param {Layer} layer The layer in which to place the newly created shapes.
+         * @param {RenderableLayer} layer The layer in which to place the newly created shapes.
          * @protected
          */
         Shapefile.prototype.addRenderablesForShapefile = function (layer) {
@@ -234,7 +236,7 @@ define([
         /**
          * Iterates over this shapefile's records and creates placemarks for the shapefile's point records.
          * This method may be overridden by subclasses to change the default behavior.
-         * @param {Layer} layer The layer in which to place the newly created shapes.
+         * @param {RenderableLayer} layer The layer in which to place the newly created shapes.
          * @protected
          */
         Shapefile.prototype.addRenderablesForPoints = function (layer) {
@@ -262,7 +264,7 @@ define([
         /**
          * Iterates over this shapefile's records and creates placemarks for the shapefile's multi-point records.
          * This method may be overridden by subclasses to change the default behavior.
-         * @param {Layer} layer The layer in which to place the newly created shapes.
+         * @param {RenderableLayer} layer The layer in which to place the newly created shapes.
          * @protected
          */
         Shapefile.prototype.addRenderablesForMultiPoints = function (layer) {
@@ -290,7 +292,7 @@ define([
         /**
          * Iterates over this shapefile's records and creates paths for the shapefile's polyline records.
          * This method may be overridden by subclasses to change the default behavior.
-         * @param {Layer} layer The layer in which to place the newly created shapes.
+         * @param {RenderableLayer} layer The layer in which to place the newly created shapes.
          * @protected
          */
         Shapefile.prototype.addRenderablesForPolylines = function (layer) {
@@ -322,7 +324,7 @@ define([
          * "HEIGHT" then [ExtrudedPolygons]{@link ExtrudedPolygon} are created, otherwise
          * [SurfacePolygons]{@link SurfacePolygon} are created. This method may be overridden by subclasses to change
          * the default behavior.
-         * @param {Layer} layer The layer in which to place the newly created shapes.
+         * @param {RenderableLayer} layer The layer in which to place the newly created shapes.
          * @protected
          */
         Shapefile.prototype.addRenderablesForPolygons = function (layer) {
@@ -378,12 +380,15 @@ define([
          * @returns {ShapefileRecord} The next shapefile record in the shapefile, or null if no more records exist.
          */
         Shapefile.prototype.next = function () {
-            if (this._buffer.position < this._buffer.limit()) {
-                return this.readRecord(this._buffer);
+            while (this._buffer.position < this._buffer.limit()) {
+                var record = this.readRecord(this._buffer);
+                if (!(record instanceof ShapefileRecordNull)) {
+                    return record;
+                }
             }
-            else {
-                return null;
-            }
+
+            // If you get hear, the shapefile is out of records.
+            return null;
         };
 
         /**
@@ -752,7 +757,7 @@ define([
         *
         * @param {ByteBuffer} buffer The buffer descriptor containing the point record's content.
         *
-        * @return {ShapefileRecord} A new null shape {@link ShapefileRecord}.
+        * @return {ShapefileRecord} A new null shape {@link ShapefileRecordNull}.
         */
         Shapefile.prototype.createNull = function(buffer) {
             return new ShapefileRecordNull(this, buffer);
@@ -760,14 +765,14 @@ define([
 
         /**
         * Internal use only.
-        * Returns a new point {@link ShapefileRecord} from the specified buffer.
+        * Returns a new point {@link ShapefileRecordPoint} from the specified buffer.
         * <p/>
         * The buffer current position is assumed to be set at the start of the record and will be set to the start of the
         * next record after this method has completed.
         *
         * @param {ByteBuffer} buffer The buffer descriptor containing the point record's content.
         *
-        * @return {ShapefileRecord} A new point {@link ShapefileRecord}.
+        * @return {ShapefileRecord} A new point {@link ShapefileRecordPoint}.
         */
         Shapefile.prototype.createPoint = function(buffer) {
             return new ShapefileRecordPoint(this, buffer);
@@ -775,7 +780,7 @@ define([
 
         /**
         * Internal use only.
-        * Returns a new multi-point {@link ShapefileRecord} from the specified
+        * Returns a new multi-point {@link ShapefileRecordMultiPoint} from the specified
         * buffer.
         * <p/>
         * The buffer current position is assumed to be set at the start of the record and will be set to the start of the
@@ -783,7 +788,7 @@ define([
         *
         * @param {ByteBuffer} buffer The buffer descriptor containing the multi-point record's content.
         *
-        * @return {ShapefileRecord} A new multi-point {@link ShapefileRecord}.
+        * @return {ShapefileRecord} A new multi-point {@link ShapefileRecordMultiPoint}.
         */
         Shapefile.prototype.createMultiPoint = function(buffer) {
             return new ShapefileRecordMultiPoint(this, buffer);
@@ -791,14 +796,14 @@ define([
 
         /**
         * Internal use only.
-        * Returns a new polyline {@link ShapefileRecord} from the specified buffer.
+        * Returns a new polyline {@link ShapefileRecordPolyline} from the specified buffer.
         * <p/>
         * The buffer current position is assumed to be set at the start of the record and will be set to the start of the
         * next record after this method has completed.
         *
         * @param {ByteBuffer} buffer The buffer descriptor containing the polyline record's content.
         *
-        * @return {ShapefileRecord} A new polyline {@link ShapefileRecord}.
+        * @return {ShapefileRecord} A new polyline {@link ShapefileRecordPolyline}.
         */
         Shapefile.prototype.createPolyline = function(buffer) {
             return new ShapefileRecordPolyline(this, buffer);
@@ -806,14 +811,14 @@ define([
 
         /**
          * Internal use only.
-         * Returns a new polygon {@link ShapefileRecord} from the specified buffer.
+         * Returns a new polygon {@link ShapefileRecordPolygon} from the specified buffer.
          * <p/>
          * The buffer current position is assumed to be set at the start of the record and will be set to the start of the
          * next record after this method has completed.
          *
          * @param {ByteBuffer} buffer The buffer descriptor containing the polygon record's content.
          *
-         * @return {ShapefileRecord} A new polygon {@link ShapefileRecord}.
+         * @return {ShapefileRecord} A new polygon {@link ShapefileRecordPolygon}.
          */
         Shapefile.prototype.createPolygon = function(buffer) {
             return new ShapefileRecordPolygon(this, buffer);
@@ -822,7 +827,7 @@ define([
         /**
          * Maps the integer shape type from the shapefile to the corresponding shape type defined above.
          *
-         * @param {Number} type The integer shape type.
+         * @param {Number} shapeType The integer shape type.
          *
          * @return {String} The mapped shape type.
          */
@@ -936,7 +941,6 @@ define([
             return Shapefile.polygonTypes.hasOwnProperty(this._shapeType);
         };
 
-        // TODO: reference the WorldWind constants directly.
         Shapefile.NULL = "null";
         Shapefile.POINT = "point";
         Shapefile.MULTI_POINT = "multiPoint";
