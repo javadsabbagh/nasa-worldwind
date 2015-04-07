@@ -60,7 +60,7 @@ define([
          * </ul>
          * If the latter, the path positions' altitudes are ignored.
          * <p>
-         *     Paths have separate attributes for normal display and highlighted display. It uses the interior and
+         *     Paths have separate attributes for normal display and highlighted display. They use the interior and
          *     outline attributes of {@link ShapeAttributes} but does not use the image attributes.
          * <p>
          *     A path displays as a curtain if its [extrude]{@link Path#extrude} property is true. A curtain extends
@@ -104,10 +104,9 @@ define([
 
             // Assign the first position as the reference position.
             this.referencePosition = positions.length > 0 ? positions[0] : null;
-        };
 
-        Path.scratchMatrix = Matrix.fromIdentity(); // scratch variable
-        Path.scratchPoint = new Vec3(0, 0, 0); // scratch variable
+            this.scratchPoint = new Vec3(0, 0, 0); // scratch variable
+        };
 
         Path.prototype = Object.create(AbstractShape.prototype);
 
@@ -389,10 +388,10 @@ define([
                 segmentAzimuth = Location.greatCircleAzimuth(posA, posB);
             }
 
-            Path.scratchPoint.copy(ptA);
+            this.scratchPoint.copy(ptA);
             for (s = 0, p = 0; s < 1;) {
                 if (this._followTerrain) {
-                    p += this._terrainConformance * navState.pixelSizeAtDistance(Path.scratchPoint.distanceTo(eyePoint));
+                    p += this._terrainConformance * navState.pixelSizeAtDistance(this.scratchPoint.distanceTo(eyePoint));
                 } else {
                     p += arcLength / this._numSubSegments;
                 }
@@ -419,7 +418,7 @@ define([
                 if (this._followTerrain) {
                     // Compute a new reference point for eye distance.
                     dc.terrain.surfacePointForMode(pos.latitude, pos.longitude, pos.altitude,
-                        WorldWind.CLAMP_TO_GROUND, Path.scratchPoint);
+                        WorldWind.CLAMP_TO_GROUND, this.scratchPoint);
                 }
             }
         };
@@ -627,23 +626,6 @@ define([
             gl.depthMask(true);
             gl.lineWidth(1);
             gl.enable(WebGLRenderingContext.CULL_FACE);
-        };
-
-        // Private. Intentionally not documented.
-        Path.prototype.applyMvpMatrix = function (dc) {
-            Path.scratchMatrix.copy(dc.navigatorState.modelviewProjection);
-            Path.scratchMatrix.multiplyMatrix(this.currentData.transformationMatrix);
-            dc.currentProgram.loadModelviewProjection(dc.currentGlContext, Path.scratchMatrix);
-        };
-
-        // Private. Intentionally not documented.
-        Path.prototype.applyMvpMatrixForOutline = function (dc) {
-            // Causes the outline to stand out from the interior.
-            Path.scratchMatrix.copy(dc.navigatorState.projection);
-            Path.scratchMatrix.offsetProjectionDepth(-0.001);
-            Path.scratchMatrix.multiplyMatrix(dc.navigatorState.modelview);
-            Path.scratchMatrix.multiplyMatrix(this.currentData.transformationMatrix);
-            dc.currentProgram.loadModelviewProjection(dc.currentGlContext, Path.scratchMatrix);
         };
 
         return Path;
