@@ -15,9 +15,9 @@ define([
         '../geom/Location',
         '../util/Logger',
         '../geom/Matrix',
-        '../shapes/PathAttributes',
         '../pick/PickedObject',
         '../geom/Position',
+        '../shapes/ShapeAttributes',
         '../geom/Vec2',
         '../geom/Vec3'
     ],
@@ -29,9 +29,9 @@ define([
               Location,
               Logger,
               Matrix,
-              PathAttributes,
               PickedObject,
               Position,
+              ShapeAttributes,
               Vec2,
               Vec3) {
         "use strict";
@@ -75,20 +75,6 @@ define([
             }
 
             AbstractShape.call(this);
-
-            /**
-             * This shape's normal (non-highlight) attributes.
-             * @type {PathAttributes}
-             */
-            this.attributes = new PathAttributes(null);
-
-            /**
-             * This shape's highlight attributes. If null or undefined and this shape's highlight flag is true, this
-             * shape's normal attributes are used. If they in turn are null or undefined, this shape is not drawn.
-             * @type {PathAttributes}
-             * @default null
-             */
-            this.highlightAttributes = null;
 
             // Private. Documentation is with the defined property below.
             this._positions = positions;

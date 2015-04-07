@@ -97,7 +97,7 @@ requirejs([
                 if (record.isPolylineType()) {
                     // Modify path attributes in a data dependent manner as appropriate.
 
-                    var pathAttributes = new WorldWind.PathAttributes(null);
+                    var pathAttributes = new WorldWind.ShapeAttributes(null);
 
                     pathAttributes.drawVerticals = true;
                     pathAttributes.outlineColor = WorldWind.Color.BLACK;

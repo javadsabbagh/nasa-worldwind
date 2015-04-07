@@ -38,6 +38,7 @@ define([
             this._imageScale = attributes ? attributes._imageScale : 1.0;
             this._imageOffset = attributes ? attributes._imageOffset : null;
             this._depthTest = attributes ? attributes._depthTest : true;
+            this._drawVerticals = attributes ? attributes._drawVerticals : false;
 
             /**
              * Indicates whether this object's state key is invalid. Subclasses must set this value to true when their
@@ -68,7 +69,8 @@ define([
                 + " is " + (this._imageSource ? this.imageSource : "null")
                 + " isc " + this._imageScale
                 + " io " + (this._imageOffset ? this.imageOffset.toString() : "null")
-                + " dt " + this._depthTest;
+                + " dt " + this._depthTest
+                + " dv " + this._drawVerticals;
         };
 
         Object.defineProperties(ShapeAttributes.prototype, {
@@ -294,6 +296,23 @@ define([
                 },
                 set: function (value) {
                     this._depthTest = value;
+                    this.stateKeyInvalid = true;
+                }
+            },
+
+            /**
+             * Indicates whether this shape should draw vertical lines extending from its specified positions to the
+             * ground.
+             * @type {Boolean}
+             * @default false
+             * @memberof ShapeAttributes.prototype
+             */
+            drawVerticals: {
+                get: function () {
+                    return this._drawVerticals;
+                },
+                set: function (value) {
+                    this._drawVerticals = value;
                     this.stateKeyInvalid = true;
                 }
             }

@@ -14,7 +14,7 @@ requirejs(['../src/WorldWind'], function () {
     WorldWind.Logger.setLoggingLevel(WorldWind.Logger.LEVEL_WARNING);
 
     var makePathLayer = function () {
-        var pathAttributes = new WorldWind.PathAttributes(null);
+        var pathAttributes = new WorldWind.ShapeAttributes(null);
         pathAttributes.interiorColor = WorldWind.Color.CYAN;
         pathAttributes.outlineColor= WorldWind.Color.BLUE;
 
