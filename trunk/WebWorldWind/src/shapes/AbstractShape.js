@@ -94,6 +94,8 @@ define([
              * @default 2000 (milliseconds)
              */
             this.expirationInterval = 2000;
+
+            this.scratchMatrix = Matrix.fromIdentity(); // scratch variable
         };
 
         AbstractShape.prototype = Object.create(Renderable.prototype);
@@ -320,6 +322,32 @@ define([
          */
         AbstractShape.prototype.isWithinProjectionLimits = function (dc) {
             return true;
+        };
+
+        /**
+         * Apply the current navigator's model-view-projection matrix.
+         * @param {DrawContext} dc The current draw context.
+         * @protected
+         */
+        AbstractShape.prototype.applyMvpMatrix = function (dc) {
+            this.scratchMatrix.copy(dc.navigatorState.modelviewProjection);
+            this.scratchMatrix.multiplyMatrix(this.currentData.transformationMatrix);
+            dc.currentProgram.loadModelviewProjection(dc.currentGlContext, this.scratchMatrix);
+        };
+
+        /**
+         * Apply the current navigator's model-view-projection matrix with an offset to make this shape's outline
+         * stand out.
+         * @param {DrawContext} dc The current draw context.
+         * @protected
+         */
+        AbstractShape.prototype.applyMvpMatrixForOutline = function (dc) {
+            // Causes the outline to stand out from the interior.
+            this.scratchMatrix.copy(dc.navigatorState.projection);
+            this.scratchMatrix.offsetProjectionDepth(-0.001);
+            this.scratchMatrix.multiplyMatrix(dc.navigatorState.modelview);
+            this.scratchMatrix.multiplyMatrix(this.currentData.transformationMatrix);
+            dc.currentProgram.loadModelviewProjection(dc.currentGlContext, this.scratchMatrix);
         };
 
         return AbstractShape;
