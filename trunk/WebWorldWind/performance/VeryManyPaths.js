@@ -49,7 +49,7 @@ requirejs(['../src/WorldWind',
             path.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
             path.extrude = true;
 
-            attributes = new WorldWind.PathAttributes(null);
+            attributes = new WorldWind.ShapeAttributes(null);
             attributes.outlineColor = WorldWind.Color.BLUE;
             attributes.interiorColor = WorldWind.Color.CYAN;
             attributes.drawOutline = true;
@@ -57,7 +57,7 @@ requirejs(['../src/WorldWind',
             attributes.drawVerticals = true;
             path.attributes = attributes;
 
-            attributes = new WorldWind.PathAttributes(attributes);
+            attributes = new WorldWind.ShapeAttributes(attributes);
             attributes.outlineColor = WorldWind.Color.RED;
             attributes.interiorColor = WorldWind.Color.WHITE;
             path.highlightAttributes = attributes;

@@ -16,7 +16,6 @@ define([
         '../../util/Logger',
         '../../error/NotYetImplementedError',
         '../../shapes/Path',
-        '../../shapes/PathAttributes',
         '../../shapes/Placemark',
         '../../shapes/PlacemarkAttributes',
         '../../geom/Position',
@@ -40,7 +39,6 @@ define([
               Logger,
               NotYetImplementedError,
               Path,
-              PathAttributes,
               Placemark,
               PlacemarkAttributes,
               Position,
@@ -190,7 +188,7 @@ define([
          * This file, which has a .dbf suffix, is automatically detected, retrieved and parsed if it exists. The second
          * argument to the callback function is the {@link ShapefileRecord} currently being operated on. The return
          * value of the callback function must be either null, a {@link PlacemarkAttributes} object if the shapefile
-         * contains points, a {@link PathAttributes} object if the shapefile contains polylines, or a
+         * contains points, a {@link ShapeAttributes} object if the shapefile contains polylines, or a
          * {@link ShapeAttributes} object if the shapefile contains polygons. If the callback function returns null
          * then the newly created shape's default attributes are used.
          *

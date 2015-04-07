@@ -10,13 +10,13 @@ define([
         '../util/Color',
         '../util/Font',
         '../util/Offset',
-        '../shapes/PathAttributes',
+        '../shapes/ShapeAttributes',
         '../shapes/TextAttributes'
     ],
     function (Color,
               Font,
               Offset,
-              PathAttributes,
+              ShapeAttributes,
               TextAttributes) {
         "use strict";
 
@@ -41,7 +41,7 @@ define([
             this._depthTest = attributes ? attributes._depthTest : true;
             this._labelAttributes = attributes ? attributes._labelAttributes : new TextAttributes(null);
             this._drawLeaderLine = attributes ? attributes._drawLeaderLine : false;
-            this._leaderLineAttributes = attributes ? attributes._leaderLineAttributes : new PathAttributes(null);
+            this._leaderLineAttributes = attributes ? attributes._leaderLineAttributes : new ShapeAttributes(null);
 
             /**
              * Indicates whether this object's state key is invalid. Subclasses must set this value to true when their
@@ -219,8 +219,8 @@ define([
             /**
              * The attributes to apply to the leader line if it's drawn. If null, the placemark's leader line is
              * not drawn.
-             * @type {PathAttributes}
-             * @default The defaults of {@link PathAttributes}
+             * @type {ShapeAttributes}
+             * @default The defaults of {@link ShapeAttributes}
              * @memberof PlacemarkAttributes.prototype
              */
             leaderLineAttributes: {

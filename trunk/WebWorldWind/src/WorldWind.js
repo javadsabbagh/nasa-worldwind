@@ -58,7 +58,6 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './util/Offset',
         './gesture/PanRecognizer',
         './shapes/Path',
-        './shapes/PathAttributes',
         './pick/PickedObject',
         './pick/PickedObjectList',
         './gesture/PinchRecognizer',
@@ -168,7 +167,6 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               Offset,
               PanRecognizer,
               Path,
-              PathAttributes,
               PickedObject,
               PickedObjectList,
               PinchRecognizer,
@@ -457,7 +455,6 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['Offset'] = Offset;
         WorldWind['PanRecognizer'] = PanRecognizer;
         WorldWind['Path'] = Path;
-        WorldWind['PathAttributes'] = PathAttributes;
         WorldWind['PickedObject'] = PickedObject;
         WorldWind['PickedObjectList'] = PickedObjectList;
         WorldWind['PinchRecognizer'] = PinchRecognizer;
