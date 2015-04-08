@@ -61,7 +61,7 @@ define([
          * If the latter, the path positions' altitudes are ignored.
          * <p>
          *     Paths have separate attributes for normal display and highlighted display. They use the interior and
-         *     outline attributes of {@link ShapeAttributes} but does not use the image attributes.
+         *     outline attributes of {@link ShapeAttributes} but do not use the image attributes.
          * <p>
          *     A path displays as a curtain if its [extrude]{@link Path#extrude} property is true. A curtain extends
          *     from the line formed by the path positions to the ground.
@@ -71,7 +71,7 @@ define([
         var Path = function (positions) {
             if (!positions) {
                 throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "Path", "constructor", "missingPositions"));
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Path", "positions", "missingPositions"));
             }
 
             AbstractShape.call(this);
@@ -276,7 +276,6 @@ define([
             // translate the computed extent to the reference point.
             if (!this.currentData.extent) {
                 this.currentData.extent = new BoundingBox();
-
             }
             this.currentData.extent.setToPoints(tessellatedPoints);
             this.currentData.extent.translate(this.currentData.referencePoint);
