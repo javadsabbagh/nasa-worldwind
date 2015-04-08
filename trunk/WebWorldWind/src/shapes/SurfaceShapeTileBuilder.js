@@ -187,10 +187,6 @@ define([
                 return;
             }
 
-            // Determine if we can assemble and update the tiles. If not, we're done.
-            if (!this.canAssembleTiles(dc))
-                return;
-
             // Assemble the current visible tiles and update their associated textures if necessary.
             this.assembleTiles(dc);
 
@@ -201,18 +197,6 @@ define([
                 var tile = this.surfaceShapeTiles[idx];
                 tile.clearShapes();
             }
-        };
-
-        /**
-         * Returns true if the draw context's viewport width and height are greater than zero.
-         *
-         * @param {DrawContext} dc The DrawContext to test.
-         *
-         * @return {boolean} true if the DrawContext's has a non-zero viewport; false otherwise.
-         */
-        SurfaceShapeTileBuilder.prototype.canAssembleTiles = function(dc) {
-            var viewport = dc.navigatorState.viewport;
-            return viewport.width > 0 && viewport.height > 0;
         };
 
         /**
