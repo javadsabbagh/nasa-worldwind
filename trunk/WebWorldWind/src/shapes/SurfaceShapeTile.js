@@ -91,7 +91,7 @@ define([
             this.surfaceShapes = swap;
 
             // Clear out next surface shape list.
-            this.surfaceShapes.splice(0);
+            this.surfaceShapes.splice(0, this.surfaceShapes.length);
         };
 
         /**

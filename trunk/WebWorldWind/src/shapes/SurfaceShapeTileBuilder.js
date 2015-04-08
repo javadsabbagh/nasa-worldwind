@@ -123,8 +123,8 @@ define([
          * Clear all transient state from the surface shape tile builder.
          */
         SurfaceShapeTileBuilder.prototype.clear = function() {
-            this.surfaceShapeTiles.splice(0);
-            this.surfaceShapes.splice(0);
+            this.surfaceShapeTiles.splice(0, this.surfaceShapeTiles.length);
+            this.surfaceShapes.splice(0, this.surfaceShapes.length);
         };
 
         /**
@@ -196,7 +196,7 @@ define([
 
             // Clean up references to all surface shapes to avoid dangling references. The surface shape list is no
             // longer needed, now that the shapes are held by each tile.
-            this.surfaceShapes.splice(0);
+            this.surfaceShapes.splice(0, this.surfaceShapes.length);
             for (var idx = 0, len = this.surfaceShapeTiles.length; idx < len; idx += 1) {
                 var tile = this.surfaceShapeTiles[idx];
                 tile.clearShapes();
