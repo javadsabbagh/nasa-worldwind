@@ -642,7 +642,7 @@ define([
                 for (idx = 0, len = this.interiorGeometry.length; idx < len; idx += 1) {
                     idxPath = 0;
                     lenPath = this.outlineGeometry[idx].length * 2;
-                    path.splice(0);
+                    path.splice(0, path.length);
 
                     // Convert the geometry to a transformed path that can be drawn directly, and as a side effect,
                     // detect if the path is smaller than a pixel. If it is, don't bother drawing it.
@@ -679,7 +679,7 @@ define([
                 }
 
                 for (idx = 0, len = this.outlineGeometry.length; idx < len; idx += 1) {
-                    path.splice(0);
+                    path.splice(0, path.length);
 
                     // Convert the geometry to a transformed path that can be drawn directly, and as a side effect,
                     // detect if the path is smaller than a pixel. If it is, don't bother drawing it.
