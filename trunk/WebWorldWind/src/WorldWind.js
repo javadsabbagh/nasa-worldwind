@@ -64,6 +64,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './shapes/Placemark',
         './shapes/PlacemarkAttributes',
         './geom/Plane',
+        './shapes/Polygon',
         './geom/Position',
         './projections/ProjectionEquirectangular',
         './projections/ProjectionMercator',
@@ -173,6 +174,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               Placemark,
               PlacemarkAttributes,
               Plane,
+              Polygon,
               Position,
               ProjectionEquirectangular,
               ProjectionMercator,
@@ -461,6 +463,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['Placemark'] = Placemark;
         WorldWind['PlacemarkAttributes'] = PlacemarkAttributes;
         WorldWind['Plane'] = Plane;
+        WorldWind['Polygon'] = Polygon;
         WorldWind['Position'] = Position;
         WorldWind['ProjectionEquirectangular'] = ProjectionEquirectangular;
         WorldWind['ProjectionMercator'] = ProjectionMercator;

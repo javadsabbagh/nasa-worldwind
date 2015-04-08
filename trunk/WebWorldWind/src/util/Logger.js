@@ -95,6 +95,7 @@ define(function () {
             missingAltitudeMode: "The specified altitude mode is null or undefined.",
             missingAttributeName: "The specified DBase attribute file name is null or undefined.",
             missingArray: "The specified array is null, undefined or of insufficient length.",
+            missingBoundaries: "The specified boundaries array is null or undefined.",
             missingBuffer: "The specified buffer descriptor is null or undefined.",
             missingColor: "The specified color is null or undefined.",
             missingDc: "The specified draw context is null or undefined.",
