@@ -670,14 +670,6 @@ define([
                 var pattern = this.attributes.outlineStipplePattern,
                     factor = this.attributes.outlineStippleFactor;
 
-                if (!isPicking && pattern != 0xffff && factor > 0) {
-                    var lineDash = this.getLineDash(pattern, 4 * factor);
-                    ctx2D.setLineDash(lineDash);
-                }
-                else {
-                    ctx2D.setLineDash([1, 0]);
-                }
-
                 for (idx = 0, len = this.outlineGeometry.length; idx < len; idx += 1) {
                     path.splice(0, path.length);
 
@@ -740,60 +732,6 @@ define([
                 var po = new PickedObject(pickColor.clone(), this, null, dc.currentLayer, false);
                 dc.resolvePick(po);
             }
-        };
-
-        /**
-         * Internal use only.
-         * Compute a dash pattern that SVG can use to render the outline.
-         * @param {Number} pattern The pattern that the application specified.
-         * @param {Number} spacing The spacing that the application specified.
-         * @return {number[]} The line dash pattern that SVG expects.
-         */
-        SurfaceShape.prototype.getLineDash = function(pattern, spacing) {
-            var isOn = true,
-                runLength = 0,
-                lineDash = null;
-
-            for (var idx = 0, len = 16; idx < len; idx += 1) {
-                if (pattern & 1) {
-                    if (!isOn) {
-                        lineDash.push(spacing * runLength);
-                        runLength = 1;
-                        isOn = !isOn;
-                    }
-                    else {
-                        runLength += 1;
-                    }
-                }
-                else {
-                    if (isOn) {
-                        if (!lineDash) {
-                            lineDash = [];
-                        }
-                        lineDash.push(spacing * runLength);
-                        runLength = 1;
-                        isOn = !isOn;
-                    }
-                    else {
-                        runLength += 1;
-                    }
-
-                }
-
-                pattern >>= 1;
-            }
-
-            if (runLength > 0) {
-                lineDash.push(spacing * runLength);
-            }
-
-            // If we have an odd number of line dash length, make it even.
-            // SVG insists on the being an even number and will double the sequence if odd.
-            if (lineDash.length & 1) {
-                lineDash.push(0);
-            }
-
-            return lineDash;
         };
 
         //
