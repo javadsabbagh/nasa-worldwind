@@ -107,16 +107,15 @@ define([
              * The default split scale. The split scale 2.9 has been empirically determined to render sharp lines and edges with
              * the SurfaceShapes such as SurfacePolyline and SurfacePolygon.
              *
-             * @type {number}
+             * @type {Number}
              */
             this.SPLIT_SCALE = 2.9;
 
             // Internal use only. Intentionally not documented.
-            this.nextTileSet = {};
-            this.prevTileSet = {};
+            this.pickMode = false;
 
             // Internal use only. Intentionally not documented.
-            this.pickMode = false;
+            this.tileCache = new MemoryCache(500000, 400000);
         };
 
         /**
@@ -252,9 +251,6 @@ define([
                 }
             }
 
-            this.prevTileSet = this.nextTileSet;
-            this.nextTileSet = {};
-
             // Add each top level tile or its descendants to the current tile list.
             //for (var idxTile = 0, lenTiles = this.topLevelTiles.length; idxTile < lenTiles; idxTile += 1) {
             for (var key in intersectingTiles) {
@@ -307,7 +303,7 @@ define([
             }
 
             var nextLevel = levels.level(tile.level.levelNumber + 1);
-            var subTiles = tile.subdivide(nextLevel, this);
+            var subTiles = tile.subdivideToCache(nextLevel, this, this.tileCache);
             for (var idxTile = 0, lenTiles = subTiles.length; idxTile < lenTiles; idxTile += 1) {
                 var subTile = subTiles[idxTile];
                 this.addTileOrDescendants(dc, levels, tile, subTile);
@@ -379,10 +375,6 @@ define([
             if (dc.pickingMode) {
                 tile.pickSequence = SurfaceShapeTileBuilder.pickSequence;
             }
-            else {
-                // Save tile reference for future recycling.
-                this.nextTileSet[tile.tileKey] = tile;
-            }
 
             if (tile.needsUpdate(dc)) {
                 tile.updateTexture(dc);
@@ -402,26 +394,13 @@ define([
          *
          * @param {Sector} sector       The tile's Sector.
          * @param {Level} level         The tile's Level in a {@link LevelSet}.
-         * @param {number} row          The tile's row in the Level, starting from 0 and increasing to the right.
-         * @param {number} column       The tile's column in the Level, starting from 0 and increasing upward.
+         * @param {Number} row          The tile's row in the Level, starting from 0 and increasing to the right.
+         * @param {Number} column       The tile's column in the Level, starting from 0 and increasing upward.
          *
          * @return {SurfaceShapeTile} a new SurfaceShapeTile.
          */
         SurfaceShapeTileBuilder.prototype.createTile = function(sector, level, row, column) {
-            var tile,
-                tileKey = level.levelNumber.toString() + "." + row.toString() + "." + column.toString();
-
-            // If a tile was previously created EXACTLY for this level, row, and column, recycle it.
-            // This has a major performance benefit because the shape lists and textures will likely be the same.
-            if (!this.pickMode && this.prevTileSet.hasOwnProperty(tileKey)) {
-                tile = this.prevTileSet[tileKey];
-                delete this.prevTileSet[tileKey];
-            }
-            else {
-                tile = new SurfaceShapeTile(sector, level, row, column);
-            }
-
-            return tile;
+            return new SurfaceShapeTile(sector, level, row, column);
         };
 
         SurfaceShapeTileBuilder.prototype.createTopLevelTiles = function() {
@@ -438,7 +417,7 @@ define([
          * @param {DrawContext} dc   The draw context the surface shape is related to.
          * @param {SurfaceShapeTile} tile The tile to test for intersection.
          *
-         * @return {boolean} true if the tile intersects the draw context's frustum; false otherwise.
+         * @return {Boolean} true if the tile intersects the draw context's frustum; false otherwise.
          */
         SurfaceShapeTileBuilder.prototype.intersectsFrustum = function(dc, tile) {
             if (dc.globe.projectionLimits && !tile.sector.overlaps(dc.globe.projectionLimits)) {
@@ -458,7 +437,7 @@ define([
          * @param {LevelSet} levels         The level set the tile belongs to.
          * @param {SurfaceShapeTile} tile   The tile to test.
          *
-         * @return {boolean} true if the tile meets the rendering criteria; false otherwise.
+         * @return {Boolean} true if the tile meets the rendering criteria; false otherwise.
          */
         SurfaceShapeTileBuilder.prototype.meetsRenderCriteria = function(dc, levels, tile) {
             return tile.level.levelNumber == levels.lastLevel().levelNumber || !tile.mustSubdivide(dc, this.SPLIT_SCALE);
@@ -468,7 +447,7 @@ define([
          * Internal use only.
          * Count of pick operations. This is used to give a surface shape tile a unique pick sequence number if it is
          * participating in picking.
-         * @type {number}
+         * @type {Number}
          */
         SurfaceShapeTileBuilder.pickSequence = 0;
 
