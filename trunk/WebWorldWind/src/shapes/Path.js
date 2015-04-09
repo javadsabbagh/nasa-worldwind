@@ -18,6 +18,7 @@ define([
         '../pick/PickedObject',
         '../geom/Position',
         '../shapes/ShapeAttributes',
+        '../shapes/SurfacePolyline',
         '../geom/Vec2',
         '../geom/Vec3'
     ],
@@ -32,6 +33,7 @@ define([
               PickedObject,
               Position,
               ShapeAttributes,
+              SurfacePolyline,
               Vec2,
               Vec3) {
         "use strict";
@@ -240,6 +242,10 @@ define([
             }
 
             return this.currentData.isExpired
+        };
+
+        Path.prototype.createSurfaceShape = function () {
+            return new SurfacePolyline(this.positions, null);
         };
 
         // Overridden from AbstractShape base class.

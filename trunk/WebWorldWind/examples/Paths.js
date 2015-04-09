@@ -44,6 +44,7 @@ requirejs(['../src/WorldWind',
         path.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
         path.followTerrain = true;
         path.extrude = true;
+        path.useSurfaceShapeFor2D = true;
 
         var pathAttributes = new WorldWind.ShapeAttributes(null);
         pathAttributes.outlineColor = WorldWind.Color.BLUE;
