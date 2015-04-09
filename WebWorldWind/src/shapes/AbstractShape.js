@@ -44,19 +44,11 @@ define([
 
             Renderable.call(this);
 
-            /**
-             * This shape's normal (non-highlight) attributes.
-             * @type {ShapeAttributes}
-             */
-            this.attributes = new ShapeAttributes(null);
+            // Documented with its property accessor below.
+            this._attributes = new ShapeAttributes(null);
 
-            /**
-             * This shape's highlight attributes. If null or undefined and this shape's highlight flag is true, this
-             * shape's normal attributes are used. If they in turn are null or undefined, this shape is not drawn.
-             * @type {ShapeAttributes}
-             * @default null
-             */
-            this.highlightAttributes = null;
+            // Documented with its property accessor below.
+            this._highlightAttributes = null;
 
             /**
              * Indicates whether this shape uses its normal attributes or its highlight attributes when displayed.
@@ -95,12 +87,55 @@ define([
              */
             this.expirationInterval = 2000;
 
+            /**
+             * Indicates whether to use a surface shape to represent this shape when drawn on a 2D globe.
+             * @type {Boolean}
+             * @default false
+             */
+            this.useSurfaceShapeFor2D = false;
+
             this.scratchMatrix = Matrix.fromIdentity(); // scratch variable
         };
 
         AbstractShape.prototype = Object.create(Renderable.prototype);
 
         Object.defineProperties(AbstractShape.prototype, {
+            /**
+             * This shape's normal (non-highlight) attributes.
+             * @type {ShapeAttributes}
+             */
+            attributes: {
+                get: function () {
+                    return this._attributes;
+                },
+                set: function (value) {
+                    this._attributes = value;
+
+                    if (this.surfaceShape) {
+                        this.surfaceShape.attributes = this._attributes;
+                    }
+                }
+            },
+
+            /**
+             * This shape's highlight attributes. If null or undefined and this shape's highlight flag is true, this
+             * shape's normal attributes are used. If they in turn are null or undefined, this shape is not drawn.
+             * @type {ShapeAttributes}
+             * @default null
+             */
+            highlightAttributes: {
+                get: function () {
+                    return this._highlightAttributes;
+                },
+                set: function (value) {
+                    this._highlightAttributes = value;
+
+                    if (this.surfaceShape) {
+                        this.surfaceShape.highlightAttributes = this._highlightAttributes;
+                    }
+                }
+            },
+
             /**
              * The altitude mode to use when drawing this shape. Recognized values are:
              * <ul>
@@ -135,11 +170,38 @@ define([
          */
         AbstractShape.prototype.reset = function () {
             this.shapeDataCache.clear(false);
+            this.surfaceShape = null;
+        };
+
+        AbstractShape.prototype.updateSurfaceShape = function () {
+            this.surfaceShape.highlighted = this.highlighted;
+            this.surfaceShape.enabled = this.enabled;
+            this.surfaceShape.pickDelegate = this.pickDelegate ? this.pickDelegate : this;
+        };
+
+        AbstractShape.prototype.createSurfaceShape = function () {
+            return null;
         };
 
         AbstractShape.prototype.render = function (dc) {
             if (!this.enabled) {
                 return;
+            }
+
+            if (dc.globe.is2D() && this.useSurfaceShapeFor2D) {
+                if (!this.surfaceShape) {
+                    this.surfaceShape = this.createSurfaceShape();
+                    if (this.surfaceShape) {
+                        this.surfaceShape.attributes = this._attributes;
+                        this.surfaceShape.highlightAttributes = this._highlightAttributes;
+                    }
+                }
+
+                if (this.surfaceShape) {
+                    this.updateSurfaceShape();
+                    this.surfaceShape.render(dc);
+                    return;
+                }
             }
 
             if (!dc.terrain && (this.altitudeMode != WorldWind.ABSOLUTE)) {
@@ -304,10 +366,10 @@ define([
 
         // Internal. Intentionally not documented.
         AbstractShape.prototype.determineActiveAttributes = function (dc) {
-            if (this.highlighted && this.highlightAttributes) {
+            if (this.highlighted && this._highlightAttributes) {
                 this.activeAttributes = this.highlightAttributes;
             } else {
-                this.activeAttributes = this.attributes;
+                this.activeAttributes = this._attributes;
             }
         };
 
