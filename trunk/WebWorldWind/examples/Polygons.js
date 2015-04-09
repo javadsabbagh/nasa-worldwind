@@ -3,7 +3,7 @@
  * National Aeronautics and Space Administration. All Rights Reserved.
  */
 /**
- * Illustrates how to display and pick Paths.
+ * Illustrates how to display and pick Polygons.
  *
  * @version $Id$
  */
@@ -36,26 +36,31 @@ requirejs(['../src/WorldWind',
             wwd.addLayer(layers[l].layer);
         }
 
+        // Define an outer and an inner boundary to make a polygon with a hole.
         var boundaries = [];
-        boundaries[0] = [];
-        boundaries[0].push(new WorldWind.Position(40, -100, 1e4));
-        boundaries[0].push(new WorldWind.Position(45, -110, 1e4));
-        boundaries[0].push(new WorldWind.Position(40, -120, 1e4));
-        boundaries[1] = [];
-        boundaries[1].push(new WorldWind.Position(41, -103, 1e4));
-        boundaries[1].push(new WorldWind.Position(44, -110, 1e4));
-        boundaries[1].push(new WorldWind.Position(41, -117, 1e4));
+        boundaries[0] = []; // outer boundary
+        boundaries[0].push(new WorldWind.Position(40, -100, 1e5));
+        boundaries[0].push(new WorldWind.Position(45, -110, 1e5));
+        boundaries[0].push(new WorldWind.Position(40, -120, 1e5));
+        boundaries[1] = []; // inner boundary
+        boundaries[1].push(new WorldWind.Position(41, -103, 1e5));
+        boundaries[1].push(new WorldWind.Position(44, -110, 1e5));
+        boundaries[1].push(new WorldWind.Position(41, -117, 1e5));
+
+        // Create the polygon and assign its attributes.
 
         var polygon = new WorldWind.Polygon(boundaries);
         polygon.altitudeMode = WorldWind.ABSOLUTE;
-        polygon.followTerrain = false;
+        polygon.extrude = true; // extrude the polygon edges to the ground
 
-        var pathAttributes = new WorldWind.ShapeAttributes(null);
-        pathAttributes.outlineColor = WorldWind.Color.BLUE;
-        pathAttributes.interiorColor = new WorldWind.Color(0, 1, 1, 0.5);
-        pathAttributes.drawVerticals = true;
-        polygon.attributes = pathAttributes;
-        var highlightAttributes = new WorldWind.ShapeAttributes(pathAttributes);
+        var polygonAttributes = new WorldWind.ShapeAttributes(null);
+        polygonAttributes.drawInterior = true;
+        polygonAttributes.drawOutline = true;
+        polygonAttributes.outlineColor = WorldWind.Color.BLUE;
+        polygonAttributes.interiorColor = new WorldWind.Color(0, 1, 1, 0.5);
+        polygonAttributes.drawVerticals = polygon.extrude;
+        polygon.attributes = polygonAttributes;
+        var highlightAttributes = new WorldWind.ShapeAttributes(polygonAttributes);
         highlightAttributes.outlineColor = WorldWind.Color.RED;
         highlightAttributes.interiorColor = new WorldWind.Color(1, 1, 1, 0.5);
         polygon.highlightAttributes = highlightAttributes;
