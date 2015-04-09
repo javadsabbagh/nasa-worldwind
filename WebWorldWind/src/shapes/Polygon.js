@@ -20,7 +20,7 @@ define([
         '../shapes/ShapeAttributes',
         '../geom/Vec2',
         '../geom/Vec3',
-        '../../thirdparty/libtess.cat'
+        '../util/libtess.cat.js'
     ],
     function (AbstractShape,
               ArgumentError,
