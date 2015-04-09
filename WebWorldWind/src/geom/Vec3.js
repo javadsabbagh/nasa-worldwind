@@ -112,6 +112,122 @@ define([
         };
 
         /**
+         * Indicates whether three vectors are colinear.
+         * @param {Vec3} a The first vector.
+         * @param {Vec3} b The second vector.
+         * @param {Vec3} c The third vector.
+         * @returns {Boolean} true if the vectors are colinear, otherwise false.
+         * @throws {ArgumentError} If any of the specified vectors are null or undefined.
+         */
+        Vec3.areColinear = function (a, b, c) {
+            if (!a || !b || !c) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Vec3", "areColinear", "missingVector"));
+            }
+
+            var ab = b.subtract(a).normalize(),
+                bc = c.subtract(b).normalize();
+
+            // ab and bc are considered colinear if their dot product is near +/-1.
+            return Math.abs(ab.dot(bc)) > 0.999;
+        };
+
+        /**
+         * Computes the normal vector of a specified triangle.
+         *
+         * @param {Vec3} a The triangle's first vertex.
+         * @param {Vec3} b The triangle's second vertex.
+         * @param {Vec3} c The triangle's third vertex.
+         * @returns {Vec3} The triangle's unit-normal vector.
+         * @throws {ArgumentError} If any of the specified vectors are null or undefined.
+         */
+        Vec3.computeTriangleNormal = function (a, b, c) {
+            if (!a || !b || !c) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Vec3", "areColinear", "missingVector"));
+            }
+
+            var x = ((b[1] - a[1]) * (c[2] - a[2])) - ((b[2] - a[2]) * (c[1] - a[1])),
+                y = ((b[2] - a[2]) * (c[0] - a[0])) - ((b[0] - a[0]) * (c[2] - a[2])),
+                z = ((b[0] - a[0]) * (c[1] - a[1])) - ((b[1] - a[1]) * (c[0] - a[0])),
+                length = (x * x) + (y * y) + (z * z);
+
+            if (length === 0) {
+                return new Vec3(x, y, z);
+            }
+
+            length = Math.sqrt(length);
+
+            return new Vec3(x / length, y / length, z / length);
+        };
+
+        /**
+         * Finds three non-colinear points in an array of coordinates.
+         *
+         * @param {Number[]} coords The coordinates, in the order x0, y0, z0, x1, y1, z1, ...
+         * @param {Number} stride The number of numbers between successive points. 0 indicates that the points
+         * are arranged one immediately after the other, as would the value 3.
+         * @returns {Vec3[]} Three non-colinear points from the input array of coordinates, or null if three
+         * non-colinear points could not be found or the specified coordinates array is null, undefined or
+         * contains fewer than three points.
+         */
+        Vec3.findThreeIndependentVertices = function (coords, stride) {
+            var xstride = (stride && stride > 0) ? stride : 3;
+
+            if (!coords || coords.length < 3 * xstride) {
+                return null;
+            }
+
+            var a = new Vec3(coords[0], coords[1], coords[2]),
+                b = null,
+                c = null,
+                k = xstride;
+
+            for (; k < coords.length; k += xstride) {
+                b = new Vec3(coords[k], coords[k + 1], coords[k + 2]);
+                if (!(b[0] === a[0] && b[1] === a[1] && b[2] === a[2])) {
+                    break;
+                }
+                b = null;
+            }
+
+            if (!b) {
+                return null;
+            }
+
+            for (k += xstride; k < coords.length; k += xstride) {
+                c = new Vec3(coords[k], coords[k + 1], coords[k + 2]);
+
+                // if c is not coincident with a or b, and the vectors ab and bc are not colinear, break and
+                // return a, b, c.
+                if (!((c[0] === a[0] && c[1] === a[1] && c[2] === a[2])
+                    || (c[0] === b[0] && c[1] === b[1] && c[2] === b[2]))) {
+                    if (!Vec3.areColinear(a, b, c))
+                        break;
+                }
+
+                c = null;
+            }
+
+            return c ? [a, b, c] : null;
+        };
+
+        /**
+         * Computes a unit-normal vector for a buffer of coordinate triples. The normal vector is computed from the
+         * first three non-colinear points in the buffer.
+         *
+         * @param {Number[]} coords The coordinates, in the order x0, y0, z0, x1, y1, z1, ...
+         * @param {Number} stride The number of numbers between successive points. 0 indicates that the points
+         * are arranged one immediately after the other, as would the value 3.
+         * @returns {Vec3} The computed unit-length normal vector.
+         */
+        Vec3.computeBufferNormal = function (coords, stride) {
+            var vertices = Vec3.findThreeIndependentVertices(coords, stride);
+
+            return vertices ? Vec3.computeTriangleNormal(vertices[0], vertices[1], vertices[2]) : null;
+        };
+
+        /**
          * Assigns the components of this vector.
          * @param {Number} x The X component of the vector.
          * @param {Number} y The Y component of the vector.
