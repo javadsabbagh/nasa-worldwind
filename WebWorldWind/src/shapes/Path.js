@@ -88,8 +88,7 @@ define([
             // Private. Documentation is with the defined property below.
             this._numSubSegments = 10;
 
-            // Assign the first position as the reference position.
-            this.referencePosition = positions.length > 0 ? positions[0] : null;
+            this.referencePosition = this.determineReferencePosition(this._positions);
 
             this.scratchPoint = new Vec3(0, 0, 0); // scratch variable
         };
@@ -113,7 +112,7 @@ define([
                     }
 
                     this._positions = positions;
-                    this.referencePosition = positions.length > 0 ? positions[0] : null;
+                    this.referencePosition = this.determineReferencePosition(this._positions);
                     this.reset();
                 }
             },
@@ -211,6 +210,12 @@ define([
             }
         });
 
+        // Intentionally not documented.
+        Path.prototype.determineReferencePosition = function (positions) {
+            // Assign the first position as the reference position.
+            return (positions.length > 2) ? positions[0] : null;
+        };
+
         // Internal. Determines whether this shape's geometry must be re-computed.
         Path.prototype.mustGenerateGeometry = function (dc) {
             if (!this.currentData.tessellatedPoints) {
@@ -240,7 +245,7 @@ define([
         // Overridden from AbstractShape base class.
         Path.prototype.doMakeOrderedRenderable = function (dc) {
             // A null reference position is a signal that there are no positions to render.
-            if (!this.referencePosition || this._positions.length < 2) {
+            if (!this.referencePosition) {
                 return null;
             }
 
@@ -466,7 +471,9 @@ define([
 
         // Private. Intentionally not documented.
         Path.prototype.mustDrawInterior = function (dc) {
-            return this.activeAttributes.drawInterior && this._altitudeMode !== WorldWind.CLAMP_TO_GROUND;
+            return this.activeAttributes.drawInterior
+                && this._extrude
+                && this._altitudeMode !== WorldWind.CLAMP_TO_GROUND;
         };
 
         // Private. Intentionally not documented.

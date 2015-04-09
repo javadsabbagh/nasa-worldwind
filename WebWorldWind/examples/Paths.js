@@ -43,11 +43,12 @@ requirejs(['../src/WorldWind',
         var path = new WorldWind.Path(pathPositions);
         path.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
         path.followTerrain = true;
+        path.extrude = true;
 
         var pathAttributes = new WorldWind.ShapeAttributes(null);
         pathAttributes.outlineColor = WorldWind.Color.BLUE;
         pathAttributes.interiorColor = new WorldWind.Color(0, 1, 1, 0.5);
-        pathAttributes.drawVerticals = true;
+        pathAttributes.drawVerticals = path.extrude; // draw verticals only when extruding
         path.attributes = pathAttributes;
         var highlightAttributes = new WorldWind.ShapeAttributes(pathAttributes);
         highlightAttributes.outlineColor = WorldWind.Color.RED;
