@@ -172,6 +172,9 @@ define([
 
             // Internal use only. Intentionally not documented.
             this.isPrepared = false;
+
+            // Internal use only. Intentionally not documented.
+            this.layer = null;
         };
 
         SurfaceShape.prototype = Object.create(Renderable.prototype);
@@ -215,6 +218,8 @@ define([
 
         // Internal function. Intentionally not documented.
         SurfaceShape.prototype.render = function(dc) {
+            this.layer = dc.currentLayer;
+
             this.prepareBoundaries(dc);
 
             dc.surfaceShapeTileBuilder.insertSurfaceShape(this);
@@ -313,8 +318,6 @@ define([
         SurfaceShape.prototype.prepareBoundaries = function(dc) {
             if (this.isPrepared) return;
 
-            this.prepareSectors();
-
             // Some shapes generate boundaries, such as ellipses and sectors;
             // others don't, such as polylines and polygons.
             // Handle the latter below.
@@ -327,6 +330,8 @@ define([
             }
 
             this.prepareGeometry(dc);
+
+            this.prepareSectors();
 
             this.isPrepared = true;
         };
@@ -730,7 +735,7 @@ define([
 
             if (isPicking) {
                 var po = new PickedObject(pickColor.clone(), this.pickDelegate ? this.pickDelegate : this,
-                    null, dc.currentLayer, false);
+                    null, this.layer, false);
                 dc.resolvePick(po);
             }
         };
