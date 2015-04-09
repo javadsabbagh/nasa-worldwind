@@ -729,7 +729,8 @@ define([
             }
 
             if (isPicking) {
-                var po = new PickedObject(pickColor.clone(), this, null, dc.currentLayer, false);
+                var po = new PickedObject(pickColor.clone(), this.pickDelegate ? this.pickDelegate : this,
+                    null, dc.currentLayer, false);
                 dc.resolvePick(po);
             }
         };
