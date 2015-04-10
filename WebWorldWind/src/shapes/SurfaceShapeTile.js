@@ -184,6 +184,10 @@ define([
          * @returns {boolean} True if the surface shape tile has a valid texture, else false.
          */
         SurfaceShapeTile.prototype.hasTexture = function(dc) {
+            if (dc.pickingMode) {
+                return false;
+            }
+
             var gpuResourceCache = dc.gpuResourceCache;
 
             if (!this.gpuCacheKey) {
@@ -201,19 +205,24 @@ define([
          * @returns {Texture} The texture for displaying the tile.
          */
         SurfaceShapeTile.prototype.getTexture = function(dc) {
-            var gpuResourceCache = dc.gpuResourceCache;
-
-            if (!this.gpuCacheKey) {
-                this.gpuCacheKey = this.getCacheKey();
+            if (dc.pickingMode) {
+                return this.updateTexture(dc);
             }
+            else {
+                var gpuResourceCache = dc.gpuResourceCache;
 
-            var texture = gpuResourceCache.resourceForKey(this.gpuCacheKey);
+                if (!this.gpuCacheKey) {
+                    this.gpuCacheKey = this.getCacheKey();
+                }
 
-            if (!texture) {
-                texture = this.updateTexture(dc);
+                var texture = gpuResourceCache.resourceForKey(this.gpuCacheKey);
+
+                if (!texture) {
+                    texture = this.updateTexture(dc);
+                }
+
+                return texture;
             }
-
-            return texture;
         };
 
         /**

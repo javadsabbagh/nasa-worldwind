@@ -175,6 +175,9 @@ define([
 
             // Internal use only. Intentionally not documented.
             this.layer = null;
+
+            // Internal use only. Intentionally not documented.
+            this.pickColor = null;
         };
 
         SurfaceShape.prototype = Object.create(Renderable.prototype);
@@ -616,6 +619,11 @@ define([
             return locationGroup;
         };
 
+        // Internal use only. Intentionally not documented.
+        SurfaceShape.prototype.resetPickColor = function() {
+            this.pickColor = null;
+        };
+
         /**
          * Internal use only.
          * Render the shape onto the texture map of the tile.
@@ -632,17 +640,16 @@ define([
                 path = [],
                 idxPath,
                 lenPath,
-                pickColor,
                 isPicking = dc.pickingMode,
                 attributes = (this.highlighted ? (this.highlightAttributes || this.attributes) : this.attributes);
 
-            if (isPicking) {
-                pickColor = dc.uniquePickColor();
+            if (isPicking && !this.pickColor) {
+                this.pickColor = dc.uniquePickColor();
             }
 
             // Fill the interior of the shape.
             if (!this.isInteriorInhibited && attributes.drawInterior) {
-                ctx2D.fillStyle = isPicking ? pickColor.toHexString(false) : attributes.interiorColor.toHexString(false);
+                ctx2D.fillStyle = isPicking ? this.pickColor.toHexString(false) : attributes.interiorColor.toHexString(false);
 
                 for (idx = 0, len = this.interiorGeometry.length; idx < len; idx += 1) {
                     idxPath = 0;
@@ -670,7 +677,7 @@ define([
             // Draw the outline of the shape.
             if (attributes.drawOutline && attributes.outlineWidth > 0) {
                 ctx2D.lineWidth = 4 * attributes.outlineWidth;
-                ctx2D.strokeStyle = isPicking ? pickColor.toHexString(false) : attributes.outlineColor.toHexString(false);
+                ctx2D.strokeStyle = isPicking ? this.pickColor.toHexString(false) : attributes.outlineColor.toHexString(false);
 
                 var pattern = this.attributes.outlineStipplePattern,
                     factor = this.attributes.outlineStippleFactor;
@@ -734,7 +741,7 @@ define([
             }
 
             if (isPicking) {
-                var po = new PickedObject(pickColor.clone(), this.pickDelegate ? this.pickDelegate : this,
+                var po = new PickedObject(this.pickColor.clone(), this.pickDelegate ? this.pickDelegate : this,
                     null, this.layer, false);
                 dc.resolvePick(po);
             }
