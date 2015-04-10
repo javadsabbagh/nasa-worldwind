@@ -156,6 +156,12 @@ define([
 
             this.buildTiles(dc);
 
+            if (dc.pickingMode) {
+                for (var idx = 0, len = this.surfaceShapes.length; idx < len; idx += 1) {
+                    this.surfaceShapes[idx].resetPickColor();
+                }
+            }
+
             dc.surfaceTileRenderer.renderTiles(dc, this.surfaceShapeTiles, 1);
 
             if (dc.pickingMode) {
@@ -303,7 +309,9 @@ define([
             }
 
             var nextLevel = levels.level(tile.level.levelNumber + 1);
-            var subTiles = tile.subdivideToCache(nextLevel, this, this.tileCache);
+            var subTiles = dc.pickingMode ?
+                tile.subdivide(nextLevel, this) :
+                tile.subdivideToCache(nextLevel, this, this.tileCache);
             for (var idxTile = 0, lenTiles = subTiles.length; idxTile < lenTiles; idxTile += 1) {
                 var subTile = subTiles[idxTile];
                 this.addTileOrDescendants(dc, levels, tile, subTile);
