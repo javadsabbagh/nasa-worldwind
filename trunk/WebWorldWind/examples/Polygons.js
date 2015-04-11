@@ -138,6 +138,42 @@ requirejs(['../src/WorldWind',
 
         polygonsLayer.addRenderable(polygon);
 
+        // Create a textured polygon with a hole at the north pole.
+        boundaries = [];
+        boundaries[0] = []; // outer boundary
+        boundaries[0].push(new WorldWind.Position(85, -45, 1e5));
+        boundaries[0].push(new WorldWind.Position(85, +45, 1e5));
+        boundaries[0].push(new WorldWind.Position(85, +135, 1e5));
+        boundaries[0].push(new WorldWind.Position(85, -135, 1e5));
+        boundaries[1] = []; // inner boundary
+        boundaries[1].push(new WorldWind.Position(89, -45, 1e5));
+        boundaries[1].push(new WorldWind.Position(89, +45, 1e5));
+        boundaries[1].push(new WorldWind.Position(89, +135, 1e5));
+        boundaries[1].push(new WorldWind.Position(89, -135, 1e5));
+
+        polygon = new WorldWind.Polygon(boundaries);
+        polygon.altitudeMode = WorldWind.ABSOLUTE;
+        polygon.extrude = true;
+        polygon.textureCoordinates = [
+            [new WorldWind.Vec2(0, 0), new WorldWind.Vec2(1, 0), new WorldWind.Vec2(1, 1), new WorldWind.Vec2(0, 1)],
+            [new WorldWind.Vec2(0.4, 0.4), new WorldWind.Vec2(0.6, 0.4), new WorldWind.Vec2(0.6, 0.6),
+                new WorldWind.Vec2(0.4, 0.6)]
+        ];
+
+        polygonAttributes = new WorldWind.ShapeAttributes(null);
+        polygonAttributes.imageSource = "../images/400x230-splash-nww.png";
+        polygonAttributes.drawInterior = true;
+        polygonAttributes.drawOutline = true;
+        polygonAttributes.outlineColor = WorldWind.Color.BLUE;
+        polygonAttributes.interiorColor = WorldWind.Color.WHITE;
+        polygonAttributes.drawVerticals = polygon.extrude;
+        polygon.attributes = polygonAttributes;
+        highlightAttributes = new WorldWind.ShapeAttributes(polygonAttributes);
+        highlightAttributes.outlineColor = WorldWind.Color.RED;
+        polygon.highlightAttributes = highlightAttributes;
+
+        polygonsLayer.addRenderable(polygon);
+
         // Draw the World Window for the first time.
         wwd.redraw();
 
