@@ -160,7 +160,7 @@ define([
                 },
                 set: function (imagePath) {
                     if (!imagePath) {
-                        throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceImage", "imagePath",
+                        throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "ScreenImage", "imagePath",
                             "missingPath"));
                     }
 
