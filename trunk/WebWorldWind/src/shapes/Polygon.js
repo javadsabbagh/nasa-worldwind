@@ -61,12 +61,25 @@ define([
          *     applied to the polygon.
          * <p>
          *     A polygon displays as a vertical prism if its [extrude]{@link Polygon#extrude} property is true. A
-         *     curtain is formed around its boundaries and extends from the polygon's edges to the ground. Individual
-         *     images can be provided for each extruded boundary edge.
+         *     curtain is formed around its boundaries and extends from the polygon's edges to the ground.
+         * <p>
+         *     A polygon can be textured, including its extruded boundaries. The textures are specified via the
+         *     [imageSource]{@link ShapeAttributes#imageSource} property of the polygon's attributes. If that
+         *     property is a single string, then it identifies the image source for the polygon's texture. If that
+         *     property is an array of strings, then the first entry in the array specifies the polygon's image
+         *     source and subsequent entries specify the image sources of the polygon's extruded boundaries. If the
+         *     array contains two entries, the first is the polygon's image source and the second is the common image
+         *     source for all extruded boundaries. If the array contains more than two entries, then the first entry
+         *     is the polygon's image source and each subsequent entry is the image source for consecutive extruded
+         *     boundary segments. A null value for any entry indicates that no texture is applied for the corresponding
+         *     polygon or extruded edge segment. Texture coordinates for the polygon's texture are specified via this
+         *     polygon's [textureCoordinates]{@link Polygon#textureCoordinates} property. Texture coordinates for
+         *     extruded boundary segments are implicitly defined to fit the full texture to each boundary segment.
+         *     The imageOffset and imageScale properties of this polygon's shape attributes are not utilized.
          * <p>
          *     When displayed on a 2D globe, this polygon displays as a {@link SurfacePolygon}.
          *
-         * @param {Position[][]} boundaries A 2-dimensional array containing the polygon boundaries. Each entry of the
+         * @param {Position[][]} boundaries A two-dimensional array containing the polygon boundaries. Each entry of the
          * array specifies the vertices for one boundary of the polygon, in geographic coordinates. The first boundary
          * in the array is considered the outer boundary for the purpose of calculating the polygon's extent.
          * @throws {ArgumentError} If the specified boundaries array is null or undefined.
@@ -81,6 +94,8 @@ define([
 
             // Private. Documentation is with the defined property below and the constructor description above.
             this._boundaries = boundaries;
+
+            this._textureCoordinates = null;
 
             this.referencePosition = this.determineReferencePosition(this._boundaries);
 
@@ -109,6 +124,24 @@ define([
 
                     this._boundaries = boundaries;
                     this.referencePosition = this.determineReferencePosition(this._boundaries);
+                    this.reset();
+                }
+            },
+
+            /**
+             * This polygon's texture coordinates if this polygon is to be textured. A texture coordinate must be
+             * provided for each boundary position. The texture coordinates are specified in the same arrangement
+             * as the boundaries, with a two-dimensional array, each entry of which specifies the texture coordinates
+             * for one boundary. Each texture coordinate is a {@link Vec2} containing the s and t coordinates.
+             * @type {Vec2[][]}
+             * @default null
+             */
+            textureCoordinates: {
+                get: function () {
+                    return this._textureCoordinates;
+                },
+                set: function (value) {
+                    this._textureCoordinates = value;
                     this.reset();
                 }
             },
@@ -152,6 +185,22 @@ define([
             }
 
             return this.currentData.isExpired
+        };
+
+        Polygon.prototype.hasCapTexture = function () {
+            return this.activeAttributes.imageSource && this.textureCoordinates;
+        };
+
+        Polygon.prototype.determineActiveAttributes = function (dc) {
+            AbstractShape.prototype.determineActiveAttributes.call(this, dc);
+
+            if (this.activeAttributes && this.hasCapTexture()) {
+                this.activeTexture = dc.gpuResourceCache.resourceForKey(this.activeAttributes.imageSource);
+
+                if (!this.activeTexture) {
+                    dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, this.activeAttributes.imageSource);
+                }
+            }
         };
 
         // Overridden from AbstractShape base class.
@@ -273,6 +322,7 @@ define([
             var triangles = [], // the output list of triangles
                 error = 0,
                 stride = this._extrude ? 6 : 3,
+                includeTextureCoordinates = this.hasCapTexture(),
                 coords, normal;
 
             if (!this.polygonTessellator) {
@@ -283,11 +333,31 @@ define([
                         tris[tris.length] = data[0];
                         tris[tris.length] = data[1];
                         tris[tris.length] = data[2];
+
+                        if (includeTextureCoordinates) {
+                            tris[tris.length] = data[3];
+                            tris[tris.length] = data[4];
+                        }
                     });
 
                 this.polygonTessellator.gluTessCallback(libtess.gluEnum.GLU_TESS_COMBINE,
                     function (coords, data, weight) {
-                        return [coords[0], coords[1], coords[2]];
+                        var newCoords = [coords[0], coords[1], coords[2]];
+
+                        if (includeTextureCoordinates) {
+                            for (var i = 3; i <= 4; i++) {
+                                var value = 0;
+                                for (var w = 0; w < 4; w++) {
+                                    if (weight[w] > 0) {
+                                        value += weight[w] * data[w][i];
+                                    }
+                                }
+
+                                newCoords[i] = value;
+                            }
+                        }
+
+                        return newCoords;
                     });
 
                 this.polygonTessellator.gluTessCallback(libtess.gluEnum.GLU_TESS_ERROR,
@@ -295,10 +365,6 @@ define([
                         error = errno;
                         Logger.logMessage(Logger.LEVEL_WARNING, "Polygon", "tessellatePolygon",
                             "Tessellation error " + errno + ".");
-                    });
-
-                this.polygonTessellator.gluTessCallback(libtess.gluEnum.GLU_TESS_EDGE_FLAG,
-                    function (flag) {
                     });
             }
 
@@ -314,10 +380,21 @@ define([
             // Tessellate the polygon.
             this.polygonTessellator.gluTessBeginPolygon(triangles);
             for (var b = 0; b < boundaryPoints.length; b++) {
+                var t = 0;
                 this.polygonTessellator.gluTessBeginContour();
                 var contour = boundaryPoints[b];
                 for (var c = 0; c < contour.length; c += stride) {
                     coords = [contour[c], contour[c + 1], contour[c + 2]];
+                    if (includeTextureCoordinates) {
+                        if (t < this.textureCoordinates[b].length) {
+                            coords[3] = this.textureCoordinates[b][t][0];
+                            coords[4] = this.textureCoordinates[b][t][1];
+                        } else {
+                            coords[3] = this.textureCoordinates[b][0][0];
+                            coords[4] = this.textureCoordinates[b][1][1];
+                        }
+                        ++t;
+                    }
                     this.polygonTessellator.gluTessVertex(coords, coords);
                 }
                 this.polygonTessellator.gluTessEndContour();
@@ -341,7 +418,7 @@ define([
                 program = dc.currentProgram,
                 currentData = this.currentData,
                 refreshBuffers = currentData.refreshBuffers,
-                numPoints, vboId, opacity, color, pickColor, stride, nPts;
+                numPoints, vboId, opacity, color, pickColor, stride, nPts, textureBound = false;
 
             program.loadTextureEnabled(gl, false);
 
@@ -378,8 +455,22 @@ define([
                 program.loadColor(gl, dc.pickingMode ? pickColor : color);
                 program.loadOpacity(gl, dc.pickingMode ? (opacity > 0 ? 1 : 0) : opacity);
 
-                gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, 0, 0);
-                gl.drawArrays(WebGLRenderingContext.TRIANGLES, 0, currentData.capTriangles.length / 3);
+                stride = this.hasCapTexture() ? 20 : 12;
+
+                if (this.activeTexture) {
+                    textureBound = this.activeTexture.bind(dc);
+                    if (textureBound) {
+                        program.loadTextureEnabled(gl, true);
+                        gl.enableVertexAttribArray(program.vertexTexCoordLocation);
+                        gl.vertexAttribPointer(program.vertexTexCoordLocation, 2, WebGLRenderingContext.FLOAT, false,
+                            stride, 12);
+                        program.loadTextureUnit(gl, WebGLRenderingContext.TEXTURE0);
+                        program.loadModulateColor(gl, dc.pickingMode);
+                    }
+                }
+
+                gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, stride, 0);
+                gl.drawArrays(WebGLRenderingContext.TRIANGLES, 0, 4 * (currentData.capTriangles.length / stride));
             }
 
             // Draw the extruded boundaries and/or the outline.
@@ -387,6 +478,9 @@ define([
                 if (!currentData.boundaryVboCacheKeys) {
                     this.currentData.boundaryVboCacheKeys = [];
                 }
+
+                program.loadTextureEnabled(gl, false);
+                gl.disableVertexAttribArray(program.vertexTexCoordLocation);
 
                 for (var b = 0; b < currentData.boundaryPoints.length; b++) { // for each boundary
                     // The sides and outline use the same vertices, those of the individual boundaries.
@@ -435,6 +529,7 @@ define([
                     if (this.activeAttributes.drawOutline) {
                         // Make the outline stand out from the interior.
                         this.applyMvpMatrixForOutline(dc);
+                        program.loadTextureEnabled(gl, false);
 
                         color = this.activeAttributes.outlineColor;
                         opacity = color.alpha * dc.currentLayer.opacity;

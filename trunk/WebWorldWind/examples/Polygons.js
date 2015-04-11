@@ -36,6 +36,11 @@ requirejs(['../src/WorldWind',
             wwd.addLayer(layers[l].layer);
         }
 
+        // Create a layer to hold the polygons.
+        var polygonsLayer = new WorldWind.RenderableLayer();
+        polygonsLayer.displayName = "Polygons";
+        wwd.addLayer(polygonsLayer);
+
         // Define an outer and an inner boundary to make a polygon with a hole.
         var boundaries = [];
         boundaries[0] = []; // outer boundary
@@ -65,11 +70,73 @@ requirejs(['../src/WorldWind',
         highlightAttributes.interiorColor = new WorldWind.Color(1, 1, 1, 0.5);
         polygon.highlightAttributes = highlightAttributes;
 
-        // Add the surface image to a layer and the layer to the World Window's layer list.
-        var pathsLayer = new WorldWind.RenderableLayer();
-        pathsLayer.displayName = "Polygon";
-        pathsLayer.addRenderable(polygon);
-        wwd.addLayer(pathsLayer);
+        // Add the polygon to the layer and the layer to the World Window's layer list.
+        polygonsLayer.addRenderable(polygon);
+
+        // Create a textured polygon.
+        boundaries = [];
+        boundaries[0] = []; // outer boundary
+        boundaries[0].push(new WorldWind.Position(40, -90, 1e5));
+        boundaries[0].push(new WorldWind.Position(40, -80, 1e5));
+        boundaries[0].push(new WorldWind.Position(45, -80, 1e5));
+        boundaries[0].push(new WorldWind.Position(45, -90, 1e5));
+
+        polygon = new WorldWind.Polygon(boundaries);
+        polygon.altitudeMode = WorldWind.ABSOLUTE;
+        polygon.extrude = true;
+        polygon.textureCoordinates = [
+            [new WorldWind.Vec2(0, 0), new WorldWind.Vec2(1, 0), new WorldWind.Vec2(1, 1), new WorldWind.Vec2(0, 1)]
+        ];
+
+        polygonAttributes = new WorldWind.ShapeAttributes(null);
+        polygonAttributes.imageSource = "../images/400x230-splash-nww.png";
+        polygonAttributes.drawInterior = true;
+        polygonAttributes.drawOutline = true;
+        polygonAttributes.outlineColor = WorldWind.Color.BLUE;
+        polygonAttributes.interiorColor = WorldWind.Color.WHITE;
+        polygonAttributes.drawVerticals = polygon.extrude;
+        polygon.attributes = polygonAttributes;
+        highlightAttributes = new WorldWind.ShapeAttributes(polygonAttributes);
+        highlightAttributes.outlineColor = WorldWind.Color.RED;
+        polygon.highlightAttributes = highlightAttributes;
+
+        polygonsLayer.addRenderable(polygon);
+
+        // Create a textured polygon with a hole in it.
+        boundaries = [];
+        boundaries[0] = []; // outer boundary
+        boundaries[0].push(new WorldWind.Position(30, -100, 1e5));
+        boundaries[0].push(new WorldWind.Position(30, -90, 1e5));
+        boundaries[0].push(new WorldWind.Position(35, -90, 1e5));
+        boundaries[0].push(new WorldWind.Position(35, -100, 1e5));
+        boundaries[1] = []; // inner boundary
+        boundaries[1].push(new WorldWind.Position(32, -96, 1e5));
+        boundaries[1].push(new WorldWind.Position(32, -94, 1e5));
+        boundaries[1].push(new WorldWind.Position(33, -94, 1e5));
+        boundaries[1].push(new WorldWind.Position(33, -96, 1e5));
+
+        polygon = new WorldWind.Polygon(boundaries);
+        polygon.altitudeMode = WorldWind.ABSOLUTE;
+        polygon.extrude = true;
+        polygon.textureCoordinates = [
+            [new WorldWind.Vec2(0, 0), new WorldWind.Vec2(1, 0), new WorldWind.Vec2(1, 1), new WorldWind.Vec2(0, 1)],
+            [new WorldWind.Vec2(0.4, 0.4), new WorldWind.Vec2(0.6, 0.4), new WorldWind.Vec2(0.6, 0.6),
+                new WorldWind.Vec2(0.4, 0.6)]
+        ];
+
+        polygonAttributes = new WorldWind.ShapeAttributes(null);
+        polygonAttributes.imageSource = "../images/400x230-splash-nww.png";
+        polygonAttributes.drawInterior = true;
+        polygonAttributes.drawOutline = true;
+        polygonAttributes.outlineColor = WorldWind.Color.BLUE;
+        polygonAttributes.interiorColor = WorldWind.Color.WHITE;
+        polygonAttributes.drawVerticals = polygon.extrude;
+        polygon.attributes = polygonAttributes;
+        highlightAttributes = new WorldWind.ShapeAttributes(polygonAttributes);
+        highlightAttributes.outlineColor = WorldWind.Color.RED;
+        polygon.highlightAttributes = highlightAttributes;
+
+        polygonsLayer.addRenderable(polygon);
 
         // Draw the World Window for the first time.
         wwd.redraw();
