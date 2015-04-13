@@ -73,7 +73,7 @@ requirejs(['../src/WorldWind',
         // Add the polygon to the layer and the layer to the World Window's layer list.
         polygonsLayer.addRenderable(polygon);
 
-        // Create a textured polygon.
+        // Create a textured polygon with extruded and textured sides.
         boundaries = [];
         boundaries[0] = []; // outer boundary
         boundaries[0].push(new WorldWind.Position(40, -90, 1e5));
@@ -89,7 +89,14 @@ requirejs(['../src/WorldWind',
         ];
 
         polygonAttributes = new WorldWind.ShapeAttributes(null);
-        polygonAttributes.imageSource = "../images/400x230-splash-nww.png";
+        // Specify a texture for the polygon and its four extruded sides.
+        polygonAttributes.imageSource = [
+            "../images/400x230-splash-nww.png", // polygon texture image
+            "../images/400x230-splash-nww.png", // first-side texture image
+            "../images/400x230-splash-nww.png", // second-side texture image
+            "../images/400x230-splash-nww.png", // third-side texture image
+            "../images/400x230-splash-nww.png"  // fourth-side texture image
+        ];
         polygonAttributes.drawInterior = true;
         polygonAttributes.drawOutline = true;
         polygonAttributes.outlineColor = WorldWind.Color.BLUE;
@@ -102,7 +109,7 @@ requirejs(['../src/WorldWind',
 
         polygonsLayer.addRenderable(polygon);
 
-        // Create a textured polygon with a hole in it.
+        // Create a textured polygon with a hole in it. Don't extrude the sides.
         boundaries = [];
         boundaries[0] = []; // outer boundary
         boundaries[0].push(new WorldWind.Position(30, -100, 1e5));
@@ -117,7 +124,7 @@ requirejs(['../src/WorldWind',
 
         polygon = new WorldWind.Polygon(boundaries);
         polygon.altitudeMode = WorldWind.ABSOLUTE;
-        polygon.extrude = true;
+        polygon.extrude = false;
         polygon.textureCoordinates = [
             [new WorldWind.Vec2(0, 0), new WorldWind.Vec2(1, 0), new WorldWind.Vec2(1, 1), new WorldWind.Vec2(0, 1)],
             [new WorldWind.Vec2(0.4, 0.4), new WorldWind.Vec2(0.6, 0.4), new WorldWind.Vec2(0.6, 0.6),
@@ -138,7 +145,7 @@ requirejs(['../src/WorldWind',
 
         polygonsLayer.addRenderable(polygon);
 
-        // Create a textured polygon with a hole at the north pole.
+        // Create a textured polygon with a hole at the north pole. Extrude the boundaries but don't texture them.
         boundaries = [];
         boundaries[0] = []; // outer boundary
         boundaries[0].push(new WorldWind.Position(85, -45, 1e5));
