@@ -188,17 +188,50 @@ define([
         };
 
         Polygon.prototype.hasCapTexture = function () {
-            return this.activeAttributes.imageSource && this.textureCoordinates;
+            return this.textureCoordinates && this.capImageSource();
+        };
+
+        Polygon.prototype.capImageSource = function () {
+            if (!this.activeAttributes.imageSource) {
+                return null;
+            }
+
+            if ((typeof this.activeAttributes.imageSource) === "string") {
+                return this.activeAttributes.imageSource;
+            }
+
+            if ((typeof this.activeAttributes.imageSource === "array")
+                && this.activeAttributes.imageSource[0] && typeof this.activeAttributes.imageSource === "string") {
+                return this.activeAttributes.imageSource[0];
+            }
+
+            return null;
+        };
+
+        Polygon.prototype.hasSideTextures = function () {
+            return this.activeAttributes.imageSource &&
+                (typeof this.activeAttributes.imageSource === "array")
+                && this.activeAttributes.imageSource.length > 1;
+        };
+
+        Polygon.prototype.activeSideTexture = function (side) {
+            if (side === 0 || this.activeAttributes.imageSource.length === 2) {
+                return this.activeAttributes.imageSource[1];
+            }
+
+            var numSideTextures = this.activeAttributes.imageSource.length - 1;
+            side = Math.min(side + 1, numSideTextures);
+            return this.activeAttributes.imageSource[side];
         };
 
         Polygon.prototype.determineActiveAttributes = function (dc) {
             AbstractShape.prototype.determineActiveAttributes.call(this, dc);
 
             if (this.activeAttributes && this.hasCapTexture()) {
-                this.activeTexture = dc.gpuResourceCache.resourceForKey(this.activeAttributes.imageSource);
+                this.activeTexture = dc.gpuResourceCache.resourceForKey(this.capImageSource());
 
                 if (!this.activeTexture) {
-                    dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, this.activeAttributes.imageSource);
+                    dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, this.capImageSource());
                 }
             }
         };
@@ -273,11 +306,11 @@ define([
                 boundaryPoints = [],
                 stride = this._extrude ? 6 : 3,
                 pt = new Vec3(0, 0, 0),
-                numPoints, pos, k, dSquared;
+                numBoundaryPoints, pos, k, dSquared;
 
             for (var b = 0; b < boundaries.length; b++) {
-                numPoints = (this._extrude ? 2 : 1) * boundaries[b].length;
-                boundaryPoints[b] = new Float32Array(numPoints * 3);
+                numBoundaryPoints = (this._extrude ? 2 : 1) * boundaries[b].length;
+                boundaryPoints[b] = new Float32Array(numBoundaryPoints * 3);
 
                 for (var i = 0, len = boundaries[b].length; i < len; i++) {
                     pos = boundaries[b][i];
@@ -418,7 +451,7 @@ define([
                 program = dc.currentProgram,
                 currentData = this.currentData,
                 refreshBuffers = currentData.refreshBuffers,
-                numPoints, vboId, opacity, color, pickColor, stride, nPts, textureBound = false;
+                numBoundaryPoints, vboId, opacity, color, pickColor, stride, nPts, textureBound = false;
 
             program.loadTextureEnabled(gl, false);
 
@@ -486,7 +519,7 @@ define([
                     // The sides and outline use the same vertices, those of the individual boundaries.
                     // Set up that data here for common use below.
 
-                    numPoints = currentData.boundaryPoints[b].length / 3;
+                    numBoundaryPoints = currentData.boundaryPoints[b].length / 3;
 
                     if (!currentData.boundaryVboCacheKeys[b]) {
                         currentData.boundaryVboCacheKeys[b] = dc.gpuResourceCache.generateCacheKey();
@@ -495,7 +528,7 @@ define([
                     vboId = dc.gpuResourceCache.resourceForKey(currentData.boundaryVboCacheKeys[b]);
                     if (!vboId) {
                         vboId = gl.createBuffer();
-                        dc.gpuResourceCache.putResource(currentData.boundaryVboCacheKeys[b], vboId, numPoints * 12);
+                        dc.gpuResourceCache.putResource(currentData.boundaryVboCacheKeys[b], vboId, numBoundaryPoints * 12);
                         refreshBuffers = true;
                     }
 
@@ -521,8 +554,35 @@ define([
                         program.loadColor(gl, dc.pickingMode ? pickColor : color);
                         program.loadOpacity(gl, dc.pickingMode ? (opacity > 0 ? 1 : 0) : opacity);
 
-                        gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, 0, 0);
-                        gl.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, numPoints);
+                        if (this.hasSideTextures()) {
+                            var numSides = (currentData.boundaryPoints[b].length) / 6 - 1;
+                            for (var side = 0; side < numSides; side++) {
+                                var sideTexture = this.activeSideTexture(side);
+                                if (sideTexture) {
+                                    textureBound = sideTexture.bind(dc);
+                                }
+                                if (sideTexture && textureBound) {
+                                    program.loadTextureEnabled(gl, true);
+                                    gl.enableVertexAttribArray(program.vertexTexCoordLocation);
+                                    gl.vertexAttribPointer(program.vertexTexCoordLocation, 2,
+                                        WebGLRenderingContext.FLOAT, false, stride, 12);
+                                    program.loadTextureUnit(gl, WebGLRenderingContext.TEXTURE0);
+                                    program.loadModulateColor(gl, dc.pickingMode);
+                                } else {
+                                    program.loadTextureEnabled(gl, false);
+                                    gl.disableVertexAttribArray(program.vertexTexCoordLocation);
+                                    gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT,
+                                        false, 0, side * 24);
+                                    gl.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 4);
+                                }
+                            }
+                        } else {
+                            // Draw the extruded boundary as one tri-strip.
+                            //program.loadTextureEnabled(gl, false);
+                            gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false,
+                                0, 0);
+                            gl.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, numBoundaryPoints);
+                        }
                     }
 
                     // Draw the outline for this boundary.
@@ -543,10 +603,10 @@ define([
 
                         if (this._extrude) {
                             stride = 24;
-                            nPts = numPoints / 2;
+                            nPts = numBoundaryPoints / 2;
                         } else {
                             stride = 12;
-                            nPts = numPoints;
+                            nPts = numBoundaryPoints;
                         }
 
                         gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false,
@@ -556,7 +616,7 @@ define([
                         if (this.mustDrawVerticals(dc)) {
                             gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false,
                                 0, 0);
-                            gl.drawArrays(WebGLRenderingContext.LINES, 0, numPoints - 2);
+                            gl.drawArrays(WebGLRenderingContext.LINES, 0, numBoundaryPoints - 2);
                         }
                     }
                 }
@@ -594,4 +654,6 @@ define([
         };
 
         return Polygon;
-    });
+    }
+)
+;
