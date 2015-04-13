@@ -72,7 +72,9 @@ define([
          *     source for all extruded boundaries. If the array contains more than two entries, then the first entry
          *     is the polygon's image source and each subsequent entry is the image source for consecutive extruded
          *     boundary segments. A null value for any entry indicates that no texture is applied for the corresponding
-         *     polygon or extruded edge segment. Texture coordinates for the polygon's texture are specified via this
+         *     polygon or extruded edge segment. If fewer image sources are specified then there are boundary segments,
+         *     the last image source specified is applied to the remaining segments.
+         *     Texture coordinates for the polygon's texture are specified via this
          *     polygon's [textureCoordinates]{@link Polygon#textureCoordinates} property. Texture coordinates for
          *     extruded boundary segments are implicitly defined to fit the full texture to each boundary segment.
          *     The imageOffset and imageScale properties of this polygon's shape attributes are not utilized.
@@ -187,10 +189,12 @@ define([
             return this.currentData.isExpired
         };
 
+        // Internal. Indicates whether this polygon should be textured.
         Polygon.prototype.hasCapTexture = function () {
             return this.textureCoordinates && this.capImageSource();
         };
 
+        // Internal. Determines source of this polygon's cap texture. See the class description above for the policy.
         Polygon.prototype.capImageSource = function () {
             if (!this.activeAttributes.imageSource) {
                 return null;
@@ -200,21 +204,23 @@ define([
                 return this.activeAttributes.imageSource;
             }
 
-            if ((typeof this.activeAttributes.imageSource === "array")
-                && this.activeAttributes.imageSource[0] && typeof this.activeAttributes.imageSource === "string") {
+            if (Array.isArray(this.activeAttributes.imageSource)
+                && this.activeAttributes.imageSource[0] && typeof this.activeAttributes.imageSource[0] === "string") {
                 return this.activeAttributes.imageSource[0];
             }
 
             return null;
         };
 
+        // Internal. Indicates whether this polygon has side textures defined.
         Polygon.prototype.hasSideTextures = function () {
             return this.activeAttributes.imageSource &&
-                (typeof this.activeAttributes.imageSource === "array")
+                Array.isArray(this.activeAttributes.imageSource)
                 && this.activeAttributes.imageSource.length > 1;
         };
 
-        Polygon.prototype.activeSideTexture = function (side) {
+        // Internal. Determines the side texture for a specified side. See the class description above for the policy.
+        Polygon.prototype.sideImageSource = function (side) {
             if (side === 0 || this.activeAttributes.imageSource.length === 2) {
                 return this.activeAttributes.imageSource[1];
             }
@@ -222,18 +228,6 @@ define([
             var numSideTextures = this.activeAttributes.imageSource.length - 1;
             side = Math.min(side + 1, numSideTextures);
             return this.activeAttributes.imageSource[side];
-        };
-
-        Polygon.prototype.determineActiveAttributes = function (dc) {
-            AbstractShape.prototype.determineActiveAttributes.call(this, dc);
-
-            if (this.activeAttributes && this.hasCapTexture()) {
-                this.activeTexture = dc.gpuResourceCache.resourceForKey(this.capImageSource());
-
-                if (!this.activeTexture) {
-                    dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, this.capImageSource());
-                }
-            }
         };
 
         // Overridden from AbstractShape base class.
@@ -451,14 +445,18 @@ define([
                 program = dc.currentProgram,
                 currentData = this.currentData,
                 refreshBuffers = currentData.refreshBuffers,
-                numBoundaryPoints, vboId, opacity, color, pickColor, stride, nPts, textureBound = false;
-
-            program.loadTextureEnabled(gl, false);
+                hasCapTexture = this.hasCapTexture(),
+                hasSideTextures = this.hasSideTextures(),
+                numBoundaryPoints, vboId, opacity, color, pickColor, stride, nPts, textureBound;
 
             if (dc.pickingMode) {
                 pickColor = dc.uniquePickColor();
             }
 
+            // Assume no cap or side textures.
+            program.loadTextureEnabled(gl, false);
+
+            // Draw the cap if the interior requested and we were able to tessellate the polygon.
             if (this.activeAttributes.drawInterior && currentData.capTriangles) {
                 this.applyMvpMatrix(dc);
 
@@ -488,17 +486,21 @@ define([
                 program.loadColor(gl, dc.pickingMode ? pickColor : color);
                 program.loadOpacity(gl, dc.pickingMode ? (opacity > 0 ? 1 : 0) : opacity);
 
-                stride = this.hasCapTexture() ? 20 : 12;
+                stride = hasCapTexture ? 20 : 12;
 
-                if (this.activeTexture) {
-                    textureBound = this.activeTexture.bind(dc);
+                if (hasCapTexture) {
+                    this.activeTexture = dc.gpuResourceCache.resourceForKey(this.capImageSource());
+
+                    textureBound = this.activeTexture && this.activeTexture.bind(dc);
                     if (textureBound) {
                         program.loadTextureEnabled(gl, true);
                         gl.enableVertexAttribArray(program.vertexTexCoordLocation);
-                        gl.vertexAttribPointer(program.vertexTexCoordLocation, 2, WebGLRenderingContext.FLOAT, false,
-                            stride, 12);
+                        gl.vertexAttribPointer(program.vertexTexCoordLocation, 2, WebGLRenderingContext.FLOAT,
+                            false, stride, 12);
                         program.loadTextureUnit(gl, WebGLRenderingContext.TEXTURE0);
                         program.loadModulateColor(gl, dc.pickingMode);
+                    } else if (!this.activeTexture) {
+                        dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, this.capImageSource());
                     }
                 }
 
@@ -506,14 +508,14 @@ define([
                 gl.drawArrays(WebGLRenderingContext.TRIANGLES, 0, 4 * (currentData.capTriangles.length / stride));
             }
 
-            // Draw the extruded boundaries and/or the outline.
+            // Draw the un-textured extruded boundaries and/or the outline.
             if ((this._extrude && this.activeAttributes.drawInterior) || this.activeAttributes.drawOutline) {
                 if (!currentData.boundaryVboCacheKeys) {
                     this.currentData.boundaryVboCacheKeys = [];
                 }
 
                 program.loadTextureEnabled(gl, false);
-                gl.disableVertexAttribArray(program.vertexTexCoordLocation);
+                gl.disableVertexAttribArray(program.vertexTexCoordLocation); // we're not texturing in this clause
 
                 for (var b = 0; b < currentData.boundaryPoints.length; b++) { // for each boundary
                     // The sides and outline use the same vertices, those of the individual boundaries.
@@ -543,7 +545,7 @@ define([
                     }
 
                     // Draw the extruded boundary.
-                    if (this.activeAttributes.drawInterior && this._extrude) {
+                    if (this.activeAttributes.drawInterior && this._extrude && !hasSideTextures) {
                         this.applyMvpMatrix(dc);
 
                         color = this.activeAttributes.interiorColor;
@@ -554,35 +556,9 @@ define([
                         program.loadColor(gl, dc.pickingMode ? pickColor : color);
                         program.loadOpacity(gl, dc.pickingMode ? (opacity > 0 ? 1 : 0) : opacity);
 
-                        if (this.hasSideTextures()) {
-                            var numSides = (currentData.boundaryPoints[b].length) / 6 - 1;
-                            for (var side = 0; side < numSides; side++) {
-                                var sideTexture = this.activeSideTexture(side);
-                                if (sideTexture) {
-                                    textureBound = sideTexture.bind(dc);
-                                }
-                                if (sideTexture && textureBound) {
-                                    program.loadTextureEnabled(gl, true);
-                                    gl.enableVertexAttribArray(program.vertexTexCoordLocation);
-                                    gl.vertexAttribPointer(program.vertexTexCoordLocation, 2,
-                                        WebGLRenderingContext.FLOAT, false, stride, 12);
-                                    program.loadTextureUnit(gl, WebGLRenderingContext.TEXTURE0);
-                                    program.loadModulateColor(gl, dc.pickingMode);
-                                } else {
-                                    program.loadTextureEnabled(gl, false);
-                                    gl.disableVertexAttribArray(program.vertexTexCoordLocation);
-                                    gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT,
-                                        false, 0, side * 24);
-                                    gl.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 4);
-                                }
-                            }
-                        } else {
-                            // Draw the extruded boundary as one tri-strip.
-                            //program.loadTextureEnabled(gl, false);
-                            gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false,
-                                0, 0);
-                            gl.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, numBoundaryPoints);
-                        }
+                        // Draw the extruded boundary as one tri-strip.
+                        gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, 0, 0);
+                        gl.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, numBoundaryPoints);
                     }
 
                     // Draw the outline for this boundary.
@@ -620,8 +596,86 @@ define([
                         }
                     }
                 }
+                currentData.refreshBuffers = false;
+
+                // If the extruded boundaries are textured, draw them here. This is a separate block because the
+                // operation must create its own vertex VBO in order to include texture coordinates. It can't simply
+                // use the previously computed boundary-points VBO.
+                if (hasSideTextures && this.activeAttributes.drawInterior && this._extrude) {
+                    this.applyMvpMatrix(dc);
+
+                    color = this.activeAttributes.interiorColor;
+                    opacity = color.alpha * dc.currentLayer.opacity;
+                    gl.depthMask(opacity >= 1 || dc.pickingMode);
+                    program.loadColor(gl, dc.pickingMode ? pickColor : color);
+                    program.loadOpacity(gl, dc.pickingMode ? (opacity > 0 ? 1 : 0) : opacity);
+
+                    // Create and bind a temporary VBO to hold the boundary vertices and texture coordinates.
+                    gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, gl.createBuffer());
+                    var boundaryVertices = new Float32Array(4 * 5); // 4 vertices of x, y, z, s, t
+
+                    for (b = 0; b < currentData.boundaryPoints.length; b++) { // for each boundary
+                        numBoundaryPoints = currentData.boundaryPoints[b].length / 3;
+                        var numSides = (currentData.boundaryPoints[b].length) / 6 - 1,
+                            boundaryPoints = currentData.boundaryPoints[b];
+
+                        for (var side = 0; side < numSides; side++) {
+                            var sideImageSource = this.sideImageSource(side),
+                                sideTexture = dc.gpuResourceCache.resourceForKey(sideImageSource);
+
+                            textureBound = sideTexture && sideTexture.bind(dc);
+                            if (textureBound) {
+                                program.loadTextureEnabled(gl, true);
+                                program.loadTextureUnit(gl, WebGLRenderingContext.TEXTURE0);
+                                program.loadModulateColor(gl, dc.pickingMode);
+                                gl.enableVertexAttribArray(program.vertexTexCoordLocation);
+                            } else {
+                                if (!sideTexture && sideImageSource) {
+                                    dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, sideImageSource);
+                                }
+                                program.loadTextureEnabled(gl, false);
+                                gl.disableVertexAttribArray(program.vertexTexCoordLocation);
+                            }
+
+                            // Make a 4-vertex tri-strip from consecutive boundary segments.
+
+                            boundaryVertices[0] = boundaryPoints[side * 6];
+                            boundaryVertices[1] = boundaryPoints[side * 6 + 1];
+                            boundaryVertices[2] = boundaryPoints[side * 6 + 2];
+                            boundaryVertices[3] = 0; // upper left texture coordinates
+                            boundaryVertices[4] = 1;
+
+                            boundaryVertices[5] = boundaryPoints[side * 6 + 3];
+                            boundaryVertices[6] = boundaryPoints[side * 6 + 4];
+                            boundaryVertices[7] = boundaryPoints[side * 6 + 5];
+                            boundaryVertices[8] = 0; // lower left texture coordinates
+                            boundaryVertices[9] = 0;
+
+                            boundaryVertices[10] = boundaryPoints[side * 6 + 6];
+                            boundaryVertices[11] = boundaryPoints[side * 6 + 7];
+                            boundaryVertices[12] = boundaryPoints[side * 6 + 8];
+                            boundaryVertices[13] = 1; // upper right texture coordinates
+                            boundaryVertices[14] = 1;
+
+                            boundaryVertices[15] = boundaryPoints[side * 6 + 9];
+                            boundaryVertices[16] = boundaryPoints[side * 6 + 10];
+                            boundaryVertices[17] = boundaryPoints[side * 6 + 11];
+                            boundaryVertices[18] = 1; // lower right texture coordinates
+                            boundaryVertices[19] = 0;
+
+                            gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, boundaryVertices,
+                                WebGLRenderingContext.STATIC_DRAW);
+                            dc.frameStatistics.incrementVboLoadCount(1);
+
+                            gl.vertexAttribPointer(program.vertexTexCoordLocation, 2, WebGLRenderingContext.FLOAT,
+                                false, 20, 12);
+                            gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT,
+                                false, 20, 0);
+                            gl.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 4);
+                        }
+                    }
+                }
             }
-            currentData.refreshBuffers = false;
 
             if (dc.pickingMode) {
                 var po = new PickedObject(pickColor, this.pickDelegate ? this.pickDelegate : this, null,
