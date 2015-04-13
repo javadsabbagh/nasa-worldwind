@@ -71,7 +71,7 @@ define([
             this.pickSequence = 0;
 
             // Internal use only. Intentionally not documented.
-            this.lastUpdatedTime = 0;
+            this.surfaceShapeStateKeys = [];
 
             // Internal use only. Intentionally not documented.
             this.prevSurfaceShapes = [];
@@ -124,6 +124,7 @@ define([
          */
         SurfaceShapeTile.prototype.addSurfaceShape = function(surfaceShape) {
             this.surfaceShapes.push(surfaceShape);
+            this.surfaceShapeStateKeys.push(surfaceShape.stateKey);
         };
 
         /**
@@ -136,14 +137,14 @@ define([
 
         // Internal use only. Intentionally not documented.
         SurfaceShapeTile.prototype.needsUpdate = function(dc) {
-            var idx, len, surfaceShape;
+            var idx, len, surfaceShape, surfaceShapeStateKey;
 
             // If the number of shapes have changed, ... (cheap test)
             if (this.prevSurfaceShapes.length != this.surfaceShapes.length) {
                 return true;
             }
 
-            // If previous shapes have been removed, ...
+            // If shapes have been removed since the previous iteration, ...
             for (idx = 0, len = this.prevSurfaceShapes; idx < len; idx += 1) {
                 surfaceShape = this.prevSurfaceShapes[idx];
 
@@ -152,7 +153,7 @@ define([
                 }
             }
 
-            // If next shapes added, ...
+            // If shapes added since the previous iteration, ...
             for (idx = 0, len = this.surfaceShapes; idx < len; idx += 1) {
                 surfaceShape = this.surfaceShapes[idx];
 
@@ -161,10 +162,12 @@ define([
                 }
             }
 
-            // If the time stamp of the shape is newer than the time stamp of the tile, ...
+            // If the state key of the shape is different than the saved state key for that shape, ...
             for (idx = 0, len = this.surfaceShapes.length; idx < len; idx += 1) {
                 surfaceShape = this.surfaceShapes[idx];
-                if (surfaceShape.lastUpdatedTime > this.lastUpdatedTime) {
+                surfaceShapeStateKey = this.surfaceShapeStateKeys[idx];
+
+                if (surfaceShapeStateKey != surfaceShape.stateKey) {
                     return true;
                 }
             }
@@ -196,7 +199,7 @@ define([
 
             var texture = gpuResourceCache.resourceForKey(this.gpuCacheKey);
 
-            return !texture ? false : true;
+            return !!texture;
         };
 
         /**
@@ -255,6 +258,7 @@ define([
 
             for (var idx = 0, len = this.surfaceShapes.length; idx < len; idx += 1) {
                 var shape = this.surfaceShapes[idx];
+                this.surfaceShapeStateKeys[idx] = shape.stateKey;
 
                 shape.renderToTexture(dc, ctx2D, xScale, yScale, xOffset, yOffset);
             }
@@ -266,8 +270,6 @@ define([
             this.gpuCacheKey = this.getCacheKey();
 
             gpuResourceCache.putResource(this.gpuCacheKey, texture, texture.size);
-
-            this.lastUpdatedTime = Date.now();
 
             return texture;
         };

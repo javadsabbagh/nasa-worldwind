@@ -109,7 +109,7 @@ define([
                 da = (2 * Math.PI) / (numLocations - 1),
                 globeRadius = globe.radiusAt(this.center.latitude, this.center.longitude);
 
-            this.boundaries = new Array(numLocations);
+            this._boundaries = new Array(numLocations);
 
             for (var i = 0; i < numLocations; i++) {
                 var angle = (i != numLocations - 1) ? i * da : 0,
@@ -121,7 +121,7 @@ define([
                 var azimuth = (Math.PI / 2.0) -
                     (Math.acos(xLength / distance) * WWMath.signum(yLength) - this.heading * Angle.DEGREES_TO_RADIANS);
 
-                this.boundaries[i] = Location.greatCircleLocation(this.center, azimuth * Angle.RADIANS_TO_DEGREES,
+                this._boundaries[i] = Location.greatCircleLocation(this.center, azimuth * Angle.RADIANS_TO_DEGREES,
                     distance / globeRadius, new Location(0, 0));
             }
         };
