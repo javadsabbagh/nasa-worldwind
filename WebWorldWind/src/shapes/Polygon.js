@@ -18,6 +18,7 @@ define([
         '../pick/PickedObject',
         '../geom/Position',
         '../shapes/ShapeAttributes',
+        '../shapes/SurfacePolygon',
         '../geom/Vec2',
         '../geom/Vec3',
         '../util/libtess'
@@ -33,6 +34,7 @@ define([
               PickedObject,
               Position,
               ShapeAttributes,
+              SurfacePolygon,
               Vec2,
               Vec3,
               libtessDummy) {
@@ -398,6 +400,7 @@ define([
             // Compute a normal vector for the polygon.
             normal = Vec3.computeBufferNormal(boundaryPoints[0], stride);
             if (!normal) {
+                normal = new Vec3(0, 0, 0);
                 // The first boundary is colinear. Fall back to the surface normal.
                 dc.globe.surfaceNormalAtLocation(this.referencePosition.latitude, this.referencePosition.longitude,
                     normal);
@@ -457,7 +460,7 @@ define([
             program.loadTextureEnabled(gl, false);
 
             // Draw the cap if the interior requested and we were able to tessellate the polygon.
-            if (this.activeAttributes.drawInterior && currentData.capTriangles) {
+            if (this.activeAttributes.drawInterior && currentData.capTriangles && currentData.capTriangles.length > 0) {
                 this.applyMvpMatrix(dc);
 
                 if (!currentData.capVboCacheKey) {
