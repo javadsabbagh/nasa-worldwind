@@ -57,7 +57,7 @@ define([
              * an array of arrays of locations if the polygon has multiple boundaries.
              * @type {Array}
              */
-            this.boundaries = boundaries;
+            this._boundaries = boundaries;
         };
 
         SurfacePolygon.prototype = Object.create(SurfaceShape.prototype);

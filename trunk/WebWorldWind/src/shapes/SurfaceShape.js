@@ -50,54 +50,15 @@ define([
 
             Renderable.call(this);
 
-            /**
-             * The shape's display name and label text.
-             * @type {String}
-             * @default Surface Shape
-             */
-            this.displayName = "Surface Shape";
-
-            /**
-             * The shape's attributes. If null and this shape is not highlighted, this shape is not drawn.
-             * @type {ShapeAttributes}
-             * @default see [ShapeAttributes]{@link ShapeAttributes}
-             */
-            this.attributes = attributes ? attributes : new ShapeAttributes(null);
-
-            /**
-             * The attributes used when this shape's highlighted flag is true. If null and the
-             * highlighted flag is true, this shape's normal attributes are used. If they, too, are null, this
-             * shape is not drawn.
-             * @type {ShapeAttributes}
-             * @default null
-             */
-            this.highlightAttributes = null;
-
-            /**
-             * Indicates whether this shape displays with its highlight attributes rather than its normal attributes.
-             * @type {Boolean}
-             * @default false
-             */
-            this.highlighted = false;
-
-            /**
-             * Indicates whether this shape is drawn.
-             * @type {Boolean}
-             * @default true
-             */
-            this.enabled = true;
-
-            /**
-             * The path type to used to interpolate between locations on this shape. Recognized values are:
-             * <ul>
-             * <li>WorldWind.GREAT_CIRCLE</li>
-             * <li>WorldWind.RHUMB_LINE</li>
-             * <li>WorldWind.LINEAR</li>
-             * </ul>
-             * @type {String}
-             * @default WorldWind.GREAT_CIRCLE
-             */
-            this.pathType = WorldWind.GREAT_CIRCLE;
+            this._displayName = "Surface Shape";
+            this._attributes = attributes ? attributes : new ShapeAttributes(null);
+            this._highlightAttributes = null;
+            this._highlighted = false;
+            this._enabled = true;
+            this._pathType = WorldWind.GREAT_CIRCLE;
+            this._maximumNumEdgeIntervals = SurfaceShape.DEFAULT_NUM_EDGE_INTERVALS;
+            this._polarThrottle = SurfaceShape.DEFAULT_POLAR_THROTTLE;
+            this._sector = null;
 
             /**
              * Indicates the object to return as the owner of this shape when picked.
@@ -107,68 +68,59 @@ define([
             this.pickDelegate = null;
 
             /**
-             * The maximum number of intervals an edge will be broken into. This is the number of intervals that an
-             * edge that spans to opposite side of the globe would be broken into. This is strictly an upper bound
-             * and the number of edge intervals may be lower if this resolution is not needed.
-             * @type {Number}
-             * @default SurfaceShape.DEFAULT_NUM_EDGE_INTERVALS
-             */
-            this.maximumNumEdgeIntervals = SurfaceShape.DEFAULT_NUM_EDGE_INTERVALS;
-
-            /**
-             * A dimensionless number that controls throttling of edge traversal near the poles where edges need to be
-             * sampled more closely together.
-             * A value of 0 indicates that no polar throttling is to be performed.
-             * @type {Number}
-             * @default SurfaceShape.DEFAULT_POLAR_THROTTLE
-             */
-            this.polarThrottle = SurfaceShape.DEFAULT_POLAR_THROTTLE;
-            /**
-             * Defines the extent of the shape in latitude and longitude.
-             * Initially it is a full sphere, but as geometry is determined, it is filled in to reflect that geometry.
-             * @type {Sector}
-             */
-            this.sector = new Sector(-90, 90, -180, 180);
-
-            /**
              * The bounding sectors for this tile, which may be needed for crossing the dateline.
              * @type {Sector[]}
+             * @protected
              */
-            this.sectors = [];
+            this._sectors = [];
 
             /**
              * The raw collection of locations defining this shape and are explicitly specified by the client of this class.
              * @type {Location[]}
+             * @protected
              */
-            this.locations = null;
+            this._locations = null;
 
             /**
              * Boundaries that are either the user specified locations or locations that are algorithmically generated.
              * @type {Location[]}
+             * @protected
              */
-            this.boundaries = null;
+            this._boundaries = null;
 
             /**
              * The collection of locations that describes a closed curve which can be filled.
              * @type {Location[][]}
+             * @protected
              */
-            this.interiorGeometry = null;
+            this._interiorGeometry = null;
 
             /**
              * The collection of locations that describe the outline of the shape.
              * @type {Location[][]}
+             * @protected
              */
-            this.outlineGeometry = null;
+            this._outlineGeometry = null;
 
             /**
              * Internal use only.
              * Inhibit the filling of the interior. This is to be used ONLY by polylines.
              * @type {Boolean}
+             * @protected
              */
-            this.isInteriorInhibited = false;
+            this._isInteriorInhibited = false;
+
+            /**
+             * Indicates whether this object's state key is invalid. Subclasses must set this value to true when their
+             * attributes change. The state key will be automatically computed the next time it's requested. This flag
+             * will be set to false when that occurs.
+             * @type {Boolean}
+             * @protected
+             */
+            this.stateKeyInvalid = true;
 
             // Internal use only. Intentionally not documented.
-            this.lastUpdatedTime = Date.now();
+            this._attributesStateKey = null;
 
             // Internal use only. Intentionally not documented.
             this.isPrepared = false;
@@ -183,6 +135,109 @@ define([
         SurfaceShape.prototype = Object.create(Renderable.prototype);
 
         Object.defineProperties(SurfaceShape.prototype, {
+            stateKey: {
+                /**
+                 * A hash key of the total visible external state of the surface shape.
+                 * @memberof SurfaceShape.prototype
+                 * @type {String}
+                 */
+                get: function() {
+                    // If we don't have a state key for the shape attributes, consider this state key to be invalid.
+                    if (!this._attributesStateKey) {
+                        this.stateKeyInvalid = true;
+
+                        // Update the state key for the appropriate attributes for future
+                        if (this._highlighted) {
+                            if (!!this._highlightAttributes) {
+                                this._attributesStateKey = this._highlightAttributes.stateKey;
+                            }
+                        } else {
+                            if (!!this._attributes) {
+                                this._attributesStateKey = this._attributes.stateKey;
+                            }
+                        }
+                    } else {
+                        // Detect a change in the appropriate attributes.
+                        var currentAttributesStateKey = null;
+
+                        if (this._highlighted) {
+                            // If there are highlight attributes associated with this shape, ...
+                            if (!!this._highlightAttributes) {
+                                currentAttributesStateKey = this._highlightAttributes.stateKey;
+                            }
+                        } else {
+                            if (!!this._attributes) {
+                                currentAttributesStateKey = this._attributes.stateKey;
+                            }
+                        }
+
+                        // If the attributes state key changed, ...
+                        if (currentAttributesStateKey != this._attributesStateKey) {
+                            this._attributesStateKey = currentAttributesStateKey;
+                            this.stateKeyInvalid = true;
+                        }
+                    }
+
+                    if (this.stateKeyInvalid) {
+                        this._stateKey = this.computeStateKey();
+                        this.stateKeyInvalid = false;
+                    }
+                    return this._stateKey;
+                }
+            },
+
+            /**
+             * The shape's display name and label text.
+             * @memberof SurfaceShape.prototype
+             * @type {String}
+             * @default Surface Shape
+             */
+            displayName: {
+                get: function() {
+                    return this._displayName;
+                },
+                set: function(value) {
+                    this.stateKeyInvalid = true;
+                    this._displayName = value;
+                }
+            },
+
+            /**
+             * The shape's attributes. If null and this shape is not highlighted, this shape is not drawn.
+             * @memberof SurfaceShape.prototype
+             * @type {ShapeAttributes}
+             * @default see [ShapeAttributes]{@link ShapeAttributes}
+             */
+            attributes: {
+                get: function() {
+                    return this._attributes;
+                },
+                set: function(value) {
+                    this.stateKeyInvalid = true;
+                    this._attributes = value;
+                    this._attributesStateKey = value.stateKey;
+                }
+            },
+
+            /**
+             * The attributes used when this shape's highlighted flag is true. If null and the
+             * highlighted flag is true, this shape's normal attributes are used. If they, too, are null, this
+             * shape is not drawn.
+             * @memberof SurfaceShape.prototype
+             * @type {ShapeAttributes}
+             * @default null
+             */
+            highlightAttributes: {
+                get: function() {
+                    return this._highlightAttributes;
+                },
+                set: function(value) {
+                    this.stateKeyInvalid = true;
+                    this._highlightAttributes = value;
+                    this._highlightAttributesStateKey = value.stateKey;
+                }
+            },
+
             /**
              * Indicates whether this shape displays with its highlight attributes rather than its normal attributes.
              * @memberof SurfaceShape.prototype
@@ -194,11 +249,110 @@ define([
                     return this._highlighted;
                 },
                 set: function(value) {
+                    this.stateKeyInvalid = this._highlighted != value;
                     this._highlighted = value;
-                    this.lastUpdatedTime = Date.now();
+                }
+            },
+
+            /**
+             * Indicates whether this shape is drawn.
+             * @memberof SurfaceShape.prototype
+             * @type {Boolean}
+             * @default true
+             */
+            enabled: {
+                get: function() {
+                    return this._enabled;
+                },
+                set: function(value) {
+                    this.stateKeyInvalid = this._enabled!= value;;
+                    this._enabled = value;
+                }
+            },
+
+            /**
+             * The path type to used to interpolate between locations on this shape. Recognized values are:
+             * <ul>
+             * <li>WorldWind.GREAT_CIRCLE</li>
+             * <li>WorldWind.RHUMB_LINE</li>
+             * <li>WorldWind.LINEAR</li>
+             * </ul>
+             * @memberof SurfaceShape.prototype
+             * @type {String}
+             * @default WorldWind.GREAT_CIRCLE
+             */
+            pathType: {
+                get: function() {
+                    return this._pathType;
+                },
+                set: function(value) {
+                    this.stateKeyInvalid = this._pathType !== value;
+                    this._pathType = value;
+                }
+            },
+
+            /**
+             * The maximum number of intervals an edge will be broken into. This is the number of intervals that an
+             * edge that spans to opposite side of the globe would be broken into. This is strictly an upper bound
+             * and the number of edge intervals may be lower if this resolution is not needed.
+             * @memberof SurfaceShape.prototype
+             * @type {Number}
+             * @default SurfaceShape.DEFAULT_NUM_EDGE_INTERVALS
+             */
+            maximumNumEdgeIntervals: {
+                get: function() {
+                    return this._maximumNumEdgeIntervals;
+                },
+                set: function(value) {
+                    this.stateKeyInvalid = this._maximumNumEdgeIntervals != value;
+                    this._maximumNumEdgeIntervals = value;
+                }
+            },
+
+            /**
+             * A dimensionless number that controls throttling of edge traversal near the poles where edges need to be
+             * sampled more closely together.
+             * A value of 0 indicates that no polar throttling is to be performed.
+             * @memberof SurfaceShape.prototype
+             * @type {Number}
+             * @default SurfaceShape.DEFAULT_POLAR_THROTTLE
+             */
+            polarThrottle: {
+                get: function () {
+                    return this._polarThrottle;
+                },
+                set: function (value) {
+                    this.stateKeyInvalid = this._polarThrottle != value;
+                    this._polarThrottle = value;
+                }
+            },
+
+            /**
+             * Defines the extent of the shape in latitude and longitude.
+             * This sector only has valid data once the boundary is defined. Prior to this, it is null.
+             * @type {Sector}
+             */
+            sector: {
+                get: function() {
+                    return this._sector;
                 }
             }
         });
+        
+        SurfaceShape.prototype.computeStateKey = function() {
+            this._attributesStateKey = !!this._attributes ? this._attributes.stateKey : null;
+            this._highlightAttributesStateKey = !!this._highlightAttributes ? this._highlightAttributes.stateKey : null;
+
+            return   "dn " + this._displayName +
+                    " at " + this._attributesStateKey +
+                    " ha " + this._highlightAttributesStateKey +
+                    " hi " + this._highlighted +
+                    " en " + this._enabled +
+                    " pt " + this._pathType +
+                    " ne " + this._maximumNumEdgeIntervals +
+                    " po " + this._polarThrottle +
+                    " se " + this._sector;
+        };
 
         /**
          * Returns this shape's area in square meters.
@@ -216,7 +370,7 @@ define([
         SurfaceShape.prototype.computeBoundaries = function(globe) {
             // This method is in the base class and should be overridden if the boundaries are generated.
             // It should be called only if the geometry has been provided by the user and does not need to be generated.
-            // assert(!this.boundaries);
+            // assert(!this._boundaries);
         };
 
         // Internal function. Intentionally not documented.
@@ -239,7 +393,7 @@ define([
                 isInterpolated = true,
                 idx, len;
 
-            this.locations = [first];
+            this._locations = [first];
 
             for (idx = 1, len = locations.length; idx < len; idx += 1) {
                 // Advance to next location, retaining previous location.
@@ -266,20 +420,20 @@ define([
                 }
 
                 if (isInterpolated) {
-                    this.interpolateEdge(prev, next, this.locations);
+                    this.interpolateEdge(prev, next, this._locations);
                 }
 
-                this.locations.push(next);
+                this._locations.push(next);
 
                 prev = next;
             }
 
             // Force the closing of the border.
-            if (!this.isInteriorInhibited) {
+            if (!this._isInteriorInhibited) {
                 // Avoid duplication if the first endpoint was already emitted.
                 if (prev.latitude != first.latitude || prev.longitude != first.longitude) {
-                    this.interpolateEdge(prev, first, this.locations);
-                    this.locations.push(first);
+                    this.interpolateEdge(prev, first, this._locations);
+                    this._locations.push(first);
                 }
             }
         };
@@ -287,7 +441,7 @@ define([
         // Internal function. Intentionally not documented.
         SurfaceShape.prototype.interpolateEdge = function(start, end, locations) {
             var distanceRadians = Location.greatCircleDistance(start, end),
-                steps = Math.round(this.maximumNumEdgeIntervals * distanceRadians / Math.PI),
+                steps = Math.round(this._maximumNumEdgeIntervals * distanceRadians / Math.PI),
                 dt,
                 location;
 
@@ -297,7 +451,7 @@ define([
 
                 for (var t = this.throttledStep(dt, location); t < 1; t += this.throttledStep(dt, location)) {
                     location = new Location(0, 0);
-                    Location.interpolateAlongPath(this.pathType, t, start, end, location);
+                    Location.interpolateAlongPath(this._pathType, t, start, end, location);
                     locations.push(location);
                 }
             }
@@ -312,7 +466,7 @@ define([
             // Remap polarThrotle:
             //  0 .. INF => 0 .. 1
             // This acts as a weight between no throttle and fill throttle.
-            var weight = this.polarThrottle / (1 + this.polarThrottle);
+            var weight = this._polarThrottle / (1 + this._polarThrottle);
 
             return dt * ((1 - weight) + weight * cosLat);
         };
@@ -324,12 +478,12 @@ define([
             // Some shapes generate boundaries, such as ellipses and sectors;
             // others don't, such as polylines and polygons.
             // Handle the latter below.
-            if (!this.boundaries) {
+            if (!this._boundaries) {
                 this.computeBoundaries(dc);
             }
 
-            if (!this.locations) {
-                this.interpolateLocations(this.boundaries);
+            if (!this._locations) {
+                this.interpolateLocations(this._boundaries);
             }
 
             this.prepareGeometry(dc);
@@ -349,62 +503,63 @@ define([
          */
         SurfaceShape.prototype.computeSectors = function(dc) {
             // Return a previously computed value if it already exists.
-            if (this.sectors && this.sectors.length > 0) {
-                return this.sectors;
+            if (this._sectors && this._sectors.length > 0) {
+                return this._sectors;
             }
 
             this.prepareBoundaries(dc);
 
-            return this.sectors;
+            return this._sectors;
         };
 
         // Internal function. Intentionally not documented.
         SurfaceShape.prototype.prepareSectors = function() {
-            var boundaries = this.boundaries;
+            var boundaries = this._boundaries;
             if (!boundaries) {
                 return;
             }
 
-            this.sector.setToBoundingSector(boundaries);
+            this._sector = new Sector(-90, 90, -180, 180);
+            this._sector.setToBoundingSector(boundaries);
 
             var pole = this.containsPole(boundaries);
             if (pole != Location.poles.NONE) {
                 // If the shape contains a pole, then the bounding sector is defined by the shape's extreme latitude, the
                 // latitude of the pole, and the full range of longitude.
                 if (pole == Location.poles.NORTH) {
-                    this.sector = new Sector(this.sector.minLatitude, 90, -180, 180);
+                    this._sector = new Sector(this._sector.minLatitude, 90, -180, 180);
                 }
                 else {
-                    this.sector = new Sector(-90, this.sector.maxLatitude, -180, 180);
+                    this._sector = new Sector(-90, this._sector.maxLatitude, -180, 180);
                 }
 
-                this.sectors = [this.sector];
+                this._sectors = [this._sector];
             }
             else if (Location.locationsCrossDateLine(boundaries)) {
-                this.sectors = Sector.splitBoundingSectors(boundaries);
+                this._sectors = Sector.splitBoundingSectors(boundaries);
             }
             else {
-                 if (!this.sector.isEmpty()) {
-                    this.sectors = [this.sector];
+                 if (!this._sector.isEmpty()) {
+                    this._sectors = [this._sector];
                 }
             }
 
-            if (!this.sectors) {
+            if (!this._sectors) {
                 return;
             }
 
             // Great circle paths between two latitudes may result in a latitude which is greater or smaller than either of
             // the two latitudes. All other path types are bounded by the defining locations.
-            if (this.pathType === WorldWind.GREAT_CIRCLE) {
-                for (var idx = 0, len = this.sectors.length; idx < len; idx += 1) {
-                    var sector = this.sectors[idx];
+            if (this._pathType === WorldWind.GREAT_CIRCLE) {
+                for (var idx = 0, len = this._sectors.length; idx < len; idx += 1) {
+                    var sector = this._sectors[idx];
 
                     var extremes = Location.greatCircleArcExtremeLocations(boundaries);
 
                     var minLatitude = Math.min(sector.minLatitude, extremes[0].latitude);
                     var maxLatitude = Math.max(sector.maxLatitude, extremes[1].latitude);
 
-                    this.sectors[idx] = new Sector(minLatitude, maxLatitude, sector.minLongitude, sector.maxLongitude);
+                    this._sectors[idx] = new Sector(minLatitude, maxLatitude, sector.minLongitude, sector.maxLongitude);
                 }
             }
         };
@@ -413,34 +568,34 @@ define([
         SurfaceShape.prototype.prepareGeometry = function(dc) {
             var datelineLocations;
 
-            this.interiorGeometry = [];
-            this.outlineGeometry = [];
+            this._interiorGeometry = [];
+            this._outlineGeometry = [];
 
-            var locations = this.locations;
+            var locations = this._locations;
 
             var pole = this.containsPole(locations);
             if (pole != Location.poles.NONE) {
                 // Wrap the shape interior around the pole and along the anti-meridian. See WWJ-284.
                 var poleLocations = this.cutAlongDateLine(locations, pole, dc.globe);
-                this.interiorGeometry.push(poleLocations);
+                this._interiorGeometry.push(poleLocations);
 
                 // The outline need only compensate for dateline crossing. See WWJ-452.
                 datelineLocations = this.repeatAroundDateline(locations);
-                this.outlineGeometry.push(datelineLocations[0]);
+                this._outlineGeometry.push(datelineLocations[0]);
                 if (datelineLocations.length > 1) {
-                    this.outlineGeometry.push(datelineLocations[1]);
+                    this._outlineGeometry.push(datelineLocations[1]);
                 }
             }
             else if (Location.locationsCrossDateLine(locations)) {
                 datelineLocations = this.repeatAroundDateline(locations);
-                this.interiorGeometry.push(datelineLocations[0]); //this.interiorGeometry.addAll(datelineLocations);
-                this.interiorGeometry.push(datelineLocations[1]); //this.interiorGeometry.addAll(datelineLocations);
-                this.outlineGeometry.push(datelineLocations[0]); //this.outlineGeometry.addAll(datelineLocations);
-                this.outlineGeometry.push(datelineLocations[1]); //this.outlineGeometry.addAll(datelineLocations);
+                this._interiorGeometry.push(datelineLocations[0]); //this._interiorGeometry.addAll(datelineLocations);
+                this._interiorGeometry.push(datelineLocations[1]); //this._interiorGeometry.addAll(datelineLocations);
+                this._outlineGeometry.push(datelineLocations[0]); //this._outlineGeometry.addAll(datelineLocations);
+                this._outlineGeometry.push(datelineLocations[1]); //this._outlineGeometry.addAll(datelineLocations);
             }
             else {
-                this.interiorGeometry.push(locations);
-                this.outlineGeometry.push(locations);
+                this._interiorGeometry.push(locations);
+                this._outlineGeometry.push(locations);
             }
         };
 
@@ -641,24 +796,24 @@ define([
                 idxPath,
                 lenPath,
                 isPicking = dc.pickingMode,
-                attributes = (this.highlighted ? (this.highlightAttributes || this.attributes) : this.attributes);
+                attributes = (this._highlighted ? (this._highlightAttributes || this._attributes) : this._attributes);
 
             if (isPicking && !this.pickColor) {
                 this.pickColor = dc.uniquePickColor();
             }
 
             // Fill the interior of the shape.
-            if (!this.isInteriorInhibited && attributes.drawInterior) {
+            if (!this._isInteriorInhibited && attributes.drawInterior) {
                 ctx2D.fillStyle = isPicking ? this.pickColor.toHexString(false) : attributes.interiorColor.toHexString(false);
 
-                for (idx = 0, len = this.interiorGeometry.length; idx < len; idx += 1) {
+                for (idx = 0, len = this._interiorGeometry.length; idx < len; idx += 1) {
                     idxPath = 0;
-                    lenPath = this.outlineGeometry[idx].length * 2;
+                    lenPath = this._outlineGeometry[idx].length * 2;
                     path.splice(0, path.length);
 
                     // Convert the geometry to a transformed path that can be drawn directly, and as a side effect,
                     // detect if the path is smaller than a pixel. If it is, don't bother drawing it.
-                    if (this.transformPath(this.interiorGeometry[idx], xScale, yScale, dx, dy, path)) {
+                    if (this.transformPath(this._interiorGeometry[idx], xScale, yScale, dx, dy, path)) {
                         ctx2D.beginPath();
 
                         ctx2D.moveTo(path[idxPath++], path[idxPath++]);
@@ -679,15 +834,15 @@ define([
                 ctx2D.lineWidth = 4 * attributes.outlineWidth;
                 ctx2D.strokeStyle = isPicking ? this.pickColor.toHexString(false) : attributes.outlineColor.toHexString(false);
 
-                var pattern = this.attributes.outlineStipplePattern,
-                    factor = this.attributes.outlineStippleFactor;
+                var pattern = this._attributes.outlineStipplePattern,
+                    factor = this._attributes.outlineStippleFactor;
 
-                for (idx = 0, len = this.outlineGeometry.length; idx < len; idx += 1) {
+                for (idx = 0, len = this._outlineGeometry.length; idx < len; idx += 1) {
                     path.splice(0, path.length);
 
                     // Convert the geometry to a transformed path that can be drawn directly, and as a side effect,
                     // detect if the path is smaller than a pixel. If it is, don't bother drawing it.
-                    if (this.transformPath(this.outlineGeometry[idx], xScale, yScale, dx, dy, path)) {
+                    if (this.transformPath(this._outlineGeometry[idx], xScale, yScale, dx, dy, path)) {
                         // NOTE: this code used to be written as:
                         //      a single beginPath() call,
                         //      followed by a single moveTo() call,
@@ -741,7 +896,7 @@ define([
             }
 
             if (isPicking) {
-                var po = new PickedObject(this.pickColor.clone(), this.pickDelegate ? this.pickDelegate : this,
+                var po = new PickedObject(this.pickColor.clone(), this._pickDelegate ? this._pickDelegate : this,
                     null, this.layer, false);
                 dc.resolvePick(po);
             }

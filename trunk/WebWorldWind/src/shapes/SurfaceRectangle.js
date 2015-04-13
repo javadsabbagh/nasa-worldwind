@@ -98,7 +98,7 @@ define([
                 globeRadius = dc.globe.radiusAt(this.center.latitude, this.center.longitude);
 
 
-            this.boundaries = new Array(4);
+            this._boundaries = new Array(4);
 
             this.addLocation(0, -halfWidth, -halfHeight, globeRadius);
             this.addLocation(1,  halfWidth, -halfHeight, globeRadius);
@@ -112,7 +112,7 @@ define([
             // azimuth runs positive clockwise from north and through 360 degrees.
             var azimuth = (Math.PI / 2.0) - (Math.acos(xLength / distance) * WWMath.signum(yLength) - this.heading * Angle.DEGREES_TO_RADIANS);
 
-            this.boundaries[idx] = Location.greatCircleLocation(this.center, azimuth * Angle.RADIANS_TO_DEGREES,
+            this._boundaries[idx] = Location.greatCircleLocation(this.center, azimuth * Angle.RADIANS_TO_DEGREES,
                 distance / globeRadius, new Location(0, 0));
 
         };
