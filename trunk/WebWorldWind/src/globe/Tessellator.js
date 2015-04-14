@@ -8,6 +8,7 @@
  */
 define([
         '../error/ArgumentError',
+        '../shaders/BasicProgram',
         '../globe/Globe',
         '../shaders/GpuProgram',
         '../util/Level',
@@ -18,15 +19,19 @@ define([
         '../cache/MemoryCache',
         '../navigate/NavigatorState',
         '../error/NotYetImplementedError',
+        '../pick/PickedObject',
+        '../geom/Position',
         '../geom/Rectangle',
         '../geom/Sector',
         '../globe/Terrain',
         '../globe/TerrainTile',
         '../globe/TerrainTileList',
         '../util/Tile',
+        '../util/WWMath',
         '../util/WWUtil'
     ],
     function (ArgumentError,
+              BasicProgram,
               Globe,
               GpuProgram,
               Level,
@@ -37,12 +42,15 @@ define([
               MemoryCache,
               NavigatorState,
               NotYetImplementedError,
+              PickedObject,
+              Position,
               Rectangle,
               Sector,
               Terrain,
               TerrainTile,
               TerrainTileList,
               Tile,
+              WWMath,
               WWUtil) {
         "use strict";
 
@@ -505,6 +513,151 @@ define([
                 0);
         };
 
+        /**
+         * Causes this terrain to perform the picking operations on the specified tiles, as appropriate for the draw
+         * context's pick settings. Normally, this draws the terrain in a unique pick color and computes the picked
+         * terrain position. When the draw context is set to region picking mode, this omits the computation of a picked
+         * terrain position.
+         * @param {DrawContext} dc The current draw context.
+         * @param {Array} tileList The list of tiles to pick.
+         * @param {Object} pickDelegate Indicates the object to use as the picked object's <code>userObject</code>.
+         * If null, then this tessellator is used as the <code>userObject</code>.
+         * @throws {ArgumentError} If either the draw context or the tile list are null or undefined.
+         */
+        Tessellator.prototype.pick = function (dc, tileList, pickDelegate) {
+            if (!dc) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Tessellator", "pick", "missingDc"));
+            }
+
+            if (!tileList) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Tessellator", "pick", "missingList"));
+            }
+
+            var color = null,
+                userObject = pickDelegate || this,
+                position = new Position(0, 0, 0),
+                pickableTiles = [];
+
+            // Assemble a list of tiles that intersect the pick frustum. This eliminates unnecessary work for tiles that
+            // do not contribute to the pick result.
+            for (var i = 0, len = tileList.length; i < len; i++) {
+                var tile = tileList[i];
+                if (tile.extent.intersectsFrustum(dc.pickFrustum)) {
+                    pickableTiles.push(tile);
+                }
+            }
+
+            // Draw the pickable tiles in a unique pick color.
+            color = dc.uniquePickColor();
+            this.drawPickTiles(dc, pickableTiles, color);
+
+            // Determine the terrain position at the pick point. If the terrain is picked, add a corresponding picked
+            // object to the draw context. Suppress this step in region picking mode.
+            if (!dc.regionPicking) {
+                var ray = dc.navigatorState.rayFromScreenPoint(dc.pickPoint),
+                    point = this.computeNearestIntersection(ray, pickableTiles);
+                if (point) {
+                    dc.globe.computePositionFromPoint(point[0], point[1], point[2], position);
+                    position.altitude = dc.globe.elevationAtLocation(position.latitude, position.longitude);
+                    dc.addPickedObject(new PickedObject(color, userObject, position, null, true));
+                }
+            }
+        };
+
+        // Internal function. Intentionally not documented.
+        Tessellator.prototype.drawPickTiles = function (dc, tileList, color) {
+            var gl = dc.currentGlContext;
+
+            try {
+                dc.findAndBindProgram(gl, BasicProgram);
+                dc.currentProgram.loadColor(gl, color);
+                this.beginRendering(dc);
+
+                for (var i = 0, len = tileList.length; i < len; i++) {
+                    var tile = tileList[i];
+                    this.beginRenderingTile(dc, tile);
+                    this.renderTile(dc, tile);
+                    this.endRenderingTile(dc, tile);
+                }
+            } finally {
+                this.endRendering(dc);
+                dc.bindProgram(gl, null);
+            }
+        };
+
+        // Internal function. Intentionally not documented.
+        Tessellator.prototype.computeNearestIntersection = function (line, tileList) {
+            // Compute all intersections between the specified line and tile list.
+            var results = [];
+            for (var i = 0, len = tileList.length; i < len; i++) {
+                this.computeIntersections(line, tileList[i], results);
+            }
+
+            if (results.length == 0) {
+                return null; // no intersection
+            } else {
+                // Find and return the intersection nearest to the line's origin.
+                var minDistance = Number.POSITIVE_INFINITY,
+                    minIndex;
+                for (i = 0, len = results.length; i < len; i++) {
+                    var distance = line.origin.distanceToSquared(results[i]);
+                    if (minDistance > distance) {
+                        minDistance = distance;
+                        minIndex = i;
+                    }
+                }
+
+                return results[minIndex];
+            }
+        };
+
+        // Internal function. Intentionally not documented.
+        Tessellator.prototype.computeIntersections = function (line, tile, results) {
+            var level = tile.level,
+                neighborLevel,
+                points = tile.points,
+                elements,
+                firstResult = results.length;
+
+            // Translate the line from model coordinates to tile local coordinates.
+            line.origin.subtract(tile.referencePoint);
+
+            // Assemble the shared tile index geometry. This initializes the index properties used below.
+            this.buildSharedGeometry(tile);
+
+            // Compute any intersections with the tile's interior triangles.
+            elements = this.indices;
+            WWMath.computeTriStripIntersections(line, points, elements, results);
+
+            // Compute any intersections with the tile's south border triangles.
+            neighborLevel = tile.neighborLevel(WorldWind.SOUTH);
+            elements = neighborLevel && neighborLevel.compare(level) < 0 ? this.indicesLoresSouth : this.indicesSouth;
+            WWMath.computeTriStripIntersections(line, points, elements, results);
+
+            // Compute any intersections with the tile's west border triangles.
+            neighborLevel = tile.neighborLevel(WorldWind.WEST);
+            elements = neighborLevel && neighborLevel.compare(level) < 0 ? this.indicesLoresWest : this.indicesWest;
+            WWMath.computeTriStripIntersections(line, points, elements, results);
+
+            // Compute any intersections with the tile's east border triangles.
+            neighborLevel = tile.neighborLevel(WorldWind.EAST);
+            elements = neighborLevel && neighborLevel.compare(level) < 0 ? this.indicesLoresEast : this.indicesEast;
+            WWMath.computeTriStripIntersections(line, points, elements, results);
+
+            // Compute any intersections with the tile's north border triangles.
+            neighborLevel = tile.neighborLevel(WorldWind.NORTH);
+            elements = neighborLevel && neighborLevel.compare(level) < 0 ? this.indicesLoresNorth : this.indicesNorth;
+            WWMath.computeTriStripIntersections(line, points, elements, results);
+
+            // Translate the line and the intersection results from tile local coordinates to model coordinates.
+            line.origin.add(tile.referencePoint);
+            for (var i = firstResult, len = results.length; i < len; i++) {
+                results[i].add(tile.referencePoint);
+            }
+        };
+
         /***********************************************************************
          * Internal methods - assume that arguments have been validated already.
          ***********************************************************************/
@@ -884,6 +1037,9 @@ define([
                 prevIndex = (prevNumLat - 1) * prevNumLon;
                 for (i = 0; i < prevNumLon; i++, index += 2, prevIndex += 1) {
                     elevations[index] = prevElevations[prevIndex];
+                    if (i < prevNumLon - 1) {
+                        elevations[index + 1] = 0.5 * (prevElevations[prevIndex] + prevElevations[prevIndex + 1]);
+                    }
                 }
             }
 
@@ -894,6 +1050,9 @@ define([
                 prevIndex = 0;
                 for (i = 0; i < prevNumLon; i++, index += 2, prevIndex += 1) {
                     elevations[index] = prevElevations[prevIndex];
+                    if (i < prevNumLon - 1) {
+                        elevations[index + 1] = 0.5 * (prevElevations[prevIndex] + prevElevations[prevIndex + 1]);
+                    }
                 }
             }
 
@@ -904,6 +1063,9 @@ define([
                 prevIndex = prevNumLon - 1;
                 for (i = 0; i < prevNumLat; i++, index += 2 * numLon, prevIndex += prevNumLon) {
                     elevations[index] = prevElevations[prevIndex];
+                    if (i < prevNumLat - 1) {
+                        elevations[index + numLon] = 0.5 * (prevElevations[prevIndex] + prevElevations[prevIndex + prevNumLon]);
+                    }
                 }
             }
 
@@ -914,11 +1076,14 @@ define([
                 prevIndex = 0;
                 for (i = 0; i < prevNumLat; i++, index += 2 * numLon, prevIndex += prevNumLon) {
                     elevations[index] = prevElevations[prevIndex];
+                    if (i < prevNumLat - 1) {
+                        elevations[index + numLon] = 0.5 * (prevElevations[prevIndex] + prevElevations[prevIndex + prevNumLon]);
+                    }
                 }
             }
         };
 
-        Tessellator.prototype.buildSharedGeometry = function (tile) {
+        Tessellator.prototype.buildSharedGeometry = function () {
             // TODO: put all indices into a single buffer
             var tileWidth = this.levels.tileWidth,
                 tileHeight = this.levels.tileHeight;
@@ -1145,9 +1310,9 @@ define([
 
             /*
              *  The following section of code generates "lores" low resolution boundary meshes. These are used to mate
-             *  with neighboring tiles that are at a lower level of detail. The property of these lower level meshes is that 
-             *  they have half the number of vertices. 
-             *  
+             *  with neighboring tiles that are at a lower level of detail. The property of these lower level meshes is that
+             *  they have half the number of vertices.
+             *
              *  To generate the boundary meshes, force the use of only even boundary vertex indices.
              */
             // North border.

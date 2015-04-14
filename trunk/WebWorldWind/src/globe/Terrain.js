@@ -205,7 +205,16 @@ define([
             }
         };
 
-        Terrain.prototype.pick = function (dc) { // TODO
+        /**
+         * Causes this terrain to perform the picking operations appropriate for the draw context's pick settings.
+         * Normally, this draws the terrain in a unique pick color and computes the picked terrain position. When the
+         * draw context is set to region picking mode this omits the computation of a picked terrain position.
+         * @param {DrawContext} dc The current draw context.
+         */
+        Terrain.prototype.pick = function (dc) {
+            if (this.globe && this.globe.tessellator) {
+                this.globe.tessellator.pick(dc, this.surfaceGeometry, this); // use this terrain as the userObject
+            }
         };
 
         return Terrain;
