@@ -378,9 +378,10 @@ define([
             // Compute the reference point used as a local coordinate origin for the tile.
             if (!this.referencePoint) {
                 this.referencePoint = new Vec3(0, 0, 0);
-                globe.computePointFromPosition(this.sector.centroidLatitude(), this.sector.centroidLongitude(), 0,
-                    this.referencePoint);
             }
+
+            globe.computePointFromPosition(this.sector.centroidLatitude(), this.sector.centroidLongitude(), 0,
+                this.referencePoint);
         };
 
         /**
