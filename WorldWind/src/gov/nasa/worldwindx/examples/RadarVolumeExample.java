@@ -194,9 +194,9 @@ public class RadarVolumeExample extends ApplicationTemplate
             double dTheta = 2 * Math.PI / (width - 1);
 
             // Compute the near grid.
-            double innerWidth = innerRange * fov.tanHalfAngle();
-            double R = innerWidth / fov.divide(2).sin();
-            double r0 = R * fov.divide(2).cos();
+            double innerWidth = innerRange * fov.divide(2).sin(); // half width of chord
+            double R = innerRange; // radius of sphere
+            double r0 = Math.sqrt(R * R - innerWidth * innerWidth); // distance of chord from radar position
             double dRadius = innerWidth / (height - 1);
 
             // Compute rings of vertices to define the grid.
@@ -212,11 +212,9 @@ public class RadarVolumeExample extends ApplicationTemplate
                     y = radius * Math.sin(theta);
 
                     // Compute Z on the sphere of inner range radius.
-                    double w = Math.sqrt(x * x + y * y);
-                    double a = Math.atan(w / r0);
-                    double t = Math.sqrt(w * w + r0 * r0);
-                    double tp = R - t;
-                    double z = (2 * r0 - R) + tp / Math.cos(a);
+                    double w = Math.sqrt(x * x + y * y); // distance from chord midpoint to point on chord
+                    // See http://mathforum.org/library/drmath/view/61615.html for the following formula.
+                    double z = r0 + Math.sqrt(Math.max(R * R - w * w, 0)) - R + (R - r0);
 
                     Vec4 v = new Vec4(x, y, -z);
                     vertices.add(v.transformBy3(combined));
@@ -224,9 +222,9 @@ public class RadarVolumeExample extends ApplicationTemplate
             }
 
             // Compute the far grid.
-            double outerWidth = outerRange * fov.tanHalfAngle();
-            R = outerWidth / fov.divide(2).sin();
-            r0 = R * fov.divide(2).cos();
+            double outerWidth = outerRange * fov.divide(2).sin();
+            R = outerRange;
+            r0 = Math.sqrt(R * R - outerWidth * outerWidth);
             dRadius = outerWidth / (height - 1);
 
             for (int j = 0; j < height; j++)
@@ -242,10 +240,8 @@ public class RadarVolumeExample extends ApplicationTemplate
 
                     // Compute Z on the sphere of outer range radius.
                     double w = Math.sqrt(x * x + y * y);
-                    double a = Math.atan(w / r0);
-                    double t = Math.sqrt(w * w + r0 * r0);
-                    double tp = R - t;
-                    double z = (2 * r0 - R) + tp / Math.cos(a);
+                    // See http://mathforum.org/library/drmath/view/61615.html for the following formula.
+                    double z = r0 + Math.sqrt(Math.max(R * R - w * w, 0)) - R + (R - r0);
 
                     Vec4 v = new Vec4(x, y, -z);
                     vertices.add(v.transformBy3(combined));
