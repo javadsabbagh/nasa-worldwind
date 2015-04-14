@@ -326,7 +326,7 @@ define([
          *
          * @param pickPoint The point to examine in this World Window's screen coordinates.
          * @returns {PickedObjectList} A list of picked World Wind objects at the specified pick point.
-         * @throws {ArgumentError} If the specified pick point is undefined.
+         * @throws {ArgumentError} If the specified pick point is null or undefined.
          */
         WorldWindow.prototype.pick = function (pickPoint) {
             if (!pickPoint) {
@@ -345,16 +345,13 @@ define([
         };
 
         /**
-         * Requests the position of the World Wind terrain at a specified screen-coordinate point..
-         *
-         * If the point intersects the terrain, the returned list contains a single object identifying the associated geographic
+         * Requests the position of the World Wind terrain at a specified screen-coordinate point. If the point
+         * intersects the terrain, the returned list contains a single object identifying the associated geographic
          * position. Otherwise this returns an empty list.
-         *
          * @param pickPoint The point to examine in this World Window's screen coordinates.
-         *
          * @returns {PickedObjectList} A list containing the picked World Wind terrain position at the specified point,
          * or an empty list if the point does not intersect the terrain.
-         * @throws {ArgumentError} If the specified pick point is undefined.
+         * @throws {ArgumentError} If the specified pick point is null or undefined.
          */
         WorldWindow.prototype.pickTerrain = function (pickPoint) {
             if (!pickPoint) {
@@ -373,7 +370,9 @@ define([
         };
 
         /**
-         * Requests the World Wind objects displayed within a specified screen-coordinate region.
+         * Requests the World Wind objects displayed within a specified screen-coordinate region. This returns all
+         * objects that intersect the specified region, regardless of whether or not an object is actually visible, and
+         * marks objects that are visible as on top.
          * @param {Rectangle} rectangle The screen coordinate rectangle identifying the region to search.
          * @returns {PickedObjectList} A list of visible World Wind objects within the specified region.
          * @throws {ArgumentError} If the specified rectangle is null or undefined.
@@ -581,7 +580,9 @@ define([
                 }
             }
 
-            if (this.drawContext.regionPicking) {
+            if (this.pickTerrainOnly) {
+                this.resolveTerrainPick();
+            } else if (this.drawContext.regionPicking) {
                 this.resolveRegionPick();
             } else {
                 this.resolveTopPick();
@@ -816,45 +817,63 @@ define([
 
         // Internal function. Intentionally not documented.
         WorldWindow.prototype.resolveTopPick = function () {
+            if (this.drawContext.objectsAtPickPoint.objects.length == 0) {
+                return; // nothing picked; avoid calling readPickColor unnecessarily
+            }
+
             // Make a last reading to determine what's on top.
 
             var pickedObjects = this.drawContext.objectsAtPickPoint,
+                pickColor = this.drawContext.readPickColor(this.drawContext.pickPoint),
                 topObject = null,
                 terrainObject = null;
 
-            if (pickedObjects.objects.length > 0) {
-                var pickColor = this.drawContext.readPickColor(this.drawContext.pickPoint);
-                if (pickColor) {
-                    // Find the picked object with the top color code and set its isOnTop flag.
-                    for (var i = 0, len = pickedObjects.objects.length; i < len; i++) {
-                        var po = pickedObjects.objects[i];
+            if (pickColor) {
+                // Find the picked object with the top color code and set its isOnTop flag.
+                for (var i = 0, len = pickedObjects.objects.length; i < len; i++) {
+                    var po = pickedObjects.objects[i];
 
-                        if (po.isTerrain) {
-                            terrainObject = po;
-                        }
-
-                        if (po.color.equals(pickColor)) {
-                            po.isOnTop = true;
-                            topObject = po;
-
-                            if (terrainObject) {
-                                break; // no need to search for more than the top object and the terrain object
-                            }
-                        }
+                    if (po.isTerrain) {
+                        terrainObject = po;
                     }
 
-                    // In single-pick mode provide only the top-most object and the terrain object, if any.
-                    if (!this.drawContext.deepPicking) {
-                        pickedObjects.clear();
-                        if (topObject) {
-                            pickedObjects.add(topObject);
-                        }
-                        if (terrainObject && terrainObject != topObject) {
-                            pickedObjects.add(terrainObject);
+                    if (po.color.equals(pickColor)) {
+                        po.isOnTop = true;
+                        topObject = po;
+
+                        if (terrainObject) {
+                            break; // no need to search for more than the top object and the terrain object
                         }
                     }
-                } else {
+                }
+
+                // In single-pick mode provide only the top-most object and the terrain object, if any.
+                if (!this.drawContext.deepPicking) {
                     pickedObjects.clear();
+                    if (topObject) {
+                        pickedObjects.add(topObject);
+                    }
+                    if (terrainObject && terrainObject != topObject) {
+                        pickedObjects.add(terrainObject);
+                    }
+                }
+            } else {
+                pickedObjects.clear(); // nothing drawn at the pick point
+            }
+        };
+
+        // Internal. Intentionally not documented.
+        WorldWindow.prototype.resolveTerrainPick = function () {
+            var pickedObjects = this.drawContext.objectsAtPickPoint,
+                po;
+
+            // Mark the first picked terrain object as "on top". The picked object list should contain only one entry
+            // indicating the picked terrain object, but we iterate over the list contents anyway.
+            for (var i = 0, len = pickedObjects.objects.length; i < len; i++) {
+                po = pickedObjects.objects[i];
+                if (po.isTerrain) {
+                    po.isOnTop = true;
+                    break;
                 }
             }
         };
@@ -862,7 +881,7 @@ define([
         // Internal. Intentionally not documented.
         WorldWindow.prototype.resolveRegionPick = function () {
             if (this.drawContext.objectsAtPickPoint.objects.length == 0) {
-                return;
+                return; // nothing picked; avoid calling readPickColors unnecessarily
             }
 
             // Mark every picked object with a color in the pick buffer as "on top".

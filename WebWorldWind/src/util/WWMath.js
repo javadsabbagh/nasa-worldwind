@@ -10,13 +10,15 @@ define([
         '../error/ArgumentError',
         '../geom/Line',
         '../util/Logger',
-        '../geom/Rectangle'
+        '../geom/Rectangle',
+        '../geom/Vec3'
     ],
     function (Angle,
               ArgumentError,
               Line,
               Logger,
-              Rectangle) {
+              Rectangle,
+              Vec3) {
         "use strict";
         /**
          * Provides math constants and functions.
@@ -100,18 +102,17 @@ define([
              * @param {Line} line The line for which to compute the intersection.
              * @param {Number} equatorialRadius The ellipsoid's major radius.
              * @param {Number} polarRadius The ellipsoid's minor radius.
-             * @param {Vec3} result A pre-allocated{@Link Vec3} instance in which to return the computed point.
+             * @param {Vec3} result A pre-allocated Vec3 instance in which to return the computed point.
              * @returns {boolean} true if the line intersects the ellipsoid, otherwise false
-             * @throws {ArgumentError} If the specified line or result is null, undefined or not the correct type.
+             * @throws {ArgumentError} If the specified line or result is null or undefined.
              */
             computeEllipsoidalGlobeIntersection: function (line, equatorialRadius, polarRadius, result) {
-                if (line) {
+                if (!line) {
                     throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "WWMath",
-                        "computeEllipsoidalGlobeIntersection",
-                        "The specified line is null, undefined or not a Line type"));
+                        "computeEllipsoidalGlobeIntersection", "missingLine"));
                 }
 
-                if (result) {
+                if (!result) {
                     throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "WWMath",
                         "computeEllipsoidalGlobeIntersection", "missingResult"));
                 }
@@ -121,16 +122,15 @@ define([
                 // Note that the parameter n from in equations 5.70 and 5.71 is omitted here. For an ellipsoidal globe this
                 // parameter is always 1, so its square and its product with any other value simplifies to the identity.
 
-                var m = equatorialRadius / polarRadius, // ratio of the x semi-axis length to the y semi-axis length
-                    m2 = m * m,
-                    r2 = equatorialRadius * equatorialRadius, // nominal radius squared
-
-                    vx = line.direction[0],
+                var vx = line.direction[0],
                     vy = line.direction[1],
                     vz = line.direction[2],
                     sx = line.origin[0],
                     sy = line.origin[1],
                     sz = line.origin[2],
+                    m = equatorialRadius / polarRadius, // ratio of the x semi-axis length to the y semi-axis length
+                    m2 = m * m,
+                    r2 = equatorialRadius * equatorialRadius, // nominal radius squared
                     a = vx * vx + m2 * vy * vy + vz * vz,
                     b = 2 * (sx * vx + m2 * sy * vy + sz * vz),
                     c = sx * sx + m2 * sy * sy + sz * sz - r2,
@@ -146,6 +146,244 @@ define([
                     result[1] = sy + vy * t;
                     result[2] = sz + vz * t;
                     return true;
+                }
+            },
+
+            /**
+             * Computes the Cartesian intersection point of a specified line with a triangle.
+             * @param {Line} line The line for which to compute the intersection.
+             * @param {Vec3} vertex0 The triangle's first vertex.
+             * @param {Vec3} vertex1 The triangle's second vertex.
+             * @param {Vec3} vertex2 The triangle's third vertex.
+             * @param {Vec3} result A pre-allocated Vec3 instance in which to return the computed point.
+             * @returns {boolean} true if the line intersects the triangle, otherwise false
+             * @throws {ArgumentError} If the specified line, vertex or result is null or undefined.
+             */
+            computeTriangleIntersection: function (line, vertex0, vertex1, vertex2, result) {
+                if (!line) {
+                    throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "WWMath",
+                        "computeTriangleIntersection", "missingLine"));
+                }
+
+                if (!vertex0 || !vertex1 || !vertex2) {
+                    throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "WWMath",
+                        "computeTriangleIntersection", "missingVertex"));
+                }
+
+                if (!result) {
+                    throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "WWMath",
+                        "computeTriangleIntersection", "missingResult"));
+                }
+
+                // Taken from Moller and Trumbore
+                // http://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
+
+                var vx = line.direction[0],
+                    vy = line.direction[1],
+                    vz = line.direction[2],
+                    sx = line.origin[0],
+                    sy = line.origin[1],
+                    sz = line.origin[2],
+                    EPSILON = 0.00001;
+
+                // find vectors for two edges sharing point a: vertex1 - vertex0 and vertex2 - vertex0
+                var edge1x = vertex1[0] - vertex0[0],
+                    edge1y = vertex1[1] - vertex0[1],
+                    edge1z = vertex1[2] - vertex0[2],
+                    edge2x = vertex2[0] - vertex0[0],
+                    edge2y = vertex2[1] - vertex0[1],
+                    edge2z = vertex2[2] - vertex0[2];
+
+                // Compute cross product of line direction and edge2
+                var px = (vy * edge2z) - (vz * edge2y),
+                    py = (vz * edge2x) - (vx * edge2z),
+                    pz = (vx * edge2y) - (vy * edge2x);
+
+                // Get determinant
+                var det = edge1x * px + edge1y * py + edge1z * pz; // edge1 dot p
+                if (det > -EPSILON && det < EPSILON) { // if det is near zero then ray lies in plane of triangle
+                    return false;
+                }
+
+                var inv_det = 1.0 / det;
+
+                // Compute distance for vertex A to ray origin: origin - vertex0
+                var tx = sx - vertex0[0],
+                    ty = sy - vertex0[1],
+                    tz = sz - vertex0[2];
+
+                // Calculate u parameter and test bounds: 1/det * t dot p
+                var u = inv_det * (tx * px + ty * py + tz * pz);
+                if (u < -EPSILON || u > 1 + EPSILON) {
+                    return false;
+                }
+
+                // Prepare to test v parameter: t cross edge1
+                var qx = (ty * edge1z) - (tz * edge1y),
+                    qy = (tz * edge1x) - (tx * edge1z),
+                    qz = (tx * edge1y) - (ty * edge1x);
+
+                // Calculate v parameter and test bounds: 1/det * dir dot q
+                var v = inv_det * (vx * qx + vy * qy + vz * qz);
+                if (v < -EPSILON || u + v > 1 + EPSILON) {
+                    return false;
+                }
+
+                // Calculate the point of intersection on the line: t = 1/det * edge2 dot q
+                var t = inv_det * (edge2x * qx + edge2y * qy + edge2z * qz);
+                if (t < 0) {
+                    return false;
+                } else {
+                    result[0] = sx + vx * t;
+                    result[1] = sy + vy * t;
+                    result[2] = sz + vz * t;
+                    return true;
+                }
+            },
+
+            /**
+             * Computes the Cartesian intersection points of a specified line with a triangle strip. The triangle strip
+             * is specified by a list of vertex points and a list of indices indicating the triangle strip tessellation
+             * of those vertices. The triangle strip indices are interpreted in the same manner as WebGL, where each
+             * index indicates a vertex position rather than an actual index into the points array (e.g. a triangle
+             * strip index of 1 indicates the XYZ tuple starting at array index 3). This is equivalent to calling
+             * computeTriangleIntersection for each individual triangle in the triangle strip, but is potentially much
+             * more efficient.
+             * @param {Line} line The line for which to compute the intersection.
+             * @param {Array} points The list of vertex points, organized as a list of tightly-packed XYZ tuples.
+             * @param {Array} indices The list of triangle strip indices, organized as a list of vertex positions.
+             * @param {Array} results A pre-allocated array instance in which to return the intersection points as
+             * {@link Vec3} instances.
+             * @throws {ArgumentError} If the specified line, points, indices or results is null or undefined.
+             */
+            computeTriStripIntersections: function (line, points, indices, results) {
+                if (!line) {
+                    throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "WWMath",
+                        "computeTriStripIntersections", "missingLine"));
+                }
+
+                if (!points) {
+                    throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "WWMath",
+                        "computeTriStripIntersections", "missingPoints"));
+                }
+
+                if (!indices) {
+                    throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "WWMath",
+                        "computeTriStripIntersections", "missingIndices"));
+                }
+
+                if (!results) {
+                    throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "WWMath",
+                        "computeTriStripIntersections", "missingResults"));
+                }
+
+                // Taken from Moller and Trumbore
+                // http://www.cs.virginia.edu/~gfx/Courses/2003/ImageSynthesis/papers/Acceleration/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
+
+                // Adapted from the original ray-triangle intersection algorithm to optimize for ray-triangle strip
+                // intersection. We optimize by reusing constant terms, replacing use of Vec3 with inline primitives,
+                // and exploiting the triangle strip organization to reuse computations common to adjacent triangles.
+                // These optimizations reduce worst-case terrain picking performance by approximately 50% in Chrome on a
+                // 2010 iMac and a Nexus 9.
+
+                var vx = line.direction[0],
+                    vy = line.direction[1],
+                    vz = line.direction[2],
+                    sx = line.origin[0],
+                    sy = line.origin[1],
+                    sz = line.origin[2],
+                    vert0x, vert0y, vert0z,
+                    vert1x, vert1y, vert1z,
+                    vert2x, vert2y, vert2z,
+                    edge1x, edge1y, edge1z,
+                    edge2x, edge2y, edge2z,
+                    px, py, pz,
+                    tx, ty, tz,
+                    qx, qy, qz,
+                    u, v, t,
+                    det, inv_det,
+                    index,
+                    EPSILON = 0.00001;
+
+                // Get the triangle strip's first vertex.
+                index = 3 * indices[0];
+                vert1x = points[index++];
+                vert1y = points[index++];
+                vert1z = points[index];
+
+                // Get the triangle strip's second vertex.
+                index = 3 * indices[1];
+                vert2x = points[index++];
+                vert2y = points[index++];
+                vert2z = points[index];
+
+                // Compute the intersection of each triangle with the specified ray.
+                for (var i = 2, len = indices.length; i < len; i++) {
+                    // Move the last two vertices into the first two vertices. This takes advantage of the triangle
+                    // strip's structure and avoids redundant reads from points and indices. During the first
+                    // iteration this places the triangle strip's first three vertices in vert0, vert1 and vert2,
+                    // respectively.
+                    vert0x = vert1x;
+                    vert0y = vert1y;
+                    vert0z = vert1z;
+                    vert1x = vert2x;
+                    vert1y = vert2y;
+                    vert1z = vert2z;
+
+                    // Get the triangle strip's next vertex.
+                    index = 3 * indices[i];
+                    vert2x = points[index++];
+                    vert2y = points[index++];
+                    vert2z = points[index];
+
+                    // find vectors for two edges sharing point a: vert1 - vert0 and vert2 - vert0
+                    edge1x = vert1x - vert0x;
+                    edge1y = vert1y - vert0y;
+                    edge1z = vert1z - vert0z;
+                    edge2x = vert2x - vert0x;
+                    edge2y = vert2y - vert0y;
+                    edge2z = vert2z - vert0z;
+
+                    // Compute cross product of line direction and edge2
+                    px = (vy * edge2z) - (vz * edge2y);
+                    py = (vz * edge2x) - (vx * edge2z);
+                    pz = (vx * edge2y) - (vy * edge2x);
+
+                    // Get determinant
+                    det = edge1x * px + edge1y * py + edge1z * pz; // edge1 dot p
+                    if (det > -EPSILON && det < EPSILON) { // if det is near zero then ray lies in plane of triangle
+                        continue;
+                    }
+
+                    inv_det = 1.0 / det;
+
+                    // Compute distance for vertex A to ray origin: origin - vert0
+                    tx = sx - vert0x;
+                    ty = sy - vert0y;
+                    tz = sz - vert0z;
+
+                    // Calculate u parameter and test bounds: 1/det * t dot p
+                    u = inv_det * (tx * px + ty * py + tz * pz);
+                    if (u < -EPSILON || u > 1 + EPSILON) {
+                        continue;
+                    }
+
+                    // Prepare to test v parameter: tvec cross edge1
+                    qx = (ty * edge1z) - (tz * edge1y);
+                    qy = (tz * edge1x) - (tx * edge1z);
+                    qz = (tx * edge1y) - (ty * edge1x);
+
+                    // Calculate v parameter and test bounds: 1/det * dir dot q
+                    v = inv_det * (vx * qx + vy * qy + vz * qz);
+                    if (v < -EPSILON || u + v > 1 + EPSILON) {
+                        continue;
+                    }
+
+                    // Calculate the point of intersection on the line: t = 1/det * edge2 dot q
+                    t = inv_det * (edge2x * qx + edge2y * qy + edge2z * qz);
+                    if (t >= 0) {
+                        results.push(new Vec3(sx + vx * t, sy + vy * t, sz + vz * t));
+                    }
                 }
             },
 
