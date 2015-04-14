@@ -225,8 +225,11 @@ define([
             if (rb < 255) {
                 this.red = (rb + 1) / 255;
             } else if (gb < 255) {
+                this.red = 0;
                 this.green = (gb + 1) / 255;
             } else if (bb < 255) {
+                this.red = 0;
+                this.green = 0;
                 this.blue = (bb + 1) / 255;
             } else {
                 this.red = 1 / 255;
