@@ -94,7 +94,7 @@ requirejs(['../src/WorldWind',
             // Create the placemark attributes for this placemark. Note that the attributes differ only by their
             // image URL.
             placemarkAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
-            placemarkAttributes.imagePath = pinLibrary + images[i];
+            placemarkAttributes.imageSource = pinLibrary + images[i];
             placemark.attributes = placemarkAttributes;
 
             // Create the highlight attributes for this placemark. Note that the normal attributes are specified as

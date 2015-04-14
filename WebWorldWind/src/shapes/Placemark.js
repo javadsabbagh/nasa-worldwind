@@ -372,11 +372,11 @@ define([
                 this.activeAttributes = this.attributes;
             }
 
-            if (this.activeAttributes && this.activeAttributes.imagePath) {
-                this.activeTexture = dc.gpuResourceCache.resourceForKey(this.activeAttributes.imagePath);
+            if (this.activeAttributes && this.activeAttributes.imageSource) {
+                this.activeTexture = dc.gpuResourceCache.resourceForKey(this.activeAttributes.imageSource);
 
                 if (!this.activeTexture || this.updateImage) {
-                    dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, this.activeAttributes.imagePath);
+                    dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, this.activeAttributes.imageSource);
                     this.updateImage = false;
                 }
             }
