@@ -60,6 +60,18 @@ define([
 
         SurfaceSector.prototype = Object.create(SurfaceShape.prototype);
 
+        // Internal use only. Intentionally not documented.
+        SurfaceSector.staticStateKey = function(shape) {
+            var shapeStateKey = SurfaceShape.staticStateKey(shape);
+
+            return shapeStateKey;
+        };
+
+        // Internal use only. Intentionally not documented.
+        SurfaceSector.prototype.computeStateKey = function() {
+            return SurfaceSector.staticStateKey(this);
+        };
+
         // Internal. Intentionally not documented.
         SurfaceSector.prototype.computeBoundaries = function(dc) {
             var sector = this._sector;
