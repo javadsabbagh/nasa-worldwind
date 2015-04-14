@@ -1266,6 +1266,7 @@ public class AnalyticSurface implements Renderable, PreRenderable
         {
             if (this.shadowSurface == null)
                 this.shadowSurface = this.createShadowSurface();
+            this.shadowSurface.setDelegateOwner(this.getPickObject() != null ? this.getPickObject() : this);
             this.shadowSurface.preRender(dc);
         }
 
@@ -1273,6 +1274,7 @@ public class AnalyticSurface implements Renderable, PreRenderable
         {
             if (this.clampToGroundSurface == null)
                 this.clampToGroundSurface = this.createClampToGroundSurface();
+            this.clampToGroundSurface.setDelegateOwner(this.getPickObject() != null ? this.getPickObject() : this);
             this.clampToGroundSurface.preRender(dc);
         }
     }
