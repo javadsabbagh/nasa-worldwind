@@ -37,7 +37,7 @@ define([
             this._imageOffset = attributes ? attributes._imageOffset
                 : new Offset(WorldWind.OFFSET_FRACTION, 0.5, WorldWind.OFFSET_FRACTION, 0.5);
             this._imageScale = attributes ? attributes._imageScale : 1;
-            this._imagePath = attributes ? attributes._imagePath : null;
+            this._imageSource = attributes ? attributes._imageSource : null;
             this._depthTest = attributes ? attributes._depthTest : true;
             this._labelAttributes = attributes ? attributes._labelAttributes : new TextAttributes(null);
             this._drawLeaderLine = attributes ? attributes._drawLeaderLine : false;
@@ -64,7 +64,7 @@ define([
             return "ic " + this._imageColor.toHexString(true)
                 + " io " + this._imageOffset.toString()
                 + " is " + this._imageScale
-                + " ip " + this._imagePath
+                + " ip " + this._imageSource
                 + " dt " + this._depthTest
                 + " la " + this._labelAttributes.stateKey
                 + " dll " + this._drawLeaderLine
@@ -152,12 +152,12 @@ define([
              * @default null
              * @memberof PlacemarkAttributes.prototype
              */
-            imagePath: {
+            imageSource: {
                 get: function () {
-                    return this._imagePath;
+                    return this._imageSource;
                 },
                 set: function (value) {
-                    this._imagePath = value;
+                    this._imageSource = value;
                     this.stateKeyInvalid = true;
                 }
             },

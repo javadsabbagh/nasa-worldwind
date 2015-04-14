@@ -41,7 +41,7 @@ requirejs([
         placemarkAttributes.labelAttributes.offset = new WorldWind.Offset(
             WorldWind.OFFSET_FRACTION, 0.5,
             WorldWind.OFFSET_FRACTION, 1.0);
-        placemarkAttributes.imagePath = dotImage;
+        placemarkAttributes.imageSource = dotImage;
 
         var addLabelForName = function (attributes, record, layer) {
             var name = attributes.values.name || attributes.values.Name || attributes.values.NAME;
