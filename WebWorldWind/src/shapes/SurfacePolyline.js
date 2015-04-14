@@ -59,5 +59,17 @@ define([
 
         SurfacePolyline.prototype = Object.create(SurfaceShape.prototype);
 
+        // Internal use only. Intentionally not documented.
+        SurfacePolyline.staticStateKey = function(shape) {
+            var shapeStateKey = SurfaceShape.staticStateKey(shape);
+
+            return shapeStateKey;
+        };
+
+        // Internal use only. Intentionally not documented.
+        SurfacePolyline.prototype.computeStateKey = function() {
+            return SurfacePolyline.staticStateKey(this);
+        };
+
         return SurfacePolyline;
     });

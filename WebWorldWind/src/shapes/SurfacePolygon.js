@@ -62,5 +62,17 @@ define([
 
         SurfacePolygon.prototype = Object.create(SurfaceShape.prototype);
 
+        // Internal use only. Intentionally not documented.
+        SurfacePolygon.staticStateKey = function(shape) {
+            var shapeStateKey = SurfaceShape.staticStateKey(shape);
+
+            return shapeStateKey;
+        };
+
+        // Internal use only. Intentionally not documented.
+        SurfacePolygon.prototype.computeStateKey = function() {
+            return SurfacePolygon.staticStateKey(this);
+        };
+
         return SurfacePolygon;
     });

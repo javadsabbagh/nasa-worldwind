@@ -52,44 +52,104 @@ define([
         var SurfaceRectangle = function (center, width, height, attributes) {
             if (!center) {
                 throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceEllipse", "constructor", "missingLocation"));
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceRectangle", "constructor", "missingLocation"));
             }
 
             if (width < 0 || height < 0) {
                 throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceEllipse", "constructor", "Size is negative."));
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceRectangle", "constructor", "Size is negative."));
             }
 
             SurfaceShape.call(this, attributes);
 
+            // All these are documented with their property accessors below.
+            this._center = center;
+            this._width = width;
+            this._height = height;
+            this._heading = 0;
+        };
+
+        SurfaceRectangle.prototype = Object.create(SurfaceShape.prototype);
+
+        Object.defineProperties(SurfaceRectangle.prototype, {
             /**
              * This shape's center location.
+             * @memberof SurfaceRectangle.prototype
              * @type {Location}
              */
-            this.center = center;
+            center: {
+                get: function() {
+                    return this._center;
+                },
+                set: function(value) {
+                    this.stateKeyInvalid = true;
+                    this._center = value;
+                }
+            },
 
             /**
              * This shape's width, in meters.
+             * @memberof SurfaceRectangle.prototype
              * @type {Number}
              */
-            this.width = width;
+            width: {
+                get: function() {
+                    return this._width;
+                },
+                set: function(value) {
+                    this.stateKeyInvalid = true;
+                    this._width = value;
+                }
+            },
 
             /**
              * This shape's height in meters.
+             * @memberof SurfaceRectangle.prototype
              * @type {Number}
              */
-            this.height = height;
+            height: {
+                get: function() {
+                    return this._height;
+                },
+                set: function(value) {
+                    this.stateKeyInvalid = true;
+                    this._height = value;
+                }
+            },
 
             /**
              * The shape's heading, specified as degrees clockwise from North. This shape's height and width are
              * relative to its heading.
+             * @memberof SurfaceRectangle.prototype
              * @type {number}
              * @default 0
              */
-            this.heading = 0;
+            heading: {
+                get: function() {
+                    return this._heading;
+                },
+                set: function(value) {
+                    this.stateKeyInvalid = true;
+                    this._heading = value;
+                }
+            }
+        });
+
+        // Internal use only. Intentionally not documented.
+        SurfaceRectangle.staticStateKey = function(shape) {
+            var shapeStateKey = SurfaceShape.staticStateKey(shape);
+
+            return shapeStateKey +
+                " ce " + shape.center.toString() +
+                " wi " + shape.width.toString() +
+                " he " + shape.height.toString() +
+                " hd " + shape.heading.toString();
         };
 
-        SurfaceRectangle.prototype = Object.create(SurfaceShape.prototype);
+        // Internal use only. Intentionally not documented.
+        SurfaceRectangle.prototype.computeStateKey = function() {
+            return SurfaceRectangle.staticStateKey(this);
+        };
 
         // Internal. Intentionally not documented.
         SurfaceRectangle.prototype.computeBoundaries = function(dc) {

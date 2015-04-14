@@ -55,14 +55,41 @@ define([
 
             SurfaceEllipse.call(this, center, radius, radius, 0, attributes);
 
-            /**
-             * This shape's radius, in meters.
-             * @type {Number}
-             */
-            this.radius = radius;
+            // All these are documented with their property accessors below.
+            this._radius = radius;
         };
 
         SurfaceCircle.prototype = Object.create(SurfaceEllipse.prototype);
+
+        Object.defineProperties(SurfaceCircle.prototype, {
+            /**
+             * This shape's radius, in meters.
+             * @memberof SurfaceCircle.prototype
+             * @type {Number}
+             */
+            radius: {
+                get: function() {
+                    return this._radius;
+                },
+                set: function(value) {
+                    this.stateKeyInvalid = true;
+                    this._radius = value;
+                }
+            }
+        });
+
+        // Internal use only. Intentionally not documented.
+        SurfaceCircle.staticStateKey = function(shape) {
+            var shapeStateKey = SurfaceEllipse.staticStateKey(shape);
+
+            return shapeStateKey +
+                    " ra " + shape.radius.toString();
+        };
+
+        // Internal use only. Intentionally not documented.
+        SurfaceCircle.prototype.computeStateKey = function() {
+            return SurfaceCircle.staticStateKey(this);
+        };
 
         return SurfaceCircle;
     });

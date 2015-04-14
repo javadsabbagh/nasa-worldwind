@@ -50,6 +50,7 @@ define([
 
             Renderable.call(this);
 
+            // All these are documented with their property accessors below.
             this._displayName = "Surface Shape";
             this._attributes = attributes ? attributes : new ShapeAttributes(null);
             this._highlightAttributes = null;
@@ -338,20 +339,24 @@ define([
                 }
             }
         });
-        
-        SurfaceShape.prototype.computeStateKey = function() {
-            this._attributesStateKey = !!this._attributes ? this._attributes.stateKey : null;
-            this._highlightAttributesStateKey = !!this._highlightAttributes ? this._highlightAttributes.stateKey : null;
 
-            return   "dn " + this._displayName +
-                    " at " + this._attributesStateKey +
-                    " ha " + this._highlightAttributesStateKey +
-                    " hi " + this._highlighted +
-                    " en " + this._enabled +
-                    " pt " + this._pathType +
-                    " ne " + this._maximumNumEdgeIntervals +
-                    " po " + this._polarThrottle +
-                    " se " + this._sector;
+        SurfaceShape.staticStateKey = function(shape) {
+            shape._attributesStateKey = !!shape._attributes ? shape._attributes.stateKey : null;
+            shape._highlightAttributesStateKey = !!shape._highlightAttributes ? shape._highlightAttributes.stateKey : null;
+
+            return   "dn " + shape.displayName +
+                    " at " + shape._attributesStateKey +
+                    " ha " + shape._highlightAttributesStateKey +
+                    " hi " + shape.highlighted +
+                    " en " + shape.enabled +
+                    " pt " + shape.pathType +
+                    " ne " + shape.maximumNumEdgeIntervals +
+                    " po " + shape.polarThrottle +
+                    " se " + shape.sector;
+        };
+
+        SurfaceShape.prototype.computeStateKey = function() {
+            return SurfaceShape.staticStateKey(this);
         };
 
         /**
