@@ -145,6 +145,10 @@ define([
             var savedTiles, savedTopLevelTiles;
 
             if (dc.pickingMode) {
+                for (var idx = 0, len = this.surfaceShapes.length; idx < len; idx += 1) {
+                    this.surfaceShapes[idx].resetPickColor();
+                }
+
                 SurfaceShapeTileBuilder.pickSequence += 1;
 
                 savedTiles = this.surfaceShapeTiles;
@@ -155,12 +159,6 @@ define([
             }
 
             this.buildTiles(dc);
-
-            if (dc.pickingMode) {
-                for (var idx = 0, len = this.surfaceShapes.length; idx < len; idx += 1) {
-                    this.surfaceShapes[idx].resetPickColor();
-                }
-            }
 
             dc.surfaceTileRenderer.renderTiles(dc, this.surfaceShapeTiles, 1);
 
