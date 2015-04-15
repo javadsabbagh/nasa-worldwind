@@ -39,6 +39,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './shaders/GpuProgram',
         './cache/GpuResourceCache',
         './shaders/GpuShader',
+        './util/HighlightController',
         './util/ImageSource',
         './render/ImageTile',
         './layer/LandsatRestLayer',
@@ -150,6 +151,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               GpuProgram,
               GpuResourceCache,
               GpuShader,
+              HighlightController,
               ImageSource,
               ImageTile,
               LandsatRestLayer,
@@ -440,6 +442,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['GpuProgram'] = GpuProgram;
         WorldWind['GpuResourceCache'] = GpuResourceCache;
         WorldWind['GpuShader'] = GpuShader;
+        WorldWind['HighlightController'] = HighlightController;
         WorldWind['ImageSource'] = ImageSource;
         WorldWind['ImageTile'] = ImageTile;
         WorldWind['LandsatRestLayer'] = LandsatRestLayer;
