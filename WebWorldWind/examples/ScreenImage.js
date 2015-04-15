@@ -3,7 +3,7 @@
  * National Aeronautics and Space Administration. All Rights Reserved.
  */
 /**
- * Illustrates how to display and pick ScreenImage.
+ * Illustrates how to display and pick ScreenImages.
  *
  * @version $Id$
  */
@@ -36,15 +36,40 @@ requirejs(['../src/WorldWind',
             wwd.addLayer(layers[l].layer);
         }
 
+        // Create a screen image that uses a static image. Place it in the lower-left corner.
         var screenOffset = new WorldWind.Offset(WorldWind.OFFSET_FRACTION, 1, WorldWind.OFFSET_FRACTION, 0);
-        var screenImage = new WorldWind.ScreenImage(screenOffset, "../images/400x230-splash-nww.png");
-        screenImage.imageOffset = new WorldWind.Offset(WorldWind.OFFSET_FRACTION, 1, WorldWind.OFFSET_FRACTION, 0);
-        screenImage.imageScale = 0.3;
+        var screenImage1 = new WorldWind.ScreenImage(screenOffset, "../images/400x230-splash-nww.png");
+        screenImage1.imageOffset = new WorldWind.Offset(WorldWind.OFFSET_FRACTION, 1, WorldWind.OFFSET_FRACTION, 0);
+        screenImage1.imageScale = 0.3;
 
-        // Add the screen image to a layer and the layer to the World Window's layer list.
+        // Create a screen image that uses a dynamically created image.
+
+        var canvas = document.createElement("canvas"),
+            ctx2d = canvas.getContext("2d"),
+            size = 64, c = size / 2  - 0.5, innerRadius = 5, outerRadius = 20;
+
+        canvas.width = size;
+        canvas.height = size;
+
+        var gradient = ctx2d.createRadialGradient(c, c, innerRadius, c, c, outerRadius);
+        gradient.addColorStop(0, 'rgb(255, 0, 0)');
+        gradient.addColorStop(0.5, 'rgb(0, 255, 0)');
+        gradient.addColorStop(1, 'rgb(255, 0, 0)');
+
+        ctx2d.fillStyle = gradient;
+        ctx2d.arc(c, c, outerRadius, 0, 2 * Math.PI, false);
+        ctx2d.fill();
+
+        // Create the screen image and place it in the upper-left corner.
+        screenOffset = new WorldWind.Offset(WorldWind.OFFSET_FRACTION, 0, WorldWind.OFFSET_FRACTION, 1);
+        var screenImage2 = new WorldWind.ScreenImage(screenOffset, new WorldWind.ImageSource(canvas));
+        screenImage2.imageOffset = new WorldWind.Offset(WorldWind.OFFSET_FRACTION, 0, WorldWind.OFFSET_FRACTION, 1);
+
+        // Add the screen images to a layer and the layer to the World Window's layer list.
         var screenImageLayer = new WorldWind.RenderableLayer();
-        screenImageLayer.displayName = "Screen Image";
-        screenImageLayer.addRenderable(screenImage);
+        screenImageLayer.displayName = "Screen Images";
+        screenImageLayer.addRenderable(screenImage1);
+        screenImageLayer.addRenderable(screenImage2);
         wwd.addLayer(screenImageLayer);
 
         // Draw the World Window for the first time.
@@ -72,7 +97,7 @@ requirejs(['../src/WorldWind',
                         wwd.navigator.heading = 0;
                         wwd.redraw();
                     }
-                    else if (pickList.objects[p].userObject === screenImage) {
+                    else if (pickList.objects[p].userObject instanceof WorldWind.ScreenImage) {
                         console.log("Screen image picked");
                     }
                 }

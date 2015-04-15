@@ -12,6 +12,7 @@ define([
         '../shaders/BasicTextureProgram',
         '../geom/BoundingBox',
         '../util/Color',
+        '../util/ImageSource',
         '../geom/Location',
         '../util/Logger',
         '../geom/Matrix',
@@ -28,6 +29,7 @@ define([
               BasicTextureProgram,
               BoundingBox,
               Color,
+              ImageSource,
               Location,
               Logger,
               Matrix,
@@ -67,19 +69,20 @@ define([
          * <p>
          *     A polygon can be textured, including its extruded boundaries. The textures are specified via the
          *     [imageSource]{@link ShapeAttributes#imageSource} property of the polygon's attributes. If that
-         *     property is a single string, then it identifies the image source for the polygon's texture. If that
-         *     property is an array of strings, then the first entry in the array specifies the polygon's image
-         *     source and subsequent entries specify the image sources of the polygon's extruded boundaries. If the
-         *     array contains two entries, the first is the polygon's image source and the second is the common image
-         *     source for all extruded boundaries. If the array contains more than two entries, then the first entry
-         *     is the polygon's image source and each subsequent entry is the image source for consecutive extruded
-         *     boundary segments. A null value for any entry indicates that no texture is applied for the corresponding
-         *     polygon or extruded edge segment. If fewer image sources are specified then there are boundary segments,
-         *     the last image source specified is applied to the remaining segments.
-         *     Texture coordinates for the polygon's texture are specified via this
-         *     polygon's [textureCoordinates]{@link Polygon#textureCoordinates} property. Texture coordinates for
-         *     extruded boundary segments are implicitly defined to fit the full texture to each boundary segment.
-         *     The imageOffset and imageScale properties of this polygon's shape attributes are not utilized.
+         *     property is a single string or {@link ImageSource}, then it identifies the image source for the
+         *     polygon's texture. If that property is an array of strings, {@link ImageSource}s or a combination of
+         *     those, then the first entry in the array specifies the polygon's image source and subsequent entries
+         *     specify the image sources of the polygon's extruded boundaries. If the array contains two entries, the
+         *     first is the polygon's image source and the second is the common image source for all extruded
+         *     boundaries. If the array contains more than two entries, then the first entry is the polygon's image
+         *     source and each subsequent entry is the image source for consecutive extruded boundary segments. A null
+         *     value for any entry indicates that no texture is applied for the corresponding polygon or extruded edge
+         *     segment. If fewer image sources are specified then there are boundary segments, the last image source
+         *     specified is applied to the remaining segments. Texture coordinates for the polygon's texture are
+         *     specified via this polygon's [textureCoordinates]{@link Polygon#textureCoordinates} property. Texture
+         *     coordinates for extruded boundary segments are implicitly defined to fit the full texture to each
+         *     boundary segment. The imageOffset and imageScale properties of this polygon's shape attributes are not
+         *     utilized.
          * <p>
          *     When displayed on a 2D globe, this polygon displays as a {@link SurfacePolygon}.
          *
@@ -202,12 +205,15 @@ define([
                 return null;
             }
 
-            if ((typeof this.activeAttributes.imageSource) === "string") {
+            if ((typeof this.activeAttributes.imageSource) === "string"
+                || this.activeAttributes.imageSource instanceof ImageSource) {
                 return this.activeAttributes.imageSource;
             }
 
             if (Array.isArray(this.activeAttributes.imageSource)
-                && this.activeAttributes.imageSource[0] && typeof this.activeAttributes.imageSource[0] === "string") {
+                && this.activeAttributes.imageSource[0]
+                && (typeof this.activeAttributes.imageSource[0] === "string"
+                || this.activeAttributes.imageSource instanceof ImageSource)) {
                 return this.activeAttributes.imageSource[0];
             }
 
@@ -493,6 +499,10 @@ define([
 
                 if (hasCapTexture) {
                     this.activeTexture = dc.gpuResourceCache.resourceForKey(this.capImageSource());
+                    if (!this.activeTexture) {
+                        this.activeTexture =
+                            dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, this.capImageSource());
+                    }
 
                     textureBound = this.activeTexture && this.activeTexture.bind(dc);
                     if (textureBound) {
@@ -502,8 +512,6 @@ define([
                             false, stride, 12);
                         program.loadTextureUnit(gl, WebGLRenderingContext.TEXTURE0);
                         program.loadModulateColor(gl, dc.pickingMode);
-                    } else if (!this.activeTexture) {
-                        dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, this.capImageSource());
                     }
                 }
 
@@ -626,6 +634,10 @@ define([
                             var sideImageSource = this.sideImageSource(side),
                                 sideTexture = dc.gpuResourceCache.resourceForKey(sideImageSource);
 
+                            if (sideImageSource && !sideTexture) {
+                                sideTexture = dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, sideImageSource);
+                            }
+
                             textureBound = sideTexture && sideTexture.bind(dc);
                             if (textureBound) {
                                 program.loadTextureEnabled(gl, true);
@@ -633,9 +645,6 @@ define([
                                 program.loadModulateColor(gl, dc.pickingMode);
                                 gl.enableVertexAttribArray(program.vertexTexCoordLocation);
                             } else {
-                                if (!sideTexture && sideImageSource) {
-                                    dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, sideImageSource);
-                                }
                                 program.loadTextureEnabled(gl, false);
                                 gl.disableVertexAttribArray(program.vertexTexCoordLocation);
                             }

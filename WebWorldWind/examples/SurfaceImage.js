@@ -3,7 +3,7 @@
  * National Aeronautics and Space Administration. All Rights Reserved.
  */
 /**
- * Illustrates how to display and pick SurfaceImage.
+ * Illustrates how to display and pick SurfaceImages.
  *
  * @version $Id$
  */
@@ -36,13 +36,36 @@ requirejs(['../src/WorldWind',
             wwd.addLayer(layers[l].layer);
         }
 
-        var surfaceImage = new WorldWind.SurfaceImage(new WorldWind.Sector(40, 50, -120, -100),
-            "../images/400x230-splash-nww.png");
+        // Create a surface image using a static image.
+        var surfaceImage1 = new WorldWind.SurfaceImage(new WorldWind.Sector(40, 50, -120, -100),
+        "../images/400x230-splash-nww.png");
 
-        // Add the surface image to a layer and the layer to the World Window's layer list.
+        // Create a surface image using a dynamically created image.
+
+        var canvas = document.createElement("canvas"),
+            ctx2d = canvas.getContext("2d"),
+            size = 64, c = size / 2  - 0.5, innerRadius = 5, outerRadius = 20;
+
+        canvas.width = size;
+        canvas.height = size;
+
+        var gradient = ctx2d.createRadialGradient(c, c, innerRadius, c, c, outerRadius);
+        gradient.addColorStop(0, 'rgb(255, 0, 0)');
+        gradient.addColorStop(0.5, 'rgb(0, 255, 0)');
+        gradient.addColorStop(1, 'rgb(255, 0, 0)');
+
+        ctx2d.fillStyle = gradient;
+        ctx2d.arc(c, c, outerRadius, 0, 2 * Math.PI, false);
+        ctx2d.fill();
+
+        var surfaceImage2 = new WorldWind.SurfaceImage(new WorldWind.Sector(30, 40, -100, -80),
+            new WorldWind.ImageSource(canvas));
+
+        // Add the surface images to a layer and the layer to the World Window's layer list.
         var surfaceImageLayer = new WorldWind.RenderableLayer();
-        surfaceImageLayer.displayName = "Surface Image";
-        surfaceImageLayer.addRenderable(surfaceImage);
+        surfaceImageLayer.displayName = "Surface Images";
+        surfaceImageLayer.addRenderable(surfaceImage1);
+        surfaceImageLayer.addRenderable(surfaceImage2);
         wwd.addLayer(surfaceImageLayer);
 
         // Draw the World Window for the first time.

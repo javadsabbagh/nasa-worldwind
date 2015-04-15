@@ -10,6 +10,7 @@ define([
         '../error/ArgumentError',
         '../shaders/BasicTextureProgram',
         '../util/Color',
+        '../util/ImageSource',
         '../util/Logger',
         '../geom/Matrix',
         '../util/Offset',
@@ -21,6 +22,7 @@ define([
     function (ArgumentError,
               BasicTextureProgram,
               Color,
+              ImageSource,
               Logger,
               Matrix,
               Offset,
@@ -41,18 +43,20 @@ define([
          * @param {Offset} screenOffset The offset indicating the image's placement on the screen.
          * Use [the image offset property]{@link ScreenImage#imageOffset} to position the image relative to the
          * specified screen offset.
-         * @param {String} imagePath The URL of the image to display.
-         * @throws {ArgumentError} If the specified screen point or image path is null or undefined.
+         * @param {String|ImageSource} imageSource The source of the image to display.
+         * May be either a string identifying the URL of the image, or an {@link ImageSource} object identifying a
+         * dynamically created image.
+         * @throws {ArgumentError} If the specified screen point or image source is null or undefined.
          */
-        var ScreenImage = function (screenOffset, imagePath) {
+        var ScreenImage = function (screenOffset, imageSource) {
             if (!screenOffset) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "ScreenImage", "constructor", "missingOffset"));
             }
 
-            if (!imagePath) {
+            if (!imageSource) {
                 throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "ScreenImage", "constructor", "missingPath"));
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "ScreenImage", "constructor", "missingImage"));
             }
 
             Renderable.call(this);
@@ -64,7 +68,7 @@ define([
             this.screenOffset = screenOffset;
 
             // Documented with its property accessor below.
-            this._imagePath = imagePath;
+            this._imageSource = imageSource;
 
             /**
              * The image color. When displayed, this shape's image is multiplied by this image color to achieve the
@@ -149,23 +153,25 @@ define([
 
         Object.defineProperties(ScreenImage.prototype, {
             /**
-             * The URL of the image to display.
-             * @type {String}
+             * The source of the image to display.
+             * May be either a string identifying the URL of the image, or an {@link ImageSource} object identifying a
+             * dynamically created image.
+             * @type {String|ImageSource}
              * @default null
              * @memberof ScreenImage.prototype
              */
-            imagePath: {
+            imageSource: {
                 get: function () {
-                    return this._imagePath;
+                    return this._imageSource;
                 },
-                set: function (imagePath) {
-                    if (!imagePath) {
-                        throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "ScreenImage", "imagePath",
-                            "missingPath"));
+                set: function (imageSource) {
+                    if (!imageSource) {
+                        throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "ScreenImage", "imageSource",
+                            "missingImage"));
                     }
 
-                    this._imagePath = imagePath;
-                    this.imagePathWasUpdated = true;
+                    this._imageSource = imageSource;
+                    this.imageSourceWasUpdated = true;
                 }
             }
         });
@@ -221,10 +227,12 @@ define([
             var w, h, s, ws, hs,
                 iOffset, sOffset;
 
-            this.activeTexture = dc.gpuResourceCache.resourceForKey(this._imagePath);
-            if (!this.activeTexture) {
-                dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, this._imagePath);
-                return null;
+            this.activeTexture = dc.gpuResourceCache.resourceForKey(this._imageSource);
+            if (!this.activeTexture || this.imageSourceWasUpdated) {
+                this.activeTexture = dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, this._imageSource);
+                if (!this.activeTexture) {
+                    return null;
+                }
             }
 
             this.eyeDistance = 0;

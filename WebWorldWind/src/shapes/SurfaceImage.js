@@ -25,18 +25,20 @@ define([
          * @augments SurfaceTile
          * @classdesc Represents an image drawn on the terrain.
          * @param {Sector} sector The sector spanned by this surface image.
-         * @param {String} imagePath The image path of the image to draw on the terrain.
-         * @throws {ArgumentError} If either the specified sector or image path is null or undefined.
+         * @param {String|ImageSource} imageSource The image source of the image to draw on the terrain.
+         * May be either a string identifying the URL of the image, or an {@link ImageSource} object identifying a
+         * dynamically created image.
+         * @throws {ArgumentError} If either the specified sector or image source is null or undefined.
          */
-        var SurfaceImage = function (sector, imagePath) {
+        var SurfaceImage = function (sector, imageSource) {
             if (!sector) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceImage", "constructor",
                     "missingSector"));
             }
 
-            if (!imagePath) {
+            if (!imageSource) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceImage", "constructor",
-                    "missingPath"));
+                    "missingImage"));
             }
 
             SurfaceTile.call(this, sector);
@@ -52,7 +54,7 @@ define([
              * The path to the image.
              * @type {String}
              */
-            this._imagePath = imagePath;
+            this._imageSource = imageSource;
 
             /**
              * This surface image's opacity. When this surface image is drawn, the actual opacity is the product of
@@ -68,35 +70,46 @@ define([
             this.displayName = "Surface Image";
 
             // Internal. Indicates whether the image needs to be updated in the GPU resource cache.
-            this.imagePathWasUpdated = true;
+            this.imageSourceWasUpdated = true;
         };
 
         SurfaceImage.prototype = Object.create(SurfaceTile.prototype);
 
         Object.defineProperties(SurfaceImage.prototype, {
-            imagePath: {
+            /**
+             * The source of the image to display.
+             * May be either a string identifying the URL of the image, or an {@link ImageSource} object identifying a
+             * dynamically created image.
+             * @type {String|ImageSource}
+             * @default null
+             * @memberof SurfaceImage.prototype
+             */
+            imageSource: {
                 get: function () {
-                    return this._imagePath;
+                    return this._imageSource;
                 },
-                set: function (imagePath) {
-                    if (!imagePath) {
-                        throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceImage", "imagePath",
-                            "missingPath"));
+                set: function (imageSource) {
+                    if (!imageSource) {
+                        throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceImage", "imageSource",
+                            "missingImage"));
                     }
 
-                    this._imagePath = imagePath;
-                    this.imagePathWasUpdated = true;
+                    this._imageSource = imageSource;
+                    this.imageSourceWasUpdated = true;
                 }
             }
         });
 
         SurfaceImage.prototype.bind = function (dc) {
-            var texture = dc.gpuResourceCache.resourceForKey(this._imagePath);
-            if (texture && !this.imagePathWasUpdated) {
+            var texture = dc.gpuResourceCache.resourceForKey(this._imageSource);
+            if (texture && !this.imageSourceWasUpdated) {
                 return texture.bind(dc);
             } else {
-                dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, this._imagePath);
-                this.imagePathWasUpdated = false;
+                texture = dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, this._imageSource);
+                this.imageSourceWasUpdated = false;
+                if (texture) {
+                    return texture.bind(dc);
+                }
             }
         };
 

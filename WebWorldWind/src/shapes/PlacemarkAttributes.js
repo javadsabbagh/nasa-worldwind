@@ -146,9 +146,11 @@ define([
             },
 
             /**
-             * The URL of the placemark's image. If null, the placemark is drawn as a square whose width and height are
+             * The image source of the placemark's image. May be either a string giving the URL of the image, or an
+             * {@link ImageSource} object identifying an Image created dynamically.
+             * If null, the placemark is drawn as a square whose width and height are
              * the value of this attribute object's [imageScale]{@link PlacemarkAttributes#imageScale} property.
-             * @type {String}
+             * @type {String|ImageSource}
              * @default null
              * @memberof PlacemarkAttributes.prototype
              */

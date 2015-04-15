@@ -9,12 +9,14 @@
 define([
         '../util/AbsentResourceList',
         '../error/ArgumentError',
+        '../util/ImageSource',
         '../util/Logger',
         '../cache/MemoryCache',
         '../render/Texture'
     ],
     function (AbsentResourceList,
               ArgumentError,
+              ImageSource,
               Logger,
               MemoryCache,
               Texture) {
@@ -78,7 +80,7 @@ define([
              * @memberof GpuResourceCache.prototype
              */
             lowWater: {
-                get: function() {
+                get: function () {
                     return this.entries.lowWater;
                 }
             },
@@ -119,7 +121,7 @@ define([
         /**
          * Adds a specified resource to this cache. Replaces the existing resource for the specified key if the
          * cache currently contains a resource for that key.
-         * @param {String} key The key of the resource to add.
+         * @param {String|ImageSource} key The key or image source of the resource to add.
          * @param {Object} resource The resource to add to the cache.
          * @param {Number} size The resource's size in bytes. Must be greater than 0.
          * @throws {ArgumentError} If either the key or resource arguments is null or undefined
@@ -146,38 +148,39 @@ define([
                 resource: resource
             };
 
-            this.entries.putEntry(key, entry, size);
+            this.entries.putEntry(key instanceof ImageSource ? key.key : key, entry, size);
         };
 
         /**
          * Returns the resource associated with a specified key.
-         * @param {String} key The key of the resource to find.
+         * @param {String|ImageSource} key The key or image source of the resource to find.
          * @returns {Object} The resource associated with the specified key, or null if the resource is not in
          * this cache or the specified key is null or undefined.
          */
         GpuResourceCache.prototype.resourceForKey = function (key) {
-            var entry = this.entries.entryForKey(key);
+            var entry = (key instanceof ImageSource)
+                ? this.entries.entryForKey(key.key) : this.entries.entryForKey(key);
 
             return entry ? entry.resource : null;
         };
 
         /**
          * Indicates whether a specified resource is in this cache.
-         * @param {String} key The key of the resource to find.
+         * @param {String|ImageSource} key The key or image source of the resource to find.
          * @returns {Boolean} true If the resource is in this cache, false if the resource
          * is not in this cache or the specified key is null or undefined.
          */
         GpuResourceCache.prototype.containsResource = function (key) {
-            return this.entries.containsKey(key);
+            return this.entries.containsKey(key instanceof ImageSource ? key.key : key);
         };
 
         /**
          * Removes the specified resource from this cache. The cache is not modified if the specified key is null or
          * undefined or does not correspond to an entry in the cache.
-         * @param {String} key The key of the resource to remove.
+         * @param {String|ImageSource} key The key or image source of the resource to remove.
          */
         GpuResourceCache.prototype.removeResource = function (key) {
-            this.entries.removeEntry(key);
+            this.entries.removeEntry(key instanceof ImageSource ? key.key : key);
         };
 
         /**
@@ -188,28 +191,44 @@ define([
         };
 
         /**
-         * Retrieves an image at a specified URL and adds it to this cache when it arrives. A redraw event is
-         * generated when the image arrives and is added to this cache.
+         * Retrieves an image and adds it to this cache when it arrives. If the specified image source is a URL, a
+         * retrieval request for the image is made and this method returns immediately with a value of null. A redraw
+         * event is generated when the image subsequently arrives and is added to this cache. If the image source is an
+         * {@link ImageSource}, the image is used immediately and this method returns the {@link Texture} created and
+         * cached for the image. No redraw event is generated in this case.
          * @param {WebGLRenderingContext} gl The current WebGL context.
-         * @param {String} imageUrl The URL of the image.
+         * @param {String|ImageSource} imageSource The image source, either a {@link ImageSource} or a String
+         * giving the URL of the image.
+         * @returns {Texture} The {@link Texture} created for the image if the specified image source is an
+         * {@link ImageSource}, otherwise null.
          */
-        GpuResourceCache.prototype.retrieveTexture = function (gl, imageUrl) {
-            if (!imageUrl || this.currentRetrievals[imageUrl] || this.absentResourceList.isResourceAbsent(imageUrl)) {
-                return;
+        GpuResourceCache.prototype.retrieveTexture = function (gl, imageSource) {
+            if (!imageSource) {
+                return null;
+            }
+
+            if (imageSource instanceof ImageSource) {
+                var t = new Texture(gl, imageSource.image);
+                this.putResource(imageSource.key, t, t.size);
+                return t;
+            }
+
+            if (this.currentRetrievals[imageSource] || this.absentResourceList.isResourceAbsent(imageSource)) {
+                return null;
             }
 
             var cache = this,
                 image = new Image();
 
             image.onload = function () {
-                Logger.log(Logger.LEVEL_INFO, "Image retrieval succeeded: " + imageUrl);
+                Logger.log(Logger.LEVEL_INFO, "Image retrieval succeeded: " + imageSource);
 
                 var texture = new Texture(gl, image);
 
-                cache.putResource(imageUrl, texture, texture.size);
+                cache.putResource(imageSource, texture, texture.size);
 
-                delete cache.currentRetrievals[imageUrl];
-                cache.absentResourceList.unmarkResourceAbsent(imageUrl);
+                delete cache.currentRetrievals[imageSource];
+                cache.absentResourceList.unmarkResourceAbsent(imageSource);
 
                 // Send an event to request a redraw.
                 var e = document.createEvent('Event');
@@ -218,14 +237,16 @@ define([
             };
 
             image.onerror = function () {
-                delete cache.currentRetrievals[imageUrl];
-                cache.absentResourceList.markResourceAbsent(imageUrl);
-                Logger.log(Logger.LEVEL_WARNING, "Image retrieval failed: " + imageUrl);
+                delete cache.currentRetrievals[imageSource];
+                cache.absentResourceList.markResourceAbsent(imageSource);
+                Logger.log(Logger.LEVEL_WARNING, "Image retrieval failed: " + imageSource);
             };
 
-            this.currentRetrievals[imageUrl] = imageUrl;
+            this.currentRetrievals[imageSource] = imageSource;
             image.crossOrigin = 'anonymous';
-            image.src = imageUrl;
+            image.src = imageSource;
+
+            return null;
         };
 
         return GpuResourceCache;
