@@ -44,7 +44,7 @@ define([
          * leader line is not pickable. See [enableLeaderLinePicking]{@link Placemark#enableLeaderLinePicking}.
          * <p>
          * Placemarks may be drawn with either an image or as single-color square with a specified size. When the
-         * placemark attributes indicate a valid image path, the placemark's image is drawn as a rectangle in the
+         * placemark attributes indicate a valid image, the placemark's image is drawn as a rectangle in the
          * image's original dimensions, scaled by the image scale attribute. Otherwise, the placemark is drawn as a
          * square with width and height equal to the value of the image scale attribute, in pixels.
          * @param {Position} position The placemark's geographic position.
@@ -376,7 +376,8 @@ define([
                 this.activeTexture = dc.gpuResourceCache.resourceForKey(this.activeAttributes.imageSource);
 
                 if (!this.activeTexture || this.updateImage) {
-                    dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, this.activeAttributes.imageSource);
+                    this.activeTexture = dc.gpuResourceCache.retrieveTexture(dc.currentGlContext,
+                        this.activeAttributes.imageSource);
                     this.updateImage = false;
                 }
             }

@@ -145,7 +145,8 @@ requirejs(['../src/WorldWind',
 
         polygonsLayer.addRenderable(polygon);
 
-        // Create a textured polygon with a hole at the north pole. Extrude the boundaries but don't texture them.
+        // Create a textured polygon with a hole at the north pole. Extrude the boundaries and apply a dynamically
+        // created texture to them.
         boundaries = [];
         boundaries[0] = []; // outer boundary
         boundaries[0].push(new WorldWind.Position(85, -45, 1e5));
@@ -167,8 +168,29 @@ requirejs(['../src/WorldWind',
                 new WorldWind.Vec2(0.4, 0.6)]
         ];
 
+        // Create a custom image for the extruded sides.
+
+        var canvas = document.createElement("canvas"),
+            ctx2d = canvas.getContext("2d"),
+            size = 64, c = size / 2  - 0.5, innerRadius = 5, outerRadius = 20;
+
+        canvas.width = size;
+        canvas.height = size;
+
+        var gradient = ctx2d.createRadialGradient(c, c, innerRadius, c, c, outerRadius);
+        gradient.addColorStop(0, 'rgb(255, 0, 0)');
+        gradient.addColorStop(0.5, 'rgb(0, 255, 0)');
+        gradient.addColorStop(1, 'rgb(255, 0, 0)');
+
+        ctx2d.fillStyle = gradient;
+        ctx2d.arc(c, c, outerRadius, 0, 2 * Math.PI, false);
+        ctx2d.fill();
+
         polygonAttributes = new WorldWind.ShapeAttributes(null);
-        polygonAttributes.imageSource = "../images/400x230-splash-nww.png";
+        polygonAttributes.imageSource = [
+            "../images/400x230-splash-nww.png",
+            new WorldWind.ImageSource(canvas)
+        ];
         polygonAttributes.drawInterior = true;
         polygonAttributes.drawOutline = true;
         polygonAttributes.outlineColor = WorldWind.Color.BLUE;

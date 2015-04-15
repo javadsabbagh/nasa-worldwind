@@ -7,9 +7,11 @@
  * @version $Id$
  */
 define([
-        '../util/Color'
+        '../util/Color',
+        '../util/ImageSource'
     ],
-    function (Color) {
+    function (Color,
+              ImageSource) {
         "use strict";
 
         /**
@@ -66,7 +68,8 @@ define([
                 + " ow " + this._outlineWidth
                 + " osf " + this._outlineStippleFactor
                 + " osp " + this._outlineStipplePattern
-                + " is " + (this._imageSource ? this.imageSource : "null")
+                + " is " + this._imageSource
+                    ? (this.imageSource instanceof ImageSource ? this.imageSource.key : this.imageSource) : "null"
                 + " isc " + this._imageScale
                 + " io " + (this._imageOffset ? this.imageOffset.toString() : "null")
                 + " dt " + this._depthTest
@@ -231,9 +234,9 @@ define([
             },
 
             /**
-             * Indicates the associated shape's image source, a URL string. May be null, in which case no image is
+             * Indicates the associated shape's image source. May be null, in which case no image is
              * applied to the shape.
-             * @type {String}
+             * @type {String|ImageSource}
              * @memberof ShapeAttributes.prototype
              * @default null
              */
