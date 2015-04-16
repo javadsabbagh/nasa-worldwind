@@ -1,4 +1,4 @@
-/**
+/*
  * @license
  * Copyright 2000, Silicon Graphics, Inc. All Rights Reserved.
  * Copyright 2014, Google Inc. All Rights Reserved.
@@ -27,12 +27,12 @@
  * Copyright in any portions created by third parties is as indicated
  * elsewhere herein. All Rights Reserved.
  */
-/**
+/*
  * @author ericv@cs.stanford.edu (Eric Veach)
  * @author bckenny@google.com (Brendan Kenny)
  */
 
-/**
+/*
  * Base namespace.
  * @const
  */
@@ -1150,14 +1150,14 @@ libtess.normal = {};
 
 /**
  * X coordinate of local basis for polygon projection.
- * @private {number}
+ * @private
  * @const
  */
 libtess.normal.S_UNIT_X_ = 1.0;
 
 /**
  * Y coordinate of local basis for polygon projection.
- * @private {number}
+ * @private
  * @const
  */
 libtess.normal.S_UNIT_Y_ = 0.0;
@@ -3090,13 +3090,13 @@ libtess.Dict = function(frame, leq) {
   /**
    * The head of the doubly-linked DictNode list. At creation time, links back
    * and forward only to itself.
-   * @private {!libtess.DictNode}
+   * @private
    */
   this.head_ = new libtess.DictNode();
 
   /**
    * The GluTesselator used as the frame for edge/event comparisons.
-   * @private {!libtess.GluTesselator}
+   * @private
    */
   this.frame_ = frame;
 

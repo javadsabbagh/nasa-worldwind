@@ -142,6 +142,7 @@ define([
              * for one boundary. Each texture coordinate is a {@link Vec2} containing the s and t coordinates.
              * @type {Vec2[][]}
              * @default null
+             * @memberof Polygon.prototype
              */
             textureCoordinates: {
                 get: function () {

@@ -331,6 +331,7 @@ define([
             /**
              * Defines the extent of the shape in latitude and longitude.
              * This sector only has valid data once the boundary is defined. Prior to this, it is null.
+             * @memberof SurfaceShape.prototype
              * @type {Sector}
              */
             sector: {
