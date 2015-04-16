@@ -196,7 +196,6 @@ public class RadarVolumeExample extends ApplicationTemplate
             // Compute the near grid.
             double innerWidth = innerRange * fov.divide(2).sin(); // half width of chord
             double R = innerRange; // radius of sphere
-            double r0 = Math.sqrt(R * R - innerWidth * innerWidth); // distance of chord from radar position
             double dRadius = innerWidth / (height - 1);
 
             // Compute rings of vertices to define the grid.
@@ -212,9 +211,8 @@ public class RadarVolumeExample extends ApplicationTemplate
                     y = radius * Math.sin(theta);
 
                     // Compute Z on the sphere of inner range radius.
-                    double w = Math.sqrt(x * x + y * y); // distance from chord midpoint to point on chord
-                    // See http://mathforum.org/library/drmath/view/61615.html for the following formula.
-                    double z = r0 + Math.sqrt(Math.max(R * R - w * w, 0)) - R + (R - r0);
+                    double w = Math.sqrt(x * x + y * y); // perpendicular distance from centerline to point on sphere
+                    double z = Math.sqrt(Math.max(R * R - w * w, 0));
 
                     Vec4 v = new Vec4(x, y, -z);
                     vertices.add(v.transformBy3(combined));
@@ -224,7 +222,6 @@ public class RadarVolumeExample extends ApplicationTemplate
             // Compute the far grid.
             double outerWidth = outerRange * fov.divide(2).sin();
             R = outerRange;
-            r0 = Math.sqrt(R * R - outerWidth * outerWidth);
             dRadius = outerWidth / (height - 1);
 
             for (int j = 0; j < height; j++)
@@ -239,9 +236,8 @@ public class RadarVolumeExample extends ApplicationTemplate
                     y = radius * Math.sin(theta);
 
                     // Compute Z on the sphere of outer range radius.
-                    double w = Math.sqrt(x * x + y * y);
-                    // See http://mathforum.org/library/drmath/view/61615.html for the following formula.
-                    double z = r0 + Math.sqrt(Math.max(R * R - w * w, 0)) - R + (R - r0);
+                    double w = Math.sqrt(x * x + y * y); // perpendicular distance from centerline to point on sphere
+                    double z = Math.sqrt(Math.max(R * R - w * w, 0));
 
                     Vec4 v = new Vec4(x, y, -z);
                     vertices.add(v.transformBy3(combined));
