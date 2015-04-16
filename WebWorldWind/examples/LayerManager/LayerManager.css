@@ -16,8 +16,10 @@ li {
     list-style-type: none;
     text-shadow: 2px 2px 1px #9f593f;
     height: 30px;
-    padding-left: 1em;
+    padding-left: 25px;
     padding-top: 10px;
+    background-repeat: no-repeat;
+    background-position: .2em .75em;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -62,6 +64,7 @@ li {
 }
 
 .layerEnabled {
+    background-image: url(../../images/checkmark-white.png);
 }
 
 .layerDisabled {
@@ -74,4 +77,5 @@ li {
 
 .layerVisible {
     font-style: italic;
+    background-image: url(../../images/checkmark-white.png);
 }
