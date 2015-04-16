@@ -321,6 +321,7 @@ define([
              * with 1 indicating fully opaque.
              * @type {Number}
              * @default 0.5
+             * @memberof ViewControlsLayer.prototype
              */
             inactiveOpacity: {
                 get: function () {
@@ -339,6 +340,7 @@ define([
              * with 1 indicating fully opaque.
              * @type {Number}
              * @default 1
+             * @memberof ViewControlsLayer.prototype
              */
             activeOpacity: {
                 get: function () {

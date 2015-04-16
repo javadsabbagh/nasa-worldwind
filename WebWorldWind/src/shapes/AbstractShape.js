@@ -103,6 +103,7 @@ define([
             /**
              * This shape's normal (non-highlight) attributes.
              * @type {ShapeAttributes}
+             * @memberof AbstractShape.prototype
              */
             attributes: {
                 get: function () {
@@ -122,6 +123,7 @@ define([
              * shape's normal attributes are used. If they in turn are null or undefined, this shape is not drawn.
              * @type {ShapeAttributes}
              * @default null
+             * @memberof AbstractShape.prototype
              */
             highlightAttributes: {
                 get: function () {
