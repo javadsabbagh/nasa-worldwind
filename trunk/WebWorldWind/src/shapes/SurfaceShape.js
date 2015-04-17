@@ -268,7 +268,7 @@ define([
                     return this._enabled;
                 },
                 set: function(value) {
-                    this.stateKeyInvalid = true
+                    this.stateKeyInvalid = true;
                     this._enabled = value;
                 }
             },
@@ -343,11 +343,7 @@ define([
             }
         });
 
-        SurfaceShape.cntInvalid = 0;
         SurfaceShape.staticStateKey = function(shape) {
-            console.log("cnt: " + SurfaceShape.cntInvalid);
-            SurfaceShape.cntInvalid += 1;
-
             shape.stateKeyInvalid = false;
 
             if (shape.highlighted) {
