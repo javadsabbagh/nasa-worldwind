@@ -41,7 +41,7 @@ public class CachedDataRaster extends AVListImpl implements DataRaster
     protected final Object rasterUsageLock = new Object();
     protected final Object rasterRetrievalLock = new Object();
 
-    protected String[] requiredKeys = new String[] {AVKey.WIDTH, AVKey.HEIGHT, AVKey.SECTOR, AVKey.PIXEL_FORMAT};
+    protected String[] requiredKeys = new String[] {AVKey.SECTOR, AVKey.PIXEL_FORMAT};
 
     /**
      * Create a cached data raster.
