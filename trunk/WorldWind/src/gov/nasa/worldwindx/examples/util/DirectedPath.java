@@ -200,7 +200,7 @@ public class DirectedPath extends Path
         }
 
         Box box = (Box) this.currentData.getValue(ARROWS_EXTENT);
-        return box != null && dc.getPickFrustums().intersectsAny(box);
+        return box == null || dc.getPickFrustums().intersectsAny(box);
     }
 
     /**
