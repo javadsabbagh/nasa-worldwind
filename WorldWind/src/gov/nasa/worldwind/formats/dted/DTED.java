@@ -109,7 +109,7 @@ public class DTED
         return metadata;
     }
 
-    public static DataRaster read(File file) throws IOException
+    public static DataRaster read(File file, AVList metadata) throws IOException
     {
         DataRaster raster = null;
         RandomAccessFile sourceFile = null;
@@ -119,8 +119,6 @@ public class DTED
             sourceFile = open(file);
 
             FileChannel channel = sourceFile.getChannel();
-
-            AVList metadata = new AVListImpl();
 
             readUHL(channel, DTED_UHL_OFFSET, metadata);
             readDSI(channel, DTED_DSI_OFFSET, metadata);
