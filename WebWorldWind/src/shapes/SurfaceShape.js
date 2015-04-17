@@ -145,8 +145,6 @@ define([
                 get: function() {
                     // If we don't have a state key for the shape attributes, consider this state key to be invalid.
                     if (!this._attributesStateKey) {
-                        this.stateKeyInvalid = true;
-
                         // Update the state key for the appropriate attributes for future
                         if (this._highlighted) {
                             if (!!this._highlightAttributes) {
@@ -156,6 +154,11 @@ define([
                             if (!!this._attributes) {
                                 this._attributesStateKey = this._attributes.stateKey;
                             }
+                        }
+
+                        // If we now actually have a state key for the attributes, it was previously invalid.
+                        if (!!this._attributesStateKey) {
+                            this.stateKeyInvalid = true;
                         }
                     } else {
                         // Detect a change in the appropriate attributes.
@@ -181,8 +184,8 @@ define([
 
                     if (this.stateKeyInvalid) {
                         this._stateKey = this.computeStateKey();
-                        this.stateKeyInvalid = false;
                     }
+
                     return this._stateKey;
                 }
             },
@@ -235,7 +238,6 @@ define([
                 set: function(value) {
                     this.stateKeyInvalid = true;
                     this._highlightAttributes = value;
-                    this._highlightAttributesStateKey = value.stateKey;
                 }
             },
 
@@ -250,7 +252,7 @@ define([
                     return this._highlighted;
                 },
                 set: function(value) {
-                    this.stateKeyInvalid = this._highlighted != value;
+                    this.stateKeyInvalid = true;
                     this._highlighted = value;
                 }
             },
@@ -266,7 +268,7 @@ define([
                     return this._enabled;
                 },
                 set: function(value) {
-                    this.stateKeyInvalid = this._enabled!= value;;
+                    this.stateKeyInvalid = true
                     this._enabled = value;
                 }
             },
@@ -287,7 +289,7 @@ define([
                     return this._pathType;
                 },
                 set: function(value) {
-                    this.stateKeyInvalid = this._pathType !== value;
+                    this.stateKeyInvalid = true;
                     this._pathType = value;
                 }
             },
@@ -305,7 +307,7 @@ define([
                     return this._maximumNumEdgeIntervals;
                 },
                 set: function(value) {
-                    this.stateKeyInvalid = this._maximumNumEdgeIntervals != value;
+                    this.stateKeyInvalid = true;
                     this._maximumNumEdgeIntervals = value;
                 }
             },
@@ -323,7 +325,7 @@ define([
                     return this._polarThrottle;
                 },
                 set: function (value) {
-                    this.stateKeyInvalid = this._polarThrottle != value;
+                    this.stateKeyInvalid = true;
                     this._polarThrottle = value;
                 }
             },
@@ -341,13 +343,33 @@ define([
             }
         });
 
+        SurfaceShape.cntInvalid = 0;
         SurfaceShape.staticStateKey = function(shape) {
-            shape._attributesStateKey = !!shape._attributes ? shape._attributes.stateKey : null;
-            shape._highlightAttributesStateKey = !!shape._highlightAttributes ? shape._highlightAttributes.stateKey : null;
+            console.log("cnt: " + SurfaceShape.cntInvalid);
+            SurfaceShape.cntInvalid += 1;
+
+            shape.stateKeyInvalid = false;
+
+            if (shape.highlighted) {
+                if (!shape._highlightAttributes) {
+                    if (!shape._attributes) {
+                        shape._attributesStateKey = null;
+                    } else {
+                        shape._attributesStateKey = shape._attributes.stateKey;
+                    }
+                } else {
+                    shape._attributesStateKey = state._highlightAttributes.stateKey;
+                }
+            } else {
+                if (!shape._attributes) {
+                    shape._attributesStateKey = null;
+                } else {
+                    shape._attributesStateKey = shape._attributes.stateKey;
+                }
+            }
 
             return   "dn " + shape.displayName +
-                    " at " + shape._attributesStateKey +
-                    " ha " + shape._highlightAttributesStateKey +
+                    " at " + (!shape._attributesStateKey ? "null" : shape._attributesStateKey) +
                     " hi " + shape.highlighted +
                     " en " + shape.enabled +
                     " pt " + shape.pathType +
