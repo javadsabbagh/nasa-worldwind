@@ -49,6 +49,24 @@ import static gov.nasa.worldwind.ogc.kml.impl.KMLExportUtil.kmlBoolean;
 public class PointPlacemark extends WWObjectImpl
     implements Renderable, Locatable, Movable, Highlightable, Exportable
 {
+    /**
+     * An interface to enable application selection of placemark level of detail.
+     */
+    public interface LODSelector
+    {
+        /**
+         * Modifies the placemark's attributes and properties to achieve a desired level of detail during rendering. This
+         * method is called during rendering in order to provide the application an opportunity to adjust the placemark's
+         * attributes and properties to achieve a level of detail based on the placemark's distance from the view's eye
+         * point or other criteria.
+         *
+         * @param dc          the current draw context.
+         * @param placemark   the placemark about to be rendered.
+         * @param eyeDistance the distance in meters from the view's eye point to the placemark's geographic position.
+         */
+        public void selectLOD(DrawContext dc, PointPlacemark placemark, double eyeDistance);
+    }
+
     /** The scale to use when highlighting if no highlight attributes are specified. */
     protected static final Double DEFAULT_HIGHLIGHT_SCALE = 1.3;
     /** The label offset to use if none is specified but an image has been specified. */
@@ -182,6 +200,7 @@ public class PointPlacemark extends WWObjectImpl
     protected boolean enableDecluttering = false;
     protected boolean enableLabelPicking = false;
     protected boolean alwaysOnTop = false;
+    protected LODSelector LODSelector = null;
 
     // Values computed once per frame and reused during the frame as needed.
     protected long frameNumber = -1; // identifies frame used to calculate these values
@@ -602,6 +621,27 @@ public class PointPlacemark extends WWObjectImpl
     }
 
     /**
+     * Indicates this placemark's level of detail selector.
+     *
+     * @return this placemark's level of detail selector, or null if one has not been specified.
+     */
+    public LODSelector getLODSelector()
+    {
+        return this.LODSelector;
+    }
+
+    /**
+     * Specifies this placemark's level of detail selector.
+     *
+     * @param LODSelector the level of detail selector. May be null, the default, to indicate no level of detail
+     *                    selector.
+     */
+    public void setLODSelector(LODSelector LODSelector)
+    {
+        this.LODSelector = LODSelector;
+    }
+
+    /**
      * Indicates whether a point should be drawn when the active texture is null.
      *
      * @param dc the current draw context.
@@ -652,7 +692,7 @@ public class PointPlacemark extends WWObjectImpl
 
         if (dc.is2DGlobe())
         {
-            Sector limits = ((Globe2D)dc.getGlobe()).getProjection().getProjectionLimits();
+            Sector limits = ((Globe2D) dc.getGlobe()).getProjection().getProjectionLimits();
             if (limits != null && !limits.contains(this.getPosition()))
                 return;
         }
@@ -683,6 +723,9 @@ public class PointPlacemark extends WWObjectImpl
             this.computePlacemarkPoints(dc, opm);
             if (opm.placePoint == null || opm.screenPoint == null)
                 return;
+
+            if (this.getLODSelector() != null)
+                this.getLODSelector().selectLOD(dc, this, opm.placePoint.distanceTo3(dc.getView().getEyePoint()));
 
             this.determineActiveAttributes();
             if (this.activeTexture == null && !this.getActiveAttributes().isUsePointAsDefaultImage())
@@ -1076,7 +1119,8 @@ public class PointPlacemark extends WWObjectImpl
             height *= labelScale;
         }
 
-        return new Rectangle((int) labelPoint.x, (int) labelPoint.getY(), (int) Math.ceil(width), (int) Math.ceil(height));
+        return new Rectangle((int) labelPoint.x, (int) labelPoint.getY(), (int) Math.ceil(width),
+            (int) Math.ceil(height));
     }
 
     /**
