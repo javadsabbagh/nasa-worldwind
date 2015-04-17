@@ -39,7 +39,7 @@ public class RadarVolumeExample extends ApplicationTemplate
         protected double outerRange = 30e3;
         protected final int numAz = 25; // number of azimuth samplings
         protected final int numEl = 25; // number of elevation samplings
-        protected final Angle minimumElevation = Angle.fromDegrees(0);
+        protected final Angle minimumElevation = Angle.fromDegrees(-90);
 
         public AppFrame()
         {
@@ -348,11 +348,11 @@ public class RadarVolumeExample extends ApplicationTemplate
                 Position position = positions.get(i);
 
                 // Mark the position as obstructed if it's below the minimum elevation.
-//                if (this.isBelowMinimumElevation(position, i, origin.getAltitude()))
-//                {
-//                    obstructionFlags[i - 1] = RadarVolume.EXTERNAL_OBSTRUCTION;
-//                    continue;
-//                }
+                if (this.isBelowMinimumElevation(position, i, origin.getAltitude()))
+                {
+                    obstructionFlags[i - 1] = RadarVolume.EXTERNAL_OBSTRUCTION;
+                    continue;
+                }
 
                 // If it's obstructed at the near grid it's obstructed at the far grid.
                 if (i > gridSize && obstructionFlags[i - 1 - gridSize] == RadarVolume.EXTERNAL_OBSTRUCTION)
