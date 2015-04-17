@@ -63,7 +63,7 @@ public class RadarVolumeExample extends ApplicationTemplate
 
             if (CONE_VOLUME)
             {
-                vertices = this.computeConeVertices(center, coneFieldOfView, coneAzimuth, coneElevation, innerRange,
+                vertices = this.computeSphereVertices(center, coneFieldOfView, coneAzimuth, coneElevation, innerRange,
                     outerRange, numAz, numEl);
             }
             else
@@ -248,6 +248,68 @@ public class RadarVolumeExample extends ApplicationTemplate
             return this.transformVerticesToPosition(apex, vertices);
         }
 
+        List<Vec4> computeSphereVertices(Position apex, Angle fov, Angle azimuth, Angle elevation, double innerRange,
+            double outerRange, int width, int height)
+        {
+            List<Vec4> vertices = new ArrayList<Vec4>();
+            vertices.add(Vec4.ZERO); // the first vertex is the radar position.
+
+            // Rotate both grids around the Y axis to the specified elevation.
+            Matrix elevationMatrix = Matrix.fromAxisAngle(Angle.NEG90.subtract(elevation), 0, 1, 0);
+
+            // Rotate both grids around the Z axis to the specified azimuth.
+            Matrix azimuthMatrix = Matrix.fromAxisAngle(Angle.POS90.subtract(azimuth), 0, 0, 1);
+
+            // Combine the rotations and build the full vertex list.
+            Matrix combined = azimuthMatrix.multiply(elevationMatrix);
+
+            double x, y, z;
+
+            double dTheta = 2 * Math.PI / (width - 1);
+
+            // Compute the near grid.
+            double phi;
+            double dPhi = fov.divide(2).radians / (height - 1);
+
+            for (int j = 0; j < height; j++)
+            {
+                phi = fov.divide(2).radians - j * dPhi;
+
+                for (int i = 0; i < width; i++)
+                {
+                    double theta = i * dTheta;
+
+                    x = innerRange * Math.cos(theta) * Math.sin(phi);
+                    y = innerRange * Math.sin(theta) * Math.sin(phi);
+                    z = innerRange * Math.cos(phi);
+
+                    Vec4 v = new Vec4(x, y, -z);
+                    vertices.add(v.transformBy3(combined));
+                }
+            }
+
+            // Compute the far grid.
+            for (int j = 0; j < height; j++)
+            {
+                phi = fov.divide(2).radians - j * dPhi;
+
+                for (int i = 0; i < width; i++)
+                {
+                    double theta = i * dTheta;
+
+                    x = outerRange * Math.cos(theta) * Math.sin(phi);
+                    y = outerRange * Math.sin(theta) * Math.sin(phi);
+                    z = outerRange * Math.cos(phi);
+
+                    Vec4 v = new Vec4(x, y, -z);
+                    vertices.add(v.transformBy3(combined));
+                }
+            }
+
+            // The vertices are computed relative to the origin. Transform them to the radar position and orientation.
+            return this.transformVerticesToPosition(apex, vertices);
+        }
+
         List<Vec4> transformVerticesToPosition(Position position, List<Vec4> vertices)
         {
             // Transforms the incoming origin-centered vertices to the radar position and orientation.
@@ -286,11 +348,11 @@ public class RadarVolumeExample extends ApplicationTemplate
                 Position position = positions.get(i);
 
                 // Mark the position as obstructed if it's below the minimum elevation.
-                if (this.isBelowMinimumElevation(position, i, origin.getAltitude()))
-                {
-                    obstructionFlags[i - 1] = RadarVolume.EXTERNAL_OBSTRUCTION;
-                    continue;
-                }
+//                if (this.isBelowMinimumElevation(position, i, origin.getAltitude()))
+//                {
+//                    obstructionFlags[i - 1] = RadarVolume.EXTERNAL_OBSTRUCTION;
+//                    continue;
+//                }
 
                 // If it's obstructed at the near grid it's obstructed at the far grid.
                 if (i > gridSize && obstructionFlags[i - 1 - gridSize] == RadarVolume.EXTERNAL_OBSTRUCTION)
