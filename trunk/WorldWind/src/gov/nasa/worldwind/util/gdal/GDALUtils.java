@@ -13,6 +13,7 @@ import gov.nasa.worldwind.exception.WWRuntimeException;
 import gov.nasa.worldwind.formats.tiff.*;
 import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.util.*;
+
 import org.gdal.gdal.*;
 import org.gdal.gdalconst.*;
 import org.gdal.ogr.ogr;
@@ -795,11 +796,43 @@ public class GDALUtils
         ColorModel cm;
 
         Band band1 = ds.GetRasterBand(1);
-        if (band1.GetRasterColorInterpretation() == gdalconstConstants.GCI_PaletteIndex
-            && band1.GetRasterColorTable()!=null)
+        if (band1.GetRasterColorInterpretation() == gdalconstConstants.GCI_PaletteIndex)
         {
             cm = band1.GetRasterColorTable().getIndexColorModel(gdal.GetDataTypeSize(bandDataType));
             img = new BufferedImage(cm, raster, false, null);
+        }
+        else if (band1.GetRasterColorInterpretation() == gdalconstConstants.GCI_GrayIndex && reqBandCount == 2)
+        {
+            int transparency = Transparency.BITMASK;
+            int baseColorSpace = ColorSpace.CS_GRAY;
+            ColorSpace cs = ColorSpace.getInstance(baseColorSpace);
+            int[] nBits = new int[reqBandCount];
+            for (int i = 0; i < reqBandCount; i++)
+            {
+                nBits[i] = actualBitsPerColor;
+            }
+
+            cm = new ComponentColorModel(cs, nBits, hasAlpha, false, transparency, bufferType);
+            
+            // Work around for
+            // Bug ID: JDK-5051418 Grayscale TYPE_CUSTOM BufferedImages are rendered lighter than TYPE_BYTE_GRAY
+            BufferedImage tmpImg = new BufferedImage(cm, raster, false, null);
+            //keep the alpha
+            img = new BufferedImage(tmpImg.getWidth(), tmpImg.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+
+            Raster srcRaster = tmpImg.getRaster();
+            WritableRaster dstRaster = img.getRaster();
+            int[] gray = null, alpha = null;
+            int w = srcRaster.getWidth();
+            for (int y = 0; y < tmpImg.getHeight(); y++) {
+                gray = srcRaster.getSamples(0, y, w, 1, 0, gray);
+                alpha = srcRaster.getSamples(0, y, w, 1, 1, alpha);
+
+                dstRaster.setSamples(0, y, w, 1, 0, gray);
+                dstRaster.setSamples(0, y, w, 1, 1, gray);
+                dstRaster.setSamples(0, y, w, 1, 2, gray);
+                dstRaster.setSamples(0, y, w, 1, 3, alpha);
+            }
         }
         else
         {
@@ -1360,8 +1393,13 @@ public class GDALUtils
             }
             else if (dataType == gdalconst.GDT_Byte)
             {
-                // if has only one band => one byte index of the palette, 216 marks voids
-                params.setValue(AVKey.IMAGE_COLOR_FORMAT, AVKey.COLOR);
+                int colorInt = band.GetColorInterpretation();
+                if (colorInt == gdalconst.GCI_GrayIndex && bandCount < 3) {
+                    params.setValue(AVKey.IMAGE_COLOR_FORMAT, AVKey.GRAYSCALE);
+                } else {
+                    // if has only one band => one byte index of the palette, 216 marks voids
+                    params.setValue(AVKey.IMAGE_COLOR_FORMAT, AVKey.COLOR);
+                }
                 params.setValue(AVKey.PIXEL_FORMAT, AVKey.IMAGE);
                 params.setValue(AVKey.DATA_TYPE, AVKey.INT8);
             }
