@@ -163,8 +163,8 @@ public class Path extends AbstractShape
          */
         protected IntBuffer path2DIndices;
         /**
-         * Indices of the tessellated positions at which new lines must be formed rather than continuing the
-         * previous line. Used only when the path's positions span the dateline and a 2D globe is being used.
+         * Indices of the tessellated positions at which new lines must be formed rather than continuing the previous
+         * line. Used only when the path's positions span the dateline and a 2D globe is being used.
          */
         protected ArrayList<Integer> splitPositions;
         /** Indicates whether the rendered path has extrusion points in addition to path points. */
@@ -362,7 +362,8 @@ public class Path extends AbstractShape
     protected SurfaceShape createSurfaceShape()
     {
         SurfacePolyline polyline = new SurfacePolyline();
-        polyline.setLocations(this.getPositions());
+        if (this.getPositions() != null)
+            polyline.setLocations(this.getPositions());
 
         return polyline;
     }
@@ -680,7 +681,7 @@ public class Path extends AbstractShape
         this.followTerrain = source.followTerrain;
         this.extrude = source.extrude;
         this.terrainConformance = source.terrainConformance;
-        this. numSubsegments = source.numSubsegments;
+        this.numSubsegments = source.numSubsegments;
         this.drawVerticals = source.drawVerticals;
         this.showPositions = source.showPositions;
         this.showPositionsThreshold = source.showPositionsThreshold;
