@@ -354,7 +354,7 @@ define([
                         shape._attributesStateKey = shape._attributes.stateKey;
                     }
                 } else {
-                    shape._attributesStateKey = state._highlightAttributes.stateKey;
+                    shape._attributesStateKey = shape._highlightAttributes.stateKey;
                 }
             } else {
                 if (!shape._attributes) {
@@ -371,7 +371,12 @@ define([
                     " pt " + shape.pathType +
                     " ne " + shape.maximumNumEdgeIntervals +
                     " po " + shape.polarThrottle +
-                    " se " + shape.sector;
+                    " se " + "[" +
+                        shape.sector.minLatitude + "," +
+                        shape.sector.maxLatitude + "," +
+                        shape.sector.minLongitude + "," +
+                        shape.sector.maxLongitude +
+                    "]";
         };
 
         SurfaceShape.prototype.computeStateKey = function() {
