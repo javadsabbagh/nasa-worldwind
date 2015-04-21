@@ -60,20 +60,20 @@ define([
          * @protected
          */
         ShapeAttributes.prototype.computeStateKey = function () {
-            return "di " + this._drawInterior
-                + " do " + this._drawOutline
-                + " el " + this._enableLighting
-                + " ic " + this._interiorColor.toHexString(true)
-                + " oc " + this._outlineColor.toHexString(true)
-                + " ow " + this._outlineWidth
-                + " osf " + this._outlineStippleFactor
-                + " osp " + this._outlineStipplePattern
-                + " is " + this._imageSource
-                    ? (this.imageSource instanceof ImageSource ? this.imageSource.key : this.imageSource) : "null"
-                + " isc " + this._imageScale
-                + " io " + (this._imageOffset ? this.imageOffset.toString() : "null")
-                + " dt " + this._depthTest
-                + " dv " + this._drawVerticals;
+            return "di " + this._drawInterior +
+                  " do " + this._drawOutline +
+                  " el " + this._enableLighting +
+                  " ic " + this._interiorColor.toHexString(true) +
+                  " oc " + this._outlineColor.toHexString(true) +
+                  " ow " + this._outlineWidth +
+                  " osf " + this._outlineStippleFactor +
+                  " osp " + this._outlineStipplePattern +
+                  " is " + (this._imageSource ?
+                        (this.imageSource instanceof ImageSource ? this.imageSource.key : this.imageSource) : "null") +
+                  " isc " + this._imageScale +
+                  " io " + (this._imageOffset ? this.imageOffset.toString() : "null") +
+                  " dt " + this._depthTest +
+                  " dv " + this._drawVerticals;
         };
 
         Object.defineProperties(ShapeAttributes.prototype, {
