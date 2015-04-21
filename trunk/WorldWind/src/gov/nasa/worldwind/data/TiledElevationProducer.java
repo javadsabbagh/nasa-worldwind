@@ -183,10 +183,10 @@ public class TiledElevationProducer extends TiledRasterProducer
                 params.getValue(AVKey.COORDINATE_SYSTEM), name);
         }
 
-        if (    params.hasKey(AVKey.ELEVATION_UNIT)
-            &&  params.getValue(AVKey.ELEVATION_UNIT) != AVKey.UNIT_METER
-            &&  params.getValue(AVKey.ELEVATION_UNIT) != AVKey.UNIT_FOOT
-           )
+        if (params.hasKey(AVKey.ELEVATION_UNIT)
+            && params.getValue(AVKey.ELEVATION_UNIT) != AVKey.UNIT_METER
+            && params.getValue(AVKey.ELEVATION_UNIT) != AVKey.UNIT_FOOT
+            )
         {
             return Logging.getMessage("TiledElevationProducer.UnrecognizedElevationUnit",
                 params.getValue(AVKey.ELEVATION_UNIT), name);
@@ -300,13 +300,10 @@ public class TiledElevationProducer extends TiledRasterProducer
     @Override
     protected void installTileRasterLater(LevelSet levelSet, Tile tile, DataRaster tileRaster, AVList params)
     {
-        // If this tile is from the lowest level, use the tile's raster to compute the extreme elevations. Since each
-        // level above the lowest is computed as a function of the lowest level, we can ignore all but the lowest level
-        // tiles when computing the extreme elevations.
-        if (levelSet.isFinalLevel(tile.getLevelNumber()))
-        {
-            this.updateExtremeElevations(tileRaster);
-        }
+        // There used to be code here to update the extremes only when processing tiles in the highest-resolution
+        // level. But that caused the extremes not to be determined at all when a full pyramid isn't generated. We
+        // now update the extremes for every tile, not just the highest resolution ones.
+        this.updateExtremeElevations(tileRaster);
 
         super.installTileRasterLater(levelSet, tile, tileRaster, params);
     }
@@ -363,7 +360,7 @@ public class TiledElevationProducer extends TiledRasterProducer
      * @param params the parameters which describe an ElevationModel configuration document's contents.
      *
      * @return the configuration document, or null if the parameter list is null or does not contain the required
-     *         parameters.
+     * parameters.
      */
     protected Document createConfigDoc(AVList params)
     {
