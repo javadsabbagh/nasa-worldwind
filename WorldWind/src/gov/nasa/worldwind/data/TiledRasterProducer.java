@@ -333,17 +333,17 @@ public abstract class TiledRasterProducer extends AbstractDataStoreProducer
     {
         // Find a level zero tile delta that's an integral factor of each dimension.
 
-        double latDelta = Math.floor(originalDelta.latitude.degrees);
-        double lonDelta = Math.floor(originalDelta.longitude.degrees);
+        double latDelta = Math.ceil(originalDelta.latitude.degrees);
+        double lonDelta = Math.ceil(originalDelta.longitude.degrees);
 
         while (180 % latDelta != 0)
         {
-            ++latDelta;
+            --latDelta;
         }
 
         while (360 % lonDelta != 0)
         {
-            ++lonDelta;
+            --lonDelta;
         }
 
         return LatLon.fromDegrees(latDelta, lonDelta);
