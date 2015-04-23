@@ -24,6 +24,7 @@ define([
         '../geom/Rectangle',
         '../render/ScreenCreditController',
         '../geom/Sector',
+        '../shapes/SurfaceShape',
         '../shapes/SurfaceShapeTileBuilder',
         '../render/SurfaceTileRenderer',
         '../render/TextSupport',
@@ -48,6 +49,7 @@ define([
               Rectangle,
               ScreenCreditController,
               Sector,
+              SurfaceShape,
               SurfaceShapeTileBuilder,
               SurfaceTileRenderer,
               TextSupport,
@@ -513,7 +515,7 @@ define([
          * @returns {null}
          */
         DrawContext.prototype.resolvePick = function (pickableObject) {
-            if (this.deepPicking && !this.regionPicking) {
+            if (!(pickableObject.userObject instanceof SurfaceShape) && this.deepPicking && !this.regionPicking) {
                 var color = this.readPickColor(this.pickPoint);
                 if (!color) { // getPickColor returns null if the pick point selects the clear color
                     return null;

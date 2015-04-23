@@ -226,30 +226,79 @@ requirejs([
         // Create a layer manager for controlling layer visibility.
         var layerManger = new LayerManager('divLayerManager', wwd);
 
+        /*
+         * Configure various testing modes.
+         */
+
+        // Set "isTransient" to true if simple motion over a shape is to highlight it.
+        // Set "isTransient" to false if the user must click on the shape to highlight it.
+        var isTransient = false;
+
+        var isDeepPicking = false;
+
+        // Enable region picking if the following is true.
+        var isRegionPicking = true;
+
+        // Record location of mouse on mouseDown event.
         var firstX = -1,
             firstY = -1;
 
-        var handleMouseUp = function (o) {
+        var highlightedItems = [];
+
+        var handlePick = function (o) {
             // The input argument is either an Event or a TapRecognizer. Both have the same properties for determining
             // the mouse or tap location.
             var x = o.clientX,
                 y = o.clientY;
 
-            if (x != firstX || y != firstY) {
-                return;
+            if (!isTransient) {
+                // If the user didn't click (i.e., push a mouse button without moving the mouse), return.
+                if (x != firstX || y != firstY) {
+                    return;
+                }
             }
+
+            for (var item in highlightedItems) {
+                if (highlightedItems.hasOwnProperty(item)) {
+                    highlightedItems[item].highlighted = false;
+                }
+            }
+            highlightedItems = [];
 
             // Perform the pick. Must first convert from window coordinates to canvas coordinates, which are
             // relative to the upper left corner of the canvas rather than the upper left corner of the page.
             var pickPoint = wwd.canvasCoordinates(x, y);
 
-            var pickList = wwd.pick(pickPoint);
+            var pickList;
+
+            if (isRegionPicking){
+                wwd.deepPicking = false;
+
+                // Perform the pick. Must first convert from window coordinates to canvas coordinates, which are
+                // relative to the upper left corner of the canvas rather than the upper left corner of the page.
+                var rectRadius = 2,
+                    pickRectangle = new WorldWind.Rectangle(pickPoint[0] - rectRadius, pickPoint[1] + rectRadius,
+                        2 * rectRadius, 2 * rectRadius);
+
+                pickList = wwd.pickShapesInRegion(pickRectangle);
+            } else {
+                wwd.deepPicking = isDeepPicking;
+
+                pickList = wwd.pick(pickPoint);
+            }
 
             // Highlight the items picked.
             if (pickList.objects.length > 0) {
                 for (var p = 0; p < pickList.objects.length; p++) {
-                    var shape = pickList.objects[p].userObject;
-                    shape.highlighted = !shape.highlighted;
+                    var pickedObject = pickList.objects[p].userObject;
+                    if (!(pickedObject instanceof WorldWind.SurfaceShape)) continue;
+
+                    var shape = pickedObject;
+
+                    if (highlightedItems.indexOf(shape) < 0) {
+                        highlightedItems.push(shape);
+                        shape.highlighted = true;
+                    }
                 }
 
                 // Update the window.
@@ -262,16 +311,12 @@ requirejs([
             firstY = o.clientY;
         };
 
-        var handlePick = function(o) {
-            firstX = o.clientX;
-            firstY = o.clientY;
-
-            handleMouseUp(o);
-        };
-
-        // Listen for mouse  and swap the colors of the shape outline and interior.
-        wwd.addEventListener("mouseup", handleMouseUp);
-        wwd.addEventListener("mousedown", handleMouseDown);
+        if (isTransient) {
+            wwd.addEventListener("mousemove", handlePick);
+        } else {
+            wwd.addEventListener("mouseup", handlePick);
+            wwd.addEventListener("mousedown", handleMouseDown);
+        }
 
         // Listen for taps on mobile devices and highlight the placemarks that the user taps.
         var tapRecognizer = new WorldWind.TapRecognizer(wwd);
