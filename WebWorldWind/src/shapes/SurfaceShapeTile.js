@@ -53,12 +53,6 @@ define([
             this.sector = sector;
 
             /**
-             * A collection of sectors that bounds this title, dealing potentially with the crossing of the dateline.
-             * @type {Array}
-             */
-            this.sectors = [];
-
-            /**
              * A string to use as a cache key.
              * @type {string}
              */
@@ -103,11 +97,19 @@ define([
         };
 
         /**
-         *
-         * @returns {SurfaceShape[]} The collection of surface shapes collected by this tile.
+         * Get all shapes that this tile references.
+         * @returns {SurfaceShape[]} The collection of surface shapes referenced by this tile.
          */
         SurfaceShapeTile.prototype.getShapes = function() {
             return this.surfaceShapes;
+        };
+
+        /**
+         * Set the shapes this tile should reference.
+         * @param {SurfaceShape[]} surfaceShapes The collection of surface shapes to be referenced by this tile.
+         */
+        SurfaceShapeTile.prototype.setShapes = function(surfaceShapes) {
+            this.surfaceShapes = surfaceShapes;
         };
 
         /**
@@ -132,7 +134,10 @@ define([
          * @param {SurfaceShape[]} shapes A collection of surface shapes to add to the collection of this tile.
          */
         SurfaceShapeTile.prototype.addAllSurfaceShapes = function(shapes) {
-            this.surfaceShapes.concat(shapes);
+            for (var idx = 0, len = shapes.length; idx < len; idx += 1) {
+                var shape = shapes[idx];
+                this.addAllSurfaceShapes(shape);
+            }
         };
 
         // Internal use only. Intentionally not documented.
@@ -200,32 +205,6 @@ define([
             var texture = gpuResourceCache.resourceForKey(this.gpuCacheKey);
 
             return !!texture;
-        };
-
-        /**
-         * Return the texture for rendering this tile. If one does not exist, create a new texture.
-         * @param {DrawContext} dc The draw context
-         * @returns {Texture} The texture for displaying the tile.
-         */
-        SurfaceShapeTile.prototype.getTexture = function(dc) {
-            if (dc.pickingMode) {
-                return this.updateTexture(dc);
-            }
-            else {
-                var gpuResourceCache = dc.gpuResourceCache;
-
-                if (!this.gpuCacheKey) {
-                    this.gpuCacheKey = this.getCacheKey();
-                }
-
-                var texture = gpuResourceCache.resourceForKey(this.gpuCacheKey);
-
-                if (!texture) {
-                    texture = this.updateTexture(dc);
-                }
-
-                return texture;
-            }
         };
 
         /**

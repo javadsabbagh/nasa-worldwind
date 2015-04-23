@@ -19,6 +19,7 @@ define([
         '../cache/MemoryCache',
         '../navigate/NavigatorState',
         '../error/NotYetImplementedError',
+        '../pick/PickedObject',
         '../geom/Rectangle',
         '../geom/Sector',
         '../shapes/SurfaceShape',
@@ -41,6 +42,7 @@ define([
               MemoryCache,
               NavigatorState,
               NotYetImplementedError,
+              PickedObject,
               Rectangle,
               Sector,
               SurfaceShape,
@@ -112,9 +114,6 @@ define([
             this.SPLIT_SCALE = 2.9;
 
             // Internal use only. Intentionally not documented.
-            this.pickMode = false;
-
-            // Internal use only. Intentionally not documented.
             this.tileCache = new MemoryCache(500000, 400000);
         };
 
@@ -142,29 +141,116 @@ define([
          * @param {DrawContext} dc The drawing context.
          */
         SurfaceShapeTileBuilder.prototype.doRender = function(dc) {
-            var savedTiles, savedTopLevelTiles;
-
             if (dc.pickingMode) {
+                // Picking rendering strategy:
+                //  1) save all tiles created prior to picking,
+                //  2) construct and render new tiles with pick-based contents (colored with pick IDs),
+                //  3) restore all prior tiles.
+                // This has a big potential win for normal rendering, since there is a lot of coherence
+                // from frame to frame if no picking is occurring.
                 for (var idx = 0, len = this.surfaceShapes.length; idx < len; idx += 1) {
                     this.surfaceShapes[idx].resetPickColor();
                 }
 
                 SurfaceShapeTileBuilder.pickSequence += 1;
 
-                savedTiles = this.surfaceShapeTiles;
-                savedTopLevelTiles = this.topLevelTiles;
+                var savedTiles = this.surfaceShapeTiles;
+                var savedTopLevelTiles = this.topLevelTiles;
 
                 this.surfaceShapeTiles = [];
                 this.topLevelTiles = [];
-            }
 
-            this.buildTiles(dc);
+                this.buildTiles(dc);
 
-            dc.surfaceTileRenderer.renderTiles(dc, this.surfaceShapeTiles, 1);
+                if (dc.deepPicking) {
+                    // Normally, we render all shapes together in one tile (or a small number, but this detail
+                    // doesn't matter). For deep picking, we need to render each shape individually.
+                    this.doDeepPickingRender(dc);
 
-            if (dc.pickingMode) {
+                } else {
+                    dc.surfaceTileRenderer.renderTiles(dc, this.surfaceShapeTiles, 1);
+                }
+
                 this.surfaceShapeTiles = savedTiles;
                 this.topLevelTiles = savedTopLevelTiles;
+            } else {
+                this.buildTiles(dc);
+
+                dc.surfaceTileRenderer.renderTiles(dc, this.surfaceShapeTiles, 1);
+            }
+        };
+
+        SurfaceShapeTileBuilder.prototype.doDeepPickingRender = function (dc) {
+            var idxTile, lenTiles, idxShape, lenShapes, idxPick, lenPicks, po, shape, tile;
+
+            // Determine the shapes that were drawn during buildTiles. These shapes may not actually be
+            // at the pick point, but they are candidates for deep picking.
+            var deepPickShapes = [];
+            for (idxPick = 0, lenPicks = dc.objectsAtPickPoint.objects.length; idxPick < lenPicks; idxPick += 1) {
+                po = dc.objectsAtPickPoint.objects[idxPick];
+                if (po.userObject instanceof SurfaceShape) {
+                    shape = po.userObject;
+
+                    // If the shape was not already in the collection of deep picked shapes, ...
+                    if (deepPickShapes.indexOf(shape) < 0) {
+                        deepPickShapes.push(shape);
+
+                        // Delete the shape that was drawn during buildTiles from the pick list.
+                        dc.objectsAtPickPoint.objects.splice(idxPick, 1);
+
+                        // Update the index and length to reflect the deletion.
+                        idxPick -= 1;
+                        lenPicks -= 1;
+                    }
+                }
+            }
+
+            if (deepPickShapes.length <= 0) {
+                return;
+            }
+
+            // For all shapes,
+            //  1) force that shape to be the only shape in a tile,
+            //  2) re-render the tile, and
+            //  3) use the surfaceTileRenderer to render the tile on the terrain,
+            //  4) read the color to see if it is attributable to the current shape.
+            var resolvablePickObjects = [];
+            for (idxShape = 0, lenShapes = deepPickShapes.length; idxShape < lenShapes; idxShape += 1) {
+                shape = deepPickShapes[idxShape];
+                for (idxTile = 0, lenTiles = this.surfaceShapeTiles.length; idxTile < lenTiles; idxTile += 1) {
+                    tile = this.surfaceShapeTiles[idxTile];
+                    tile.setShapes([shape]);
+                    tile.updateTexture(dc);
+                }
+
+                dc.surfaceTileRenderer.renderTiles(dc, this.surfaceShapeTiles, 1);
+
+                var pickColor = dc.readPickColor(dc.pickPoint);
+                if (!!pickColor && shape.pickColor.equals(pickColor)) {
+                    po = new PickedObject(shape.pickColor.clone(),
+                        shape._pickDelegate ? shape._pickDelegate : shape, null, shape.layer, false);
+                    resolvablePickObjects.push(po);
+                }
+            }
+
+            // Flush surface shapes that have accumulated in the updateTexture pass just completed on all shapes.
+            for (idxPick = 0, lenPicks = dc.objectsAtPickPoint.objects.length; idxPick < lenPicks; idxPick += 1) {
+                po = dc.objectsAtPickPoint.objects[idxPick];
+                if (po.userObject instanceof SurfaceShape) {
+                    // Delete the shape that was picked in the most recent pass.
+                    dc.objectsAtPickPoint.objects.splice(idxPick, 1);
+
+                    // Update the index and length to reflect the deletion.
+                    idxPick -= 1;
+                    lenPicks -= 1;
+                }
+            }
+
+            // Add the resolvable pick objects for surface shapes that were actually visible at the pick point
+            // to the pick list.
+            for (idxPick = 0, lenPicks = resolvablePickObjects.length; idxPick < lenPicks; idxPick += 1) {
+                po = resolvablePickObjects[idxPick];
+                dc.objectsAtPickPoint.objects.push(po);
             }
         };
 
@@ -183,8 +269,6 @@ define([
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceShapeTileBuilder", "buildTiles", "missingDc"));
             }
-
-            this.pickMode = dc.pickingMode;
 
             if (!this.surfaceShapes || this.surfaceShapes.length < 1) {
                 return;
@@ -218,9 +302,12 @@ define([
          * @param {DrawContext} dc The DrawContext to assemble tiles for.
          */
         SurfaceShapeTileBuilder.prototype.assembleTiles = function(dc) {
-            var tile;
+            var tile, idxShape, lenShapes, idxTile, lenTiles, idxSector, lenSectors;
 
-            this.createTopLevelTiles();
+            // Create a set of top level tiles only if that set doesn't exist yet.
+            if (this.topLevelTiles.length < 1) {
+                this.createTopLevelTiles();
+            }
 
             // Store the top level tiles in a set to ensure that each top level tile is added only once. Store the tiles
             // that intersect each surface shape in a set to ensure that each object is added to a tile at most once.
@@ -232,7 +319,7 @@ define([
             // and add object to those tiles. This has the effect of quickly sorting the objects into the top level tiles.
             // We collect the top level tiles in a HashSet to ensure there are no duplicates when multiple objects intersect
             // the same top level tiles.
-            for (var idxShape = 0, lenShapes = this.surfaceShapes.length; idxShape < lenShapes; idxShape += 1) {
+            for (idxShape = 0, lenShapes = this.surfaceShapes.length; idxShape < lenShapes; idxShape += 1) {
                 var surfaceShape = this.surfaceShapes[idxShape];
 
                 var sectors = surfaceShape.computeSectors(dc);
@@ -240,10 +327,10 @@ define([
                     continue;
                 }
 
-                for (var idxSector = 0, lenSectors = sectors.length; idxSector < lenSectors; idxSector += 1) {
+                for (idxSector = 0, lenSectors = sectors.length; idxSector < lenSectors; idxSector += 1) {
                     var sector = sectors[idxSector];
 
-                    for (var idxTile = 0, lenTiles = this.topLevelTiles.length; idxTile < lenTiles; idxTile += 1) {
+                    for (idxTile = 0, lenTiles = this.topLevelTiles.length; idxTile < lenTiles; idxTile += 1) {
                         tile = this.topLevelTiles[idxTile];
 
                         if (tile.sector.intersects(sector)) {
@@ -279,7 +366,7 @@ define([
          * @param {SurfaceShapeTile} parent     The tile's parent, or null if the tile is a top level tile.
          * @param {SurfaceShapeTile} tile       The tile to add.
          */
-         SurfaceShapeTileBuilder.prototype.addTileOrDescendants = function(dc, levels, parent, tile) {
+        SurfaceShapeTileBuilder.prototype.addTileOrDescendants = function (dc, levels, parent, tile) {
             // Ignore this tile if it falls completely outside the frustum. This may be the viewing frustum or the pick
             // frustum, depending on the implementation.
             if (!this.intersectsFrustum(dc, tile)) {
@@ -410,9 +497,7 @@ define([
         };
 
         SurfaceShapeTileBuilder.prototype.createTopLevelTiles = function() {
-            if (this.topLevelTiles.length < 1) {
-                Tile.createTilesForLevel(this.levels.firstLevel(), this, this.topLevelTiles);
-            }
+            Tile.createTilesForLevel(this.levels.firstLevel(), this, this.topLevelTiles);
         };
 
         /**
