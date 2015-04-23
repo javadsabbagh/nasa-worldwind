@@ -113,6 +113,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './geom/Vec2',
         './geom/Vec3',
         './layer/ViewControlsLayer',
+        './ogc/WmsCapabilities',
         './util/WmsUrlBuilder',
         './WorldWindow',
         './util/WWMath',
@@ -225,6 +226,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               Vec2,
               Vec3,
               ViewControlsLayer,
+              WmsCapabilities,
               WmsUrlBuilder,
               WorldWindow,
               WWMath,
@@ -516,6 +518,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['Vec2'] = Vec2;
         WorldWind['Vec3'] = Vec3;
         WorldWind['ViewControlsLayer'] = ViewControlsLayer;
+        WorldWind['WmsCapabilities'] = WmsCapabilities;
         WorldWind['WmsUrlBuilder'] = WmsUrlBuilder;
         WorldWind['WWMath'] = WWMath;
         WorldWind['WWUtil'] = WWUtil;
