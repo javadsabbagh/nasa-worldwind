@@ -19,6 +19,7 @@ define([
         './navigate/NavigatorState',
         './geom/Rectangle',
         './geom/Sector',
+        './shapes/SurfaceShape',
         './shapes/SurfaceShapeTileBuilder',
         './globe/Terrain',
         './geom/Vec2'],
@@ -34,6 +35,7 @@ define([
               NavigatorState,
               Rectangle,
               Sector,
+              SurfaceShape,
               SurfaceShapeTileBuilder,
               Terrain,
               Vec2) {
@@ -893,9 +895,19 @@ define([
 
             for (var i = 0, len = pickedObjects.objects.length; i < len; i++) {
                 po = pickedObjects.objects[i];
-                color = uniquePickColors[po.color.toByteString()];
+                if (!po) continue;
+                var poColor = po.color.toByteString();
+                color = uniquePickColors[poColor];
                 if (color) {
                     po.isOnTop = true;
+                } else if (po.userObject instanceof SurfaceShape) {
+                    // SurfaceShapes ALWAYS get added to the pick list, since their rendering is deferred
+                    // until the tile they are cached by is rendered. So a SurfaceShape may be in the pick list
+                    // but is not seen in the pick rectangle.
+                    //
+                    // Remove the SurfaceShape that was not visible to the pick rectangle.
+                    pickedObjects.objects.splice(i, 1);
+                    i -= 1;
                 }
             }
         };
