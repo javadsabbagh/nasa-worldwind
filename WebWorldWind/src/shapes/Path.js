@@ -73,7 +73,7 @@ define([
         var Path = function (positions) {
             if (!positions) {
                 throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "Path", "positions", "missingPositions"));
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "Path", "constructor", "missingPositions"));
             }
 
             AbstractShape.call(this);
