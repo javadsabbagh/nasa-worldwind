@@ -7,10 +7,12 @@
  * @version $Id$
  */
 define([
+        '../error/AbstractError',
         '../geom/Angle',
         '../error/ArgumentError',
         '../geom/Location',
         '../util/Logger',
+        '../error/NotYetImplementedError',
         '../pick/PickedObject',
         '../render/Renderable',
         '../geom/Sector',
@@ -18,10 +20,12 @@ define([
         '../error/UnsupportedOperationError',
         '../util/WWMath'
     ],
-    function (Angle,
+    function (AbstractError,
+              Angle,
               ArgumentError,
               Location,
               Logger,
+              NotYetImplementedError,
               PickedObject,
               Renderable,
               Sector,
@@ -391,8 +395,8 @@ define([
          * projected area.
          */
         SurfaceShape.prototype.area = function (globe, terrainConformant) {
-            throw new UnsupportedOperationError(
-                Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceShape", "area", "abstractInvocation"));
+            throw new NotYetImplementedError(
+                Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceShape", "area", "notYetImplemented"));
         };
 
         // Internal function. Intentionally not documented.
@@ -400,6 +404,9 @@ define([
             // This method is in the base class and should be overridden if the boundaries are generated.
             // It should be called only if the geometry has been provided by the user and does not need to be generated.
             // assert(!this._boundaries);
+
+            throw new AbstractError(
+                Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceShape", "computeBoundaries", "abstractInvocation"));
         };
 
         // Internal function. Intentionally not documented.
