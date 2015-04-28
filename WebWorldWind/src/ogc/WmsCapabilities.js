@@ -9,11 +9,11 @@
 define([
         '../error/ArgumentError',
         '../util/Logger',
-        '../ogc/WmsLayer'
+        '../ogc/WmsLayerCapabilities'
     ],
     function (ArgumentError,
               Logger,
-              WmsLayer) {
+              WmsLayerCapabilities) {
         "use strict";
 
         /**
@@ -154,7 +154,7 @@ define([
                 this.capability.layers = [];
                 for (var c = 0; c < capsElement.children.length; c++) {
                     if (capsElement.children[c].localName === "Layer") {
-                        this.capability.layers.push(new WmsLayer(capsElement.children[c], this.capability));
+                        this.capability.layers.push(new WmsLayerCapabilities(capsElement.children[c], this.capability));
                     }
                 }
             }
@@ -165,7 +165,7 @@ define([
 
             for (var c = 0; c < parentElement.children.length; c++) {
                 if (parentElement.children[c].localName === "Layer") {
-                    layers.push(new WmsLayer(parentElement.children[c], parentNode));
+                    layers.push(new WmsLayerCapabilities(parentElement.children[c], parentNode));
                 }
             }
 

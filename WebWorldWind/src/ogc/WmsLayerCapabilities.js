@@ -3,7 +3,7 @@
  * National Aeronautics and Space Administration. All Rights Reserved.
  */
 /**
- * @exports WmsLayer
+ * @exports WmsLayerCapabilities
  * @version $Id$
  */
 define([
@@ -16,17 +16,17 @@ define([
 
         /**
          * Constructs an WMS Layer instance from an XML DOM.
-         * @alias WmsLayer
+         * @alias WmsLayerCapabilities
          * @constructor
          * @classdesc Represents a WMS layer.
          * @param {{}} layerElement A WMS Layer element describing the layer.
          * @param {{}} parentNode An object indicating the new layer object's parent object. May be null.
          * @throws {ArgumentError} If the specified layer element is null or undefined.
          */
-        var WmsLayer = function (layerElement, parentNode) {
+        var WmsLayerCapabilities = function (layerElement, parentNode) {
             if (!layerElement) {
                 throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "WmsLayer", "constructor",
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "WmsLayerCapabilities", "constructor",
                         "Layer element is null or undefined."));
             }
 
@@ -35,76 +35,76 @@ define([
             this.assembleLayer(layerElement);
         };
 
-        Object.defineProperties(WmsLayer.prototype, {
+        Object.defineProperties(WmsLayerCapabilities.prototype, {
             queryable: {
                 get: function () {
-                    return WmsLayer.replace(this, "_queryable");
+                    return WmsLayerCapabilities.replace(this, "_queryable");
                 }
             },
 
             cascaded: {
                 get: function () {
-                    return WmsLayer.replace(this, "_cascaded");
+                    return WmsLayerCapabilities.replace(this, "_cascaded");
                 }
             },
 
             opaque: {
                 get: function () {
-                    return WmsLayer.replace(this, "_opaque");
+                    return WmsLayerCapabilities.replace(this, "_opaque");
                 }
             },
 
             noSubsets: {
                 get: function () {
-                    return WmsLayer.replace(this, "_noSubsets");
+                    return WmsLayerCapabilities.replace(this, "_noSubsets");
                 }
             },
 
             fixedWidth: {
                 get: function () {
-                    return WmsLayer.replace(this, "_fixedWidth");
+                    return WmsLayerCapabilities.replace(this, "_fixedWidth");
                 }
             },
 
             fixedHeight: {
                 get: function () {
-                    return WmsLayer.replace(this, "_fixedHeight");
+                    return WmsLayerCapabilities.replace(this, "_fixedHeight");
                 }
             },
 
             styles: {
                 get: function () {
-                    return WmsLayer.accumulate(this, "_styles", []);
+                    return WmsLayerCapabilities.accumulate(this, "_styles", []);
                 }
             },
 
             crses: {
                 get: function () {
-                    return WmsLayer.accumulate(this, "_crses", []);
+                    return WmsLayerCapabilities.accumulate(this, "_crses", []);
                 }
             },
 
             srses: { // WMS 1.1.1
                 get: function () {
-                    return WmsLayer.accumulate(this, "_srses", []);
+                    return WmsLayerCapabilities.accumulate(this, "_srses", []);
                 }
             },
 
             geographicBoundingBox: {
                 get: function () {
-                    return WmsLayer.replace(this, "_geographicBoundingBox");
+                    return WmsLayerCapabilities.replace(this, "_geographicBoundingBox");
                 }
             },
 
             latLonBoundingBox: { // WMS 1.1.1
                 get: function () {
-                    return WmsLayer.replace(this, "_latLonBoundingBox");
+                    return WmsLayerCapabilities.replace(this, "_latLonBoundingBox");
                 }
             },
 
             boundingBoxes: {
                 get: function () {
-                    return WmsLayer.replace(this, "_boundingBoxes");
+                    return WmsLayerCapabilities.replace(this, "_boundingBoxes");
                 }
             },
 
@@ -114,7 +114,7 @@ define([
                         layer = this;
 
                     // Accumulate only dimensions with unique names with descendants overriding ancestors.
-                    while (layer && (layer instanceof WmsLayer)) {
+                    while (layer && (layer instanceof WmsLayerCapabilities)) {
                         if (layer._dimensions && layer._dimensions.length > 0) {
                             layer._dimensions.forEach(function (ancestorDimension) {
                                 var name = ancestorDimension.name;
@@ -143,7 +143,7 @@ define([
                         layer = this;
 
                     // Accumulate only extents with unique names with descendants overriding ancestors.
-                    while (layer && (layer instanceof WmsLayer)) {
+                    while (layer && (layer instanceof WmsLayerCapabilities)) {
                         if (layer._extents && layer._extents.length > 0) {
                             layer._extents.forEach(function (ancestorDimension) {
                                 var name = ancestorDimension.name;
@@ -168,38 +168,38 @@ define([
 
             attribution: {
                 get: function () {
-                    return WmsLayer.replace(this, "_attribution");
+                    return WmsLayerCapabilities.replace(this, "_attribution");
                 }
             },
 
             authorityUrls: {
                 get: function () {
-                    return WmsLayer.accumulate(this, "_authorityUrls", []);
+                    return WmsLayerCapabilities.accumulate(this, "_authorityUrls", []);
                 }
             },
 
             minScaleDenominator: {
                 get: function () {
-                    return WmsLayer.replace(this, "_minScaleDenominator");
+                    return WmsLayerCapabilities.replace(this, "_minScaleDenominator");
                 }
             },
 
             maxScaleDenominator: {
                 get: function () {
-                    return WmsLayer.replace(this, "_maxScaleDenominator");
+                    return WmsLayerCapabilities.replace(this, "_maxScaleDenominator");
                 }
             },
 
             scaleHint: { // WMS 1.1.1
                 get: function () {
-                    return WmsLayer.replace(this, "_scaleHint");
+                    return WmsLayerCapabilities.replace(this, "_scaleHint");
                 }
             }
         });
 
-        WmsLayer.accumulate = function (layer, propertyName, accumulation) {
+        WmsLayerCapabilities.accumulate = function (layer, propertyName, accumulation) {
             // Accumulate all of the named properties in the specified layer and its ancestors.
-            while (layer && (layer instanceof WmsLayer)) {
+            while (layer && (layer instanceof WmsLayerCapabilities)) {
                 var property = layer[propertyName];
 
                 if (property) {
@@ -214,9 +214,9 @@ define([
             return accumulation;
         };
 
-        WmsLayer.replace = function (layer, propertyName) {
+        WmsLayerCapabilities.replace = function (layer, propertyName) {
             // Find the first property instance encountered from the specified layer upwards through its ancestors.
-            while (layer && (layer instanceof WmsLayer)) {
+            while (layer && (layer instanceof WmsLayerCapabilities)) {
                 var property = layer[propertyName];
 
                 if (property) {
@@ -227,7 +227,7 @@ define([
             }
         };
 
-        WmsLayer.prototype.assembleLayer = function (layerElement) {
+        WmsLayerCapabilities.prototype.assembleLayer = function (layerElement) {
             var elements, attrValue, c, e;
 
             attrValue = layerElement.getAttribute("queryable");
@@ -267,7 +267,7 @@ define([
                     if (!this.layers) {
                         this.layers = [];
                     }
-                    this.layers.push(new WmsLayer(childElement, this));
+                    this.layers.push(new WmsLayerCapabilities(childElement, this));
 
                 } else if (childElement.localName === "Name") {
                     this.name = childElement.textContent;
@@ -289,7 +289,7 @@ define([
                     if (!this._styles) {
                         this._styles = [];
                     }
-                    this._styles.push(WmsLayer.assembleStyle(childElement))
+                    this._styles.push(WmsLayerCapabilities.assembleStyle(childElement))
 
                 } else if (childElement.localName === "CRS") {
                     if (!this._crses) {
@@ -304,61 +304,61 @@ define([
                     this._srses.push(childElement.textContent);
 
                 } else if (childElement.localName === "EX_GeographicBoundingBox") {
-                    this._geographicBoundingBox = WmsLayer.assembleGeographicBoundingBox(childElement);
+                    this._geographicBoundingBox = WmsLayerCapabilities.assembleGeographicBoundingBox(childElement);
 
                 } else if (childElement.localName === "LatLonBoundingBox") { // WMS 1.1.1
-                    this._geographicBoundingBox = WmsLayer.assembleLatLonBoundingBox(childElement);
+                    this._geographicBoundingBox = WmsLayerCapabilities.assembleLatLonBoundingBox(childElement);
 
                 } else if (childElement.localName === "BoundingBox") {
                     if (!this._boundingBoxes) {
                         this._boundingBoxes = [];
                     }
-                    this._boundingBoxes.push(WmsLayer.assembleBoundingBox(childElement));
+                    this._boundingBoxes.push(WmsLayerCapabilities.assembleBoundingBox(childElement));
 
                 } else if (childElement.localName === "Dimension") {
                     if (!this._dimensions) {
                         this._dimensions = [];
                     }
-                    this._dimensions.push(WmsLayer.assembleDimension(childElement));
+                    this._dimensions.push(WmsLayerCapabilities.assembleDimension(childElement));
 
                 } else if (childElement.localName === "Extent") { // WMS 1.1.1
                     if (!this._extents) {
                         this._extents = [];
                     }
-                    this._extents.push(WmsLayer.assembleDimension(childElement)); // same schema as 1.3.0 Dimension
+                    this._extents.push(WmsLayerCapabilities.assembleDimension(childElement)); // same schema as 1.3.0 Dimension
 
                 } else if (childElement.localName === "Attribution") {
-                    this._attribution = WmsLayer.assembleAttribution(childElement);
+                    this._attribution = WmsLayerCapabilities.assembleAttribution(childElement);
 
                 } else if (childElement.localName === "AuthorityURL") {
                     if (!this._authorityUrls) {
                         this._authorityUrls = [];
                     }
-                    this._authorityUrls.push(WmsLayer.assembleAuthorityUrl(childElement));
+                    this._authorityUrls.push(WmsLayerCapabilities.assembleAuthorityUrl(childElement));
 
                 } else if (childElement.localName === "Identifier") {
                     if (!this.identifiers) {
                         this.identifiers = [];
                     }
-                    this.identifiers.push(WmsLayer.assembleIdentifier(childElement));
+                    this.identifiers.push(WmsLayerCapabilities.assembleIdentifier(childElement));
 
                 } else if (childElement.localName === "MetadataURL") {
                     if (!this.metadataUrls) {
                         this.metadataUrls = [];
                     }
-                    this.metadataUrls.push(WmsLayer.assembleMetadataUrl(childElement));
+                    this.metadataUrls.push(WmsLayerCapabilities.assembleMetadataUrl(childElement));
 
                 } else if (childElement.localName === "DataURL") {
                     if (!this.dataUrls) {
                         this.dataUrls = [];
                     }
-                    this.dataUrls.push(WmsLayer.assembleUrl(childElement));
+                    this.dataUrls.push(WmsLayerCapabilities.assembleUrl(childElement));
 
                 } else if (childElement.localName === "FeatureListURL") {
                     if (!this.featureListUrls) {
                         this.featureListUrls = [];
                     }
-                    this.featureListUrls.push(WmsLayer.assembleUrl(childElement));
+                    this.featureListUrls.push(WmsLayerCapabilities.assembleUrl(childElement));
 
                 } else if (childElement.localName === "MinScaleDenominator") {
                     this._minScaleDenominator = parseFloat(childElement.textContent);
@@ -368,13 +368,13 @@ define([
 
                 } else if (childElement.localName === "ScaleHint") { // WMS 1.1.1
                     this._scaleHint = {};
-                    this._scaleHint.min = WmsLayer.getFloatAttribute(childElement, "min");
-                    this._scaleHint.max = WmsLayer.getFloatAttribute(childElement, "max");
+                    this._scaleHint.min = WmsLayerCapabilities.getFloatAttribute(childElement, "min");
+                    this._scaleHint.max = WmsLayerCapabilities.getFloatAttribute(childElement, "max");
                 }
             }
         };
 
-        WmsLayer.assembleStyle = function (styleElement) {
+        WmsLayerCapabilities.assembleStyle = function (styleElement) {
             var result = {};
 
             for (var c = 0; c < styleElement.children.length; c++) {
@@ -393,20 +393,20 @@ define([
                     if (!result.legendUrls) {
                         result.legendUrls = [];
                     }
-                    result.legendUrls.push(WmsLayer.assembleLegendUrl(childElement));
+                    result.legendUrls.push(WmsLayerCapabilities.assembleLegendUrl(childElement));
 
                 } else if (childElement.localName === "StyleSheetURL") {
-                    result.styleSheetUrl = WmsLayer.assembleUrl(childElement);
+                    result.styleSheetUrl = WmsLayerCapabilities.assembleUrl(childElement);
 
                 } else if (childElement.localName === "StyleURL") {
-                    result.styleUrl = WmsLayer.assembleUrl(childElement);
+                    result.styleUrl = WmsLayerCapabilities.assembleUrl(childElement);
                 }
             }
 
             return result;
         };
 
-        WmsLayer.assembleGeographicBoundingBox = function (bboxElement) {
+        WmsLayerCapabilities.assembleGeographicBoundingBox = function (bboxElement) {
             var result = {};
 
             for (var c = 0; c < bboxElement.children.length; c++) {
@@ -429,32 +429,32 @@ define([
             return result;
         };
 
-        WmsLayer.assembleLatLonBoundingBox = function (bboxElement) { // WMS 1.1.1
+        WmsLayerCapabilities.assembleLatLonBoundingBox = function (bboxElement) { // WMS 1.1.1
             var result = {};
 
-            result.minx = WmsLayer.getFloatAttribute(bboxElement, "minx");
-            result.miny = WmsLayer.getFloatAttribute(bboxElement, "miny");
-            result.maxx = WmsLayer.getFloatAttribute(bboxElement, "maxx");
-            result.maxy = WmsLayer.getFloatAttribute(bboxElement, "maxy");
+            result.minx = WmsLayerCapabilities.getFloatAttribute(bboxElement, "minx");
+            result.miny = WmsLayerCapabilities.getFloatAttribute(bboxElement, "miny");
+            result.maxx = WmsLayerCapabilities.getFloatAttribute(bboxElement, "maxx");
+            result.maxy = WmsLayerCapabilities.getFloatAttribute(bboxElement, "maxy");
 
             return result;
         };
 
-        WmsLayer.assembleBoundingBox = function (bboxElement) {
+        WmsLayerCapabilities.assembleBoundingBox = function (bboxElement) {
             var result = {};
 
             result.crs = bboxElement.getAttribute("CRS");
-            result.minx = WmsLayer.getFloatAttribute(bboxElement, "minx");
-            result.miny = WmsLayer.getFloatAttribute(bboxElement, "miny");
-            result.maxx = WmsLayer.getFloatAttribute(bboxElement, "maxx");
-            result.maxy = WmsLayer.getFloatAttribute(bboxElement, "maxy");
-            result.resx = WmsLayer.getFloatAttribute(bboxElement, "resx");
-            result.resy = WmsLayer.getFloatAttribute(bboxElement, "resy");
+            result.minx = WmsLayerCapabilities.getFloatAttribute(bboxElement, "minx");
+            result.miny = WmsLayerCapabilities.getFloatAttribute(bboxElement, "miny");
+            result.maxx = WmsLayerCapabilities.getFloatAttribute(bboxElement, "maxx");
+            result.maxy = WmsLayerCapabilities.getFloatAttribute(bboxElement, "maxy");
+            result.resx = WmsLayerCapabilities.getFloatAttribute(bboxElement, "resx");
+            result.resy = WmsLayerCapabilities.getFloatAttribute(bboxElement, "resy");
 
             return result;
         };
 
-        WmsLayer.assembleDimension = function (dimensionElement) {
+        WmsLayerCapabilities.assembleDimension = function (dimensionElement) {
             var result = {};
 
             result.name = dimensionElement.getAttribute("name");
@@ -479,7 +479,7 @@ define([
             return result;
         };
 
-        WmsLayer.assembleAttribution = function (attributionElement) {
+        WmsLayerCapabilities.assembleAttribution = function (attributionElement) {
             var result = {};
 
             for (var c = 0; c < attributionElement.children.length; c++) {
@@ -492,14 +492,14 @@ define([
                     result.url = childElement.getAttribute("xlink:href");
 
                 } else if (childElement.localName === "LogoUrul") {
-                    result.logoUrl = WmsLayer.assembleLogoUrl(childElement);
+                    result.logoUrl = WmsLayerCapabilities.assembleLogoUrl(childElement);
                 }
             }
 
             return result;
         };
 
-        WmsLayer.assembleAuthorityUrl = function (urlElement) {
+        WmsLayerCapabilities.assembleAuthorityUrl = function (urlElement) {
             var result = {};
 
             result.name = urlElement.getAttribute("name");
@@ -515,7 +515,7 @@ define([
             return result;
         };
 
-        WmsLayer.assembleIdentifier = function (identifierElement) {
+        WmsLayerCapabilities.assembleIdentifier = function (identifierElement) {
             var result = {};
 
             result.authority = identifierElement.getAttribute("authority");
@@ -524,7 +524,7 @@ define([
             return result;
         };
 
-        WmsLayer.assembleMetadataUrl = function (urlElement) {
+        WmsLayerCapabilities.assembleMetadataUrl = function (urlElement) {
             var result = {};
 
             result.type = urlElement.getAttribute("type");
@@ -543,11 +543,11 @@ define([
             return result;
         };
 
-        WmsLayer.assembleLegendUrl = function (urlElement) {
+        WmsLayerCapabilities.assembleLegendUrl = function (urlElement) {
             var result = {};
 
-            result.width = WmsLayer.getIntegerAttribute(urlElement, "width");
-            result.height = WmsLayer.getIntegerAttribute(urlElement, "height");
+            result.width = WmsLayerCapabilities.getIntegerAttribute(urlElement, "width");
+            result.height = WmsLayerCapabilities.getIntegerAttribute(urlElement, "height");
 
             for (var c = 0; c < urlElement.children.length; c++) {
                 var childElement = urlElement.children[c];
@@ -563,11 +563,11 @@ define([
             return result;
         };
 
-        WmsLayer.assembleLogoUrl = function (urlElement) {
+        WmsLayerCapabilities.assembleLogoUrl = function (urlElement) {
             var result = {};
 
-            result.width = WmsLayer.getIntegerAttribute(urlElement, "width");
-            result.height = WmsLayer.getIntegerAttribute(urlElement, "height");
+            result.width = WmsLayerCapabilities.getIntegerAttribute(urlElement, "width");
+            result.height = WmsLayerCapabilities.getIntegerAttribute(urlElement, "height");
 
             for (var c = 0; c < urlElement.children.length; c++) {
                 var childElement = urlElement.children[c];
@@ -583,7 +583,7 @@ define([
             return result;
         };
 
-        WmsLayer.assembleUrl = function (urlElement) {
+        WmsLayerCapabilities.assembleUrl = function (urlElement) {
             var result = {};
 
             for (var c = 0; c < urlElement.children.length; c++) {
@@ -600,7 +600,7 @@ define([
             return result;
         };
 
-        WmsLayer.getIntegerAttribute = function (element, attrName) {
+        WmsLayerCapabilities.getIntegerAttribute = function (element, attrName) {
             var result = element.getAttribute(attrName);
 
             if (result) {
@@ -612,7 +612,7 @@ define([
             return result;
         };
 
-        WmsLayer.getFloatAttribute = function (element, attrName) {
+        WmsLayerCapabilities.getFloatAttribute = function (element, attrName) {
             var result = element.getAttribute(attrName);
 
             if (result) {
@@ -624,7 +624,7 @@ define([
             return result;
         };
 
-        return WmsLayer;
+        return WmsLayerCapabilities;
     }
 )
 ;
