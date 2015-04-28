@@ -1211,6 +1211,210 @@ public class LatLon
     }
 
     /**
+     * Determines if a sequence of geographic locations encloses either the North or South pole. The sequence is treated
+     * as a closed loop. (If the first and last positions are not equal the loop will be closed for purposes of this
+     * computation.)
+     *
+     * @param locations The locations to test.
+     *
+     * @return AVKey.NORTH if the North Pole is enclosed, AVKey.SOUTH if the South Pole is enclosed, or null if neither
+     * pole is enclosed.
+     *
+     * @throws java.lang.IllegalArgumentException if the locations are null.
+     */
+    public static String locationsContainPole(Iterable<? extends LatLon> locations)
+    {
+        if (locations == null)
+        {
+            String msg = Logging.getMessage("nullValue.LocationsListIsNull");
+            Logging.logger().severe(msg);
+            throw new IllegalArgumentException(msg);
+        }
+
+        // Determine how many times the path crosses the dateline. Shapes that include a pole will cross an odd number
+        // of times.
+        // TODO handle locations that contain both poles.
+        boolean containsPole = false;
+
+        double minLatitude = 90.0;
+        double maxLatitude = -90.0;
+
+        LatLon first = null;
+        LatLon prev = null;
+        for (LatLon ll : locations)
+        {
+            if (first == null)
+                first = ll;
+
+            if (prev != null && LatLon.locationsCrossDateline(prev, ll))
+                containsPole = !containsPole;
+
+            if (ll.latitude.degrees < minLatitude)
+                minLatitude = ll.latitude.degrees;
+
+            if (ll.latitude.degrees > maxLatitude)
+                maxLatitude = ll.latitude.degrees;
+
+            prev = ll;
+        }
+
+        // Close the loop by connecting the last position to the first. If the loop is already closed then the following
+        // test will always fail, and will not affect the result.
+        if (first != null && LatLon.locationsCrossDateline(first, prev))
+            containsPole = !containsPole;
+
+        if (!containsPole)
+            return null;
+
+        // Determine which pole is enclosed. If the shape is entirely in one hemisphere, then assume that it encloses
+        // the pole in that hemisphere. Otherwise, assume that it encloses the pole that is closest to the shape's
+        // extreme latitude.
+        if (minLatitude > 0)
+            return AVKey.NORTH; // Entirely in Northern Hemisphere
+        else if (maxLatitude < 0)
+            return AVKey.SOUTH; // Entirely in Southern Hemisphere
+        else if (Math.abs(maxLatitude) >= Math.abs(minLatitude))
+            return AVKey.NORTH; // Spans equator, but more north than south
+        else
+            return AVKey.SOUTH;
+    }
+
+    /**
+     * Returns a list containing two copies of a sequence of geographic locations that cross the dateline: one that
+     * extends across the -180 longitude boundary and one that extends across the +180 longitude boundary. If the
+     * sequence does not cross the dateline this returns a list containing a copy of the original list.
+     *
+     * @param locations The locations to repeat.
+     *
+     * @return A list containing two new location lists, one copy for either side of the dateline.
+     *
+     * @throws java.lang.IllegalArgumentException if the locations are null.
+     */
+    public static List<List<LatLon>> repeatLocationsAroundDateline(Iterable<? extends LatLon> locations)
+    {
+        if (locations == null)
+        {
+            String msg = Logging.getMessage("nullValue.LocationsListIsNull");
+            Logging.logger().severe(msg);
+            throw new IllegalArgumentException(msg);
+        }
+
+        List<List<LatLon>> list = new ArrayList<List<LatLon>>();
+
+        LatLon prev = null;
+        double lonOffset = 0;
+        boolean applyLonOffset = false;
+
+        List<LatLon> locationsA = new ArrayList<LatLon>();
+        list.add(locationsA);
+
+        for (LatLon cur : locations)
+        {
+            if (prev != null && LatLon.locationsCrossDateline(prev, cur))
+            {
+                if (lonOffset == 0)
+                    lonOffset = (prev.longitude.degrees < 0 ? -360 : 360);
+
+                applyLonOffset = !applyLonOffset;
+            }
+
+            if (applyLonOffset)
+            {
+                locationsA.add(LatLon.fromDegrees(cur.latitude.degrees, cur.longitude.degrees + lonOffset));
+            }
+            else
+            {
+                locationsA.add(cur);
+            }
+
+            prev = cur;
+        }
+
+        if (lonOffset != 0) // longitude offset is non-zero when the locations cross the dateline
+        {
+            List<LatLon> locationsB = new ArrayList<LatLon>();
+            list.add(locationsB);
+
+            for (LatLon cur : locationsA)
+            {
+                locationsB.add(LatLon.fromDegrees(cur.latitude.degrees, cur.longitude.degrees - lonOffset));
+            }
+        }
+
+        return list;
+    }
+
+    /**
+     * Divides a sequence of geographic locations that encloses a pole along the international dateline. This method
+     * determines where the locations cross the dateline, and inserts locations to the pole, and then back to the
+     * intersection position. This allows the shape to be "unrolled" when projected in a lat-lon projection.
+     *
+     * @param locations Locations to cut at dateline. This list is not modified.
+     * @param pole      Pole contained by locations, either AVKey.NORTH or AVKey.SOUTH.
+     * @param globe     Current globe, or null to treat geographic coordinates as linear for the purpose of computing
+     *                  the dateline intersection.
+     *
+     * @return New location list with locations added to correctly handle dateline intersection.
+     *
+     * @throws java.lang.IllegalArgumentException if the locations are null or if the pole is null.
+     */
+    public static List<LatLon> cutLocationsAlongDateLine(Iterable<? extends LatLon> locations, String pole, Globe globe)
+    {
+        if (locations == null)
+        {
+            String msg = Logging.getMessage("nullValue.LocationsListIsNull");
+            Logging.logger().severe(msg);
+            throw new IllegalArgumentException(msg);
+        }
+
+        if (pole == null)
+        {
+            String msg = Logging.getMessage("nullValue.PoleIsNull");
+            Logging.logger().severe(msg);
+            throw new IllegalArgumentException(msg);
+        }
+
+        List<LatLon> newLocations = new ArrayList<LatLon>();
+
+        Angle poleLat = AVKey.NORTH.equals(pole) ? Angle.POS90 : Angle.NEG90;
+
+        LatLon pos = null;
+        for (LatLon posNext : locations)
+        {
+            if (pos != null)
+            {
+                newLocations.add(pos);
+                if (LatLon.locationsCrossDateline(pos, posNext))
+                {
+                    // Determine where the segment crosses the dateline.
+                    LatLon separation = LatLon.intersectionWithMeridian(pos, posNext, Angle.POS180, globe);
+                    double sign = Math.signum(pos.getLongitude().degrees);
+
+                    Angle lat = separation.getLatitude();
+                    Angle thisSideLon = Angle.POS180.multiply(sign);
+                    Angle otherSideLon = thisSideLon.multiply(-1);
+
+                    // Add locations that run from the intersection to the pole, then back to the intersection. Note
+                    // that the longitude changes sign when the path returns from the pole.
+                    //         . Pole
+                    //      2 ^ | 3
+                    //        | |
+                    //      1 | v 4
+                    // --->---- ------>
+                    newLocations.add(new LatLon(lat, thisSideLon));
+                    newLocations.add(new LatLon(poleLat, thisSideLon));
+                    newLocations.add(new LatLon(poleLat, otherSideLon));
+                    newLocations.add(new LatLon(lat, otherSideLon));
+                }
+            }
+            pos = posNext;
+        }
+        newLocations.add(pos);
+
+        return newLocations;
+    }
+
+    /**
      * Transform the negative longitudes of a dateline-spanning location list to positive values that maintain the
      * relationship with the other locations in the list. Negative longitudes are transformed to values greater than 180
      * degrees, as though longitude spanned [0, 360] rather than [-180, 180]. This enables arithmetic operations to be
@@ -1257,33 +1461,40 @@ public class LatLon
     }
 
     /**
-     * Determine where a line between two positions crosses a given meridian. The intersection test is performed by
+     * Determine where a line between two locations crosses a given meridian. The intersection test is performed by
      * intersecting a line in Cartesian space between the two positions with a plane through the meridian. Thus, it is
      * most suitable for working with positions that are fairly close together as the calculation does not take into
      * account great circle or rhumb paths.
      *
-     * @param p1       First position.
-     * @param p2       Second position.
-     * @param meridian Longitude line to intersect with.
-     * @param globe    Globe used to compute intersection.
+     * @param p1       The first location.
+     * @param p2       The second location.
+     * @param meridian The line of constant longitude to intersect with.
+     * @param globe    Globe used to compute intersection, or null to treat geographic coordinates as linear for the
+     *                 purpose of computing the intersection.
      *
-     * @return The intersection location along the meridian
+     * @return The intersection location along the meridian.
+     *
+     * @throws java.lang.IllegalArgumentException if either location is null, or if the meridian is null.
      */
     public static LatLon intersectionWithMeridian(LatLon p1, LatLon p2, Angle meridian, Globe globe)
     {
-        if (globe instanceof Globe2D)
+        if (p1 == null || p2 == null)
         {
-            // y = mx + b case after normalizing negative angles.
-            double lon1 = p1.getLongitude().degrees < 0 ? p1.getLongitude().degrees + 360 : p1.getLongitude().degrees;
-            double lon2 = p2.getLongitude().degrees < 0 ? p2.getLongitude().degrees + 360 : p2.getLongitude().degrees;
-            if (lon1 == lon2)
-                return null;
+            String msg = Logging.getMessage("nullValue.LocationIsNull");
+            Logging.logger().severe(msg);
+            throw new IllegalArgumentException(msg);
+        }
 
-            double med = meridian.degrees < 0 ? meridian.degrees + 360 : meridian.degrees;
-            double slope = (p2.latitude.degrees - p1.latitude.degrees) / (lon2 - lon1);
-            double lat = p1.latitude.degrees + slope * (med - lon1);
+        if (meridian == null)
+        {
+            String msg = Logging.getMessage("nullValue.MeridianIsNull");
+            Logging.logger().severe(msg);
+            throw new IllegalArgumentException(msg);
+        }
 
-            return LatLon.fromDegrees(lat, meridian.degrees);
+        if (globe == null || globe instanceof Globe2D)
+        {
+            return intersectionWithMeridian(p1, p2, meridian);
         }
 
         Vec4 pt1 = globe.computePointFromLocation(p1);
@@ -1302,6 +1513,49 @@ public class LatLon
         Position intersectionPos = globe.computePositionFromPoint(intersectionPoint);
 
         return new LatLon(intersectionPos.getLatitude(), meridian);
+    }
+
+    /**
+     * Determine where a line between two locations crosses a given meridian. The intersection test is performed by
+     * treating geographic coordinates as linear and computing the intersection of the linear segment with the vertical
+     * line indicated by the meridian. This computation correctly handles intersections with either side of the
+     * antimeridian.
+     *
+     * @param p1       The first location.
+     * @param p2       The second location.
+     * @param meridian The line of constant longitude to intersect with.
+     *
+     * @return The intersection location along the meridian.
+     *
+     * @throws java.lang.IllegalArgumentException if either location is null, or if the meridian is null.
+     */
+    public static LatLon intersectionWithMeridian(LatLon p1, LatLon p2, Angle meridian)
+    {
+        if (p1 == null || p2 == null)
+        {
+            String msg = Logging.getMessage("nullValue.LocationIsNull");
+            Logging.logger().severe(msg);
+            throw new IllegalArgumentException(msg);
+        }
+
+        if (meridian == null)
+        {
+            String msg = Logging.getMessage("nullValue.MeridianIsNull");
+            Logging.logger().severe(msg);
+            throw new IllegalArgumentException(msg);
+        }
+
+        // y = mx + b case after normalizing negative angles.
+        double lon1 = p1.getLongitude().degrees < 0 ? p1.getLongitude().degrees + 360 : p1.getLongitude().degrees;
+        double lon2 = p2.getLongitude().degrees < 0 ? p2.getLongitude().degrees + 360 : p2.getLongitude().degrees;
+        if (lon1 == lon2)
+            return null;
+
+        double med = meridian.degrees < 0 ? meridian.degrees + 360 : meridian.degrees;
+        double slope = (p2.latitude.degrees - p1.latitude.degrees) / (lon2 - lon1);
+        double lat = p1.latitude.degrees + slope * (med - lon1);
+
+        return LatLon.fromDegrees(lat, meridian.degrees);
     }
 
     /**

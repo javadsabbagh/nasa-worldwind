@@ -828,50 +828,7 @@ public abstract class AbstractSurfaceShape extends AbstractSurfaceObject impleme
         if (!this.canContainPole())
             return null;
 
-        // Determine how many times the path crosses the date line. Shapes that include a pole will cross an odd number of times.
-        boolean containsPole = false;
-
-        double minLatitude = 90.0;
-        double maxLatitude = -90.0;
-
-        LatLon first = null;
-        LatLon prev = null;
-        for (LatLon ll : locations)
-        {
-            if (first == null)
-                first = ll;
-
-            if (prev != null && LatLon.locationsCrossDateline(prev, ll))
-                containsPole = !containsPole;
-
-            if (ll.latitude.degrees < minLatitude)
-                minLatitude = ll.latitude.degrees;
-
-            if (ll.latitude.degrees > maxLatitude)
-                maxLatitude = ll.latitude.degrees;
-
-            prev = ll;
-        }
-
-        // Close the loop by connecting the last position to the first. If the loop is already closed then the following
-        // test will always fail, and will not affect the result.
-        if (first != null && LatLon.locationsCrossDateline(first, prev))
-            containsPole = !containsPole;
-
-        if (!containsPole)
-            return null;
-
-        // Determine which pole is enclosed. If the shape is entirely in one hemisphere, then assume that it encloses
-        // the pole in that hemisphere. Otherwise, assume that it encloses the pole that is closest to the shape's
-        // extreme latitude.
-        if (minLatitude > 0)
-            return AVKey.NORTH; // Entirely in Northern Hemisphere
-        else if (maxLatitude < 0)
-            return AVKey.SOUTH; // Entirely in Southern Hemisphere
-        else if (Math.abs(maxLatitude) >= Math.abs(minLatitude))
-            return AVKey.NORTH; // Spans equator, but more north than south
-        else
-            return AVKey.SOUTH;
+        return LatLon.locationsContainPole(locations);
     }
 
     /**
@@ -891,44 +848,7 @@ public abstract class AbstractSurfaceShape extends AbstractSurfaceObject impleme
         if (pole == null)
             return locations;
 
-        List<LatLon> newLocations = new ArrayList<LatLon>(locations.size());
-
-        Angle poleLat = AVKey.NORTH.equals(pole) ? Angle.POS90 : Angle.NEG90;
-
-        LatLon pos = null;
-        for (LatLon posNext : locations)
-        {
-            if (pos != null)
-            {
-                newLocations.add(pos);
-                if (LatLon.locationsCrossDateline(pos, posNext))
-                {
-                    // Determine where the segment crosses the date line.
-                    LatLon separation = LatLon.intersectionWithMeridian(pos, posNext, Angle.POS180, globe);
-                    double sign = Math.signum(pos.getLongitude().degrees);
-
-                    Angle lat = separation.getLatitude();
-                    Angle thisSideLon = Angle.POS180.multiply(sign);
-                    Angle otherSideLon = thisSideLon.multiply(-1);
-
-                    // Add locations that run from the intersection to the pole, then back to the intersection. Note
-                    // that the longitude changes sign when the path returns from the pole.
-                    //         . Pole
-                    //      2 ^ | 3
-                    //        | |
-                    //      1 | v 4
-                    // --->---- ------>
-                    newLocations.add(new LatLon(lat, thisSideLon));
-                    newLocations.add(new LatLon(poleLat, thisSideLon));
-                    newLocations.add(new LatLon(poleLat, otherSideLon));
-                    newLocations.add(new LatLon(lat, otherSideLon));
-                }
-            }
-            pos = posNext;
-        }
-        newLocations.add(pos);
-
-        return newLocations;
+        return LatLon.cutLocationsAlongDateLine(locations, pole, globe);
     }
 
     /**
@@ -942,49 +862,7 @@ public abstract class AbstractSurfaceShape extends AbstractSurfaceObject impleme
      */
     protected List<List<LatLon>> repeatAroundDateline(List<LatLon> locations)
     {
-        List<List<LatLon>> list = new ArrayList<List<LatLon>>();
-
-        LatLon prev = null;
-        double lonOffset = 0;
-        boolean applyLonOffset = false;
-
-        List<LatLon> locationsA = new ArrayList<LatLon>(locations.size());
-        list.add(locationsA);
-
-        for (LatLon cur : locations)
-        {
-            if (prev != null && LatLon.locationsCrossDateline(prev, cur))
-            {
-                if (lonOffset == 0)
-                    lonOffset = (prev.longitude.degrees < 0 ? -360 : 360);
-
-                applyLonOffset = !applyLonOffset;
-            }
-
-            if (applyLonOffset)
-            {
-                locationsA.add(LatLon.fromDegrees(cur.latitude.degrees, cur.longitude.degrees + lonOffset));
-            }
-            else
-            {
-                locationsA.add(cur);
-            }
-
-            prev = cur;
-        }
-
-        if (lonOffset != 0) // longitude offset is non-zero when the locations cross the dateline
-        {
-            List<LatLon> locationsB = new ArrayList<LatLon>(locations.size());
-            list.add(locationsB);
-
-            for (LatLon cur : locationsA)
-            {
-                locationsB.add(LatLon.fromDegrees(cur.latitude.degrees, cur.longitude.degrees - lonOffset));
-            }
-        }
-
-        return list;
+        return LatLon.repeatLocationsAroundDateline(locations);
     }
 
     protected List<List<LatLon>> getActiveGeometry()
