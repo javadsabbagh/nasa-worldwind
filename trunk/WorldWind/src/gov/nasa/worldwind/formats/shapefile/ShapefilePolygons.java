@@ -32,22 +32,22 @@ public class ShapefilePolygons extends ShapefileRenderable implements OrderedRen
 {
     public static class Record extends ShapefileRenderable.Record
     {
-        protected double[][] effectiveArea;
-        protected double[] antimeridianOffset;
+        protected double[][] boundaryEffectiveArea;
+        protected boolean[] boundaryCrossesAntimeridian;
 
         public Record(ShapefileRenderable shapefileRenderable, ShapefileRecord shapefileRecord)
         {
             super(shapefileRenderable, shapefileRecord);
         }
 
-        protected double[] getBoundaryEffectiveArea(int index)
+        protected double[] getBoundaryEffectiveArea(int boundaryIndex)
         {
-            return this.effectiveArea != null ? this.effectiveArea[index] : null;
+            return this.boundaryEffectiveArea != null ? this.boundaryEffectiveArea[boundaryIndex] : null;
         }
 
-        protected double getAntimeridianOffset(int index)
+        protected boolean isBoundaryCrossesAntimeridian(int boundaryIndex)
         {
-            return this.antimeridianOffset != null ? this.antimeridianOffset[index] : 0;
+            return this.boundaryCrossesAntimeridian != null && this.boundaryCrossesAntimeridian[boundaryIndex];
         }
     }
 
@@ -918,95 +918,76 @@ public class ShapefilePolygons extends ShapefileRenderable implements OrderedRen
     {
         synchronized (record) // synchronize access to checking and computing a record's effective area
         {
-            if (record.effectiveArea != null)
+            if (record.boundaryEffectiveArea != null)
                 return;
 
-            record.effectiveArea = new double[record.getBoundaryCount()][];
-            record.antimeridianOffset = new double[record.getBoundaryCount()];
+            record.boundaryEffectiveArea = new double[record.getBoundaryCount()][];
+            record.boundaryCrossesAntimeridian = new boolean[record.getBoundaryCount()];
 
             for (int i = 0; i < record.getBoundaryCount(); i++)
             {
-                VecBuffer points = record.getBoundaryPoints(i);
-                double[] point = new double[4]; // lon, lat, prevLon, prevLat
-                double[] offsetPoint = new double[2];
-                double offset = 0;
-                boolean applyOffset = false;
+                VecBuffer boundaryCoords = record.getBoundaryPoints(i);
+                double[] coord = new double[2]; // lon, lat
+                double[] prevCoord = new double[2]; // prevlon, prevlat
 
                 generalizer.reset();
                 generalizer.beginPolyline();
 
-                for (int j = 0; j < points.getSize(); j++)
+                for (int j = 0; j < boundaryCoords.getSize(); j++)
                 {
-                    points.get(j, point);
+                    boundaryCoords.get(j, coord);
+                    generalizer.addVertex(coord[0], coord[1], 0); // lon, lat, 0
 
-                    if (j > 0 && Math.signum(point[0]) != Math.signum(point[2]) && Math.abs(point[0] - point[2]) > 180)
+                    if (j > 0 && Math.signum(prevCoord[0]) != Math.signum(coord[0]) &&
+                        Math.abs(prevCoord[0] - coord[0]) > 180)
                     {
-                        if (offset == 0)
-                            offset = (point[2] < 0) ? -360 : 360;
-                        applyOffset = !applyOffset;
+                        record.boundaryCrossesAntimeridian[i] = true;
                     }
 
-                    if (applyOffset) // adjust vertices associated with edges that span the anti-meridian
-                    {
-                        offsetPoint[0] = point[0] + offset;
-                        offsetPoint[1] = point[1];
-                        points.put(j, offsetPoint);
-                    }
-
-                    generalizer.addVertex(point[0], point[1], 0); // longitude, latitude, 0
-                    System.arraycopy(point, 0, point, 2, 2); // copy lon,lat to prevLon,prevLat
+                    prevCoord[0] = coord[0]; // prevlon = lon
+                    prevCoord[1] = coord[1]; // prevlat = lat
                 }
 
-                record.effectiveArea[i] = new double[points.getSize()];
-                record.antimeridianOffset[i] = offset;
+                record.boundaryEffectiveArea[i] = new double[boundaryCoords.getSize()];
                 generalizer.endPolyline();
-                generalizer.getVertexEffectiveArea(record.effectiveArea[i]);
+                generalizer.getVertexEffectiveArea(record.boundaryEffectiveArea[i]);
             }
         }
     }
 
-    protected void tessellateRecord(ShapefileGeometry geom, Record record, PolygonTessellator2 tess)
+    protected void tessellateRecord(ShapefileGeometry geom, Record record, final PolygonTessellator2 tess)
     {
         // Compute the minimum effective area for a vertex based on the geometry resolution. We convert the resolution
         // from radians to square degrees. This ensures the units are consistent with the vertex effective area computed
         // by PolylineGeneralizer, which adopts the units of the source data (degrees).
         double resolutionDegrees = geom.resolution * 180.0 / Math.PI;
         double minEffectiveArea = resolutionDegrees * resolutionDegrees;
-        double[] point = new double[2];
 
         tess.resetIndices(); // clear indices from previous records, but retain the accumulated vertices
         tess.beginPolygon();
 
         for (int i = 0; i < record.getBoundaryCount(); i++)
         {
-            VecBuffer coords = record.getBoundaryPoints(i);
-            double[] effectiveArea = record.getBoundaryEffectiveArea(i);
-
-            tess.beginContour();
-            for (int j = 0; j < coords.getSize(); j++)
+            this.tessellateBoundary(record, i, minEffectiveArea, new TessBoundaryCallback()
             {
-                if (effectiveArea[j] < minEffectiveArea)
-                    continue; // ignore vertices that don't meet the resolution criteria
-
-                coords.get(j, point);
-                tess.addVertex(point[0], point[1], 0); // longitude, latitude, 0
-            }
-            tess.endContour();
-
-            double antimeridianOffset = record.getAntimeridianOffset(i);
-            if (antimeridianOffset != 0) // tessellate anti-meridian crossing boundaries twice
-            {
-                tess.beginContour();
-                for (int j = 0; j < coords.getSize(); j++)
+                @Override
+                public void beginBoundary()
                 {
-                    if (effectiveArea[j] < minEffectiveArea)
-                        continue; // ignore vertices that don't meet the resolution criteria
-
-                    coords.get(j, point);
-                    tess.addVertex(point[0] + antimeridianOffset, point[1], 0); // longitude, latitude, 0
+                    tess.beginContour();
                 }
-                tess.endContour();
-            }
+
+                @Override
+                public void vertex(double degreesLatitude, double degreesLongitude)
+                {
+                    tess.addVertex(degreesLongitude, degreesLatitude, 0);
+                }
+
+                @Override
+                public void endBoundary()
+                {
+                    tess.endContour();
+                }
+            });
         }
 
         tess.endPolygon();
@@ -1347,40 +1328,101 @@ public class ShapefilePolygons extends ShapefileRenderable implements OrderedRen
     {
         for (int i = 0; i < record.getBoundaryCount(); i++)
         {
-            this.doCombineBoundary(tess, sector, minEffectiveArea, record, i, 0);
-
-            double antimeridianOffset = record.getAntimeridianOffset(i);
-            if (antimeridianOffset != 0) // tessellate anti-meridian crossing boundaries twice
-            {
-                this.doCombineBoundary(tess, sector, minEffectiveArea, record, i, antimeridianOffset);
-            }
+            this.doCombineBoundary(tess, sector, minEffectiveArea, record, i);
         }
     }
 
     protected void doCombineBoundary(GLUtessellator tess, Sector sector, double minEffectiveArea, Record record,
-        int ordinal, double longitudeOffset)
+        int boundaryIndex)
     {
-        ClippingTessellator clipTess = new ClippingTessellator(tess, sector);
-        VecBuffer boundaryCoords = record.getBoundaryPoints(ordinal);
-        double[] effectiveArea = record.getBoundaryEffectiveArea(ordinal);
+        final ClippingTessellator clipTess = new ClippingTessellator(tess, sector);
+
+        this.tessellateBoundary(record, boundaryIndex, minEffectiveArea, new TessBoundaryCallback()
+        {
+            @Override
+            public void beginBoundary()
+            {
+                clipTess.beginContour();
+            }
+
+            @Override
+            public void vertex(double degreesLatitude, double degreesLongitude)
+            {
+                clipTess.addVertex(degreesLatitude, degreesLongitude);
+            }
+
+            @Override
+            public void endBoundary()
+            {
+                clipTess.endContour();
+            }
+        });
+    }
+
+    protected interface TessBoundaryCallback
+    {
+        void beginBoundary();
+
+        void vertex(double degreesLatitude, double degreesLongitude);
+
+        void endBoundary();
+    }
+
+    protected void tessellateBoundary(Record record, int boundaryIndex, double minEffectiveArea, TessBoundaryCallback callback)
+    {
+        VecBuffer boundaryCoords = record.getBoundaryPoints(boundaryIndex);
+        double[] boundaryEffectiveArea = record.getBoundaryEffectiveArea(boundaryIndex);
         double[] coord = new double[2];
 
-        try
+        if (!record.isBoundaryCrossesAntimeridian(boundaryIndex))
         {
-            clipTess.beginContour();
-
+            callback.beginBoundary();
             for (int j = 0; j < boundaryCoords.getSize(); j++)
             {
-                if (effectiveArea[j] < minEffectiveArea)
+                if (boundaryEffectiveArea[j] < minEffectiveArea)
                     continue; // ignore vertices that don't meet the resolution criteria
 
-                boundaryCoords.get(j, coord); // longitude, latitude
-                clipTess.addVertex(coord[1], coord[0] + longitudeOffset); // latitude, longitude+offset
+                boundaryCoords.get(j, coord); // lon, lat
+                callback.vertex(coord[1], coord[0]); // lat, lon
             }
+            callback.endBoundary();
         }
-        finally
+        else
         {
-            clipTess.endContour();
+            // Copy the boundary locations into a list of LatLon instances in order to utilize existing code that
+            // handles locations that cross the antimeridian.
+            ArrayList<LatLon> locations = new ArrayList<LatLon>();
+            for (int j = 0; j < boundaryCoords.getSize(); j++)
+            {
+                if (boundaryEffectiveArea[j] < minEffectiveArea)
+                    continue; // ignore vertices that don't meet the resolution criteria
+
+                boundaryCoords.get(j, coord); // lon, lat
+                locations.add(LatLon.fromDegrees(coord[1], coord[0])); // lat, lon
+            }
+
+            String pole = LatLon.locationsContainPole(locations);
+            if (pole != null) // wrap the boundary around the pole and along the antimeridian
+            {
+                callback.beginBoundary();
+                for (LatLon location : LatLon.cutLocationsAlongDateLine(locations, pole, null))
+                {
+                    callback.vertex(location.latitude.degrees, location.longitude.degrees);
+                }
+                callback.endBoundary();
+            }
+            else // tessellate on both sides of the antimeridian
+            {
+                for (List<LatLon> antimeridianLocations : LatLon.repeatLocationsAroundDateline(locations))
+                {
+                    callback.beginBoundary();
+                    for (LatLon location : antimeridianLocations)
+                    {
+                        callback.vertex(location.latitude.degrees, location.longitude.degrees);
+                    }
+                    callback.endBoundary();
+                }
+            }
         }
     }
 }
