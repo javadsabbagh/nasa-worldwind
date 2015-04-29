@@ -160,9 +160,10 @@ define([
                 }
 
                 this.capability.layers = [];
-                for (var c = 0; c < capsElement.children.length; c++) {
-                    if (capsElement.children[c].localName === "Layer") {
-                        this.capability.layers.push(new WmsLayerCapabilities(capsElement.children[c], this.capability));
+                var children = capsElement.children || capsElement.childNodes;
+                for (var c = 0; c < children.length; c++) {
+                    if (children[c].localName === "Layer") {
+                        this.capability.layers.push(new WmsLayerCapabilities(children[c], this.capability));
                     }
                 }
             }
@@ -171,9 +172,10 @@ define([
         WmsCapabilities.assembleLayers = function (parentElement, parentNode) {
             var layers = [];
 
-            for (var c = 0; c < parentElement.children.length; c++) {
-                if (parentElement.children[c].localName === "Layer") {
-                    layers.push(new WmsLayerCapabilities(parentElement.children[c], parentNode));
+            var children = parentElement.children || parentElement.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                if (children[c].localName === "Layer") {
+                    layers.push(new WmsLayerCapabilities(children[c], parentNode));
                 }
             }
 
@@ -181,9 +183,10 @@ define([
         };
 
         WmsCapabilities.getTag = function (parentElement, tagName) {
-            for (var c = 0; c < parentElement.children.length; c++) {
-                if (parentElement.children[c].localName === tagName) {
-                    return parentElement.children[c].textContent;
+            var children = parentElement.children || parentElement.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                if (children[c].localName === tagName) {
+                    return children[c].textContent;
                 }
             }
         };
