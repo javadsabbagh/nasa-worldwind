@@ -482,8 +482,9 @@ define([
                 this._fixedHeight = parseInt("10");
             }
 
-            for (c = 0; c < layerElement.children.length; c++) {
-                var childElement = layerElement.children[c];
+            var children = layerElement.children || layerElement.childNodes;
+            for (c = 0; c < children.length; c++) {
+                var childElement = children[c];
 
                 if (childElement.localName === "Layer") {
                     if (!this.layers) {
@@ -599,8 +600,9 @@ define([
         WmsLayerCapabilities.assembleStyle = function (styleElement) {
             var result = {};
 
-            for (var c = 0; c < styleElement.children.length; c++) {
-                var childElement = styleElement.children[c];
+            var children = styleElement.children || styleElement.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var childElement = children[c];
 
                 if (childElement.localName === "Name") {
                     result.name = childElement.textContent;
@@ -631,8 +633,9 @@ define([
         WmsLayerCapabilities.assembleGeographicBoundingBox = function (bboxElement) {
             var result = {};
 
-            for (var c = 0; c < bboxElement.children.length; c++) {
-                var childElement = bboxElement.children[c];
+            var children = bboxElement.children || bboxElement.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var childElement = children[c];
 
                 if (childElement.localName === "westBoundLongitude") {
                     result.westBoundLongitude = parseFloat(childElement.textContent);
@@ -704,8 +707,9 @@ define([
         WmsLayerCapabilities.assembleAttribution = function (attributionElement) {
             var result = {};
 
-            for (var c = 0; c < attributionElement.children.length; c++) {
-                var childElement = attributionElement.children[c];
+            var children = attributionElement.children || attributionElement.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var childElement = children[c];
 
                 if (childElement.localName === "Title") {
                     result.title = childElement.textContent;
@@ -726,8 +730,9 @@ define([
 
             result.name = urlElement.getAttribute("name");
 
-            for (var c = 0; c < urlElement.children.length; c++) {
-                var childElement = urlElement.children[c];
+            var children = urlElement.children || urlElement.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var childElement = children[c];
 
                 if (childElement.localName === "OnlineResource") {
                     result.url = childElement.getAttribute("xlink:href");
@@ -751,8 +756,9 @@ define([
 
             result.type = urlElement.getAttribute("type");
 
-            for (var c = 0; c < urlElement.children.length; c++) {
-                var childElement = urlElement.children[c];
+            var children = urlElement.children || urlElement.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var childElement = children[c];
 
                 if (childElement.localName === "Format") {
                     result.format = childElement.textContent;
@@ -771,8 +777,9 @@ define([
             result.width = WmsLayerCapabilities.getIntegerAttribute(urlElement, "width");
             result.height = WmsLayerCapabilities.getIntegerAttribute(urlElement, "height");
 
-            for (var c = 0; c < urlElement.children.length; c++) {
-                var childElement = urlElement.children[c];
+            var children = urlElement.children || urlElement.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var childElement = children[c];
 
                 if (childElement.localName === "Format") {
                     result.format = childElement.textContent;
@@ -791,8 +798,9 @@ define([
             result.width = WmsLayerCapabilities.getIntegerAttribute(urlElement, "width");
             result.height = WmsLayerCapabilities.getIntegerAttribute(urlElement, "height");
 
-            for (var c = 0; c < urlElement.children.length; c++) {
-                var childElement = urlElement.children[c];
+            var children = urlElement.children || urlElement.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var childElement = children[c];
 
                 if (childElement.localName === "Format") {
                     result.format = childElement.textContent;
@@ -808,8 +816,9 @@ define([
         WmsLayerCapabilities.assembleUrl = function (urlElement) {
             var result = {};
 
-            for (var c = 0; c < urlElement.children.length; c++) {
-                var childElement = urlElement.children[c];
+            var children = urlElement.children || urlElement.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                var childElement = children[c];
 
                 if (childElement.localName === "Format") {
                     result.format = childElement.textContent;
