@@ -18,9 +18,10 @@ define([
          * Constructs an WMS Layer instance from an XML DOM.
          * @alias WmsLayerCapabilities
          * @constructor
-         * @classdesc Represents a WMS layer.
+         * @classdesc Represents a WMS layer description from a WMS Capabilities document. This object holds all the
+         * fields specified in the associated WMS Capabilities document.
          * @param {{}} layerElement A WMS Layer element describing the layer.
-         * @param {{}} parentNode An object indicating the new layer object's parent object. May be null.
+         * @param {{}} parentNode An object indicating the new layer object's parent object.
          * @throws {ArgumentError} If the specified layer element is null or undefined.
          */
         var WmsLayerCapabilities = function (layerElement, parentNode) {
@@ -30,84 +31,263 @@ define([
                         "Layer element is null or undefined."));
             }
 
+            /**
+             * The parent object, as specified to the constructor of this object.
+             * @type {{}}
+             * @readonly
+             */
             this.parent = parentNode;
+
+            /**
+             * The layers that are children of this layer.
+             * @type {WmsLayerCapabilities[]}
+             * @readonly
+             */
+            this.layers;
+
+            /**
+             * The name of this layer description.
+             * @type {String}
+             * @readonly
+             */
+            this.name;
+
+            /**
+             * The title of this layer.
+             * @type {String}
+             * @readonly
+             */
+            this.title;
+
+            /**
+             * The abstract of this layer.
+             * @type {String}
+             * @readonly
+             */
+            this.abstract;
+
+            /**
+             * The list of keywords associated with this layer description.
+             * @type {String[]}
+             * @readonly
+             */
+            this.keywordList;
+
+            /**
+             * The identifiers associated with this layer description. Each identifier has the following properties:
+             * authority, content.
+             * @type {Object[]}
+             */
+            this.identifiers;
+
+            /**
+             * The metadata URLs associated with this layer description. Each object in the returned array has the
+             * following properties: type, format, url.
+             * @type {Object[]}
+             * @readonly
+             */
+            this.metadataUrls;
+
+            /**
+             * The data URLs associated with this layer description. Each object in the returned array has the
+             * following properties: format, url.
+             * @type {Object[]}
+             * @readonly
+             */
+            this.dataUrls;
+
+            /**
+             * The feature list URLs associated with this layer description. Each object in the returned array has the
+             * following properties: format, url.
+             * @type {Object[]}
+             * @readonly
+             */
+            this.featureListUrls;
 
             this.assembleLayer(layerElement);
         };
 
         Object.defineProperties(WmsLayerCapabilities.prototype, {
+            /**
+             * The WMS capability section containing this layer description.
+             * @type {{}}
+             * @readonly
+             * @memberof WmsLayerCapabilities.prototype
+             */
+            capability: {
+                get: function () {
+                    var o = this;
+
+                    while (o && (o instanceof WmsLayerCapabilities)) {
+                        o = o.parent;
+                    }
+
+                    return o;
+                }
+            },
+
+            /**
+             * The WMS queryable attribute.
+             * @type {Boolean}
+             * @readonly
+             * @memberof WmsLayerCapabilities.prototype
+             */
             queryable: {
                 get: function () {
                     return WmsLayerCapabilities.replace(this, "_queryable");
                 }
             },
 
+            /**
+             * The WMS cascaded attribute.
+             * @type {Boolean}
+             * @readonly
+             * @memberof WmsLayerCapabilities.prototype
+             */
             cascaded: {
                 get: function () {
                     return WmsLayerCapabilities.replace(this, "_cascaded");
                 }
             },
 
+            /**
+             * The WMS opaque attribute.
+             * @type {Boolean}
+             * @readonly
+             * @memberof WmsLayerCapabilities.prototype
+             */
             opaque: {
                 get: function () {
                     return WmsLayerCapabilities.replace(this, "_opaque");
                 }
             },
 
+            /**
+             * The WMS noSubsets attribute.
+             * @type {Boolean}
+             * @readonly
+             * @memberof WmsLayerCapabilities.prototype
+             */
             noSubsets: {
                 get: function () {
                     return WmsLayerCapabilities.replace(this, "_noSubsets");
                 }
             },
 
+            /**
+             * The WMS fixedWidth attribute.
+             * @type {Number}
+             * @readonly
+             * @memberof WmsLayerCapabilities.prototype
+             */
             fixedWidth: {
                 get: function () {
                     return WmsLayerCapabilities.replace(this, "_fixedWidth");
                 }
             },
 
+            /**
+             * The WMS fixedHeight attribute.
+             * @type {Number}
+             * @readonly
+             * @memberof WmsLayerCapabilities.prototype
+             */
             fixedHeight: {
                 get: function () {
                     return WmsLayerCapabilities.replace(this, "_fixedHeight");
                 }
             },
 
+            /**
+             * The list of styles associated with this layer description, accumulated from this layer and its parent
+             * layers. Each object returned may have the following properties: name {String}, title {String},
+             * abstract {String}, legendUrls {Object[]}, styleSheetUrl, styleUrl. Legend urls may have the following
+             * properties: width, height, format, url. Style sheet urls and style urls have the following properties:
+             * format, url.
+             * @type {Object[]}
+             * @readonly
+             * @memberof WmsLayerCapabilities.prototype
+             */
             styles: {
                 get: function () {
                     return WmsLayerCapabilities.accumulate(this, "_styles", []);
                 }
             },
 
+            /**
+             * The list of coordinate system descriptions associated with this layer, accumulated from this layer
+             * and its parent layers. WMS servers implementing WMS version 1.3.0 and above have this field.
+             * @type {String[]}
+             * @readonly
+             * @memberof WmsLayerCapabilities.prototype
+             */
             crses: {
                 get: function () {
                     return WmsLayerCapabilities.accumulate(this, "_crses", []);
                 }
             },
 
-            srses: { // WMS 1.1.1
+            /**
+             * The list of coordinate system descriptions associated with this layer, accumulated from this layer
+             * and its parent layers. WMS servers implementing WMS version 1.1.1 and below have this field.
+             * @type {String[]}
+             * @readonly
+             * @memberof WmsLayerCapabilities.prototype
+             */
+            srses: {
                 get: function () {
                     return WmsLayerCapabilities.accumulate(this, "_srses", []);
                 }
             },
 
+            /**
+             * This layer description's geographic bounding box. WMS servers implementing WMS 1.3.0 and above have
+             * this field. The returned object has properties for each of the WMS-specified fields. For example,
+             * "westBoundingLongitude".
+             * @type {{}}
+             * @readonly
+             * @memberof WmsLayerCapabilities.prototype
+             */
             geographicBoundingBox: {
                 get: function () {
                     return WmsLayerCapabilities.replace(this, "_geographicBoundingBox");
                 }
             },
 
+            /**
+             * This layer description's geographic bounding box. WMS servers implementing WMS 1.1.1 and below have
+             * this field. The returned object has properties for each of the WMS-specified fields. For example,
+             * "maxx".
+             * @type {{}}
+             * @readonly
+             * @memberof WmsLayerCapabilities.prototype
+             */
             latLonBoundingBox: { // WMS 1.1.1
                 get: function () {
                     return WmsLayerCapabilities.replace(this, "_latLonBoundingBox");
                 }
             },
 
+            /**
+             * The bounding boxes associated with this layer description. The returned object has properties for each
+             * of the defined attributes. For example, "minx".
+             * @type {{}}
+             * @readonly
+             * @memberof WmsLayerCapabilities.prototype
+             */
             boundingBoxes: {
                 get: function () {
                     return WmsLayerCapabilities.replace(this, "_boundingBoxes");
                 }
             },
 
+            /**
+             * The list of dimensions associated with this layer description, accumulated from this layer and its
+             * parent layers. WMS servers implementing WMS version 1.3.0 and above provide this field.
+             * @type {String[]}
+             * @readonly
+             * @memberof WmsLayerCapabilities.prototype
+             */
             dimensions: {
                 get: function () {
                     var accumulatedDimensions = [],
@@ -137,7 +317,14 @@ define([
                 }
             },
 
-            extents: { // WMS 1.1.1
+            /**
+             * The list of extents associated with this layer description, accumulated from this layer and its
+             * parent layers. WMS servers implementing WMS version 1.3.0 and above provide this field.
+             * @type {String[]}
+             * @readonly
+             * @memberof WmsLayerCapabilities.prototype
+             */
+            extents: {
                 get: function () {
                     var accumulatedDimensions = [],
                         layer = this;
@@ -166,31 +353,66 @@ define([
                 }
             },
 
+            /**
+             * The attribution element associated with this layer description. The returned object has the following
+             * properties: title {String}, url {String}, logoUrl {{format, url}}.
+             * @type {{}}
+             * @readonly
+             * @memberof WmsLayerCapabilities.prototype
+             */
             attribution: {
                 get: function () {
                     return WmsLayerCapabilities.replace(this, "_attribution");
                 }
             },
 
+            /**
+             * The authority URLs associated with this layer description, accumulated from this layer and its parent
+             * layers. The returned objects have the following properties: name {String}, url {String}.
+             * @type {Object[]}
+             * @readonly
+             * @memberof WmsLayerCapabilities.prototype
+             */
             authorityUrls: {
                 get: function () {
                     return WmsLayerCapabilities.accumulate(this, "_authorityUrls", []);
                 }
             },
 
+            /**
+             * The minimum-scale-denominator associated with this layer description.
+             * WMS servers implementing WMS version 1.3.0 and above provide this field.
+             * @type {Number}
+             * @readonly
+             * @memberof WmsLayerCapabilities.prototype
+             */
             minScaleDenominator: {
                 get: function () {
                     return WmsLayerCapabilities.replace(this, "_minScaleDenominator");
                 }
             },
 
+            /**
+             * The maximum-scale-denominator associated with this layer description.
+             * WMS servers implementing WMS version 1.3.0 and above provide this field.
+             * @type {Number}
+             * @readonly
+             * @memberof WmsLayerCapabilities.prototype
+             */
             maxScaleDenominator: {
                 get: function () {
                     return WmsLayerCapabilities.replace(this, "_maxScaleDenominator");
                 }
             },
 
-            scaleHint: { // WMS 1.1.1
+            /**
+             * The scale hint associated with this layer description.
+             * WMS servers implementing WMS version 1.1.1 and below provide this field.
+             * @type {Number}
+             * @readonly
+             * @memberof WmsLayerCapabilities.prototype
+             */
+            scaleHint: {
                 get: function () {
                     return WmsLayerCapabilities.replace(this, "_scaleHint");
                 }
@@ -211,7 +433,7 @@ define([
                 layer = layer.parent;
             }
 
-            return accumulation;
+            return accumulation.length > 0 ? accumulation : null;
         };
 
         WmsLayerCapabilities.replace = function (layer, propertyName) {
