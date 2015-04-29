@@ -114,6 +114,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './geom/Vec3',
         './layer/ViewControlsLayer',
         './ogc/WmsCapabilities',
+        './layer/WmsLayer',
         './ogc/WmsLayerCapabilities',
         './util/WmsUrlBuilder',
         './WorldWindow',
@@ -228,6 +229,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               Vec3,
               ViewControlsLayer,
               WmsCapabilities,
+              WmsLayer,
               WmsLayerCapabilities,
               WmsUrlBuilder,
               WorldWindow,
@@ -281,6 +283,12 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
              * @constant
              */
             CLAMP_TO_GROUND: "clampToGround",
+
+            /**
+             * The radius of Earth.
+             * @constant
+             */
+            EARTH_RADIUS: 6371e3,
 
             /**
              * Indicates the cardinal direction east.
@@ -521,6 +529,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['Vec3'] = Vec3;
         WorldWind['ViewControlsLayer'] = ViewControlsLayer;
         WorldWind['WmsCapabilities'] = WmsCapabilities;
+        WorldWind['WmsLayer'] = WmsLayer;
         WorldWind['WmsLayerCapabilities'] = WmsLayerCapabilities;
         WorldWind['WmsUrlBuilder'] = WmsUrlBuilder;
         WorldWind['WWMath'] = WWMath;

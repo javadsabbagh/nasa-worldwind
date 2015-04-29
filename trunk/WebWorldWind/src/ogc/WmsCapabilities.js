@@ -20,7 +20,11 @@ define([
          * Constructs an WMS Capabilities instance from an XML DOM.
          * @alias WMSCapabilities
          * @constructor
-         * @classdesc Represents a WMS Capabilities document.
+         * @classdesc Represents a WMS Capabilities document. This object holds as properties all the fields
+         * specified in the given WMS Capabilities document. Most fields can be accessed as properties named
+         * according to their document names converted to camel case. For example, "version", "service.title",
+         * "service.contactInformation.contactPersonPrimary". The exceptions are online resources, whose property
+         * path has been shortened. For example "capability.request.getMap.formats" and "capability.request.getMap.url".
          * @param {{}} xmlDom An XML DOM representing the WMS Capabilities document.
          * @throws {ArgumentError} If the specified XML DOM is null or undefined.
          */
@@ -51,7 +55,9 @@ define([
             elements = root.getElementsByTagName("Service");
             if (elements.length > 0) {
                 var serviceElement = elements[0];
-                this.service = {};
+                this.service = {
+                    capsDoc: this
+                };
 
                 this.service.title = WmsCapabilities.getTag(serviceElement, "Title");
                 this.service.abstract = WmsCapabilities.getTag(serviceElement, "Abstract");
@@ -122,7 +128,9 @@ define([
 
             elements = root.getElementsByTagName("Capability");
             if (elements.length > 0) {
-                this.capability = {};
+                this.capability = {
+                    capsDoc: this
+                };
                 var capsElement = elements[0];
 
                 elements = capsElement.getElementsByTagName("Request");
