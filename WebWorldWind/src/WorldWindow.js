@@ -89,7 +89,7 @@ define([
              * The current viewport of this World Window.
              * @type {Rectangle}
              */
-            this.viewport = new Rectangle(0, 0, this.canvas.width, this.canvas.height);
+            this.viewport = new Rectangle(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
 
             /**
              * The globe displayed.
@@ -451,7 +451,7 @@ define([
 
             this.drawContext.currentGlContext = gl;
 
-            this.viewport = new Rectangle(0, 0, this.canvas.width, this.canvas.height);
+            this.viewport = new Rectangle(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
 
             if (!this.pickingFrameBuffer) {
                 this.createPickBuffer(gl);
@@ -517,7 +517,16 @@ define([
         WorldWindow.prototype.beginFrame = function (dc, viewport) {
             var gl = dc.currentGlContext;
 
-            gl.viewport(viewport.x, viewport.y, viewport.width, viewport.height);
+            if (this.canvas.width != viewport.width ||
+                this.canvas.height != viewport.height) {
+
+                // Make the canvas the same size
+                this.canvas.width = viewport.width;
+                this.canvas.height = viewport.height;
+
+                // Set the viewport to match
+                gl.viewport(0, 0, viewport.width, viewport.height);
+            }
 
             gl.enable(WebGLRenderingContext.BLEND);
             gl.blendFunc(WebGLRenderingContext.ONE, WebGLRenderingContext.ONE_MINUS_SRC_ALPHA);
