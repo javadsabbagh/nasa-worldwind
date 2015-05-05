@@ -30,17 +30,13 @@ define(function () {
 
         this.synchronizeLayerList();
 
-        $("#layerList").find("a").on("click", function (e) {
+        $("#layerList").find("button").on("click", function (e) {
             thisExplorer.onLayerClick($(this));
         });
-
-        //this.wwd.redrawCallbacks.push(function (wwd) {
-        //    thisExplorer.updateLayerListForInCurrentFrame();
-        //});
     };
 
     LayerManager.prototype.onProjectionClick = function (event) {
-        var projectionName = event.target.innerText;
+        var projectionName = event.target.innerText || event.target.innerHTML;
         $("#projectionDropdown").find("button").html(projectionName + ' <span class="caret"></span>');
 
         if (projectionName === "3D") {
@@ -78,8 +74,8 @@ define(function () {
         this.wwd.redraw();
     };
 
-    LayerManager.prototype.onLayerClick = function (layerItems) {
-        var layerName = layerItems[0].innerText;
+    LayerManager.prototype.onLayerClick = function (layerButton) {
+        var layerName = layerButton.text();
 
         // Update the layer state for the selected layer.
         for (var i = 0, len = this.wwd.layers.length; i < len; i++) {
@@ -87,9 +83,9 @@ define(function () {
             if (layer.displayName === layerName) {
                 layer.enabled = !layer.enabled;
                 if (layer.enabled) {
-                    layerItems.addClass("active");
+                    layerButton.addClass("active");
                 } else {
-                    layerItems.removeClass("active");
+                    layerButton.removeClass("active");
                 }
                 this.wwd.redraw();
             }
@@ -104,7 +100,7 @@ define(function () {
         // Synchronize the displayed layer list with the World Window's layer list.
         for (var i = 0, len = this.wwd.layers.length; i < len; i++) {
             var layer = this.wwd.layers[i];
-            var layerItem = $('<a class="list-group-item">' + layer.displayName + '</a>');
+            var layerItem = $('<button class="list-group-item btn btn-block">' + layer.displayName + '</button>');
             layerListItem.append(layerItem);
 
             if (layer.enabled) {
@@ -113,24 +109,6 @@ define(function () {
                 layerItem.removeClass("active");
             }
             this.wwd.redraw();
-        }
-    };
-
-    LayerManager.prototype.updateLayerListForInCurrentFrame = function () {
-        var layerListItem = $("#layerList");
-
-        // Synchronize the displayed layer list with the World Window's layer list.
-        for (var i = 0, len = this.wwd.layers.length; i < len; i++) {
-            var layer = this.wwd.layers[i];
-            var layerItem = layerListItem.find('a').filter(function (index) {
-                return $(this).text() === layer.displayName
-            });
-
-            if (layer.inCurrentFrame) {
-                layerItem.addClass("em");
-            } else {
-                layerItem.removeClass("em");
-            }
         }
     };
 
