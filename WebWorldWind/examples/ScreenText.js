@@ -39,11 +39,11 @@ requirejs(['../src/WorldWind',
         var screenText,
             textAttributes = new WorldWind.TextAttributes(null),
             textLayer = new WorldWind.RenderableLayer("Screen Text"),
-            canvasWidth = wwd.canvas.width,
-            canvasHeight = wwd.canvas.height;
+            canvasWidth = wwd.canvas.clientWidth,
+            canvasHeight = wwd.canvas.clientHeight;
 
         // Set up the common text attributes.
-        textAttributes.color = WorldWind.Color.YELLOW;
+        textAttributes.color = WorldWind.Color.RED;
 
         // Create a screen text shape and its attributes.
         screenText = new WorldWind.ScreenText(new WorldWind.Vec2(0, 0), "Upper Left");
