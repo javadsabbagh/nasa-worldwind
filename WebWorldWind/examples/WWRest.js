@@ -7,7 +7,7 @@
  */
 
 requirejs(['../src/WorldWind',
-        './LayerManager/LayerManager'],
+        './LayerManager'],
     function (ww,
               LayerManager) {
         "use strict";
@@ -29,7 +29,7 @@ requirejs(['../src/WorldWind',
         surfaceImageLayer.displayName = "Uploaded Image";
         wwd.addLayer(surfaceImageLayer);
 
-        var layerManger = new LayerManager('divLayerManager', wwd);
+        var layerManger = new LayerManager(wwd);
 
         wwd.canvas.addEventListener('drop', function (e) {
             e.preventDefault();

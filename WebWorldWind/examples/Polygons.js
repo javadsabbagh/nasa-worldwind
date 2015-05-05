@@ -9,7 +9,7 @@
  */
 
 requirejs(['../src/WorldWind',
-        './LayerManager/LayerManager'],
+        './LayerManager'],
     function (ww,
               LayerManager) {
         "use strict";
@@ -207,7 +207,7 @@ requirejs(['../src/WorldWind',
         wwd.redraw();
 
         // Create a layer manager for controlling layer visibility.
-        var layerManger = new LayerManager('divLayerManager', wwd);
+        var layerManger = new LayerManager(wwd);
 
         // Now set up to handle highlighting.
         var highlightController = new WorldWind.HighlightController(wwd);

@@ -10,7 +10,7 @@
 
 requirejs([
         '../src/WorldWind',
-        './LayerManager/LayerManager'
+        './LayerManager'
     ],
     function (ww,
               LayerManager) {
@@ -224,7 +224,7 @@ requirejs([
         wwd.redraw();
 
         // Create a layer manager for controlling layer visibility.
-        var layerManger = new LayerManager('divLayerManager', wwd);
+        var layerManger = new LayerManager(wwd);
 
         /*
          * Configure various testing modes.
