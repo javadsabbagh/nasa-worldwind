@@ -9,7 +9,7 @@
  */
 
 requirejs(['../src/WorldWind',
-        './LayerManager/LayerManager'],
+        './LayerManager'],
     function (ww,
               LayerManager) {
         "use strict";
@@ -72,7 +72,7 @@ requirejs(['../src/WorldWind',
         wwd.redraw();
 
         // Create a layer manager for controlling layer visibility.
-        var layerManger = new LayerManager('divLayerManager', wwd);
+        var layerManger = new LayerManager(wwd);
 
         // Now set up to handle picking.
 
@@ -94,7 +94,7 @@ requirejs(['../src/WorldWind',
                     }
                 }
             }
-        }
+        };
 
         // Listen for mouse moves and highlight the placemarks that the cursor rolls over.
         wwd.addEventListener("mousemove", handlePick);

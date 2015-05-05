@@ -7,7 +7,7 @@
  */
 
 requirejs(['../src/WorldWind',
-        './LayerManager/LayerManager'],
+        './LayerManager'],
     function (ww,
               LayerManager) {
         "use strict";
@@ -86,7 +86,7 @@ requirejs(['../src/WorldWind',
 
         wwd.redraw();
 
-        var layerManger = new LayerManager('divLayerManager', wwd);
+        var layerManger = new LayerManager(wwd);
 
         // Now set up to handle picking.
 
