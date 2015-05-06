@@ -549,9 +549,12 @@ define([
                 }
             }
 
-            // Draw the pickable tiles in a unique pick color.
-            color = dc.uniquePickColor();
-            this.drawPickTiles(dc, pickableTiles, color);
+            // Draw the pickable tiles in a unique pick color. Suppress this step when picking the terrain only. In this
+            // case drawing to the pick framebuffer is unnecessary.
+            if (!dc.pickTerrainOnly) {
+                color = dc.uniquePickColor();
+                this.drawPickTiles(dc, pickableTiles, color);
+            }
 
             // Determine the terrain position at the pick point. If the terrain is picked, add a corresponding picked
             // object to the draw context. Suppress this step in region picking mode.
