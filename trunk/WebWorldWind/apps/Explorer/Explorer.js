@@ -5,13 +5,15 @@
 /**
  * @version $Id$
  */
-define(['../../src/WorldWind', '../../examples/LayerManager'],
-    function (ww, LayerManager) {
+define(['../../src/WorldWind',
+        '../../examples/LayerManager',
+        '../../examples/CoordinateController'],
+    function (ww,
+              LayerManager,
+              CoordinateController) {
         "use strict";
 
         var Explorer = function () {
-            var thisExplorer = this;
-
             WorldWind.Logger.setLoggingLevel(WorldWind.Logger.LEVEL_WARNING);
 
             // Create the World Window.
@@ -35,6 +37,7 @@ define(['../../src/WorldWind', '../../examples/LayerManager'],
 
             this.wwd.redraw();
             this.layerManager = new LayerManager(this.wwd);
+            this.coordinateController = new CoordinateController(this.wwd);
         };
 
         return Explorer;
