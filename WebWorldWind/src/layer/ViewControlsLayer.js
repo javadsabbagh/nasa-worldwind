@@ -159,7 +159,7 @@ define([
 
             // Set the screen and image offsets of each control to the lower left corner.
             var screenOffset = new Offset(WorldWind.OFFSET_PIXELS, 0, WorldWind.OFFSET_PIXELS, 0),
-                imagePath = WWUtil.currentUrlSansFilePart() + "/../images/view/";
+                imagePath = WorldWind.configuration.baseUrl + "images/view/";
 
             // These controls are all internal and intentionally not documented.
             this.panControl = new ScreenImage(screenOffset.clone(), imagePath + "view-pan-64x64.png");

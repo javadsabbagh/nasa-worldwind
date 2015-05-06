@@ -61,7 +61,7 @@ define([
                 new Vec2(235, 235)
             ];
 
-            this.creditImage = WWUtil.currentUrlSansFilePart() + "/../images/powered-by-bing.png"
+            this.creditImage = WorldWind.configuration.baseUrl + "images/powered-by-bing.png"
         };
 
         BingTiledImageLayer.prototype = Object.create(TiledImageLayer.prototype);

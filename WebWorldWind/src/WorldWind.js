@@ -542,12 +542,14 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
          * their first World Wind objects. Configuration properties are:
          * <ul>
          *     <li><code>gpuCacheSize</code>: A Number indicating the size in bytes to allocate from GPU memory for
-         *     resources such as textures, GLSL programs and buffer objects. Default is 250e6 (250 MB).
+         *     resources such as textures, GLSL programs and buffer objects. Default is 250e6 (250 MB).</li>
+         *     <li><code>baseUrl</code>: The URL of the directory containing the World Wind Library and its resources.</li>
          * </ul>
          * @type {{gpuCacheSize: number}}
          */
         WorldWind.configuration = {
-            gpuCacheSize: 250e6
+            gpuCacheSize: 250e6,
+            baseUrl: (WWUtil.worldwindlibLocation()) || (WWUtil.currentUrlSansFilePart() + '/../')
         };
 
         /**
@@ -561,5 +563,4 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
 
         return WorldWind;
     }
-)
-;
+);

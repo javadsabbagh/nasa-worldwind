@@ -39,7 +39,7 @@ define([
 
             var sOffset = screenOffset ? screenOffset
                 : new Offset(WorldWind.OFFSET_FRACTION, 1, WorldWind.OFFSET_FRACTION, 1), // upper-right placement
-                iPath = imagePath ? imagePath : WWUtil.currentUrlSansFilePart() + "/../images/notched-compass.png";
+                iPath = imagePath ? imagePath : WorldWind.configuration.baseUrl + "images/notched-compass.png";
 
             ScreenImage.call(this, sOffset, iPath);
 
