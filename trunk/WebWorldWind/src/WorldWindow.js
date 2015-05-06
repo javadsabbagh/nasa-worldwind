@@ -338,8 +338,6 @@ define([
 
             this.resetDrawContext();
             this.drawContext.pickingMode = true;
-            this.drawContext.regionPicking = false;
-            this.pickTerrainOnly = false;
             this.drawContext.pickPoint = pickPoint;
             this.drawFrame();
 
@@ -363,8 +361,7 @@ define([
 
             this.resetDrawContext();
             this.drawContext.pickingMode = true;
-            this.drawContext.regionPicking = false;
-            this.pickTerrainOnly = true;
+            this.drawContext.pickTerrainOnly = true;
             this.drawContext.pickPoint = pickPoint;
             this.drawFrame();
 
@@ -388,7 +385,6 @@ define([
             this.resetDrawContext();
             this.drawContext.pickingMode = true;
             this.drawContext.regionPicking = true;
-            this.pickTerrainOnly = false;
             this.drawContext.pickRectangle =
                 new Rectangle(rectangle.x, this.canvas.height - rectangle.y, rectangle.width, rectangle.height);
             this.drawFrame();
@@ -578,7 +574,7 @@ define([
                 dc.terrain.pick(dc);
             }
 
-            if (!this.pickTerrainOnly) {
+            if (!this.drawContext.pickTerrainOnly) {
                 this.drawContext.surfaceShapeTileBuilder = this.surfaceShapeTileBuilder;
                 this.surfaceShapeTileBuilder.clear();
 
@@ -591,7 +587,7 @@ define([
                 }
             }
 
-            if (this.pickTerrainOnly) {
+            if (this.drawContext.pickTerrainOnly) {
                 this.resolveTerrainPick();
             } else if (this.drawContext.regionPicking) {
                 this.resolveRegionPick();

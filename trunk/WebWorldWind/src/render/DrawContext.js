@@ -179,17 +179,25 @@ define([
             this.pickFrustum = null;
 
             /**
+             * Indicates that picking will return only the terrain object, if the pick point is over the terrain.
+             * @type {Boolean}
+             * @default false
+             */
+            this.pickTerrainOnly = false;
+
+            /**
              * Indicates that picking will return all objects at the pick point, if any. The top-most object will have
-             * its isOnTop flag set to true.
-             * If [deep picking]{@link WorldWindow#deepPicking} is false, the default, only the top-most object is
-             * returned, plus the picked-terrain object if the pick point is over the terrain.
+             * its isOnTop flag set to true. If [deep picking]{@link WorldWindow#deepPicking} is false, the default,
+             * only the top-most object is returned, plus the picked-terrain object if the pick point is over the
+             * terrain.
              * @type {Boolean}
              * @default false
              */
             this.deepPicking = false;
 
             /**
-             * Indicates that the current picking operation is in support of region picking.
+             * Indicates that picking will return all objects that intersect the pick region, if any. Visible objects
+             * will have the isOnTop flag set to true.
              * @type {Boolean}
              * @default false
              */
@@ -276,6 +284,9 @@ define([
             this.orderedRenderablesCounter = 0;
             this.pickColor = new Color(0, 0, 0, 1);
             this.pickingMode = false;
+            this.pickTerrainOnly = false;
+            this.deepPicking = false;
+            this.regionPicking = false;
             this.pickPoint = null;
             this.pickRectangle = null;
             this.pickFrustum = null;
