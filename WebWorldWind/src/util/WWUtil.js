@@ -69,11 +69,12 @@ define([
              */
             worldwindlibLocation: function () {
                 var scripts = document.getElementsByTagName("script"),
-                    libraryName = "worldwindlib.js";
+                    libraryName = "/worldwindlib.";
 
                 for (var i = 0; i < scripts.length; i++) {
-                    if (scripts[i].src.indexOf(libraryName) >= 0) {
-                        return scripts[i].src.replace(libraryName, "");
+                    var index = scripts[i].src.indexOf(libraryName);
+                    if (index >= 0) {
+                        return scripts[i].src.substring(0, index) + "/";
                     }
                 }
 
