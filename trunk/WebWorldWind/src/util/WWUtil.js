@@ -63,6 +63,24 @@ define([
             },
 
             /**
+             * Returns the URL of the directory containing the World Wind library.
+             * @returns {String} The URL of the directory containing the World Wind library, or null if that directory
+             * cannot be determined.
+             */
+            worldwindlibLocation: function () {
+                var scripts = document.getElementsByTagName("script"),
+                    libraryName = "worldwindlib.js";
+
+                for (var i = 0; i < scripts.length; i++) {
+                    if (scripts[i].src.indexOf(libraryName) >= 0) {
+                        return scripts[i].src.replace(libraryName, "");
+                    }
+                }
+
+                return null;
+            },
+
+            /**
              * Returns the path component of a specified URL.
              * @param {String} url The URL from which to determine the path component.
              * @returns {String} The path component, or the empty string if the specified URL is null, undefined
