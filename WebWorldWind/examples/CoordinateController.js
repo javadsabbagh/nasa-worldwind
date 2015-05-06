@@ -66,8 +66,8 @@ define(function () {
 
     CoordinateController.prototype.updateEyePosition = function () {
         // Look for the DOM element to update, and exit if none exists.
-        var eyeAlt = $("#eyeAltitude");
-        if (!eyeAlt) {
+        var elem = $("#eyeAltitude");
+        if (!elem) {
             return;
         }
 
@@ -78,7 +78,8 @@ define(function () {
             eyePos = wwd.globe.computePositionFromPoint(eyePoint[0], eyePoint[1], eyePoint[2], this.scratchPos);
 
         // Update the DOM element with the current eye altitude.
-        eyeAlt.html(this.altitudeFormat(eyePos.altitude, eyePos.altitude < 1000 ? "m" : "km"));
+        var html = this.formatAltitude(eyePos.altitude, eyePos.altitude < 1000 ? "m" : "km");
+        elem.html(html);
     };
 
     CoordinateController.prototype.updateTerrainPosition = function () {
@@ -105,28 +106,33 @@ define(function () {
 
         // Update the DOM elements with the current terrain position.
         if (terrainObject) {
-            terrainLat.html(this.locationFormat(terrainObject.position.latitude));
-            terrainLon.html(this.locationFormat(terrainObject.position.longitude));
-            terrainElev.html(this.altitudeFormat(terrainObject.position.altitude, "m"));
+            terrainLat.html(this.formatLatitude(terrainObject.position.latitude));
+            terrainLon.html(this.formatLongitude(terrainObject.position.longitude));
+            terrainElev.html(this.formatAltitude(terrainObject.position.altitude, "m"));
         } else {
             terrainLat.empty();
             terrainLon.empty();
             terrainElev.empty();
         }
 
-        // Hide the terrain elevation coordinate and its associated label in 2D mode.
         if (wwd.globe.is2D()) {
-            terrainElev.parent().hide();
+            terrainElev.hide();
         } else {
-            terrainElev.parent().show();
+            terrainElev.show();
         }
     };
 
-    CoordinateController.prototype.locationFormat = function (number) {
-        return number.toFixed(4) + "\u00b0";
+    CoordinateController.prototype.formatLatitude = function (number) {
+        var suffix = number < 0 ? "\u00b0S" : "\u00b0N";
+        return Math.abs(number).toFixed(2) + suffix;
     };
 
-    CoordinateController.prototype.altitudeFormat = function (number, units) {
+    CoordinateController.prototype.formatLongitude = function (number) {
+        var suffix = number < 0 ? "\u00b0W" : "\u00b0E";
+        return Math.abs(number).toFixed(2) + suffix;
+    };
+
+    CoordinateController.prototype.formatAltitude = function (number, units) {
         // Convert from meters to the desired units format.
         if (units === "km") {
             number /= 1e3;

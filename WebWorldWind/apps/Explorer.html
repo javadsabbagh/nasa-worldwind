@@ -43,15 +43,16 @@
                 <li><a href="#">Menu 4</a></li>
             </ul>
             <div>
-                <canvas id="canvasOne" width="1000" height="1000" style="width: 100%; height: auto">
+                <canvas id="canvasOne" width="1000" height="1000" style="width: 100%; height: auto;">
                     Your browser does not support HTML5 Canvas.
                 </canvas>
-                <table id="coordinateOverlay">
-                    <tr><td>Eye Alt</td><td id="eyeAltitude"></td></tr>
-                    <tr><td>Lat</td><td id="terrainLatitude"></td></tr>
-                    <tr><td>Lon</td><td id="terrainLongitude"></td></tr>
-                    <tr><td>Height</td><td id="terrainElevation"></td></tr>
-                </table>
+                <div id="coordinateOverlay">
+                    <span id="terrainLatitude"></span>
+                    <span id="terrainLongitude"></span>
+                    <span id="terrainElevation"></span>
+                    <span id="eyeAltitudeLabel">Eye Alt</span>
+                    <span id="eyeAltitude" style="text-align: center;"></span>
+                </div>
             </div>
         </div>
     </div>
