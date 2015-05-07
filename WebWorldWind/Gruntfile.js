@@ -55,7 +55,7 @@ module.exports = function (grunt) {
                         'HowToCreateAndRunUnitTests.txt',
                         'jsTestDriver.conf',
                         'package.json',
-                        'SettingUpGrunt.txt',
+                        'GruntSetup.txt',
                         'WebWorldWindDesignAndCodingGuidelines.html'
                     ]}
                 ]

@@ -6,17 +6,17 @@ Install Node https://nodejs.org/download/
 	— Download appropriate installation file
 
 Install r.js http://requirejs.org/docs/node.html
-	npm install -g requirejs
+	sudo npm install -g requirejs
 
 Install grunt-cli http://gruntjs.com/getting-started
-	npm update
-	npm install -g grunt-cli
+	sudo npm update
+	sudo npm install -g grunt-cli
 
 
 The below installations are per-project — must be performed with each new full-project checkout -
-with cwd as the project folder.
+with cwd as the project folder. You may need to run these installations as root (using sudo).
 
-Intall requirejs plugin http://jaketrent.com/post/run-requirejs-with-gruntjs/
+Install requirejs plugin http://jaketrent.com/post/run-requirejs-with-gruntjs/
 	npm install grunt-contrib-requirejs
 
 Install jsdoc 3.3.0 plugin https://github.com/krampstudio/grunt-jsdoc
@@ -24,3 +24,9 @@ Install jsdoc 3.3.0 plugin https://github.com/krampstudio/grunt-jsdoc
 
 Install compress plugin https://github.com/gruntjs/grunt-contrib-compress
     npm install grunt-contrib-compress
+
+You should now be able to run Grunt:
+    grunt jsdoc
+    grunt requirejs
+    grunt compress
+    To run all tasks, just run grunt without any arguments.
