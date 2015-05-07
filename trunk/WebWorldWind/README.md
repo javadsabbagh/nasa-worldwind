@@ -2,4 +2,4 @@
 
 This is the readme contents.
 
-$Id$
+$Revision$ $Date$
