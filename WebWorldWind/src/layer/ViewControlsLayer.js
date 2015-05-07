@@ -779,7 +779,7 @@ define([
                             thisLayer.wwd.verticalExaggeration += thisLayer.exaggerationIncrement;
                         } else if (thisLayer.activeControl === thisLayer.exaggerationDownControl) {
                             thisLayer.wwd.verticalExaggeration =
-                                Math.max(0, thisLayer.wwd.verticalExaggeration - thisLayer.exaggerationIncrement);
+                                Math.max(1, thisLayer.wwd.verticalExaggeration - thisLayer.exaggerationIncrement);
                         }
                         thisLayer.wwd.redraw();
                         setTimeout(setExaggeration, 50);
