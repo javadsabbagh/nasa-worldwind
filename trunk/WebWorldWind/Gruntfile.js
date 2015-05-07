@@ -12,6 +12,7 @@ module.exports = function (grunt) {
                 src: ['src'],
                 options: {
                     destination: 'api-doc',
+                    readme: 'README.md',
                     recurse: true
                 }
             }
