@@ -30,11 +30,43 @@ module.exports = function (grunt) {
                     }
                 }
             }
+        },
+
+        compress: {
+            main: {
+                options: {
+                    archive: 'WebWorldWind.zip'
+                },
+                files: [
+                    {src: [
+                        'api-doc/**',
+                        'worldwindlib.js',
+                        'apps/**',
+                        'design-notes/**',
+                        'examples/**',
+                        'images/**',
+                        'performance/**',
+                        'src/**',
+                        'test/**',
+                        'thirdparty/**',
+                        'tools/**',
+                        'build.js',
+                        'Gruntfile.js',
+                        'HowToCreateAndRunUnitTests.txt',
+                        'jsTestDriver.conf',
+                        'package.json',
+                        'SettingUpGrunt.txt',
+                        'WebWorldWindDesignAndCodingGuidelines.html'
+                    ]}
+                ]
+            }
         }
 
     });
 
     grunt.loadNpmTasks('grunt-contrib-requirejs');
     grunt.loadNpmTasks('grunt-jsdoc');
-    grunt.registerTask('default', ['jsdoc']);
+    grunt.loadNpmTasks('grunt-contrib-compress');
+
+    grunt.registerTask('default', ['jsdoc', 'requirejs', 'compress']);
 };

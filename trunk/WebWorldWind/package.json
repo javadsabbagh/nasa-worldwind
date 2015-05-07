@@ -12,6 +12,7 @@
   "author": "NASA",
   "devDependencies": {
     "grunt": "^0.4.5",
+    "grunt-contrib-compress": "^0.13.0",
     "grunt-contrib-requirejs": "^0.4.4",
     "grunt-jsdoc": "^0.6.3"
   }
