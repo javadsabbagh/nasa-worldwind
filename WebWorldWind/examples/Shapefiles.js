@@ -6,12 +6,12 @@
  * @version $Id$
  */
 
-requirejs([
-        '../src/WorldWind',
-        './LayerManager'
-    ],
+requirejs(['../src/WorldWind',
+        './LayerManager',
+        './CoordinateController'],
     function (ww,
-              LayerManager) {
+              LayerManager,
+              CoordinateController) {
         "use strict";
 
         WorldWind.Logger.setLoggingLevel(WorldWind.Logger.LEVEL_WARNING);
@@ -188,5 +188,9 @@ requirejs([
 
         wwd.redraw();
 
+        // Create a layer manager for controlling layer visibility.
         var layerManger = new LayerManager(wwd);
+
+        // Create a coordinate controller to update the coordinate overlay elements.
+        var coordinateController = new CoordinateController(wwd);
     });

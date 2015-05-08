@@ -8,12 +8,12 @@
  * @version $Id$
  */
 
-requirejs([
-        '../src/WorldWind',
-        './LayerManager'
-    ],
+requirejs(['../src/WorldWind',
+        './LayerManager',
+        './CoordinateController'],
     function (ww,
-              LayerManager) {
+              LayerManager,
+              CoordinateController) {
         "use strict";
 
         // Tell World Wind to log only warnings.
@@ -225,6 +225,9 @@ requirejs([
 
         // Create a layer manager for controlling layer visibility.
         var layerManger = new LayerManager(wwd);
+
+        // Create a coordinate controller to update the coordinate overlay elements.
+        var coordinateController = new CoordinateController(wwd);
 
         /*
          * Configure various testing modes.

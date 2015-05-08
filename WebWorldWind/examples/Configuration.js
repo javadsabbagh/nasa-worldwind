@@ -10,9 +10,11 @@
  */
 
 requirejs(['../src/WorldWind',
-        './LayerManager'],
+        './LayerManager',
+        './CoordinateController'],
     function (ww,
-              LayerManager) {
+              LayerManager,
+              CoordinateController) {
         "use strict";
 
         // Configure the logging level.
@@ -41,6 +43,9 @@ requirejs(['../src/WorldWind',
 
         wwd.redraw();
 
-        // Create a layer manager to control layer visibility.
+        // Create a layer manager for controlling layer visibility.
         var layerManger = new LayerManager(wwd);
+
+        // Create a coordinate controller to update the coordinate overlay elements.
+        var coordinateController = new CoordinateController(wwd);
     });
