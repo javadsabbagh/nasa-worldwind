@@ -9,6 +9,7 @@
     <link href="WmsExplorer/skin-lion/ui.fancytree.css" rel="stylesheet" type="text/css">
     <script src="//cdn.jsdelivr.net/jquery.fancytree/2.9.0/jquery.fancytree-all.min.js" type="text/javascript"></script>
     <link href="WmsExplorer/WmsExplorer.css" rel="stylesheet" type="text/css">
+    <link href="../examples/CoordinateController.css" rel="stylesheet" type="text/css">
     <script data-main="WmsExplorer/app" src="../thirdparty/require.js"></script>
 </head>
 <body>
@@ -45,6 +46,13 @@
         <canvas id="canvasOne" width="700" height="600">
             Your browser does not support HTML5 Canvas.
         </canvas>
+        <div id="coordinateOverlay">
+            <span id="terrainLatitude"></span>
+            <span id="terrainLongitude"></span>
+            <span id="terrainElevation"></span>
+            <span id="eyeAltitudeLabel">Eye Alt</span>
+            <span id="eyeAltitude"></span>
+        </div>
     </div>
 </div>
 </body>
