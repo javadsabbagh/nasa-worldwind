@@ -5,8 +5,10 @@
 /**
  * @version $Id$
  */
-define(['../../src/WorldWind'],
-    function (ww) {
+define(['../../src/WorldWind',
+        '../../examples/CoordinateController'],
+    function (ww,
+              CoordinateController) {
         "use strict";
 
         var WmsExplorer = function () {
@@ -16,6 +18,9 @@ define(['../../src/WorldWind'],
 
             // Create the World Window.
             this.wwd = new WorldWind.WorldWindow("canvasOne");
+
+            // Create a coordinate controller to update the coordinate overlay elements.
+            this.coordinateController = new CoordinateController(this.wwd);
 
             /**
              * Added imagery layers.
