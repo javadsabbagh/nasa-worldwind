@@ -3,6 +3,8 @@
 /* Coordinate overlay common attributes. */
 #coordinateOverlay {
     color: yellow;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
     font-weight: lighter;
     text-shadow: 0px 0px 2px black;
     pointer-events: none; /* ignore mouse and touch events in the coordinate overlay */
@@ -12,6 +14,7 @@
 #terrainLatitude {
     display: inline-block;
     width: 50px;
+    text-align: right;
     margin: 0px 5px 0px 5px;
 }
 
@@ -19,6 +22,7 @@
 #terrainLongitude {
     display: inline-block;
     width: 65px;
+    text-align: right;
     margin: 0px 5px 0px 5px;
 }
 
