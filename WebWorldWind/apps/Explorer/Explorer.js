@@ -35,6 +35,10 @@ define(['../../src/WorldWind',
                 this.wwd.addLayer(layers[l].layer);
             }
 
+            // Start the view pointing to a longitude within the current time zone.
+            this.wwd.navigator.lookAtPosition.latitude = 30;
+            this.wwd.navigator.lookAtPosition.longitude = -(180 / 12) * ((new Date()).getTimezoneOffset() / 60);
+
             this.wwd.redraw();
             this.layerManager = new LayerManager(this.wwd);
             this.coordinateController = new CoordinateController(this.wwd);
