@@ -824,17 +824,16 @@ define([
             var lat0 = location.latitude;
             var az = azimuth * Angle.DEGREES_TO_RADIANS;
 
-            // Derived by solving the function for longitude on a great circle against the desired longitude. We start with
-            // the equation in "Map Projections - A Working Manual", page 31, equation 5-5:
+            // Derived by solving the function for longitude on a great circle against the desired longitude. We start
+            // with the equation in "Map Projections - A Working Manual", page 31, equation 5-5:
             //
-            // lat = asin( sin(lat0) * cos(c) + cos(lat0) * sin(c) * cos(Az) )
+            //     lat = asin( sin(lat0) * cos(C) + cos(lat0) * sin(C) * cos(Az) )
             //
             // Where (lat0, lon) are the starting coordinates, c is the angular distance along the great circle from the
-            // starting coordinate, and Az is the azimuth. All values are in radians.
+            // starting coordinate, and Az is the azimuth. All values are in radians. Solving for angular distance gives
+            // distance to the equator:
             //
-            // Solving for angular distance gives distance to the equator:
-            //
-            // tan(c) = -tan(lat0) / cos(Az)
+            //     tan(C) = -tan(lat0) / cos(Az)
             //
             // The great circle is by definition centered about the Globe's origin. Therefore intersections with the
             // equator will be antipodal (exactly 180 degrees opposite each other), as will be the extreme latitudes.
