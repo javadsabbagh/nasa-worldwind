@@ -9,9 +9,11 @@
  */
 
 requirejs(['../src/WorldWind',
-        './LayerManager'],
+        './LayerManager',
+        './CoordinateController'],
     function (ww,
-              LayerManager) {
+              LayerManager,
+              CoordinateController) {
         "use strict";
 
         // Tell World Wind to log only warnings and errors.
@@ -67,6 +69,9 @@ requirejs(['../src/WorldWind',
 
         // Create a layer manager for controlling layer visibility.
         var layerManger = new LayerManager(wwd);
+
+        // Create a coordinate controller to update the coordinate overlay elements.
+        var coordinateController = new CoordinateController(wwd);
 
         // Now set up to handle highlighting.
         var highlightController = new WorldWind.HighlightController(wwd);
