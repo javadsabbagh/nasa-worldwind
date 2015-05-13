@@ -66,6 +66,7 @@ New features and improvements in World Wind Java SDK 2.1.0
   PartialCappedCylinder, Orbit, PolyArc, TrackAirspace, Route, Cake.
 - Repaired WWJ-521, LevelSet.getLastLevel not returning correct level for sector resolution limits.
 - Repaired WWJ-522, HighResolutionTerrain bulk intersector not notifying of exceptions. Added notification interface.
+- Repaired WWJ-533, WMS layers intermittently fail to update expiry time.
 - Repaired an issue where AnalyticSurface returns an incorrect picked object when the altitude mode is CLAMP_TO_GROUND.
 - Added ability to retrieve elevations via WCS. Added WCSElevations example.
 - Modified CompoundElevationModel to sort elevation models from lowest resolution to highest when models are added.
