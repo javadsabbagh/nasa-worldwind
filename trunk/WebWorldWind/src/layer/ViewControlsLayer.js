@@ -647,26 +647,26 @@ define([
 
                 // This function is called by the timer to perform the operation.
                 var thisLayer = this; // capture 'this' for use in the function
-                var setLookAtPosition = function () {
+                var setLookAtLocation = function () {
                     if (thisLayer.activeControl) {
                         var dx = thisLayer.panControlCenter[0] - thisLayer.currentEventPoint[0],
                             dy = thisLayer.panControlCenter[1]
                                 - (thisLayer.wwd.viewport.height - thisLayer.currentEventPoint[1]),
-                            oldLat = thisLayer.wwd.navigator.lookAtPosition.latitude,
-                            oldLon = thisLayer.wwd.navigator.lookAtPosition.longitude,
+                            oldLat = thisLayer.wwd.navigator.lookAtLocation.latitude,
+                            oldLon = thisLayer.wwd.navigator.lookAtLocation.longitude,
                         // Scale the increment by a constant and the relative distance of the eye to the surface.
                             scale = thisLayer.panIncrement
                                 * (thisLayer.wwd.navigator.range / thisLayer.wwd.globe.radiusAt(oldLat, oldLon)),
                             heading = thisLayer.wwd.navigator.heading + (Math.atan2(dx, dy) * Angle.RADIANS_TO_DEGREES),
                             distance = scale * Math.sqrt(dx * dx + dy * dy);
 
-                        Location.greatCircleLocation(thisLayer.wwd.navigator.lookAtPosition, heading, -distance,
-                            thisLayer.wwd.navigator.lookAtPosition);
+                        Location.greatCircleLocation(thisLayer.wwd.navigator.lookAtLocation, heading, -distance,
+                            thisLayer.wwd.navigator.lookAtLocation);
                         thisLayer.wwd.redraw();
-                        setTimeout(setLookAtPosition, 50);
+                        setTimeout(setLookAtLocation, 50);
                     }
                 };
-                setTimeout(setLookAtPosition, 50);
+                setTimeout(setLookAtLocation, 50);
             }
         };
 
