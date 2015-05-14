@@ -1020,12 +1020,16 @@ public class MeasureTool extends AVListImpl implements Disposable
 
     // *** Editing shapes ***
 
-    /** Add a control point to the current measure shape at the current WorldWindow position. */
-    public void addControlPoint()
+    /**
+     * Add a control point to the current measure shape at the current WorldWindow position.
+     *
+     * @return The position of the new control point, or null if the control point could not be added.
+     */
+    public Position addControlPoint()
     {
         Position curPos = this.wwd.getCurrentPosition();
         if (curPos == null)
-            return;
+            return null;
 
         if (this.isRegularShape())
         {
@@ -1077,6 +1081,8 @@ public class MeasureTool extends AVListImpl implements Disposable
         updateMeasureShape();
         this.firePropertyChange(EVENT_POSITION_ADD, null, curPos);
         this.wwd.redraw();
+
+        return curPos;
     }
 
     /** Remove the last control point from the current measure shape. */

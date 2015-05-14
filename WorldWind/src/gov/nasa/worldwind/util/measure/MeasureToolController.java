@@ -194,24 +194,27 @@ public class MeasureToolController extends MouseAdapter
                 if (!mouseEvent.isControlDown())
                 {
                     this.setActive(true);
-                    measureTool.addControlPoint();
-                    if (measureTool.getControlPoints().size() == 1)
+
+                    if (measureTool.addControlPoint() != null) // null when the cursor is off the globe
                     {
-                        measureTool.addControlPoint(); // Simulate a second click
+                        if (measureTool.getControlPoints().size() == 1)
+                        {
+                            measureTool.addControlPoint(); // Simulate a second click
+                        }
+                        // Set the rubber band target to the last control point or the relevant control for regular shapes.
+                        if (measureTool.isRegularShape())
+                        {
+                            String initControl =
+                                measureTool.getShapeInitialControl(measureTool.getWwd().getCurrentPosition());
+                            rubberBandTarget = measureTool.getControlPoint(initControl);
+                        }
+                        else
+                        {
+                            rubberBandTarget = (MeasureTool.ControlPoint) measureTool.getControlPoints().get(
+                                measureTool.getControlPoints().size() - 1);
+                        }
+                        measureTool.firePropertyChange(MeasureTool.EVENT_RUBBERBAND_START, null, null);
                     }
-                    // Set the rubber band target to the last control point or the relevant control for regular shapes.
-                    if (measureTool.isRegularShape())
-                    {
-                        String initControl =
-                            measureTool.getShapeInitialControl(measureTool.getWwd().getCurrentPosition());
-                        rubberBandTarget = measureTool.getControlPoint(initControl);
-                    }
-                    else
-                    {
-                        rubberBandTarget = (MeasureTool.ControlPoint)measureTool.getControlPoints().get(
-                            measureTool.getControlPoints().size() - 1);
-                    }
-                    measureTool.firePropertyChange(MeasureTool.EVENT_RUBBERBAND_START, null, null);
                 }
             }
             mouseEvent.consume();
@@ -260,9 +263,11 @@ public class MeasureToolController extends MouseAdapter
                 measureTool.removeControlPoint();
             else if (!this.isUseRubberBand())
             {
-                measureTool.addControlPoint();
                 // Disarm after second control point of a line or regular shape
-                autoDisarm();
+                if (measureTool.addControlPoint() != null)
+                {
+                    autoDisarm();
+                }
             }
             mouseEvent.consume();
         }
@@ -382,10 +387,11 @@ public class MeasureToolController extends MouseAdapter
                 if (distance >= freeHandMinSpacing)
                 {
                     // Add new control point
-                    measureTool.addControlPoint();
-                    rubberBandTarget = (MeasureTool.ControlPoint)getMeasureTool().getControlPoints().get(
+                    if (measureTool.addControlPoint() != null) // null when the cursor is off the globe
+                    {
+                        rubberBandTarget = (MeasureTool.ControlPoint) getMeasureTool().getControlPoints().get(
                             getMeasureTool().getControlPoints().size() - 1);
-                    measureTool.getWwd().redraw();
+                    }
                 }
             }
         }
