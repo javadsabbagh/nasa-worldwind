@@ -12,6 +12,7 @@ define([
         '../geom/Frustum',
         '../gesture/GestureRecognizer',
         '../geom/Line',
+        '../geom/Location',
         '../util/Logger',
         '../geom/Matrix',
         '../navigate/Navigator',
@@ -29,6 +30,7 @@ define([
               Frustum,
               GestureRecognizer,
               Line,
+              Location,
               Logger,
               Matrix,
               Navigator,
@@ -73,13 +75,13 @@ define([
             };
 
             /**
-             * The geographic position this navigator is directed towards.
-             * @type {Position}
+             * The geographic location at the center of the viewport.
+             * @type {Location}
              */
-            this.lookAtPosition = new Position(30, -110, 0);
+            this.lookAtLocation = new Location(30, -110);
 
             /**
-             * The distance of the eye from this navigator's look-at position.
+             * The distance from this navigator's eye point to its look-at location.
              * @type {Number}
              * @default 10,000 kilometers
              */
@@ -167,9 +169,10 @@ define([
         LookAtNavigator.prototype.currentState = function () {
             this.applyLimits();
 
-            var modelview = Matrix.fromIdentity();
-            modelview.multiplyByLookAtModelview(this.lookAtPosition, this.range, this.heading, this.tilt, this.roll,
-                this.worldWindow.globe);
+            var globe = this.worldWindow.globe,
+                lookAtPosition = new Position(this.lookAtLocation.latitude, this.lookAtLocation.longitude, 0),
+                modelview = Matrix.fromIdentity();
+            modelview.multiplyByLookAtModelview(lookAtPosition, this.range, this.heading, this.tilt, this.roll, globe);
 
             return this.currentStateForModelview(modelview);
         };
@@ -224,8 +227,8 @@ define([
                 // Apply the change in latitude and longitude to this navigator, relative to the current heading.
                 sinHeading = Math.sin(this.heading * Angle.DEGREES_TO_RADIANS);
                 cosHeading = Math.cos(this.heading * Angle.DEGREES_TO_RADIANS);
-                this.lookAtPosition.latitude += forwardDegrees * cosHeading - sideDegrees * sinHeading;
-                this.lookAtPosition.longitude += forwardDegrees * sinHeading + sideDegrees * cosHeading;
+                this.lookAtLocation.latitude += forwardDegrees * cosHeading - sideDegrees * sinHeading;
+                this.lookAtLocation.longitude += forwardDegrees * sinHeading + sideDegrees * cosHeading;
                 this.applyLimits();
             }
         };
@@ -280,7 +283,7 @@ define([
                 // Convert the transformed modelview matrix to a set of navigator properties, then apply those
                 // properties to this navigator.
                 params = modelview.extractViewingParameters(origin, this.roll, globe, {});
-                this.lookAtPosition.copy(params.origin);
+                this.lookAtLocation.copy(params.origin);
                 this.range = params.range;
                 this.heading = params.heading;
                 this.tilt = params.tilt;
@@ -448,6 +451,7 @@ define([
          *
          * @param recognizer
          */
+        //noinspection JSUnusedLocalSymbols
         LookAtNavigator.prototype.gestureStateChanged = function (recognizer) {
             this.sendRedrawEvent();
         };
@@ -457,8 +461,8 @@ define([
          */
         LookAtNavigator.prototype.applyLimits = function () {
             // Clamp latitude to between -90 and +90, and normalize longitude to between -180 and +180.
-            this.lookAtPosition.latitude = WWMath.clamp(this.lookAtPosition.latitude, -90, 90);
-            this.lookAtPosition.longitude = Angle.normalizedDegreesLongitude(this.lookAtPosition.longitude);
+            this.lookAtLocation.latitude = WWMath.clamp(this.lookAtLocation.latitude, -90, 90);
+            this.lookAtLocation.longitude = Angle.normalizedDegreesLongitude(this.lookAtLocation.longitude);
 
             // Clamp range to values greater than 1 in order to prevent degenerating to a first-person navigator when
             // range is zero.
