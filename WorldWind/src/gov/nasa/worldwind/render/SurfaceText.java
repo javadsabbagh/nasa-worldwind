@@ -69,6 +69,11 @@ public class SurfaceText extends AbstractSurfaceObject implements GeographicText
     protected LatLon drawLocation;
 
     /**
+     * Indicates whether this text spans the dateline.
+     */
+    protected boolean spansAntimeridian = false;
+
+    /**
      * Create a new surface text object.
      *
      * @param text     Text to draw.
@@ -410,7 +415,8 @@ public class SurfaceText extends AbstractSurfaceObject implements GeographicText
         Vec4 point = new Vec4(this.location.getLongitude().degrees, this.location.getLatitude().degrees, 1);
         // If the text box spans the anti-meridian and we're drawing tiles to the right of the anti-meridian, then we
         // need to map the translation into coordinates relative to that side of the anti-meridian.
-        if (Math.signum(sdc.getSector().getMinLongitude().degrees) != Math.signum(this.drawLocation.longitude.degrees)) {
+        if (this.spansAntimeridian &&
+            Math.signum(sdc.getSector().getMinLongitude().degrees) != Math.signum(this.drawLocation.longitude.degrees)) {
             point = new Vec4(this.location.getLongitude().degrees - 360, this.location.getLatitude().degrees, 1);
         }
         point = point.transformBy4(sdc.getModelviewMatrix());
@@ -528,8 +534,10 @@ public class SurfaceText extends AbstractSurfaceObject implements GeographicText
             Sector[] sectors = new Sector[2];
             sectors[0] = Sector.fromDegrees(minLat, maxLat, minLon, 180);
             sectors[1] = Sector.fromDegrees(minLat, maxLat, -180, maxLon - 360);
+            this.spansAntimeridian = true;
             return sectors;
         } else {
+            this.spansAntimeridian = false;
             return new Sector[] {Sector.fromDegrees(minLat, maxLat, minLon, maxLon)};
         }
     }
