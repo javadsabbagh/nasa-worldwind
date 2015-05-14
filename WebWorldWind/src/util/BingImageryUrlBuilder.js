@@ -35,36 +35,19 @@ define([
             var wwBingMapsKey = "AkttWCS8p6qzxvx5RH3qUcCPgwG9nRJ7IwlpFGb14B0rBorB5DvmXr2Y_eCUNIxH";
 
             if (!bingMapsKey) {
-                bingMapsKey = WorldWind.BingMapsKey;
+                this.bingMapsKey = WorldWind.BingMapsKey;
 
                 if (!bingMapsKey) {
-                    bingMapsKey = wwBingMapsKey;
+                    this.bingMapsKey = wwBingMapsKey;
                 }
 
                 if (bingMapsKey === wwBingMapsKey) {
-                    bingMapsKey = wwBingMapsKey;
+                    this.bingMapsKey = wwBingMapsKey;
                     BingImageryUrlBuilder.showBingMapsKeyWarning();
                 }
             }
 
             this.imagerySet = imagerySet;
-
-            // Retrieve the metadata for the imagery set.
-
-            var url = "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/" + imagerySet + "/0,0?zl=1&key="
-                + bingMapsKey;
-
-            // Use JSONP to request the metadata. Can't use XmlHTTPRequest because the virtual earth server doesn't
-            // allow cross-origin requests for metadata retrieval.
-            var thisObject = this;
-            WWUtil.jsonp(url, "jsonp", function (jsonData) {
-                thisObject.imageUrl = jsonData.resourceSets[0].resources[0].imageUrl;
-
-                // Send an event to request a redraw.
-                var e = document.createEvent('Event');
-                e.initEvent(WorldWind.REDRAW_EVENT_TYPE, true, true);
-                window.dispatchEvent(e);
-            })
         };
 
         // Intentionally not documented.
@@ -80,10 +63,38 @@ define([
             }
         };
 
+        BingImageryUrlBuilder.prototype.requestMetadata = function () {
+            // Retrieve the metadata for the imagery set.
+
+            if (!this.metadataRetrievalInProcess) {
+                this.metadataRetrievalInProcess = true;
+
+                var url = "http://dev.virtualearth.net/REST/V1/Imagery/Metadata/" + this.imagerySet + "/0,0?zl=1&key="
+                    + this.bingMapsKey;
+
+                // Use JSONP to request the metadata. Can't use XmlHTTPRequest because the virtual earth server doesn't
+                // allow cross-origin requests for metadata retrieval.
+
+                var thisObject = this;
+                WWUtil.jsonp(url, "jsonp", function (jsonData) {
+                    thisObject.imageUrl = jsonData.resourceSets[0].resources[0].imageUrl;
+
+                    // Send an event to request a redraw.
+                    var e = document.createEvent('Event');
+                    e.initEvent(WorldWind.REDRAW_EVENT_TYPE, true, true);
+                    window.dispatchEvent(e);
+
+                    thisObject.metadataRetrievalInProcess = false;
+                });
+
+            }
+        };
+
         /**
          * Creates the URL string for a Bing Maps request.
          * @param {Tile} tile The tile for which to create the URL.
          * @param {String} imageFormat This argument is not used.
+         * @return {String} The URL for the specified tile.
          * @throws {ArgumentError} If the specified tile is null or undefined.
          */
         BingImageryUrlBuilder.prototype.urlForTile = function (tile, imageFormat) {
@@ -94,6 +105,7 @@ define([
 
             if (!this.imageUrl) {
                 // Can't do anything until we get the metadata back from the server.
+                this.requestMetadata();
                 return null;
             }
 
