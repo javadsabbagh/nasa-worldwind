@@ -56,12 +56,10 @@ define([
             }
 
             this.canvas = document.getElementById(canvasName);
-
             this.canvas.addEventListener("webglcontextlost", handleContextLost, false);
             this.canvas.addEventListener("webglcontextrestored", handleContextRestored, false);
 
             var thisWindow = this;
-
             function handleContextLost(event) {
                 event.preventDefault();
                 thisWindow.gpuResourceCache.clear();
@@ -396,8 +394,8 @@ define([
         WorldWindow.prototype.resetDrawContext = function () {
             var dc = this.drawContext;
 
-            dc.reset();
             this.globe.offset = 0;
+            dc.reset();
             dc.globe = this.globe;
             dc.layers = this.layers;
             dc.navigatorState = this.navigator.currentState();
@@ -438,15 +436,7 @@ define([
             this.drawContext.frameStatistics.beginFrame();
 
             var gl = this.getWebGLContext();
-
-            // uncomment to debug WebGL
-            //var gl = WebGLDebugUtils.makeDebugContext(this.canvas.getContext("webgl"),
-            //        this.throwOnGLError,
-            //        this.logAndValidate
-            //);
-
             this.drawContext.currentGlContext = gl;
-
             this.viewport = new Rectangle(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
 
             if (!this.pickingFrameBuffer) {
@@ -458,14 +448,14 @@ define([
             }
 
             try {
-                this.beginFrame(this.drawContext, this.viewport);
-                if (this.drawContext.globe instanceof Globe2D && this.drawContext.globe.continuous) {
-                    this.do2DContiguousRepaint(this.drawContext);
+                this.beginFrame();
+                if (this.drawContext.globe.is2D() && this.drawContext.globe.continuous) {
+                    this.do2DContiguousRepaint();
                 } else {
-                    this.doNormalRepaint(this.drawContext);
+                    this.doNormalRepaint();
                 }
             } finally {
-                this.endFrame(this.drawContext);
+                this.endFrame();
                 if (this.drawContext.pickingMode) {
                     gl.bindFramebuffer(WebGLRenderingContext.FRAMEBUFFER, null);
                 }
@@ -482,46 +472,52 @@ define([
                 gl = this.canvas.getContext("experimental-webgl", glAttrs);
             }
 
+            // uncomment to debug WebGL
+            //var gl = WebGLDebugUtils.makeDebugContext(this.canvas.getContext("webgl"),
+            //        this.throwOnGLError,
+            //        this.logAndValidate
+            //);
+
             return gl;
         };
 
-        WorldWindow.prototype.doNormalRepaint = function (dc) {
-            this.createTerrain(this.drawContext);
-            this.clearFrame(this.drawContext);
+        WorldWindow.prototype.doNormalRepaint = function () {
+            this.createTerrain();
+            this.clearFrame();
             if (this.drawContext.pickingMode) {
                 if (this.drawContext.makePickFrustum()) {
-                    this.doPick(this.drawContext);
+                    this.doPick();
                 }
             } else {
-                this.doDraw(this.drawContext);
+                this.doDraw();
             }
         };
 
-        WorldWindow.prototype.do2DContiguousRepaint = function (dc) {
-            this.createTerrain2DContiguous(this.drawContext);
-            this.clearFrame(this.drawContext);
+        WorldWindow.prototype.do2DContiguousRepaint = function () {
+            this.createTerrain2DContiguous();
+            this.clearFrame();
             if (this.drawContext.pickingMode) {
                 if (this.drawContext.makePickFrustum()) {
-                    this.pick2DContiguous(this.drawContext);
+                    this.pick2DContiguous();
                 }
             } else {
-                this.draw2DContiguous(this.drawContext);
+                this.draw2DContiguous();
             }
         };
 
         // Internal function. Intentionally not documented.
-        WorldWindow.prototype.beginFrame = function (dc, viewport) {
-            var gl = dc.currentGlContext;
+        WorldWindow.prototype.beginFrame = function () {
+            var gl = this.drawContext.currentGlContext;
 
-            if (this.canvas.width != viewport.width ||
-                this.canvas.height != viewport.height) {
+            if (this.canvas.width != this.viewport.width ||
+                this.canvas.height != this.viewport.height) {
 
                 // Make the canvas the same size
-                this.canvas.width = viewport.width;
-                this.canvas.height = viewport.height;
+                this.canvas.width = this.viewport.width;
+                this.canvas.height = this.viewport.height;
 
                 // Set the viewport to match
-                gl.viewport(0, 0, viewport.width, viewport.height);
+                gl.viewport(0, 0, this.viewport.width, this.viewport.height);
             }
 
             gl.enable(WebGLRenderingContext.BLEND);
@@ -533,8 +529,8 @@ define([
         };
 
         // Internal function. Intentionally not documented.
-        WorldWindow.prototype.endFrame = function (dc) {
-            var gl = dc.currentGlContext;
+        WorldWindow.prototype.endFrame = function () {
+            var gl = this.drawContext.currentGlContext;
 
             gl.disable(WebGLRenderingContext.BLEND);
             gl.disable(WebGLRenderingContext.CULL_FACE);
@@ -545,33 +541,34 @@ define([
         };
 
         // Internal function. Intentionally not documented.
-        WorldWindow.prototype.clearFrame = function (dc) {
-            var gl = dc.currentGlContext;
+        WorldWindow.prototype.clearFrame = function () {
+            var dc = this.drawContext,
+                gl = dc.currentGlContext;
 
             gl.clearColor(dc.clearColor.red, dc.clearColor.green, dc.clearColor.blue, dc.clearColor.alpha);
             gl.clear(WebGLRenderingContext.COLOR_BUFFER_BIT | WebGLRenderingContext.DEPTH_BUFFER_BIT);
         };
 
         // Internal function. Intentionally not documented.
-        WorldWindow.prototype.doDraw = function (dc) {
+        WorldWindow.prototype.doDraw = function () {
             this.drawContext.surfaceShapeTileBuilder = this.surfaceShapeTileBuilder;
             this.surfaceShapeTileBuilder.clear();
 
             this.drawLayers();
 
-            this.surfaceShapeTileBuilder.doRender(dc);
+            this.surfaceShapeTileBuilder.doRender(this.drawContext);
 
             if (!this.deferOrderedRendering) {
                 this.drawOrderedRenderables();
             }
 
-            dc.screenCreditController.drawCredits(dc);
+            this.drawContext.screenCreditController.drawCredits(this.drawContext);
         };
 
         // Internal function. Intentionally not documented.
-        WorldWindow.prototype.doPick = function (dc) {
-            if (dc.terrain) {
-                dc.terrain.pick(dc);
+        WorldWindow.prototype.doPick = function () {
+            if (this.drawContext.terrain) {
+                this.drawContext.terrain.pick(this.drawContext);
             }
 
             if (!this.drawContext.pickTerrainOnly) {
@@ -580,7 +577,7 @@ define([
 
                 this.drawLayers();
 
-                this.surfaceShapeTileBuilder.doRender(dc);
+                this.surfaceShapeTileBuilder.doRender(this.drawContext);
 
                 if (!this.deferOrderedRendering) {
                     this.drawOrderedRenderables();
@@ -597,13 +594,14 @@ define([
         };
 
         // Internal function. Intentionally not documented.
-        WorldWindow.prototype.createTerrain = function (dc) {
+        WorldWindow.prototype.createTerrain = function () {
+            var dc = this.drawContext;
             dc.terrain = this.globe.tessellator.tessellate(dc);
-
             dc.frameStatistics.setTerrainTileCount(dc.terrain ? dc.terrain.surfaceGeometry.length : 0);
         };
 
-        WorldWindow.prototype.makeCurrent = function (dc, offset) {
+        WorldWindow.prototype.makeCurrent = function (offset) {
+            var dc = this.drawContext;
             dc.globe.offset = offset;
             dc.globeStateKey = dc.globe.stateKey;
 
@@ -622,7 +620,9 @@ define([
             }
         };
 
-        WorldWindow.prototype.createTerrain2DContiguous = function (dc) {
+        WorldWindow.prototype.createTerrain2DContiguous = function () {
+            var dc = this.drawContext;
+
             this.terrainCenter = null;
             dc.globe.offset = 0;
             dc.globeStateKey = dc.globe.stateKey;
@@ -645,52 +645,52 @@ define([
             }
         };
 
-        WorldWindow.prototype.draw2DContiguous = function (dc) {
+        WorldWindow.prototype.draw2DContiguous = function () {
             var drawing = "";
 
             if (this.terrainCenter) {
                 drawing += " 0 ";
-                this.makeCurrent(dc, 0);
+                this.makeCurrent(0);
                 this.deferOrderedRendering = this.terrainLeft || this.terrainRight;
-                this.doDraw(dc);
+                this.doDraw();
             }
 
             if (this.terrainRight) {
                 drawing += " 1 ";
-                this.makeCurrent(dc, 1);
+                this.makeCurrent(1);
                 this.deferOrderedRendering = this.terrainLeft || this.terrainLeft;
-                this.doDraw(dc);
+                this.doDraw();
             }
 
             this.deferOrderedRendering = false;
 
             if (this.terrainLeft) {
                 drawing += " -1 ";
-                this.makeCurrent(dc, -1);
-                this.doDraw(dc);
+                this.makeCurrent(-1);
+                this.doDraw();
             }
             //
             //console.log(drawing);
         };
 
-        WorldWindow.prototype.pick2DContiguous = function (dc) {
+        WorldWindow.prototype.pick2DContiguous = function () {
             if (this.terrainCenter) {
-                this.makeCurrent(dc, 0);
+                this.makeCurrent(0);
                 this.deferOrderedRendering = this.terrainLeft || this.terrainRight;
-                this.doPick(dc);
+                this.doPick();
             }
 
             if (this.terrainRight) {
-                this.makeCurrent(dc, 1);
+                this.makeCurrent(1);
                 this.deferOrderedRendering = this.terrainLeft || this.terrainLeft;
-                this.doPick(dc);
+                this.doPick();
             }
 
             this.deferOrderedRendering = false;
 
             if (this.terrainLeft) {
-                this.makeCurrent(dc, -1);
-                this.doPick(dc);
+                this.makeCurrent(-1);
+                this.doPick();
             }
         };
 
@@ -700,7 +700,7 @@ define([
 
             var beginTime = Date.now(),
                 dc = this.drawContext,
-                layers = this.drawContext.layers,
+                layers = dc.layers,
                 layer;
 
             for (var i = 0, len = layers.length; i < len; i++) {
@@ -785,7 +785,6 @@ define([
             }
 
             dc.orderedRenderingMode = false;
-
             dc.frameStatistics.orderedRenderingTime = Date.now() - beginTime;
         };
 
