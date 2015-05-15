@@ -176,8 +176,12 @@ define([
         };
 
         AbstractShape.prototype.updateSurfaceShape = function () {
+            // Synchronize this AbstractShape's properties with its SurfaceShape's properties. Note that the attributes
+            // and the highlightAttributes are synchronized separately.
+            this.surfaceShape.displayName = this.displayName;
             this.surfaceShape.highlighted = this.highlighted;
             this.surfaceShape.enabled = this.enabled;
+            this.surfaceShape.pathType = this.pathType;
             this.surfaceShape.pickDelegate = this.pickDelegate ? this.pickDelegate : this;
         };
 
