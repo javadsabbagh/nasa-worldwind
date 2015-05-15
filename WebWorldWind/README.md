@@ -23,7 +23,7 @@ example collction. It displays an interactive virtual globe in an HTML canvas.
         <meta charset="UTF-8">
         <title>World Wind Example</title>
         <!-- Include the Web World Wind library. -->
-        <script src="http://worldwindserver.net/webworldwind/0.0.1/worldwindlib.js" type="text/javascript"></script>
+        <script src="http://worldwindserver.net/webworldwind/worldwindlib.js" type="text/javascript"></script>
     </head>
     <body>
     <div style="position: absolute; top: 50px; left: 50px;">
