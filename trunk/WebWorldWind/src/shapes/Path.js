@@ -215,7 +215,7 @@ define([
         // Intentionally not documented.
         Path.prototype.determineReferencePosition = function (positions) {
             // Assign the first position as the reference position.
-            return (positions.length > 2) ? positions[0] : null;
+            return (positions.length > 0) ? positions[0] : null;
         };
 
         // Internal. Determines whether this shape's geometry must be re-computed.
@@ -392,23 +392,23 @@ define([
                     p += arcLength / this._numSubSegments;
                 }
 
+                // Stop adding intermediate positions when we reach the arc length, or the remaining distance is in
+                // millimeters on Earth.
+                if (arcLength < p || arcLength - p < 1e-9)
+                    break;
+
                 s = p / arcLength;
-                if (s >= 1) {
-                    pos = posB;
+                distance = s * segmentDistance;
+
+                if (this._pathType === WorldWind.LINEAR) {
+                    Location.linearLocation(posA, segmentAzimuth, distance, pos);
+                } else if (this._pathType === WorldWind.RHUMB_LINE) {
+                    Location.rhumbLocation(posA, segmentAzimuth, distance, pos);
                 } else {
-                    distance = s * segmentDistance;
-
-                    if (this._pathType === WorldWind.LINEAR) {
-                        Location.linearLocation(posA, segmentAzimuth, distance, pos);
-                    } else if (this._pathType === WorldWind.RHUMB_LINE) {
-                        Location.rhumbLocation(posA, segmentAzimuth, distance, pos);
-                    } else {
-                        Location.greatCircleLocation(posA, segmentAzimuth, distance, pos);
-                    }
-
-                    pos.altitude = (1 - s) * posA.altitude + s * posB.altitude;
+                    Location.greatCircleLocation(posA, segmentAzimuth, distance, pos);
                 }
 
+                pos.altitude = (1 - s) * posA.altitude + s * posB.altitude;
                 tessellatedPositions.push(new Position(pos.latitude, pos.longitude, pos.altitude));
 
                 if (this._followTerrain) {
@@ -417,6 +417,8 @@ define([
                         WorldWind.CLAMP_TO_GROUND, this.scratchPoint);
                 }
             }
+
+            tessellatedPositions.push(posB);
         };
 
         // Private. Intentionally not documented.
