@@ -36,13 +36,8 @@ define([
                     "missingImage"));
             }
 
-            if (Texture.extTextureFilterAnisotropic == undefined) {
-                Texture.extTextureFilterAnisotropic = gl.getExtension("EXT_texture_filter_anisotropic");
-            }
-
             var textureId = gl.createTexture(),
-                isPowerOfTwo = (WWMath.isPowerOfTwo(image.width) && WWMath.isPowerOfTwo(image.height)),
-                extAnisotropic = Texture.extTextureFilterAnisotropic;
+                isPowerOfTwo = (WWMath.isPowerOfTwo(image.width) && WWMath.isPowerOfTwo(image.height));
 
             this.imageWidth = image.width;
             this.imageHeight = image.height;
@@ -60,8 +55,13 @@ define([
             gl.texParameteri(WebGLRenderingContext.TEXTURE_2D, WebGLRenderingContext.TEXTURE_WRAP_T,
                 WebGLRenderingContext.CLAMP_TO_EDGE);
 
-            if (extAnisotropic) {
-                gl.texParameteri(WebGLRenderingContext.TEXTURE_2D, extAnisotropic.TEXTURE_MAX_ANISOTROPY_EXT, 4);
+            // Setup 4x anisotropic texture filtering when this feature is available.
+            // https://www.khronos.org/registry/webgl/extensions/EXT_texture_filter_anisotropic
+            var ext = (
+                gl.getExtension("EXT_texture_filter_anisotropic") ||
+                gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic"));
+            if (ext) {
+                gl.texParameteri(WebGLRenderingContext.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT, 4);
             }
 
             gl.pixelStorei(WebGLRenderingContext.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
@@ -75,11 +75,6 @@ define([
 
             this.textureId = textureId;
         };
-
-        // Internal use only. Keeps a class level instance to the WebGL EXT_texture_filter_anisotropic interface object.
-        // For details on this WebGL extension, see
-        // https://www.khronos.org/registry/webgl/extensions/EXT_texture_filter_anisotropic
-        Texture.extTextureFilterAnisotropic = undefined;
 
         /**
          * Disposes of the WebGL texture object associated with this texture.
