@@ -22,8 +22,7 @@ requirejs(['../src/WorldWind',
             {layer: new WorldWind.BMNGLayer(), enabled: true},
             {layer: new WorldWind.BMNGLandsatLayer(), enabled: true},
             {layer: new WorldWind.BingAerialWithLabelsLayer(null), enabled: false},
-// TODO: restore ViewControlsLayer after it gets repaired.
-//          {layer: new WorldWind.ViewControlsLayer(wwd), enabled: true},
+            {layer: new WorldWind.ViewControlsLayer(wwd), enabled: true},
             {layer: new WorldWind.CompassLayer(), enabled: true}
         ];
 
@@ -60,8 +59,8 @@ requirejs(['../src/WorldWind',
 
         // For this example, cities are provided in a shapefile that just has points,
         // and a database that has names (among other attributes).
-        var cityAttributeCallback = function(layer) {
-            return function(attributes, record) {
+        var cityAttributeCallback = function (layer) {
+            return function (attributes, record) {
                 // Add the label for a name record in the database to a separate layer.
                 if (!!layer) {
                     addLabelForName(attributes, record, layer);
@@ -87,8 +86,8 @@ requirejs(['../src/WorldWind',
             }
         };
 
-        var defaultAttributeCallback = function(layer) {
-            return function(attributes, record) {
+        var defaultAttributeCallback = function (layer) {
+            return function (attributes, record) {
                 // Add the label for a name record in the database to a separate layer.
                 if (!!layer) {
                     addLabelForName(attributes, record, layer);
@@ -141,8 +140,8 @@ requirejs(['../src/WorldWind',
             }
         };
 
-        var callbackForShapefileLoaded = function(layer) {
-            return function(shapefile) {
+        var callbackForShapefileLoaded = function (layer) {
+            return function (shapefile) {
                 shapefile.addRenderablesForShapefile(layer);
             };
         };

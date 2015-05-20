@@ -67,6 +67,8 @@ requirejs(['../src/WorldWind',
         polygonAttributes.interiorColor = new WorldWind.Color(0, 1, 1, 0.5);
         polygonAttributes.drawVerticals = polygon.extrude;
         polygon.attributes = polygonAttributes;
+
+        // Create and assign the polygon's highlight attributes.
         var highlightAttributes = new WorldWind.ShapeAttributes(polygonAttributes);
         highlightAttributes.outlineColor = WorldWind.Color.RED;
         highlightAttributes.interiorColor = new WorldWind.Color(1, 1, 1, 0.5);

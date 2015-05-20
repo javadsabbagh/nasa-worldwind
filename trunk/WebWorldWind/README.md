@@ -7,14 +7,14 @@ imagery. Web World Wind additionally provides a rich collection of shapes that y
 the globe or in space.
 
 See [webworldwind.org](http://webworldwind.org) for a complete description of Web World Wind's functionality.
-You'll also find there links to many Web World Wind resources, including a users guide. The Web World Wind distribution
+You'll also find there links to many Web World Wind resources, including a user guide. The Web World Wind distribution
 provides many simple examples showing how to use all of Web World Wind's functionality.
 
 The web site you're currently viewing contains the detailed Web World Wind API documentation. These pages describe
 each class, function and property in the Web World Wind library.
 
 Here is a very simple example of using Web World Wind. It is the contents of SimplestExample.html in the
-example collction. It displays an interactive virtual globe in an HTML canvas.
+example collection. It displays an interactive virtual globe in an HTML canvas.
 
     <!DOCTYPE html>
     <!-- This is a very simple example of using Web World Wind. -->

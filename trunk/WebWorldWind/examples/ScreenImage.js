@@ -98,6 +98,7 @@ requirejs(['../src/WorldWind',
 
             if (pickList.objects.length > 0) {
                 for (var p = 0; p < pickList.objects.length; p++) {
+                    // If the compass is picked, reset the navigator heading to 0 to re-orient the globe.
                     if (pickList.objects[p].userObject instanceof WorldWind.Compass) {
                         wwd.navigator.heading = 0;
                         wwd.redraw();
@@ -107,7 +108,7 @@ requirejs(['../src/WorldWind',
                     }
                 }
             }
-        }
+        };
 
         // Listen for mouse moves and highlight the placemarks that the cursor rolls over.
         wwd.addEventListener("mousemove", handlePick);

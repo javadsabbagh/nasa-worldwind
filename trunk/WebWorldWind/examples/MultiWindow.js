@@ -13,6 +13,7 @@ requirejs(['../src/WorldWind'], function () {
 
     WorldWind.Logger.setLoggingLevel(WorldWind.Logger.LEVEL_WARNING);
 
+    // Make a layer that shows a Path and is shared among the World Windows.
     var makePathLayer = function () {
         var pathAttributes = new WorldWind.ShapeAttributes(null);
         pathAttributes.interiorColor = WorldWind.Color.CYAN;
