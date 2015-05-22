@@ -104,6 +104,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './shapes/TextAttributes',
         './render/TextSupport',
         './render/Texture',
+        './render/TextureFramebuffer',
         './render/TextureTile',
         './util/Tile',
         './layer/TiledImageLayer',
@@ -219,6 +220,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               TextAttributes,
               TextSupport,
               Texture,
+              TextureFramebuffer,
               TextureTile,
               Tile,
               TiledImageLayer,
@@ -519,6 +521,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['TextAttributes'] = TextAttributes;
         WorldWind['TextSupport'] = TextSupport;
         WorldWind['Texture'] = Texture;
+        WorldWind['TextureFramebuffer'] = TextureFramebuffer;
         WorldWind['TextureTile'] = TextureTile;
         WorldWind['Tile'] = Tile;
         WorldWind['TiledImageLayer'] = TiledImageLayer;
