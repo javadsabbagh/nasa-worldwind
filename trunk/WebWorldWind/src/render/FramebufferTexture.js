@@ -3,7 +3,7 @@
  * National Aeronautics and Space Administration. All Rights Reserved.
  */
 /**
- * @exports TextureFramebuffer
+ * @exports FramebufferTexture
  * @version $Id$
  */
 define([
@@ -16,8 +16,8 @@ define([
         "use strict";
 
         /**
-         * Constructs a texture framebuffer with the specified dimensions and an optional depth buffer.
-         * @alias TextureFramebuffer
+         * Constructs a framebuffer texture with the specified dimensions and an optional depth buffer.
+         * @alias FramebufferTexture
          * @constructor
          * @classdesc Represents an off-screen WebGL framebuffer. The framebuffer has color buffer stored in a 32
          * bit RGBA texture, and has an optional depth buffer of at least 16 bits. Applications typically do not
@@ -30,14 +30,14 @@ define([
          * @throws {ArgumentError} If the specified draw context is null or undefined, or if the width or height is less
          * than zero.
          */
-        var TextureFramebuffer = function (dc, width, height, depth) {
+        var FramebufferTexture = function (dc, width, height, depth) {
             if (!dc) {
-                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "TextureFramebuffer", "constructor",
+                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "FramebufferTexture", "constructor",
                     "missingDc"));
             }
 
             if (width < 0 || height < 0) {
-                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "TextureFramebuffer", "constructor",
+                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "FramebufferTexture", "constructor",
                     "The framebuffer width or height is less than zero."));
             }
 
@@ -104,7 +104,7 @@ define([
 
             var e = gl.checkFramebufferStatus(WebGLRenderingContext.FRAMEBUFFER);
             if (e != WebGLRenderingContext.FRAMEBUFFER_COMPLETE) {
-                Logger.logMessage(Logger.LEVEL_WARNING, "TextureFramebuffer", "constructor",
+                Logger.logMessage(Logger.LEVEL_WARNING, "FramebufferTexture", "constructor",
                     "Error creating framebuffer: " + e);
                 this.framebuffer = null;
                 this.texture = null;
@@ -112,19 +112,19 @@ define([
             }
 
             gl.bindFramebuffer(WebGLRenderingContext.FRAMEBUFFER, null);
-            gl.bindTexture(WebGLRenderingContext.TEXTURE_2D, null);
             gl.bindRenderbuffer(WebGLRenderingContext.RENDERBUFFER, null);
+            gl.bindTexture(WebGLRenderingContext.TEXTURE_2D, null);
         };
 
         /**
          * Binds this off-screen framebuffer's texture in the current WebGL graphics context. This texture contains
          * color fragments resulting from WebGL operations executed when this framebuffer is bound by a call to
-         * [TextureFramebuffer.bindFramebuffer]{@link TextureFramebuffer#bindFramebuffer}.
+         * [FramebufferTexture.bindFramebuffer]{@link FramebufferTexture#bindFramebuffer}.
          *
          * @param {DrawContext} dc The current draw context.
          * @returns {Boolean} true if this framebuffer's texture was bound successfully, otherwise false.
          */
-        TextureFramebuffer.prototype.bind = function (dc) {
+        FramebufferTexture.prototype.bind = function (dc) {
             if (this.texture) {
                 dc.currentGlContext.bindTexture(WebGLRenderingContext.TEXTURE_2D, this.texture);
             }
@@ -136,12 +136,12 @@ define([
          * Binds this off-screen framebuffer as the current WebGL framebuffer. WebGL operations that affect the
          * framebuffer now affect this framebuffer, rather than the default WebGL framebuffer. Color fragments are
          * written to a WebGL texture, which can be made active by calling
-         * [TextureFramebuffer.bind]{@link TextureFramebuffer#bind}.
+         * [FramebufferTexture.bind]{@link FramebufferTexture#bind}.
          *
          * @param {DrawContext} dc The current draw context.
          * @returns {Boolean} true if this framebuffer was bound successfully, otherwise false.
          */
-        TextureFramebuffer.prototype.bindFramebuffer = function (dc) {
+        FramebufferTexture.prototype.bindFramebuffer = function (dc) {
             if (this.framebuffer) {
                 dc.currentGlContext.bindFramebuffer(WebGLRenderingContext.FRAMEBUFFER, this.framebuffer);
             }
@@ -149,5 +149,5 @@ define([
             return !!this.framebuffer;
         };
 
-        return TextureFramebuffer;
+        return FramebufferTexture;
     });
