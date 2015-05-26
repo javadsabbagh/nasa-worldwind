@@ -10,6 +10,7 @@ define([
         '../error/ArgumentError',
         '../util/Color',
         '../util/FrameStatistics',
+        '../render/FramebufferTileController',
         '../geom/Frustum',
         '../globe/Globe',
         '../shaders/GpuProgram',
@@ -35,6 +36,7 @@ define([
     function (ArgumentError,
               Color,
               FrameStatistics,
+              FramebufferTileController,
               Frustum,
               Globe,
               GpuProgram,
@@ -257,6 +259,13 @@ define([
              * @type {SurfaceShapeTileBuilder}
              */
             this.surfaceShapeTileBuilder = null;
+
+            /**
+             * Provides access to a multi-resolution WebGL framebuffer arranged as adjacent tiles in a pyramid. Surface
+             * shapes use these tiles internally to draw on the terrain surface.
+             * @type {FramebufferTileController}
+             */
+            this.surfaceShapeTileController = new FramebufferTileController();
 
             /**
              * The screen credit controller responsible for collecting and drawing screen credits.

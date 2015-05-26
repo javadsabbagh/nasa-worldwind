@@ -31,6 +31,8 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './util/Font',
         './util/FrameStatistics',
         './render/FramebufferTexture',
+        './render/FramebufferTile',
+        './render/FramebufferTileController',
         './geom/Frustum',
         './projections/GeographicProjection',
         './shapes/GeographicText',
@@ -147,6 +149,8 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               Font,
               FrameStatistics,
               FramebufferTexture,
+              FramebufferTile,
+              FramebufferTileController,
               Frustum,
               GeographicProjection,
               GeographicText,
@@ -448,6 +452,8 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['Font'] = Font;
         WorldWind['FrameStatistics'] = FrameStatistics;
         WorldWind['FramebufferTexture'] = FramebufferTexture;
+        WorldWind['FramebufferTile'] = FramebufferTile;
+        WorldWind['FramebufferTileController'] = FramebufferTileController;
         WorldWind['Frustum'] = Frustum;
         WorldWind['GeographicProjection'] = GeographicProjection;
         WorldWind['GeographicText'] = GeographicText;
