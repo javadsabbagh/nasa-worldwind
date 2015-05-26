@@ -30,6 +30,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './globe/ElevationModel',
         './util/Font',
         './util/FrameStatistics',
+        './render/FramebufferTexture',
         './geom/Frustum',
         './projections/GeographicProjection',
         './shapes/GeographicText',
@@ -104,7 +105,6 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './shapes/TextAttributes',
         './render/TextSupport',
         './render/Texture',
-        './render/TextureFramebuffer',
         './render/TextureTile',
         './util/Tile',
         './layer/TiledImageLayer',
@@ -146,6 +146,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               ElevationModel,
               Font,
               FrameStatistics,
+              FramebufferTexture,
               Frustum,
               GeographicProjection,
               GeographicText,
@@ -220,7 +221,6 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               TextAttributes,
               TextSupport,
               Texture,
-              TextureFramebuffer,
               TextureTile,
               Tile,
               TiledImageLayer,
@@ -447,6 +447,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['ElevationModel'] = ElevationModel;
         WorldWind['Font'] = Font;
         WorldWind['FrameStatistics'] = FrameStatistics;
+        WorldWind['FramebufferTexture'] = FramebufferTexture;
         WorldWind['Frustum'] = Frustum;
         WorldWind['GeographicProjection'] = GeographicProjection;
         WorldWind['GeographicText'] = GeographicText;
@@ -521,7 +522,6 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['TextAttributes'] = TextAttributes;
         WorldWind['TextSupport'] = TextSupport;
         WorldWind['Texture'] = Texture;
-        WorldWind['TextureFramebuffer'] = TextureFramebuffer;
         WorldWind['TextureTile'] = TextureTile;
         WorldWind['Tile'] = Tile;
         WorldWind['TiledImageLayer'] = TiledImageLayer;
