@@ -104,7 +104,7 @@ public class SurfaceObjectTileBuilder
     /** Controls if surface tiles are rendered using a linear filter or a nearest-neighbor filter. */
     protected boolean useLinearFilter = true;
     /** Controls if mip-maps are generated for surface tile textures. */
-    protected boolean useMipmaps;
+    protected boolean useMipmaps = true;
     /** Controls if tiles are forced to update during {@link #buildTiles(DrawContext, Iterable)}. */
     protected boolean forceTileUpdates;
     /** Controls the tile resolution as distance changes between the globe's surface and the eye point. */
@@ -688,6 +688,15 @@ public class SurfaceObjectTileBuilder
             GL.GL_LINEAR : GL.GL_NEAREST);
         gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE);
         gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE);
+
+        if (this.isUseMipmaps())
+        {
+            double maxAnisotropy = dc.getGLRuntimeCapabilities().getMaxTextureAnisotropy();
+            if (dc.getGLRuntimeCapabilities().isUseAnisotropicTextureFilter() && maxAnisotropy >= 2.0)
+            {
+                gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAX_ANISOTROPY_EXT, (float) maxAnisotropy);
+            }
+        }
 
         return t;
     }
