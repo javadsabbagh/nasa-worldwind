@@ -67,6 +67,7 @@ define([
             /**
              * Indicates whether elements of this layer were drawn in the most recently generated frame.
              * @type {Boolean}
+             * @readonly
              */
             this.inCurrentFrame = false;
         };
