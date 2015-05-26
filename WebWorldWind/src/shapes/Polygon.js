@@ -259,7 +259,7 @@ define([
 
             // Set the transformation matrix to correspond to the reference position.
             var refPt = currentData.referencePoint;
-            dc.terrain.surfacePointForMode(this.referencePosition.latitude, this.referencePosition.longitude,
+            dc.surfacePointForMode(this.referencePosition.latitude, this.referencePosition.longitude,
                 this.referencePosition.altitude, this._altitudeMode, refPt);
             currentData.transformationMatrix.setToTranslation(refPt[0], refPt[1], refPt[2]);
 
@@ -318,7 +318,7 @@ define([
                 for (var i = 0, len = boundaries[b].length; i < len; i++) {
                     pos = boundaries[b][i];
 
-                    dc.terrain.surfacePointForMode(pos.latitude, pos.longitude, pos.altitude, this.altitudeMode, pt);
+                    dc.surfacePointForMode(pos.latitude, pos.longitude, pos.altitude, this.altitudeMode, pt);
 
                     dSquared = pt.distanceToSquared(eyePoint);
                     if (dSquared < eyeDistSquared) {
@@ -333,7 +333,7 @@ define([
                     boundaryPoints[b][k + 2] = pt[2];
 
                     if (this._extrude) {
-                        dc.terrain.surfacePointForMode(pos.latitude, pos.longitude, 0, WorldWind.CLAMP_TO_GROUND, pt);
+                        dc.surfacePointForMode(pos.latitude, pos.longitude, 0, WorldWind.CLAMP_TO_GROUND, pt);
 
                         dSquared = pt.distanceToSquared(eyePoint);
                         if (dSquared < eyeDistSquared) {

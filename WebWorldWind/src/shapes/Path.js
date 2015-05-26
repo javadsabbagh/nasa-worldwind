@@ -262,7 +262,7 @@ define([
 
             // Set the transformation matrix to correspond to the reference position.
             var refPt = this.currentData.referencePoint;
-            dc.terrain.surfacePointForMode(this.referencePosition.latitude, this.referencePosition.longitude,
+            dc.surfacePointForMode(this.referencePosition.latitude, this.referencePosition.longitude,
                 this.referencePosition.altitude, this._altitudeMode, refPt);
             this.currentData.transformationMatrix.setToTranslation(refPt[0], refPt[1], refPt[2]);
 
@@ -312,11 +312,11 @@ define([
 
             tessellatedPositions.push(posA);
 
-            dc.terrain.surfacePointForMode(posA.latitude, posA.longitude, posA.altitude, this._altitudeMode, ptA);
+            dc.surfacePointForMode(posA.latitude, posA.longitude, posA.altitude, this._altitudeMode, ptA);
 
             for (var i = 1, len = this._positions.length; i < len; i++) {
                 posB = this._positions[i];
-                dc.terrain.surfacePointForMode(posB.latitude, posB.longitude, posB.altitude, this._altitudeMode, ptB);
+                dc.surfacePointForMode(posB.latitude, posB.longitude, posB.altitude, this._altitudeMode, ptB);
                 eyeDistance = navState.eyePoint.distanceTo(ptA);
                 pixelSize = navState.pixelSizeAtDistance(eyeDistance);
                 if (ptA.distanceTo(ptB) < pixelSize * 8 && this.altitudeMode !== WorldWind.ABSOLUTE) {
@@ -413,7 +413,7 @@ define([
 
                 if (this._followTerrain) {
                     // Compute a new reference point for eye distance.
-                    dc.terrain.surfacePointForMode(pos.latitude, pos.longitude, pos.altitude,
+                    dc.surfacePointForMode(pos.latitude, pos.longitude, pos.altitude,
                         WorldWind.CLAMP_TO_GROUND, this.scratchPoint);
                 }
             }
@@ -441,7 +441,7 @@ define([
             for (var i = 0, len = tessellatedPositions.length; i < len; i++) {
                 pos = tessellatedPositions[i];
 
-                dc.terrain.surfacePointForMode(pos.latitude, pos.longitude, pos.altitude, altitudeMode, pt);
+                dc.surfacePointForMode(pos.latitude, pos.longitude, pos.altitude, altitudeMode, pt);
 
                 dSquared = pt.distanceToSquared(eyePoint);
                 if (dSquared < eyeDistSquared) {
@@ -456,7 +456,7 @@ define([
                 tessellatedPoints[k + 2] = pt[2];
 
                 if (capturePoles) {
-                    dc.terrain.surfacePointForMode(pos.latitude, pos.longitude, 0, WorldWind.CLAMP_TO_GROUND, pt);
+                    dc.surfacePointForMode(pos.latitude, pos.longitude, 0, WorldWind.CLAMP_TO_GROUND, pt);
 
                     dSquared = pt.distanceToSquared(eyePoint);
                     if (dSquared < eyeDistSquared) {

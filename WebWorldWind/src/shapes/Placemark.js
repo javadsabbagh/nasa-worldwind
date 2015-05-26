@@ -284,13 +284,13 @@ define([
             // the placemark and are thus able to draw it. Otherwise its image and label portion that are potentially
             // over the terrain won't get drawn, and would disappear as soon as there is no terrain at the placemark's
             // position. This can occur at the window edges.
-            dc.terrain.surfacePointForMode(this.position.latitude, this.position.longitude, this.position.altitude,
+            dc.surfacePointForMode(this.position.latitude, this.position.longitude, this.position.altitude,
                 this.altitudeMode, this.placePoint);
 
             this.eyeDistance = this.alwaysOnTop ? 0 : dc.navigatorState.eyePoint.distanceTo(this.placePoint);
 
             if (this.mustDrawLeaderLine(dc)) {
-                dc.terrain.surfacePointForMode(this.position.latitude, this.position.longitude, 0,
+                dc.surfacePointForMode(this.position.latitude, this.position.longitude, 0,
                     this.altitudeMode, this.groundPoint);
             }
 

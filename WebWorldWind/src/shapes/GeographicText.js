@@ -80,7 +80,7 @@ define([
         // Documented in superclass.
         GeographicText.prototype.computeScreenPointAndEyeDistance = function (dc) {
             // Compute the text's model point and corresponding distance to the eye point.
-            dc.terrain.surfacePointForMode(this.position.latitude, this.position.longitude, this.position.altitude,
+            dc.surfacePointForMode(this.position.latitude, this.position.longitude, this.position.altitude,
                 this.altitudeMode, GeographicText.placePoint);
 
             this.eyeDistance = this.alwaysOnTop ? 0 : dc.navigatorState.eyePoint.distanceTo(GeographicText.placePoint);
