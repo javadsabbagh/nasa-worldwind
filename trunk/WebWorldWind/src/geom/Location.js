@@ -142,6 +142,7 @@ define([
          * Compute a location along a great circle path at a specified distance between two specified locations.
          * @param {Number} amount The fraction of the path between the two locations at which to compute the new
          * location. This number should be between 0 and 1. If not, it is clamped to the nearest of those values.
+         * This function uses a spherical model, not elliptical.
          * @param {Location} location1 The starting location.
          * @param {Location} location2 The ending location.
          * @param {Location} result A Location in which to return the result.
@@ -175,6 +176,7 @@ define([
          * Computes the azimuth angle (clockwise from North) that points from the first location to the second location.
          * This angle can be used as the starting azimuth for a great circle arc that begins at the first location, and
          * passes through the second location.
+         * This function uses a spherical model, not elliptical.
          * @param {Location} location1 The starting location.
          * @param {Location} location2 The ending location.
          * @returns {Number} The computed azimuth, in degrees.
@@ -216,6 +218,7 @@ define([
          * angle between the two positions. In radians, this angle is the arc length of the segment between the two
          * positions. To compute a distance in meters from this value, multiply the return value by the radius of the
          * globe.
+         * This function uses a spherical model, not elliptical.
          *
          * @param {Location} location1 The starting location.
          * @param {Location} location2 The ending location.
@@ -253,6 +256,7 @@ define([
         /**
          * Computes the location on a great circle path corresponding to a given starting location, azimuth, and
          * arc distance.
+         * This function uses a spherical model, not elliptical.
          *
          * @param {Location} location The starting location.
          * @param {Number} greatCircleAzimuthDegrees The azimuth in degrees.
@@ -304,6 +308,7 @@ define([
 
         /**
          * Compute a location along a rhumb path at a specified distance between two specified locations.
+         * This function uses a spherical model, not elliptical.
          * @param {Number} amount The fraction of the path between the two locations at which to compute the new
          * location. This number should be between 0 and 1. If not, it is clamped to the nearest of those values.
          * @param {Location} location1 The starting location.
@@ -339,6 +344,7 @@ define([
          * Computes the azimuth angle (clockwise from North) that points from the first location to the second location.
          * This angle can be used as the azimuth for a rhumb arc that begins at the first location, and
          * passes through the second location.
+         * This function uses a spherical model, not elliptical.
          * @param {Location} location1 The starting location.
          * @param {Location} location2 The ending location.
          * @returns {Number} The computed azimuth, in degrees.
@@ -380,6 +386,7 @@ define([
          * angle between the two positions in radians. This angle is the arc length of the segment between the two
          * positions. To compute a distance in meters from this value, multiply the return value by the radius of the
          * globe.
+         * This function uses a spherical model, not elliptical.
          *
          * @param {Location} location1 The starting location.
          * @param {Location} location2 The ending location.
@@ -427,6 +434,7 @@ define([
 
         /**
          * Computes the location on a rhumb arc with the given starting location, azimuth, and arc distance.
+         * This function uses a spherical model, not elliptical.
          *
          * @param {Location} location The starting location.
          * @param {Number} azimuthDegrees The azimuth in degrees.
