@@ -229,6 +229,7 @@ public class LatLon
      * 1]. If <code>a</code> is 0 or less, this returns <code>value1</code>. If <code>amount</code> is 1 or more, this
      * returns <code>value2</code>. Otherwise, this returns the location on the great-arc between <code>value1</code>
      * and <code>value2</code> corresponding to the specified interpolation factor.
+     * This method uses a spherical model, not elliptical.
      *
      * @param amount the interpolation factor
      * @param value1 the first location.
@@ -264,6 +265,7 @@ public class LatLon
      * [0, 1]. If <code>a</code> is 0 or less, this returns <code>value1</code>. If <code>amount</code> is 1 or more,
      * this returns <code>value2</code>. Otherwise, this returns the location on the rhumb line between
      * <code>value1</code> and <code>value2</code> corresponding to the specified interpolation factor.
+     * This method uses a spherical model, not elliptical.
      *
      * @param amount the interpolation factor
      * @param value1 the first location.
@@ -298,6 +300,7 @@ public class LatLon
      * angle between the two positions on the pi radius circle. In radians, this angle is also the arc length of the
      * segment between the two positions on that circle. To compute a distance in meters from this value, multiply it by
      * the radius of the globe.
+     * This method uses a spherical model, not elliptical.
      *
      * @param p1 LatLon of the first location
      * @param p2 LatLon of the second location
@@ -335,6 +338,7 @@ public class LatLon
      * Computes the azimuth angle (clockwise from North) that points from the first location to the second location.
      * This angle can be used as the starting azimuth for a great circle arc that begins at the first location, and
      * passes through the second location.
+     * This method uses a spherical model, not elliptical.
      *
      * @param p1 LatLon of the first location
      * @param p2 LatLon of the second location
@@ -372,6 +376,7 @@ public class LatLon
 
     /**
      * Computes the location on a great circle arc with the given starting location, azimuth, and arc distance.
+     * This method uses a spherical model, not elliptical.
      *
      * @param p                  LatLon of the starting location
      * @param greatCircleAzimuth great circle azimuth angle (clockwise from North)
@@ -419,6 +424,7 @@ public class LatLon
 
     /**
      * Computes the location on a great circle arc with the given starting location, azimuth, and arc distance.
+     * This method uses a spherical model, not elliptical.
      *
      * @param p                         LatLon of the starting location
      * @param greatCircleAzimuthRadians great circle azimuth angle (clockwise from North), in radians
@@ -442,6 +448,7 @@ public class LatLon
     /**
      * Returns two locations with the most extreme latitudes on the great circle with the given starting location and
      * azimuth.
+     * This method uses a spherical model, not elliptical.
      *
      * @param location location on the great circle.
      * @param azimuth  great circle azimuth angle (clockwise from North).
@@ -505,6 +512,7 @@ public class LatLon
     /**
      * Returns two locations with the most extreme latitudes on the great circle arc defined by, and limited to, the two
      * locations.
+     * This method uses a spherical model, not elliptical.
      *
      * @param begin beginning location on the great circle arc.
      * @param end   ending location on the great circle arc.
@@ -589,6 +597,7 @@ public class LatLon
     /**
      * Returns two locations with the most extreme latitudes on the sequence of great circle arcs defined by each pair
      * of locations in the specified iterable.
+     * This method uses a spherical model, not elliptical.
      *
      * @param locations the pairs of locations defining a sequence of great circle arcs.
      *
@@ -635,6 +644,7 @@ public class LatLon
      * distance between the two positions on the pi radius circle. In radians, this angle is also the arc length of the
      * segment between the two positions on that circle. To compute a distance in meters from this value, multiply it by
      * the radius of the globe.
+     * This method uses a spherical model, not elliptical.
      *
      * @param p1 LatLon of the first location
      * @param p2 LatLon of the second location
@@ -682,6 +692,7 @@ public class LatLon
     /**
      * Computes the azimuth angle (clockwise from North) of a rhumb line (a line of constant heading) between two
      * locations.
+     * This method uses a spherical model, not elliptical.
      *
      * @param p1 LatLon of the first location
      * @param p2 LatLon of the second location
@@ -721,6 +732,7 @@ public class LatLon
     /**
      * Computes the location on a rhumb line with the given starting location, rhumb azimuth, and arc distance along the
      * line.
+     * This method uses a spherical model, not elliptical.
      *
      * @param p            LatLon of the starting location
      * @param rhumbAzimuth rhumb azimuth angle (clockwise from North)
@@ -778,6 +790,7 @@ public class LatLon
     /**
      * Computes the location on a rhumb line with the given starting location, rhumb azimuth, and arc distance along the
      * line.
+     * This method uses a spherical model, not elliptical.
      *
      * @param p                   LatLon of the starting location
      * @param rhumbAzimuthRadians rhumb azimuth angle (clockwise from North), in radians
