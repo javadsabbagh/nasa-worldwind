@@ -90,7 +90,7 @@ define([
                     this.renderables[i].render(dc);
                 } catch (e) {
                     Logger.logMessage(Logger.LEVEL_SEVERE, "RenderableLayer", "doRender",
-                        "Error while rendering shape " + this.renderables[i].displayName + ".");
+                        "Error while rendering shape " + this.renderables[i].displayName + ".\n" + e.toString());
                     // Keep going. Render the rest of the shapes.
                 }
             }
