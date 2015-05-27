@@ -10,16 +10,12 @@ define([
         '../error/ArgumentError',
         '../util/Logger',
         '../util/Offset',
-        '../shapes/ScreenImage',
-        '../geom/Vec3',
-        '../util/WWUtil'
+        '../shapes/ScreenImage'
     ],
     function (ArgumentError,
               Logger,
               Offset,
-              ScreenImage,
-              Vec3,
-              WWUtil) {
+              ScreenImage) {
         "use strict";
 
         /**
@@ -43,17 +39,19 @@ define([
 
             ScreenImage.call(this, sOffset, iPath);
 
-            // Must set the default image offset and scale after calling the constructor above.
+            // Must set the default image offset after calling the constructor above.
 
             if (!screenOffset) {
                 // Align the upper right corner of the image with the screen point, and give the image some padding.
                 this.imageOffset = new Offset(WorldWind.OFFSET_FRACTION, 1.1, WorldWind.OFFSET_FRACTION, 1.1);
             }
 
-            if (!imagePath) {
-                // Scale the default image.
-                this.imageScale = 0.4;
-            }
+            /**
+             * Specifies the size of the compass as a fraction of the World Window width.
+             * @type {number}
+             * @default 0.15
+             */
+            this.size = 0.15;
         };
 
         Compass.prototype = Object.create(ScreenImage.prototype);
@@ -66,6 +64,11 @@ define([
             // Capture the navigator's heading and tilt and apply it to the compass' screen image.
             this.imageRotation = dc.navigatorState.heading;
             this.imageTilt = dc.navigatorState.tilt;
+
+            var t = this.getActiveTexture(dc);
+            if (t) {
+                this.imageScale = 0.15 * dc.currentGlContext.drawingBufferWidth / t.imageWidth;
+            }
 
             ScreenImage.prototype.render.call(this, dc);
         };

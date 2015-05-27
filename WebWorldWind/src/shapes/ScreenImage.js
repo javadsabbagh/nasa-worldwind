@@ -227,7 +227,7 @@ define([
             var w, h, s, ws, hs,
                 iOffset, sOffset;
 
-            this.activeTexture = dc.gpuResourceCache.resourceForKey(this._imageSource);
+            this.activeTexture = this.getActiveTexture(dc);
             if (!this.activeTexture || this.imageSourceWasUpdated) {
                 this.activeTexture = dc.gpuResourceCache.retrieveTexture(dc.currentGlContext, this._imageSource);
                 if (!this.activeTexture) {
@@ -258,6 +258,10 @@ define([
             this.imageBounds = WWMath.boundingRectForUnitQuad(this.imageTransform);
 
             return this;
+        };
+
+        ScreenImage.prototype.getActiveTexture = function(dc) {
+            return dc.gpuResourceCache.resourceForKey(this._imageSource);
         };
 
         // Internal. Intentionally not documented.
