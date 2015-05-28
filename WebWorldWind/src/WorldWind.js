@@ -57,10 +57,12 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './geom/Matrix',
         './cache/MemoryCache',
         './cache/MemoryCacheListener',
+        './layer/MercatorTiledImageLayer',
         './navigate/Navigator',
         './navigate/NavigatorState',
         './error/NotYetImplementedError',
         './util/Offset',
+        './layer/OpenStreetMapImageLayer',
         './gesture/PanRecognizer',
         './shapes/Path',
         './pick/PickedObject',
@@ -175,10 +177,12 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               Matrix,
               MemoryCache,
               MemoryCacheListener,
+              MercatorTiledImageLayer,
               Navigator,
               NavigatorState,
               NotYetImplementedError,
               Offset,
+              OpenStreetMapImageLayer,
               PanRecognizer,
               Path,
               PickedObject,
@@ -478,10 +482,12 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['Matrix'] = Matrix;
         WorldWind['MemoryCache'] = MemoryCache;
         WorldWind['MemoryCacheListener'] = MemoryCacheListener;
+        WorldWind['MercatorTiledImageLayer'] = MercatorTiledImageLayer;
         WorldWind['Navigator'] = Navigator;
         WorldWind['NavigatorState'] = NavigatorState;
         WorldWind['NotYetImplementedError'] = NotYetImplementedError;
         WorldWind['Offset'] = Offset;
+        WorldWind['OpenStreetMapImageLayer'] = OpenStreetMapImageLayer;
         WorldWind['PanRecognizer'] = PanRecognizer;
         WorldWind['Path'] = Path;
         WorldWind['PickedObject'] = PickedObject;
