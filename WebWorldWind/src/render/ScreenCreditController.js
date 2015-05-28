@@ -56,9 +56,6 @@ define([
 
             // Internal. Intentionally not documented.
             this.creditFont = new Font(14);
-
-            // Internal. Intentionally not documented.
-            this.stringCreditColor = Color.WHITE;
         };
 
         // Internal use only. Intentionally not documented.
@@ -93,16 +90,25 @@ define([
         /**
          * Adds a string credit to this controller.
          * @param {String} stringCredit The string to display in the credits area.
-         * @throws {ArgumentError} If the specified string is null or undefined.
+         * @param (Color} color The color with which to draw the string.
+         * @throws {ArgumentError} If either the specified string or color is null or undefined.
          */
-        ScreenCreditController.prototype.addStringCredit = function (stringCredit) {
+        ScreenCreditController.prototype.addStringCredit = function (stringCredit, color) {
             if (!stringCredit) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "ScreenCreditController", "addStringCredit", "missingText"));
             }
 
+            if (!color) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "ScreenCreditController", "addStringCredit", "missingColor"));
+            }
+
             if (this.stringCredits.indexOf(stringCredit) === -1) {
-                this.stringCredits.push(stringCredit);
+                this.stringCredits.push({
+                    text: stringCredit,
+                    color: color || Color.WHITE
+                });
             }
         };
 
@@ -209,9 +215,9 @@ define([
             if (imageWidth <= this.imageCreditSize && this.imageHeight <= this.imageCreditSize) {
                 scale = 1;
             } else if (imageWidth >= imageHeight) {
-                scale = imageWidth / this.imageCreditSize;
+                scale = this.imageCreditSize / imageWidth;
             } else {
-                scale = imageHeight / this.imageCreditSize;
+                scale = this.imageCreditSize / imageHeight;
             }
 
             ScreenCreditController.imageTransform.setTranslation(x, y, 0);
@@ -242,13 +248,13 @@ define([
         };
 
         // Internal use only. Intentionally not documented.
-        ScreenCreditController.prototype.drawStringCredit = function (dc, creditUrl, y) {
+        ScreenCreditController.prototype.drawStringCredit = function (dc, credit, y) {
             var imageWidth, imageHeight, activeTexture, textureKey, gl, program, x;
 
-            textureKey = creditUrl + this.creditFont.toString();
+            textureKey = credit.text + this.creditFont.toString();
             activeTexture = dc.gpuResourceCache.resourceForKey(textureKey);
             if (!activeTexture) {
-                activeTexture = dc.textSupport.createTexture(dc, creditUrl, this.creditFont);
+                activeTexture = dc.textSupport.createTexture(dc, credit.text, this.creditFont);
                 dc.gpuResourceCache.putResource(textureKey, activeTexture, activeTexture.size);
             }
 
@@ -268,7 +274,7 @@ define([
             program.loadModelviewProjection(gl, ScreenCreditController.scratchMatrix);
 
             program.loadTextureEnabled(gl, true);
-            program.loadColor(gl, this.stringCreditColor);
+            program.loadColor(gl, credit.color);
             program.loadOpacity(gl, this.opacity);
 
             ScreenCreditController.texCoordMatrix.setToIdentity();
