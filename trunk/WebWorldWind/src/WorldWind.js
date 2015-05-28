@@ -15,6 +15,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './layer/BingAerialWithLabelsLayer',
         './layer/BingRoadsLayer',
         './layer/BingWMSLayer',
+        './layer/BlueMarbleLayer',
         './layer/BMNGLandsatLayer',
         './layer/BMNGLayer',
         './layer/BMNGOneImageLayer',
@@ -135,6 +136,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               BingAerialWithLabelsLayer,
               BingRoadsLayer,
               BingWMSLayer,
+              BlueMarbleLayer,
               BMNGLandsatLayer,
               BMNGLayer,
               BMNGOneImageLayer,
@@ -440,6 +442,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['BingAerialWithLabelsLayer'] = BingAerialWithLabelsLayer;
         WorldWind['BingRoadsLayer'] = BingRoadsLayer;
         WorldWind['BingWMSLayer'] = BingWMSLayer;
+        WorldWind['BlueMarbleLayer'] = BlueMarbleLayer;
         WorldWind['BMNGLandsatLayer'] = BMNGLandsatLayer;
         WorldWind['BMNGLayer'] = BMNGLayer;
         WorldWind['BMNGOneImageLayer'] = BMNGOneImageLayer;
