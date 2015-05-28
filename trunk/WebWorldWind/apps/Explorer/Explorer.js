@@ -26,6 +26,7 @@ define(['../../src/WorldWind',
                 {layer: new WorldWind.BMNGLayer(), enabled: true},
                 {layer: new WorldWind.BMNGLandsatLayer(), enabled: false},
                 {layer: new WorldWind.BingAerialWithLabelsLayer(null), enabled: true},
+                {layer: new WorldWind.OpenStreetMapImageLayer(null), enabled: false},
                 {layer: new WorldWind.CompassLayer(), enabled: true},
                 {layer: new WorldWind.ViewControlsLayer(this.wwd), enabled: true}
             ];
