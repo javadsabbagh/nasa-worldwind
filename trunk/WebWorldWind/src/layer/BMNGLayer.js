@@ -30,7 +30,7 @@ define([
          */
         var BMNGLayer = function (layerName) {
             TiledImageLayer.call(this,
-                Sector.FULL_SPHERE, new Location(45, 45), 5, "image/jpeg", layerName, 256, 256);
+                Sector.FULL_SPHERE, new Location(45, 45), 5, "image/jpeg", layerName || "BMNG256", 256, 256);
 
             this.displayName = "Blue Marble";
             this.pickEnabled = false;
