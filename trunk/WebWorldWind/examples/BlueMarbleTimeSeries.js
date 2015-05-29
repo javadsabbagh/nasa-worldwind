@@ -20,17 +20,9 @@ requirejs(['../src/WorldWind',
 
         var wwd = new WorldWind.WorldWindow("canvasOne");
 
-        // Use two layers to fade between.
-
-        var layerANumber = 0, layerBNumber = 1,
-            layerAOpacity = 1, layerBOpacity = 0;
-
-        var layerA = new WorldWind.BlueMarbleLayer(null, WorldWind.BlueMarbleLayer.availableTimes[layerANumber]);
-        var layerB = new WorldWind.BlueMarbleLayer(null, WorldWind.BlueMarbleLayer.availableTimes[layerBNumber]);
-        layerA.opacity = layerAOpacity;
-        layerB.opacity = layerBOpacity;
-        wwd.addLayer(layerA);
-        wwd.addLayer(layerB);
+        // Create the Blue Marble layer and add it to the World Window's layer list.
+        var blueMarbleLayer = new WorldWind.BlueMarbleLayer(null, WorldWind.BlueMarbleLayer.availableTimes[0]);
+        wwd.addLayer(blueMarbleLayer);
 
         // Create a compass and view controls.
         wwd.addLayer(new WorldWind.CompassLayer());
@@ -44,20 +36,11 @@ requirejs(['../src/WorldWind',
         // Create a coordinate controller to update the coordinate overlay elements.
         var coordinateController = new CoordinateController(wwd);
 
-        window.setInterval(function () {
-            layerB.opacity += 0.5;
-
-            if (layerB.opacity > 1) {
-                // Swap layer B to layer A and use a new layer B.
-                layerANumber = layerBNumber;
-                layerBNumber = (layerBNumber + 1) % WorldWind.BlueMarbleLayer.availableTimes.length;
-                layerA.opacity = 1;
-                layerB.opacity = 0;
-                layerA.time = WorldWind.BlueMarbleLayer.availableTimes[layerANumber];
-                layerB.time = WorldWind.BlueMarbleLayer.availableTimes[layerBNumber];
-            }
-
+        // Increment the Blue Marble layer's time at a specified frequency.
+        var currentIndex = 0;
+        window.setInterval(function (){
+            currentIndex = ++currentIndex % WorldWind.BlueMarbleLayer.availableTimes.length;
+            blueMarbleLayer.time = WorldWind.BlueMarbleLayer.availableTimes[currentIndex];
             wwd.redraw();
-
-        }, 100);
+        }, 200);
     });
