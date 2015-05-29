@@ -86,6 +86,8 @@ define([
             layer.opacity = this.opacity;
 
             layer.doRender(dc);
+
+            this.inCurrentFrame = layer.inCurrentFrame;
         };
 
         // Intentionally not documented.
