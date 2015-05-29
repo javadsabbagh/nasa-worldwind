@@ -134,7 +134,9 @@ define([
 
         // Intentionally not documented.
         SurfaceTileRenderer.prototype.endRendering = function (dc) {
-            dc.bindProgram(dc.currentGlContext, null);
+            var gl = dc.currentGlContext;
+            gl.bindTexture(WebGLRenderingContext.TEXTURE_2D, null);
+            dc.bindProgram(gl, null);
         };
 
         // Intentionally not documented.
