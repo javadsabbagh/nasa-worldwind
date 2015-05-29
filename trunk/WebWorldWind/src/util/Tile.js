@@ -280,7 +280,7 @@ define([
             var childList = cache ? cache.entryForKey(this.tileKey) : null;
             if (!childList) {
                 childList = this.subdivide(level, tileFactory);
-                if (childList) {
+                if (childList && cache) {
                     cache.putEntry(this.tileKey, childList, 4 * childList[0].size());
                 }
             }
