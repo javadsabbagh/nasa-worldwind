@@ -18,8 +18,8 @@ define([
     ],
     function (ArgumentError,
               FramebufferTile,
-              Location,
               LevelSet,
+              Location,
               Logger,
               MemoryCache,
               Sector,
@@ -69,10 +69,10 @@ define([
             this.currentTiles = [];
 
             // Internal. Intentionally not documented.
-            this.currentGSK = null;
+            this.currentTimestamp = null;
 
             // Internal. Intentionally not documented.
-            this.currentMVP = null;
+            this.currentGlobeStateKey = null;
 
             // Internal. Intentionally not documented.
             this.tileCache = new MemoryCache(500000, 400000);
@@ -97,32 +97,78 @@ define([
          */
         FramebufferTileController.prototype.selectTiles = function (dc, sector) {
             if (!sector) {
-                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "FramebufferTileController", "selectTiles",
-                    "missingSector"));
+                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "FramebufferTileController",
+                    "selectTiles", "missingSector"));
             }
 
+            // Assemble a set of global tiles appropriate for the draw context.
             this.assembleTiles(dc);
 
-            var selectedTiles = [];
+            // Collect the tiles that overlap the specified sector and mark them as selected.
+            var tiles = [];
             for (var i = 0, len = this.currentTiles.length; i < len; i++) {
                 var tile = this.currentTiles[i];
                 if (tile.sector.overlaps(sector)) {
-                    selectedTiles.push(tile);
+                    tile.selected = true;
+                    tiles.push(tile);
                 }
             }
 
-            return selectedTiles;
+            return tiles;
+        };
+
+        /**
+         * Draws this multi-resolution framebuffer on the terrain surface then clears the framebuffer. This has no
+         * effect if the framebuffer is unchanged since the last call to render.
+         * @param {DrawContext} dc The current draw context.
+         */
+        FramebufferTileController.prototype.render = function (dc) {
+            // Exit immediately if there are no framebuffer tiles. This can happen when there ar eno surface shapes in
+            // the scene, for example.
+            if (this.currentTiles.length == 0) {
+                return;
+            }
+
+            // Collect the tiles that have changed since the last call to render.
+            var tiles = [];
+            for (var i = 0, len = this.currentTiles.length; i < len; i++) {
+                var tile = this.currentTiles[i];
+                if (tile.selected) {
+                    tiles.push(tile);
+                }
+            }
+
+            // Draw the changed tiles on the terrain surface.
+            dc.surfaceTileRenderer.renderTiles(dc, tiles, 1);
+
+            // Clear the changed tile's WebGL framebuffers.
+            var gl = dc.currentGlContext,
+                framebuffer = dc.currentFramebuffer;
+            try {
+                gl.clearColor(0, 0, 0, 0);
+                for (i = 0, len = tiles.length; i < len; i++) {
+                    tile = tiles[i];
+                    tile.selected = false;
+                    tile.bindFramebuffer(dc);
+                    gl.clear(WebGLRenderingContext.COLOR_BUFFER_BIT);
+                }
+            } finally {
+                dc.bindFramebuffer(framebuffer);
+            }
         };
 
         // Internal. Intentionally not documented.
         FramebufferTileController.prototype.assembleTiles = function (dc) {
-            var gsk = dc.globeStateKey,
-                mvp = dc.navigatorState.modelviewProjection;
+            var timestamp = dc.timestamp,
+                globeStateKey = dc.globeStateKey;
 
-            if (gsk != this.currentGSK || !mvp.equals(this.currentMVP)) {
+            if (this.currentTimestamp != timestamp ||
+                this.currentGlobeStateKey != globeStateKey) {
+
                 this.doAssembleTiles(dc);
-                this.currentGSK = gsk;
-                this.currentMVP = mvp;
+
+                this.currentTimestamp = timestamp;
+                this.currentGlobeStateKey = globeStateKey;
             }
         };
 
@@ -140,7 +186,6 @@ define([
 
             for (var i = 0, len = this.topLevelTiles.length; i < len; i++) {
                 var tile = this.topLevelTiles[i];
-
                 tile.update(dc);
 
                 if (this.isTileVisible(dc, tile)) {
@@ -167,12 +212,9 @@ define([
                 return;
             }
 
-            var nextLevel = this.levels.level(tile.level.levelNumber + 1),
-                subTiles = tile.subdivideToCache(nextLevel, this, this.tileCache);
-
+            var subTiles = tile.subdivideToCache(tile.level.nextLevel(), this, this.tileCache);
             for (var i = 0, len = subTiles.length; i < len; i++) {
                 var child = subTiles[i];
-
                 child.update(dc);
 
                 if (this.isTileVisible(dc, child)) {
@@ -190,6 +232,10 @@ define([
         FramebufferTileController.prototype.isTileVisible = function (dc, tile) {
             if (dc.globe.projectionLimits && !tile.sector.overlaps(dc.globe.projectionLimits)) {
                 return false;
+            }
+
+            if (dc.pickingMode) {
+                return tile.extent.intersectsFrustum(dc.pickFrustum);
             }
 
             return tile.extent.intersectsFrustum(dc.navigatorState.frustumInModelCoordinates);
