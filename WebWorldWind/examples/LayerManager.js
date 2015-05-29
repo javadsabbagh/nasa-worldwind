@@ -33,6 +33,10 @@ define(function () {
         $("#layerList").find("button").on("click", function (e) {
             thisExplorer.onLayerClick($(this));
         });
+        //
+        //this.wwd.redrawCallbacks.push(function (worldWindow) {
+        //    thisExplorer.updateVisibilityState(worldWindow);
+        //});
     };
 
     LayerManager.prototype.onProjectionClick = function (event) {
@@ -111,6 +115,26 @@ define(function () {
             this.wwd.redraw();
         }
     };
+    //
+    //LayerManager.prototype.updateVisibilityState = function (worldWindow) {
+    //    var layerButtons = $("#layerList").find("button"),
+    //        layers = worldWindow.layers;
+    //
+    //    for (var i = 0; i < layers.length; i++) {
+    //        var layer = layers[i];
+    //        for (var j = 0; j < layerButtons.length; j++) {
+    //            var button = layerButtons[j];
+    //
+    //            if (layer.displayName === button.innerText) {
+    //                if (layer.inCurrentFrame) {
+    //                    button.innerHTML = "<em>" + layer.displayName + "</em>";
+    //                } else {
+    //                    button.innerHTML = layer.displayName;
+    //                }
+    //            }
+    //        }
+    //    }
+    //};
 
     LayerManager.prototype.createProjectionList = function () {
         var projectionNames = [
