@@ -10,11 +10,15 @@ define([
         '../error/ArgumentError',
         '../render/FramebufferTexture',
         '../util/Logger',
+        '../geom/Matrix',
+        '../geom/Rectangle',
         '../render/TextureTile'
     ],
     function (ArgumentError,
               FramebufferTexture,
               Logger,
+              Matrix,
+              Rectangle,
               TextureTile) {
         "use strict";
 
@@ -48,6 +52,21 @@ define([
 
             TextureTile.call(this, sector, level, row, column); // args are checked in the superclass' constructor
 
+            /**
+             * This tile's model-view projection matrix. This matrix transforms points from geographic coordinates to
+             * clip coordinates appropriate for this tile's WebGL framebuffer.
+             * @type {Matrix}
+             * @readonly
+             */
+            this.modelviewProjection = Matrix.fromIdentity();
+            this.modelviewProjection.setToScreenProjection(new Rectangle(0, 0, level.tileWidth, level.tileHeight));
+            this.modelviewProjection.multiplyByScale(level.tileWidth / sector.deltaLongitude(),
+                level.tileHeight / sector.deltaLatitude(), 1);
+            this.modelviewProjection.multiplyByTranslation(-sector.minLongitude, -sector.minLatitude, 0);
+
+            // Internal. Intentionally not documented.
+            this.textureTransform = Matrix.fromIdentity().setToUnitYFlip();
+
             // Assign the cacheKey as the gpuCacheKey (inherited from TextureTile).
             this.gpuCacheKey = cacheKey;
         };
@@ -55,8 +74,8 @@ define([
         FramebufferTile.prototype = Object.create(TextureTile.prototype);
 
         /**
-         * Causes this tile's off-screen framebuffer to be active as the current WebGL framebuffer. WebGL operations
-         * that affect the framebuffer now affect this tile's framebuffer, rather than the default WebGL framebuffer.
+         * Causes this tile's off-screen framebuffer as the current WebGL framebuffer. WebGL operations that affect the
+         * framebuffer now affect this tile's framebuffer, rather than the default WebGL framebuffer.
          * Color fragments are written to this tile's WebGL texture, which can be made active by calling
          * [SurfaceTile.bind]{@link SurfaceTile#bind}.
          *
@@ -75,10 +94,19 @@ define([
 
         // Internal. Intentionally not documented.
         FramebufferTile.prototype.createFramebuffer = function (dc) {
-            var framebuffer = new FramebufferTexture(dc, this.tileWidth, this.tileHeight, false);
+            var framebuffer = new FramebufferTexture(dc.currentGlContext, this.tileWidth, this.tileHeight, false);
             dc.gpuResourceCache.putResource(this.gpuCacheKey, framebuffer, framebuffer.size);
 
             return framebuffer;
+        };
+
+        /**
+         * Applies the appropriate texture transform to display this tile's WebGL texture.
+         * @param {DrawContext} dc The current draw context.
+         * @param {Matrix} matrix The matrix to apply the transform to.
+         */
+        FramebufferTile.prototype.applyInternalTransform = function (dc, matrix) {
+            matrix.multiplyMatrix(this.textureTransform);
         };
 
         return FramebufferTile;

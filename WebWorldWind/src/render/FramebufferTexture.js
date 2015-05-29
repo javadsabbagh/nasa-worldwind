@@ -22,7 +22,7 @@ define([
          * @classdesc Represents an off-screen WebGL framebuffer. The framebuffer has color buffer stored in a 32
          * bit RGBA texture, and has an optional depth buffer of at least 16 bits. Applications typically do not
          * interact with this class.
-         * @param {DrawContext} dc The current draw context.
+         * @param {WebGLRenderingContext} gl The current WebGL rendering context.
          * @param {Number} width The width of the framebuffer, in pixels.
          * @param {Number} height The height of the framebuffer, in pixels.
          * @param {Boolean} depth true to configure the framebuffer with a depth buffer of at least 16 bits, false to
@@ -30,10 +30,10 @@ define([
          * @throws {ArgumentError} If the specified draw context is null or undefined, or if the width or height is less
          * than zero.
          */
-        var FramebufferTexture = function (dc, width, height, depth) {
-            if (!dc) {
+        var FramebufferTexture = function (gl, width, height, depth) {
+            if (!gl) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "FramebufferTexture", "constructor",
-                    "missingDc"));
+                    "missingGlContext"));
             }
 
             if (width < 0 || height < 0) {
@@ -68,8 +68,6 @@ define([
              * @readonly
              */
             this.size = (width * height * 4) + (depth ? width * height * 2 : 0);
-
-            var gl = dc.currentGlContext;
 
             // Internal. Intentionally not documented. Create this framebuffer's WebGL framebuffer object.
             this.framebuffer = gl.createFramebuffer();
