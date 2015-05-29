@@ -45,16 +45,12 @@
     </li>
     <li>
         Protect WebGL state within a rendering unit, such as a layer, by bracketing state changes within exception
-        handlers. The goal is to isolate any OpenGL state changes to the rendering unit, both when the unit succeeds and
+        handlers. The goal is to isolate any WebGL state changes to the rendering unit, both when the unit succeeds and
         when it fails.
     </li>
     <li>
         A rendering unit assumes that the WebGL state is entirely at its default value when the rendering unit is given
         control. The full WebGL state must be restored before the rendering unit releases control.
-    </li>
-    <li>
-        Within a rendering pass Web World Wind does not access the disk or the network. Disk and network access is done
-        asynchronously.
     </li>
     <li>
         Web World Wind is designed such that the right things just happen once things are set up. The effect of
@@ -75,18 +71,11 @@
     </li>
     <li>
         The system is designed such that memory allocation and usage is minimized by both the system and its
-        applications. To that end most methods that compute and return a value of type other than Number accept a
+        applications. To that end many methods that compute and return a value of type other than Number accept a
         "result" argument in which to return the computed value. When that argument exists, validate that it is non-null
-        and defined.
+        and defined. The result argument is typically uses as the return value of the function.
     </li>
 </ul>
-
-<h2>Offline Mode</h2>
-
-<p>World Wind's use of the network can be disabled by the application or the user or the network may simply not be
-    available. World Wind operates at full performance in this condition using the data locally available. Prior to
-    attempting retrieval of a network resource -- anything addressed by a URL -- World Wind checks the offline-mode
-    setting and does not attempt retrieval if the value is true.</p>
 
 <h2>Exceptions</h2>
 <ul>
@@ -103,7 +92,7 @@
         Ensure all exception messages are descriptive and helpful, but keep them short.
     </li>
     <li>
-        Functions validate their arguments and throw the appropriate exception, typically ArgumentError,
+        "Public" functions validate their arguments and throw the appropriate exception, typically ArgumentError,
         and identify the exception message the parameter name and the problem -- null, out of range, etc. Validation
         is a necessary part of the implementation; code should not be checked in without it.
     </li>
@@ -168,7 +157,7 @@
     </li>
     <li>
         Run JSDoc and review the results prior to checking in any code. It's a convenient check on documentation and
-        typing.
+        typing. Set up Grunt (GruntSetup.txt in the source repository) and use the jsdoc target.
     </li>
     <li>
         Document all functions and properties. Mark those meant for internal use only as such.
