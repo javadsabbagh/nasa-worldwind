@@ -299,7 +299,7 @@ define([
                     image = new Image(),
                     imagePath = tile.imagePath,
                     cache = dc.gpuResourceCache,
-                    gl = dc.currentGlContext,
+                    canvas = dc.currentGlContext.canvas,
                     layer = this;
 
                 if (!url) {
@@ -321,7 +321,7 @@ define([
                         // Send an event to request a redraw.
                         var e = document.createEvent('Event');
                         e.initEvent(WorldWind.REDRAW_EVENT_TYPE, true, true);
-                        dc.canvas.dispatchEvent(e);
+                        canvas.dispatchEvent(e);
                     }
                 };
 
