@@ -67,31 +67,31 @@ define([
          * @constructor
          * @classdesc Provides current state during rendering. The current draw context is passed to most rendering
          * methods in order to make those methods aware of current state.
+         * @param {WebGLRenderingContext} gl The WebGL context this draw context is associated with.
+         * @throws {ArgumentError} If the specified WebGL context is null or undefined.
          */
-        var DrawContext = function () {
+        var DrawContext = function (gl) {
+            if (!gl) {
+                throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "Texture", "constructor",
+                    "missingGlContext"));
+            }
 
             /**
              * The current WebGL context.
              * @type {WebGLRenderingContext}
              */
-            this.currentGlContext = null;
+            this.currentGlContext = gl;
 
             /**
-             * The HTML canvas that hosts this draw context's WebGL context.
-             * @type {null}
-             */
-            this.canvas = null;
-
-            /**
-             * A canvas for creating texture maps.
+             * A 2D canvas for creating texture maps.
              * @type {HTMLElement}
              */
-            this.canvas2D = null;
+            this.canvas2D = document.createElement("canvas");
 
             /**
              * A 2D context for this draw context's [canvas property]{@link DrawContext#canvas}.
              */
-            this.ctx2D = null;
+            this.ctx2D = this.canvas2D.getContext("2d");
 
             /**
              * The current clear color.
@@ -104,7 +104,8 @@ define([
              * The GPU resource cache, which tracks WebGL resources.
              * @type {GpuResourceCache}
              */
-            this.gpuResourceCache = null;
+            this.gpuResourceCache = new GpuResourceCache(WorldWind.configuration.gpuCacheSize,
+                0.8 * WorldWind.configuration.gpuCacheSize);
 
             /**
              * The surface-tile-renderer to use for drawing surface tiles.
@@ -113,10 +114,10 @@ define([
             this.surfaceTileRenderer = new SurfaceTileRenderer();
 
             /**
-             * The current surface shape tile builder used to create and draw surface shapes.
+             * The surface shape tile builder used to create and draw surface shapes.
              * @type {SurfaceShapeTileBuilder}
              */
-            this.surfaceShapeTileBuilder = null;
+            this.surfaceShapeTileBuilder = new SurfaceShapeTileBuilder();
 
             /**
              * Provides access to a multi-resolution WebGL framebuffer arranged as adjacent tiles in a pyramid. Surface
