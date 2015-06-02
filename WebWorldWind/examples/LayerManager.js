@@ -33,6 +33,17 @@ define(function () {
         $("#layerList").find("button").on("click", function (e) {
             thisExplorer.onLayerClick($(this));
         });
+
+        $("#searchBox").find("button").on("click", function (e) {
+            thisExplorer.onSearchButton(e);
+        });
+
+        this.geocoder = new WorldWind.NominatimGeocoder();
+        this.goToAnimator = new WorldWind.GoToAnimator(this.wwd);
+        $("#searchText").on("keypress", function (e) {
+            thisExplorer.onSearchTextKeyPress($(this), e);
+        });
+
         //
         //this.wwd.redrawCallbacks.push(function (worldWindow) {
         //    thisExplorer.updateVisibilityState(worldWindow);
@@ -161,6 +172,43 @@ define(function () {
 
         ulItem = $('</ul>');
         projectionDropdown.append(ulItem);
+    };
+
+    LayerManager.prototype.onSearchButton = function (event) {
+        this.performSearch($("#searchText")[0].value)
+    };
+
+    LayerManager.prototype.onSearchTextKeyPress = function (searchInput, event) {
+        if (event.keyCode === 13) {
+            searchInput.blur();
+            this.performSearch($("#searchText")[0].value)
+        }
+    };
+
+    LayerManager.prototype.performSearch = function (queryString) {
+        if (queryString) {
+            var thisLayerManager = this,
+                latitude, longitude;
+
+            if (queryString.match(WorldWind.WWUtil.latLonRegex)) {
+                var tokens = queryString.split(",");
+                latitude = parseFloat(tokens[0]);
+                longitude = parseFloat(tokens[1]);
+                thisLayerManager.goToAnimator.goTo(new WorldWind.Location(latitude, longitude));
+            } else {
+                this.geocoder.lookup(queryString, function (geocoder, result) {
+                    if (result.length > 0) {
+                        latitude = parseFloat(result[0].lat);
+                        longitude = parseFloat(result[0].lon);
+
+                        WorldWind.Logger.log(
+                            WorldWind.Logger.LEVEL_INFO, queryString + ": " + latitude + ", " + longitude);
+
+                        thisLayerManager.goToAnimator.goTo(new WorldWind.Location(latitude, longitude));
+                    }
+                });
+            }
+        }
     };
 
     return LayerManager;
