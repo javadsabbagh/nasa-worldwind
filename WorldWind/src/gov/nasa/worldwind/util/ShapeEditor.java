@@ -2001,7 +2001,9 @@ public class ShapeEditor implements SelectListener
         {
             Vec4 delta = this.computeControlPointDelta(this.getPreviousPosition(), terrainPosition);
             Vec4 vMarker = markerPoint.subtract3(centerPoint).normalize3();
-            orbit.setWidth(width + delta.dot3(vMarker));
+            double newWidth = width + delta.dot3(vMarker);
+            if (newWidth > 0)
+                orbit.setWidth(width + delta.dot3(vMarker));
         }
         else if (controlPoint.getPurpose().equals(ROTATION))
         {
