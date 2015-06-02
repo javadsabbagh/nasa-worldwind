@@ -79,7 +79,7 @@ define([
                 terrainTile;
 
             try {
-                program = dc.findAndBindProgram(gl, BasicProgram);
+                program = dc.findAndBindProgram(BasicProgram);
                 tessellator.beginRendering(dc);
 
                 for (var i = 0, len = surfaceGeometry.length; i < len; i++) {
@@ -94,7 +94,7 @@ define([
 
             } finally {
                 tessellator.endRendering(dc);
-                dc.bindProgram(gl, null);
+                dc.bindProgram(null);
             }
         };
 

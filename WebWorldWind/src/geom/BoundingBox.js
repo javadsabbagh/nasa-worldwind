@@ -474,7 +474,7 @@ define([
         BoundingBox.prototype.render = function (dc) {
             var gl = dc.currentGlContext,
                 matrix = BoundingBox.scratchMatrix,
-                program = dc.findAndBindProgram(gl, BasicProgram);
+                program = dc.findAndBindProgram(BasicProgram);
 
             try {
                 // Setup to transform unit cube coordinates to this bounding box's local coordinates, as viewed by the
@@ -508,7 +508,7 @@ define([
                 gl.enable(WebGLRenderingContext.CULL_FACE);
                 gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, null);
                 gl.bindBuffer(WebGLRenderingContext.ELEMENT_ARRAY_BUFFER, null);
-                dc.bindProgram(gl, null);
+                dc.bindProgram(null);
             }
         };
 
