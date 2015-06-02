@@ -61,12 +61,10 @@ define([
 
             var thisWindow = this;
             function handleContextLost(event) {
+                // Inform WebGL that we handle context restoration, enabling the context restored event to be delivered.
                 event.preventDefault();
-                thisWindow.drawContext.gpuResourceCache.clear();
-
-                if (thisWindow.pickingFrameBuffer) {
-                    thisWindow.pickingFrameBuffer = null;
-                }
+                // Notify the draw context that the WebGL rendering context has been lost.
+                thisWindow.drawContext.contextLost();
             }
 
             function handleContextRestored(event) {
@@ -143,9 +141,6 @@ define([
 
             // Internal. Intentionally not documented.
             this.drawContext = new DrawContext(gl);
-
-            // Internal. Intentionally not documented.
-            this.pickingFrameBuffer = null;
 
             // Internal. Intentionally not documented.
             this.frameRequested = false;
@@ -438,15 +433,10 @@ define([
         WorldWindow.prototype.drawFrame = function () {
             this.drawContext.frameStatistics.beginFrame();
 
-            var gl = this.drawContext.currentGlContext;
             this.viewport = new Rectangle(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
 
-            if (!this.pickingFrameBuffer) {
-                this.createPickBuffer(gl);
-            }
-
             if (this.drawContext.pickingMode) {
-                gl.bindFramebuffer(WebGLRenderingContext.FRAMEBUFFER, this.pickingFrameBuffer);
+                this.drawContext.bindFramebuffer(this.drawContext.pickFramebuffer());
             }
 
             try {
@@ -459,7 +449,7 @@ define([
             } finally {
                 this.endFrame();
                 if (this.drawContext.pickingMode) {
-                    gl.bindFramebuffer(WebGLRenderingContext.FRAMEBUFFER, null);
+                    this.drawContext.bindFramebuffer(null);
                 }
                 this.drawContext.frameStatistics.endFrame();
             }
@@ -768,39 +758,6 @@ define([
 
             dc.orderedRenderingMode = false;
             dc.frameStatistics.orderedRenderingTime = Date.now() - beginTime;
-        };
-
-        // Internal function. Intentionally not documented.
-        WorldWindow.prototype.createPickBuffer = function (gl) {
-            var pickingTexture = gl.createTexture();
-            gl.bindTexture(WebGLRenderingContext.TEXTURE_2D, pickingTexture);
-            gl.texImage2D(WebGLRenderingContext.TEXTURE_2D, 0, WebGLRenderingContext.RGBA,
-                this.viewport.width, this.viewport.height, 0, WebGLRenderingContext.RGBA,
-                WebGLRenderingContext.UNSIGNED_BYTE, null);
-            gl.texParameteri(WebGLRenderingContext.TEXTURE_2D, WebGLRenderingContext.TEXTURE_MIN_FILTER,
-                WebGLRenderingContext.LINEAR);
-
-            var pickingDepthBuffer = gl.createRenderbuffer();
-            gl.bindRenderbuffer(WebGLRenderingContext.RENDERBUFFER, pickingDepthBuffer);
-            gl.renderbufferStorage(WebGLRenderingContext.RENDERBUFFER, WebGLRenderingContext.DEPTH_COMPONENT16,
-                this.viewport.width, this.viewport.height);
-
-            this.pickingFrameBuffer = gl.createFramebuffer();
-            gl.bindFramebuffer(WebGLRenderingContext.FRAMEBUFFER, this.pickingFrameBuffer);
-            gl.framebufferTexture2D(WebGLRenderingContext.FRAMEBUFFER, WebGLRenderingContext.COLOR_ATTACHMENT0,
-                WebGLRenderingContext.TEXTURE_2D, pickingTexture, 0);
-            gl.framebufferRenderbuffer(WebGLRenderingContext.FRAMEBUFFER, WebGLRenderingContext.DEPTH_ATTACHMENT,
-                WebGLRenderingContext.RENDERBUFFER, pickingDepthBuffer);
-
-            var e = gl.checkFramebufferStatus(WebGLRenderingContext.FRAMEBUFFER);
-            if (e != WebGLRenderingContext.FRAMEBUFFER_COMPLETE) {
-                Logger.logMessage(Logger.LEVEL_WARNING, "WorldWindow", "createPickBuffer",
-                    "Error creating pick buffer: " + gl.checkFramebufferStatus());
-            }
-
-            gl.bindTexture(WebGLRenderingContext.TEXTURE_2D, null);
-            gl.bindRenderbuffer(WebGLRenderingContext.RENDERBUFFER, null);
-            gl.bindFramebuffer(WebGLRenderingContext.FRAMEBUFFER, null);
         };
 
         // Internal function. Intentionally not documented.
