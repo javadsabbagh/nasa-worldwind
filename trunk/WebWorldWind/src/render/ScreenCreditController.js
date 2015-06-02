@@ -159,7 +159,7 @@ define([
             var gl = dc.currentGlContext,
                 program;
 
-            dc.findAndBindProgram(gl, BasicTextureProgram);
+            dc.findAndBindProgram(BasicTextureProgram);
 
             // Configure GL to use the draw context's unit quad VBOs for both model coordinates and texture coordinates.
             // Most browsers can share the same buffer for vertex and texture coordinates, but Internet Explorer requires
@@ -191,7 +191,7 @@ define([
             gl.disableVertexAttribArray(program.vertexTexCoordLocation);
 
             // Clear GL bindings.
-            dc.bindProgram(gl, null);
+            dc.bindProgram(null);
             gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, null);
             gl.bindTexture(WebGLRenderingContext.TEXTURE_2D, null);
 

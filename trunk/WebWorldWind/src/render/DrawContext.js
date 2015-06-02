@@ -345,13 +345,13 @@ define([
         };
 
         /**
-         * Binds a specified GPU program.
-         * This function also makes the program the current program.
-         * @param {WebGLRenderingContext} gl The current WebGL drawing context.
+         * Binds a specified GPU program. This function also makes the program the current program.
          * @param {GpuProgram} program The program to bind. May be null or undefined, in which case the currently
          * bound program is unbound.
          */
-        DrawContext.prototype.bindProgram = function (gl, program) {
+        DrawContext.prototype.bindProgram = function (program) {
+            var gl = this.currentGlContext;
+
             if (program) {
                 program.bind(gl);
             } else {
@@ -364,25 +364,25 @@ define([
         /**
          * Binds a potentially cached GPU program, creating and caching it if it isn't already cached.
          * This function also makes the program the current program.
-         * @param {WebGLRenderingContext} gl The current WebGL drawing context.
          * @param {function} programConstructor The constructor to use to create the program.
          * @returns {GpuProgram} The bound program.
          * @throws {ArgumentError} If the specified constructor is null or undefined.
          */
-        DrawContext.prototype.findAndBindProgram = function (gl, programConstructor) {
+        DrawContext.prototype.findAndBindProgram = function (programConstructor) {
             if (!programConstructor) {
                 throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "DrawContext", "bindProgramForKey",
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "DrawContext", "findAndBindProgram",
                         "The specified program constructor is null or undefined."));
             }
 
-            var program = this.gpuResourceCache.resourceForKey(programConstructor.key);
+            var gl = this.currentGlContext,
+                program = this.gpuResourceCache.resourceForKey(programConstructor.key);
             if (program) {
-                this.bindProgram(gl, program);
+                this.bindProgram(program);
             } else {
                 try {
                     program = new programConstructor(gl);
-                    this.bindProgram(gl, program);
+                    this.bindProgram(program);
                     this.gpuResourceCache.putResource(programConstructor.key, program, program.size);
                 } catch (e) {
                     Logger.log(Logger.LEVEL_SEVERE, "Error attempting to create GPU program.")

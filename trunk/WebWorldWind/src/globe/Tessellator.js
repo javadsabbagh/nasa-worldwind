@@ -574,7 +574,7 @@ define([
             var gl = dc.currentGlContext;
 
             try {
-                dc.findAndBindProgram(gl, BasicProgram);
+                dc.findAndBindProgram(BasicProgram);
                 dc.currentProgram.loadColor(gl, color);
                 this.beginRendering(dc);
 
@@ -586,7 +586,7 @@ define([
                 }
             } finally {
                 this.endRendering(dc);
-                dc.bindProgram(gl, null);
+                dc.bindProgram(null);
             }
         };
 
