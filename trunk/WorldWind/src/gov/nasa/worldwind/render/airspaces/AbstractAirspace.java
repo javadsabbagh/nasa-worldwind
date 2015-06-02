@@ -269,7 +269,8 @@ public abstract class AbstractAirspace extends WWObjectImpl
     @Override
     public void setHighlightAttributes(ShapeAttributes highlightAttributes)
     {
-        this.setHighlightAttributes(new BasicAirspaceAttributes(highlightAttributes));
+        this.setHighlightAttributes(
+            highlightAttributes != null ? new BasicAirspaceAttributes(highlightAttributes) : null);
     }
 
     @Override
