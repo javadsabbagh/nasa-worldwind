@@ -40,6 +40,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './gesture/GestureRecognizer',
         './globe/Globe',
         './globe/Globe2D',
+        './util/GoToAnimator',
         './shaders/GpuProgram',
         './cache/GpuResourceCache',
         './shaders/GpuShader',
@@ -61,6 +62,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './layer/MercatorTiledImageLayer',
         './navigate/Navigator',
         './navigate/NavigatorState',
+        './util/NominatimGeocoder',
         './error/NotYetImplementedError',
         './util/Offset',
         './layer/OpenStreetMapImageLayer',
@@ -161,6 +163,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               GestureRecognizer,
               Globe,
               Globe2D,
+              GoToAnimator,
               GpuProgram,
               GpuResourceCache,
               GpuShader,
@@ -182,6 +185,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               MercatorTiledImageLayer,
               Navigator,
               NavigatorState,
+              NominatimGeocoder,
               NotYetImplementedError,
               Offset,
               OpenStreetMapImageLayer,
@@ -467,6 +471,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['GestureRecognizer'] = GestureRecognizer;
         WorldWind['Globe'] = Globe;
         WorldWind['Globe2D'] = Globe2D;
+        WorldWind['GoToAnimator'] = GoToAnimator;
         WorldWind['GpuProgram'] = GpuProgram;
         WorldWind['GpuResourceCache'] = GpuResourceCache;
         WorldWind['GpuShader'] = GpuShader;
@@ -488,6 +493,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['MercatorTiledImageLayer'] = MercatorTiledImageLayer;
         WorldWind['Navigator'] = Navigator;
         WorldWind['NavigatorState'] = NavigatorState;
+        WorldWind['NominatimGeocoder'] = NominatimGeocoder;
         WorldWind['NotYetImplementedError'] = NotYetImplementedError;
         WorldWind['Offset'] = Offset;
         WorldWind['OpenStreetMapImageLayer'] = OpenStreetMapImageLayer;

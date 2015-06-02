@@ -22,6 +22,9 @@ define([
          * @exports WWUtil
          */
         var WWUtil = {
+            // A regular expression that matches latitude followed by a comma and possible white space followed by
+            // longitude. Latitude and longitude ranges are not considered.
+            latLonRegex: /^(\-?\d+(\.\d+)?),\s*(\-?\d+(\.\d+)?)$/,
 
             /**
              * Returns the suffix for a specified mime type.
