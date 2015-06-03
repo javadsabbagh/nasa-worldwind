@@ -52,6 +52,20 @@ define([
              * @default 3000
              */
             this.travelTime = 3000;
+
+            /**
+             * Indicates whether the current or most recent animation has been cancelled. Use the cancel() function
+             * to cancel an animation.
+             * @type {Boolean}
+             * @default false
+             * @readonly
+             */
+            this.cancelled = false;
+        };
+
+        // Stop the current animation.
+        GoToAnimator.prototype.cancel = function () {
+            this.cancelled = true;
         };
 
         /**
@@ -59,13 +73,20 @@ define([
          * @param {Location | Position} position The location or position to move the navigator to. If this
          * argument contains an "altitude" property, as {@link Position} does, the end point of the navigation is
          * at the specified altitude. Otherwise the end point as at the current altitude of the navigator.
+         * @param {Function} completionCallback If not null or undefined, specifies a function to call when the
+         * animation completes. The completion callback is called with a single argument, this animator.
          * @throws {ArgumentError} If the specified location or position is null or undefined.
          */
-        GoToAnimator.prototype.goTo = function (position) {
+        GoToAnimator.prototype.goTo = function (position, completionCallback) {
             if (!position) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "GoToAnimator", "goTo",
                     "missingPosition"));
             }
+
+            this.completionCallback = completionCallback;
+
+            // Reset the cancellation flag.
+            this.cancelled = false;
 
             // Capture the target position and determine its altitude.
             this.targetPosition = new Position(position.latitude, position.longitude,
@@ -125,8 +146,17 @@ define([
             // Set up the animation timer.
             var thisAnimator = this;
             var timerCallback = function () {
+                if (thisAnimator.cancelled) {
+                    if (thisAnimator.completionCallback) {
+                        thisAnimator.completionCallback(thisAnimator);
+                    }
+                    return;
+                }
+
                 if (thisAnimator.update()) {
                     setTimeout(timerCallback, thisAnimator.animationFrequency);
+                } else if (thisAnimator.completionCallback) {
+                    thisAnimator.completionCallback(thisAnimator);
                 }
             };
             setTimeout(timerCallback, this.animationFrequency); // invoke it the first time
@@ -135,6 +165,7 @@ define([
         // Intentionally not documented.
         GoToAnimator.prototype.update = function () {
             // This is the timer callback function. It invokes the range animator and the pan animator.
+
             var currentPosition = new Position(
                 this.wwd.navigator.lookAtLocation.latitude,
                 this.wwd.navigator.lookAtLocation.longitude,
