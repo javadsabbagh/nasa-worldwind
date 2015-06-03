@@ -175,6 +175,13 @@ define([
             this.timestamp = Date.now();
 
             /**
+             * Indicates whether a redraw has been requested during the current frame. When true, this causes the World
+             * Window associated with this draw context to redraw after the current frame.
+             * @type {Boolean}
+             */
+            this.redrawRequested = false;
+
+            /**
              * The globe being rendered.
              * @type {Globe}
              */
@@ -237,7 +244,7 @@ define([
 
             /**
              * Indicates whether the frame is being drawn for picking.
-             * @type {boolean}
+             * @type {Boolean}
              */
             this.pickingMode = false;
 
@@ -279,14 +286,18 @@ define([
             this.pickRectangle = null;
 
             /**
+             * The off-screen WebGL framebuffer used during picking.
+             * @type {FramebufferTexture}
+             * @readonly
+             */
+            this.pickFramebuffer = null;
+
+            /**
              * The current pick frustum, created anew each picking frame.
              * @type {Frustum}
              * @readonly
              */
             this.pickFrustum = null;
-
-            // Internal. The WebGL framebuffer used during picking.
-            this.pickFBO = null;
 
             // Internal. Keeps track of the current pick color.
             this.pickColor = new Color(0, 0, 0, 1);
@@ -322,6 +333,7 @@ define([
                 ++this.timestamp;
 
             // Reset properties set by the World Window every frame.
+            this.redrawRequested = false;
             this.globe = null;
             this.globeStateKey = null;
             this.layers = null;
@@ -362,7 +374,7 @@ define([
         DrawContext.prototype.contextLost = function () {
             // Remove all cached WebGL resources.
             this.gpuResourceCache.clear();
-            this.pickFBO = null;
+            this.pickFramebuffer = null;
             // Reset properties tracking the current WebGL state.
             this.currentFramebuffer = null;
             this.currentProgram = null;
@@ -643,6 +655,25 @@ define([
         };
 
         /**
+         * Creates an off-screen WebGL framebuffer for use during picking and stores it in this draw context. The
+         * framebuffer width and height match the WebGL rendering context's drawingBufferWidth and drawingBufferHeight.
+         */
+        DrawContext.prototype.makePickFramebuffer = function () {
+            var gl = this.currentGlContext,
+                width = gl.drawingBufferWidth,
+                height = gl.drawingBufferHeight;
+
+            if (!this.pickFramebuffer ||
+                this.pickFramebuffer.width != width ||
+                this.pickFramebuffer.height != height) {
+
+                this.pickFramebuffer = new FramebufferTexture(gl, width, height, true); // enable depth buffering
+            }
+
+            return this.pickFramebuffer;
+        };
+
+        /**
          * Creates a pick frustum for the current pick point and stores it in this draw context. If this context's
          * pick rectangle is null or undefined then a pick rectangle is also computed and assigned to this context.
          * If the existing pick rectangle extends beyond the viewport then it is truncated by this method to fit
@@ -775,25 +806,6 @@ define([
             this.pickFrustum = new Frustum(l, r, b, t, n, f);
 
             return true;
-        };
-
-        /**
-         * Returns an off-screen WebGL framebuffer for use during picking. The framebuffer's width and height matches
-         * the WebGL rendering context's drawingBufferWidth and drawingBufferHeight.
-         */
-        DrawContext.prototype.pickFramebuffer = function () {
-            var gl = this.currentGlContext,
-                width = gl.drawingBufferWidth,
-                height = gl.drawingBufferHeight;
-
-            if (!this.pickFBO ||
-                this.pickFBO.width != width ||
-                this.pickFBO.height != height) {
-
-                this.pickFBO = new FramebufferTexture(gl, width, height, true); // enable depth buffering
-            }
-
-            return this.pickFBO;
         };
 
         /**
