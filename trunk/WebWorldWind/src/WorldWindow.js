@@ -405,6 +405,7 @@ define([
 
         // Internal function. Intentionally not documented.
         WorldWindow.prototype.handleContextLost = function (event) {
+            Logger.log(Logger.LEVEL_INFO, "WebGL context event: " + event.statusMessage);
             // Inform WebGL that we handle context restoration, enabling the context restored event to be delivered.
             event.preventDefault();
             // Notify the draw context that the WebGL rendering context has been lost.
@@ -415,6 +416,9 @@ define([
 
         // Internal function. Intentionally not documented.
         WorldWindow.prototype.handleContextRestored = function (event) {
+            Logger.log(Logger.LEVEL_INFO, "WebGL context event: " + event.statusMessage);
+            // Notify the draw context that the WebGL rendering context has been restored.
+            this.drawContext.contextRestored();
             // Resume the rendering animation frame loop until the WebGL context is lost.
             this.redraw();
             this.animationFrameLoop();
