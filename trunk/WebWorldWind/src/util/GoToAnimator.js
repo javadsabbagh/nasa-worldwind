@@ -112,15 +112,16 @@ define([
                     this.targetPosition.latitude, this.targetPosition.longitude, new Vec3(0, 0, 0));
             this.maxAltitude = pA.distanceTo(pB);
 
-            // Determine an approximate viewport size in meters in order to determine whether we actually change
+            // Determine an approximate viewport size in radians in order to determine whether we actually change
             // the range as we pan to the new location. We don't want to change the range if the distance between
             // the start and target positions is small relative to the current viewport.
             var viewportSize = this.wwd.navigator.currentState().pixelSizeAtDistance(this.startPosition.altitude)
                 * this.wwd.canvas.clientWidth / this.wwd.globe.equatorialRadius;
 
-            if (panDistance <= (2 * viewportSize)) {
-                // Start and target positions are close, so don't back out.
-                animationDuration /= 2; // reduce the travel time since we don't have far to go
+            if (panDistance <= 2 * viewportSize) {
+                // Start and target positions are close, so don't back out. Reduce the travel time based on the
+                // distance to travel relative to the viewport size.
+                animationDuration = Math.min((panDistance / viewportSize) * this.travelTime, this.travelTime);
                 this.maxAltitude = this.startPosition.altitude;
             }
 
