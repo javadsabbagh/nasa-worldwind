@@ -416,6 +416,7 @@ define([
         // Internal function. Intentionally not documented.
         WorldWindow.prototype.handleContextRestored = function (event) {
             // Resume the rendering animation frame loop until the WebGL context is lost.
+            this.redraw();
             this.animationFrameLoop();
         };
 
