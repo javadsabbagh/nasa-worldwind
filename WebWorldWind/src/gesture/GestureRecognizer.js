@@ -86,7 +86,7 @@ define([
 
             if (!GestureRecognizer.terminalStates) {
                 GestureRecognizer.terminalStates = [WorldWind.ENDED, WorldWind.CANCELLED, WorldWind.FAILED,
-                    WorldWind.RECOGNIZED]
+                    WorldWind.RECOGNIZED];
             }
 
             GestureRecognizer.registerMouseEventListeners(this);
