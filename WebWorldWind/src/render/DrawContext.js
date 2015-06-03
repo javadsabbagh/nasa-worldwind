@@ -372,12 +372,23 @@ define([
          * cached WebGL resources and resets all properties tracking the current WebGL state.
          */
         DrawContext.prototype.contextLost = function () {
-            // Remove all cached WebGL resources.
+            // Remove all cached WebGL resources, which are now invalid.
             this.gpuResourceCache.clear();
             this.pickFramebuffer = null;
-            // Reset properties tracking the current WebGL state.
+            // Reset properties tracking the current WebGL state, which are now invalid.
             this.currentFramebuffer = null;
             this.currentProgram = null;
+        };
+
+        /**
+         * Notifies this draw context that the current WebGL rendering context has been restored. This function prepares
+         * this draw context to resume rendering.
+         */
+        DrawContext.prototype.contextRestored = function () {
+            // Remove all cached WebGL resources. This cache is already cleared when the context is lost, but
+            // asynchronous load operations that complete between context lost and context restored populate the cache
+            // with invalid entries.
+            this.gpuResourceCache.clear();
         };
 
         /**
