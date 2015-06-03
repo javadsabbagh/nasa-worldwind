@@ -17,6 +17,7 @@ define([
         './util/Logger',
         './navigate/LookAtNavigator',
         './navigate/NavigatorState',
+        './pick/PickedObjectList',
         './geom/Rectangle',
         './geom/Sector',
         './shapes/SurfaceShape',
@@ -33,6 +34,7 @@ define([
               Logger,
               LookAtNavigator,
               NavigatorState,
+              PickedObjectList,
               Rectangle,
               Sector,
               SurfaceShape,
@@ -46,7 +48,9 @@ define([
          * @alias WorldWindow
          * @constructor
          * @classdesc Represents a World Wind window for an HTML canvas.
-         * @param {String} canvasName The name assigned to the canvas in the HTML page.
+         * @param {String} canvasName The name assigned to the HTML canvas in the document.
+         * @throws {ArgumentError} If there is no HTML element with the specified name in the document, or if the
+         * HTML canvas does not support WebGL.
          */
         var WorldWindow = function (canvasName) {
             if (!(window.WebGLRenderingContext)) {
@@ -55,37 +59,49 @@ define([
                         "The specified canvas does not support WebGL."));
             }
 
-            this.canvas = document.getElementById(canvasName);
-            this.canvas.addEventListener("webglcontextlost", handleContextLost, false);
-            this.canvas.addEventListener("webglcontextrestored", handleContextRestored, false);
-
-            var thisWindow = this;
-            function handleContextLost(event) {
-                // Inform WebGL that we handle context restoration, enabling the context restored event to be delivered.
-                event.preventDefault();
-                // Notify the draw context that the WebGL rendering context has been lost.
-                thisWindow.drawContext.contextLost();
+            // Attempt to get the HTML canvas with the specified name.
+            var canvas = document.getElementById(canvasName);
+            if (!canvas) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "WorldWindow", "constructor",
+                        "The specified canvas name is not in the document."));
             }
 
-            function handleContextRestored(event) {
-            }
+            // Create the WebGL context associated with the HTML canvas.
+            var gl = this.createContext(canvas);
 
-            var gl = this.createWebGLContext(this.canvas);
+            // Internal. Intentionally not documented.
+            this.drawContext = new DrawContext(gl);
 
             // Internal. Intentionally not documented. Must be initialized before the navigator is created.
             this.eventListeners = {};
 
+            // Internal. Intentionally not documented. Initially true in order to redraw at least once.
+            this.redrawRequested = true;
+
+            // Internal. Intentionally not documented.
+            this.redrawRequestId = null;
+
+            /**
+             * The HTML canvas associated with this World Window.
+             * @type {HTMLElement}
+             * @readonly
+             */
+            this.canvas = canvas;
+
             /**
              * The number of bits in the depth buffer associated with this World Window.
              * @type {number}
+             * @readonly
              */
             this.depthBits = gl.getParameter(WebGLRenderingContext.DEPTH_BITS);
 
             /**
              * The current viewport of this World Window.
              * @type {Rectangle}
+             * @readonly
              */
-            this.viewport = new Rectangle(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
+            this.viewport = new Rectangle(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
             /**
              * The globe displayed.
@@ -139,40 +155,30 @@ define([
              */
             this.redrawCallbacks = [];
 
-            // Internal. Intentionally not documented.
-            this.drawContext = new DrawContext(gl);
-
-            // Internal. Intentionally not documented.
-            this.frameRequested = false;
-            this.frameRequestCallback = null;
-
-            // Set up to handle redraw requests sent to the canvas and the global window. Imagery uses the canvas
-            // because images are generally specific to the WebGL context associated with the canvas. Elevation models
-            // use the global window because they can be shared among world windows.
-            var redrawEventListener = function () {
-                thisWindow.redraw();
-            };
-            this.canvas.addEventListener(WorldWind.REDRAW_EVENT_TYPE, redrawEventListener, false);
-            window.addEventListener(WorldWind.REDRAW_EVENT_TYPE, redrawEventListener, false);
-        };
-
-        // Internal function. Intentionally not documented.
-        WorldWindow.prototype.createWebGLContext = function (canvas) {
-            // Request a WebGL context with antialiasing is disabled. Antialiasing causes gaps to appear at the edges of
-            // terrain tiles.
-            var glAttrs = {antialias: false},
-                gl = canvas.getContext("webgl", glAttrs);
-            if (!gl) {
-                gl = canvas.getContext("experimental-webgl", glAttrs);
+            // Set up to handle WebGL context lost events.
+            var thisWindow = this;
+            function handleContextLost(event) {
+                thisWindow.handleContextLost(event);
             }
+            this.canvas.addEventListener("webglcontextlost", handleContextLost, false);
 
-            // uncomment to debug WebGL
-            //var gl = WebGLDebugUtils.makeDebugContext(this.canvas.getContext("webgl"),
-            //        this.throwOnGLError,
-            //        this.logAndValidate
-            //);
+            // Set up to handle WebGL context restored events.
+            function handleContextRestored(event) {
+                thisWindow.handleContextRestored(event);
+            }
+            this.canvas.addEventListener("webglcontextrestored", handleContextRestored, false);
 
-            return gl;
+            // Set up to handle WebGL context events and World Wind redraw request events. Imagery uses the canvas
+            // redraw events because images are generally specific to the WebGL context associated with the canvas.
+            // Elevation models use the global window redraw events because they can be shared among world windows.
+            function handleRedrawEvent(event) {
+                thisWindow.handleRedrawEvent(event)
+            }
+            this.canvas.addEventListener(WorldWind.REDRAW_EVENT_TYPE, handleRedrawEvent, false);
+            window.addEventListener(WorldWind.REDRAW_EVENT_TYPE, handleRedrawEvent, false);
+
+            // Render to the WebGL context in an animation frame loop until the WebGL context is lost.
+            this.animationFrameLoop();
         };
 
         /**
@@ -279,41 +285,13 @@ define([
         };
 
         /**
-         * Causes a redraw event for this World Window to be enqueued with the browser. The redraw occurs on the main
+         * Causes this World Window to redraw itself at the next available opportunity. The redraw occurs on the main
          * thread at a time of the browser's discretion. Applications should call redraw after changing the World
          * Window's state, but should not expect that change to be reflected on screen immediately after this function
          * returns. This is the preferred method for requesting a redraw of the World Window.
          */
         WorldWindow.prototype.redraw = function () {
-            if (this.frameRequested) {
-                return; // coalesce redundant redraw requests
-            }
-
-            if (!this.frameRequestCallback) {
-                var self = this;
-                this.frameRequestCallback = function () {
-                    self.doRedraw();
-                };
-            }
-
-            window.requestAnimationFrame(this.frameRequestCallback);
-            this.frameRequested = true;
-        };
-
-        WorldWindow.prototype.doRedraw = function () {
-            this.frameRequested = false;
-
-            try {
-                this.resetDrawContext();
-                this.drawFrame();
-
-                for (var i = 0, len = this.redrawCallbacks.length; i < len; i++) {
-                    this.redrawCallbacks[i](this);
-                }
-            } catch (e) {
-                Logger.logMessage(Logger.LEVEL_SEVERE, "WorldWindow", "redraw",
-                    "Exception occurred during rendering: " + e.toString());
-            }
+            this.redrawRequested = true; // redraw during the next animation frame
         };
 
         /**
@@ -332,6 +310,12 @@ define([
                     Logger.logMessage(Logger.LEVEL_SEVERE, "WorldWindow", "pick", "missingPoint"));
             }
 
+            // Suppress the picking operation and return an empty list when the WebGL context has been lost.
+            if (this.drawContext.currentGlContext.isContextLost()) {
+                return new PickedObjectList();
+            }
+
+            this.resize();
             this.resetDrawContext();
             this.drawContext.pickingMode = true;
             this.drawContext.pickPoint = pickPoint;
@@ -355,6 +339,12 @@ define([
                     Logger.logMessage(Logger.LEVEL_SEVERE, "WorldWindow", "pickTerrain", "missingPoint"));
             }
 
+            // Suppress the picking operation and return an empty list when the WebGL context has been lost.
+            if (this.drawContext.currentGlContext.isContextLost()) {
+                return new PickedObjectList();
+            }
+
+            this.resize();
             this.resetDrawContext();
             this.drawContext.pickingMode = true;
             this.drawContext.pickTerrainOnly = true;
@@ -378,6 +368,12 @@ define([
                     Logger.logMessage(Logger.LEVEL_SEVERE, "WorldWindow", "pickShapesInRegion", "missingRectangle"));
             }
 
+            // Suppress the picking operation and return an empty list when the WebGL context has been lost.
+            if (this.drawContext.currentGlContext.isContextLost()) {
+                return new PickedObjectList();
+            }
+
+            this.resize();
             this.resetDrawContext();
             this.drawContext.pickingMode = true;
             this.drawContext.regionPicking = true;
@@ -386,6 +382,113 @@ define([
             this.drawFrame();
 
             return this.drawContext.objectsAtPickPoint;
+        };
+
+        // Internal function. Intentionally not documented.
+        WorldWindow.prototype.createContext = function (canvas) {
+            // Request a WebGL context with antialiasing is disabled. Antialiasing causes gaps to appear at the edges of
+            // terrain tiles.
+            var glAttrs = {antialias: false},
+                gl = canvas.getContext("webgl", glAttrs);
+            if (!gl) {
+                gl = canvas.getContext("experimental-webgl", glAttrs);
+            }
+
+            // uncomment to debug WebGL
+            //var gl = WebGLDebugUtils.makeDebugContext(this.canvas.getContext("webgl"),
+            //        this.throwOnGLError,
+            //        this.logAndValidate
+            //);
+
+            return gl;
+        };
+
+        // Internal function. Intentionally not documented.
+        WorldWindow.prototype.handleContextLost = function (event) {
+            // Inform WebGL that we handle context restoration, enabling the context restored event to be delivered.
+            event.preventDefault();
+            // Notify the draw context that the WebGL rendering context has been lost.
+            this.drawContext.contextLost();
+            // Stop the rendering animation frame loop, resuming only if the WebGL context is restored.
+            window.cancelAnimationFrame(this.redrawRequestId);
+        };
+
+        // Internal function. Intentionally not documented.
+        WorldWindow.prototype.handleContextRestored = function (event) {
+            // Resume the rendering animation frame loop until the WebGL context is lost.
+            this.animationFrameLoop();
+        };
+
+        // Internal function. Intentionally not documented.
+        WorldWindow.prototype.handleRedrawEvent = function (event) {
+            this.redraw(); // redraw in the next animation frame
+        };
+
+        // Internal function. Intentionally not documented.
+        WorldWindow.prototype.animationFrameLoop = function () {
+            // Render to the WebGL context as needed.
+            this.redrawIfNeeded();
+
+            // Continue the animation frame loop until the WebGL context is lost.
+            var thisWindow = this;
+            function animationFrameCallback() {
+                thisWindow.animationFrameLoop();
+            }
+            this.redrawRequestId = window.requestAnimationFrame(animationFrameCallback);
+        };
+
+        // Internal function. Intentionally not documented.
+        WorldWindow.prototype.redrawIfNeeded = function () {
+            // Resize the canvas to match its screen size. This sets needToRedraw when the size changes.
+            this.resize();
+
+            // Render to the WebGL context only when necessary.
+            if (this.redrawRequested) {
+                this.redrawRequested = false;
+                this.render();
+            }
+        };
+
+        // Internal function. Intentionally not documented.
+        WorldWindow.prototype.render = function () {
+            try {
+                this.resize();
+                this.resetDrawContext();
+                this.drawFrame();
+
+                for (var i = 0, len = this.redrawCallbacks.length; i < len; i++) {
+                    this.redrawCallbacks[i](this);
+                }
+
+                if (this.drawContext.redrawRequested) {
+                    this.redrawRequested = true;
+                }
+            } catch (e) {
+                Logger.logMessage(Logger.LEVEL_SEVERE, "WorldWindow", "render",
+                    "Exception occurred during rendering: " + e.toString());
+            }
+        };
+
+        // Internal function. Intentionally not documented.
+        WorldWindow.prototype.resize = function () {
+            var gl = this.drawContext.currentGlContext,
+                width = gl.canvas.clientWidth,
+                height = gl.canvas.clientHeight;
+
+            if (gl.canvas.width != width ||
+                gl.canvas.height != height) {
+
+                // Make the canvas drawing buffer size match its screen size.
+                gl.canvas.width = width;
+                gl.canvas.height = height;
+
+                // Set the WebGL viewport to match the canvas drawing buffer size.
+                gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+                this.viewport = new Rectangle(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+
+                // Cause this World Window to redraw with the new size.
+                this.redrawRequested = true;
+            }
         };
 
         // Internal. Intentionally not documented.
@@ -431,26 +534,18 @@ define([
 
         // Internal function. Intentionally not documented.
         WorldWindow.prototype.drawFrame = function () {
-            this.drawContext.frameStatistics.beginFrame();
-
-            this.viewport = new Rectangle(0, 0, this.canvas.clientWidth, this.canvas.clientHeight);
-
-            if (this.drawContext.pickingMode) {
-                this.drawContext.bindFramebuffer(this.drawContext.pickFramebuffer());
-            }
-
             try {
+                this.drawContext.frameStatistics.beginFrame();
                 this.beginFrame();
+
                 if (this.drawContext.globe.is2D() && this.drawContext.globe.continuous) {
                     this.do2DContiguousRepaint();
                 } else {
                     this.doNormalRepaint();
                 }
+
             } finally {
                 this.endFrame();
-                if (this.drawContext.pickingMode) {
-                    this.drawContext.bindFramebuffer(null);
-                }
                 this.drawContext.frameStatistics.endFrame();
             }
         };
@@ -482,36 +577,31 @@ define([
         // Internal function. Intentionally not documented.
         WorldWindow.prototype.beginFrame = function () {
             var gl = this.drawContext.currentGlContext;
-
-            if (this.canvas.width != this.viewport.width ||
-                this.canvas.height != this.viewport.height) {
-
-                // Make the canvas the same size
-                this.canvas.width = this.viewport.width;
-                this.canvas.height = this.viewport.height;
-
-                // Set the viewport to match
-                gl.viewport(0, 0, this.viewport.width, this.viewport.height);
-            }
-
             gl.enable(WebGLRenderingContext.BLEND);
-            gl.blendFunc(WebGLRenderingContext.ONE, WebGLRenderingContext.ONE_MINUS_SRC_ALPHA);
-
             gl.enable(WebGLRenderingContext.CULL_FACE);
             gl.enable(WebGLRenderingContext.DEPTH_TEST);
+            gl.blendFunc(WebGLRenderingContext.ONE, WebGLRenderingContext.ONE_MINUS_SRC_ALPHA);
             gl.depthFunc(WebGLRenderingContext.LEQUAL);
+
+            if (this.drawContext.pickingMode) {
+                this.drawContext.makePickFramebuffer();
+                this.drawContext.bindFramebuffer(this.drawContext.pickFramebuffer);
+            }
         };
 
         // Internal function. Intentionally not documented.
         WorldWindow.prototype.endFrame = function () {
             var gl = this.drawContext.currentGlContext;
-
             gl.disable(WebGLRenderingContext.BLEND);
             gl.disable(WebGLRenderingContext.CULL_FACE);
             gl.disable(WebGLRenderingContext.DEPTH_TEST);
             gl.blendFunc(WebGLRenderingContext.ONE, WebGLRenderingContext.ZERO);
             gl.depthFunc(WebGLRenderingContext.LESS);
             gl.clearColor(0, 0, 0, 1);
+
+            if (this.drawContext.pickingMode) {
+                this.drawContext.bindFramebuffer(null);
+            }
         };
 
         // Internal function. Intentionally not documented.
