@@ -47,7 +47,9 @@ define([
             this.animationFrequency = 20;
 
             /**
-             * The animation's duration, in milliseconds.
+             * The animation's duration, in milliseconds. When the distance is short, less than twice the viewport
+             * size, the travel time is reduced proportionally to the distance to travel. It therefore takes less
+             * time to move shorter distances.
              * @type {Number}
              * @default 3000
              */
