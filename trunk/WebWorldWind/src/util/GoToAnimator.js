@@ -74,7 +74,7 @@ define([
          * Moves the navigator to a specified location or position.
          * @param {Location | Position} position The location or position to move the navigator to. If this
          * argument contains an "altitude" property, as {@link Position} does, the end point of the navigation is
-         * at the specified altitude. Otherwise the end point as at the current altitude of the navigator.
+         * at the specified altitude. Otherwise the end point is at the current altitude of the navigator.
          * @param {Function} completionCallback If not null or undefined, specifies a function to call when the
          * animation completes. The completion callback is called with a single argument, this animator.
          * @throws {ArgumentError} If the specified location or position is null or undefined.
