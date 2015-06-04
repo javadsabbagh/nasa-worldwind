@@ -13,6 +13,7 @@ define([
         './util/FrameStatistics',
         './globe/Globe',
         './globe/Globe2D',
+        './util/GoToAnimator',
         './cache/GpuResourceCache',
         './util/Logger',
         './navigate/LookAtNavigator',
@@ -30,6 +31,7 @@ define([
               FrameStatistics,
               Globe,
               Globe2D,
+              GoToAnimator,
               GpuResourceCache,
               Logger,
               LookAtNavigator,
@@ -155,17 +157,26 @@ define([
              */
             this.redrawCallbacks = [];
 
+            /**
+             * The {@link GoToAnimator} used by this world window to respond to its goTo method.
+             * @type {GoToAnimator}
+             */
+            this.goToAnimator = new GoToAnimator(this);
+
             // Set up to handle WebGL context lost events.
             var thisWindow = this;
+
             function handleContextLost(event) {
                 thisWindow.handleContextLost(event);
             }
+
             this.canvas.addEventListener("webglcontextlost", handleContextLost, false);
 
             // Set up to handle WebGL context restored events.
             function handleContextRestored(event) {
                 thisWindow.handleContextRestored(event);
             }
+
             this.canvas.addEventListener("webglcontextrestored", handleContextRestored, false);
 
             // Set up to handle WebGL context events and World Wind redraw request events. Imagery uses the canvas
@@ -174,6 +185,7 @@ define([
             function handleRedrawEvent(event) {
                 thisWindow.handleRedrawEvent(event)
             }
+
             this.canvas.addEventListener(WorldWind.REDRAW_EVENT_TYPE, handleRedrawEvent, false);
             window.addEventListener(WorldWind.REDRAW_EVENT_TYPE, handleRedrawEvent, false);
 
@@ -436,9 +448,11 @@ define([
 
             // Continue the animation frame loop until the WebGL context is lost.
             var thisWindow = this;
+
             function animationFrameCallback() {
                 thisWindow.animationFrameLoop();
             }
+
             this.redrawRequestId = window.requestAnimationFrame(animationFrameCallback);
         };
 
@@ -948,6 +962,23 @@ define([
                     i -= 1;
                 }
             }
+        };
+
+        /**
+         * Moves this world window's navigator to a specified location or position.
+         * @param {Location | Position} position The location or position to move the navigator to. If this
+         * argument contains an "altitude" property, as {@link Position} does, the end point of the navigation is
+         * at the specified altitude. Otherwise the end point is at the current altitude of the navigator.
+         *
+         * This function uses this world window's {@link GoToAnimator} property to perform the move. That object's
+         * properties can be specified by the application to modify its behavior during calls to this function.
+         * It's cancel method can also be used to cancel the move initiated by this function.
+         * @param {Function} completionCallback If not null or undefined, specifies a function to call when the
+         * animation completes. The completion callback is called with a single argument, this animator.
+         * @throws {ArgumentError} If the specified location or position is null or undefined.
+         */
+        WorldWindow.prototype.goTo = function (position, completionCallback) {
+            this.goToAnimator.goTo(position, completionCallback);
         };
 
         return WorldWindow;
