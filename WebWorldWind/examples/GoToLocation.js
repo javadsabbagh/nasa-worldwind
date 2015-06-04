@@ -53,11 +53,11 @@ requirejs(['../src/WorldWind',
 
         // Now set up to handle clicks and taps.
 
-        // The common event-handling function.
-        var handleClick = function (o) {
+        // The common gesture-handling function.
+        var handleClick = function (recognizer) {
             // Obtain the event location.
-            var x = o.clientX,
-                y = o.clientY;
+            var x = recognizer.clientX,
+                y = recognizer.clientY;
 
             // Perform the pick. Must first convert from window coordinates to canvas coordinates, which are
             // relative to the upper left corner of the canvas rather than the upper left corner of the page.
