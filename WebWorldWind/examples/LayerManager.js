@@ -155,7 +155,7 @@ define(function () {
             "North Polar",
             "South Polar",
             "North UPS",
-            "Soutn UPS"
+            "South UPS"
         ];
         var projectionDropdown = $("#projectionDropdown");
 
