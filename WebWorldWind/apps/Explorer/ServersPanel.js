@@ -201,7 +201,7 @@ define(function () {
                 if (request.statusText) {
                     alert(request.responseURL + " " + request.status + " (" + request.statusText + ")");
                 } else {
-                    alert("Failed to retrieve WMS capabilities from " + wmsServer + ".");
+                    alert("Failed to retrieve WMS capabilities from " + serverAddress + ".");
                 }
             }
         };
