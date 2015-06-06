@@ -121,14 +121,9 @@ define([
                 * this.wwd.canvas.clientWidth / this.wwd.globe.equatorialRadius;
 
             if (panDistance <= 2 * viewportSize) {
-                // Start and target positions are close, so don't back out. Reduce the travel time based on the
-                // distance to travel relative to the viewport size.
-                animationDuration = Math.min((panDistance / viewportSize) * this.travelTime, this.travelTime);
+                // Start and target positions are close, so don't back out.
                 this.maxAltitude = this.startPosition.altitude;
             }
-
-            // Determine the pan velocity, in radians per millisecond.
-            this.panVelocity = panDistance / animationDuration;
 
             // We need to capture the time the max altitude is reached in order to begin decreasing the range
             // midway through the animation. If we're already above the max altitude, then that time is now since
@@ -144,6 +139,26 @@ define([
             } else {
                 rangeDistance = Math.abs(this.targetPosition.altitude - this.startPosition.altitude);
             }
+
+            // Determine which distance governs the animation duration.
+            var animationDistance = Math.max(panDistance, rangeDistance / this.wwd.globe.equatorialRadius);
+            if (animationDistance === 0) {
+                return; // current and target positions are the same
+            }
+
+            if (animationDistance < 2 * viewportSize) {
+                // Start and target positions are close, so reduce the travel time based on the
+                // distance to travel relative to the viewport size.
+                animationDuration = Math.min((animationDistance / viewportSize) * this.travelTime, this.travelTime);
+            }
+
+            // Don't let the animation duration go to 0.
+            animationDuration = Math.max(1, animationDuration);
+
+            // Determine the pan velocity, in radians per millisecond.
+            this.panVelocity = panDistance / animationDuration;
+
+            // Determine the range velocity, in meters per millisecond.
             this.rangeVelocity = rangeDistance / animationDuration; // meters per millisecond
 
             // Set up the animation timer.
@@ -168,6 +183,7 @@ define([
         // Intentionally not documented.
         GoToAnimator.prototype.update = function () {
             // This is the timer callback function. It invokes the range animator and the pan animator.
+            console.log("UPDATING " + Date.now());
 
             var currentPosition = new Position(
                 this.wwd.navigator.lookAtLocation.latitude,
