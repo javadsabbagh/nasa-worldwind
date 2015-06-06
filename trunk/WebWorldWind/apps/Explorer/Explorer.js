@@ -6,10 +6,16 @@
  * @version $Id$
  */
 define(['../../src/WorldWind',
-        '../../examples/LayerManager',
+        'GoToBox',
+        'LayersPanel',
+        'ProjectionMenu',
+        'ServersPanel',
         '../../examples/CoordinateController'],
     function (ww,
-              LayerManager,
+              GoToBox,
+              LayersPanel,
+              ProjectionMenu,
+              ServersPanel,
               CoordinateController) {
         "use strict";
 
@@ -23,16 +29,16 @@ define(['../../src/WorldWind',
              * Added imagery layers.
              */
             var layers = [
-                {layer: new WorldWind.BMNGLayer(), enabled: true},
-                {layer: new WorldWind.BMNGLandsatLayer(), enabled: false},
+                {layer: new WorldWind.BMNGLayer(), enabled: true, hide: true},
                 {layer: new WorldWind.BingAerialWithLabelsLayer(null), enabled: true},
                 {layer: new WorldWind.OpenStreetMapImageLayer(null), enabled: false},
-                {layer: new WorldWind.CompassLayer(), enabled: true},
-                {layer: new WorldWind.ViewControlsLayer(this.wwd), enabled: true}
+                {layer: new WorldWind.CompassLayer(), enabled: true, hide: true},
+                {layer: new WorldWind.ViewControlsLayer(this.wwd), enabled: true, hide: true}
             ];
 
             for (var l = 0; l < layers.length; l++) {
                 layers[l].layer.enabled = layers[l].enabled;
+                layers[l].layer.hide = layers[l].hide;
                 this.wwd.addLayer(layers[l].layer);
             }
 
@@ -41,7 +47,10 @@ define(['../../src/WorldWind',
             this.wwd.navigator.lookAtLocation.longitude = -(180 / 12) * ((new Date()).getTimezoneOffset() / 60);
 
             this.wwd.redraw();
-            this.layerManager = new LayerManager(this.wwd);
+            this.goToBox = new GoToBox(this.wwd);
+            this.layersPanel = new LayersPanel(this.wwd);
+            this.serversPanel = new ServersPanel(this.wwd, this.layersPanel);
+            this.projectionMenu = new ProjectionMenu(this.wwd);
             this.coordinateController = new CoordinateController(this.wwd);
         };
 
