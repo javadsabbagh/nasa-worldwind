@@ -99,7 +99,7 @@ define([
 
             // Internal use only. Intentionally not documented.
             this.secondaryDragRecognizer = new DragRecognizer(worldWindow);
-            this.secondaryDragRecognizer.buttons = 4; // secondary mouse button
+            this.secondaryDragRecognizer.button = 2; // secondary mouse button
             this.secondaryDragRecognizer.addGestureListener(function (recognizer) {
                 self.handleSecondaryDrag(recognizer);
             });
