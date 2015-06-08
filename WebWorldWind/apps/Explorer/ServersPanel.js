@@ -37,26 +37,76 @@ define(function () {
     };
 
     ServersPanel.prototype.onAddServerButton = function (event) {
-        this.addServer($("#addServerText")[0].value);
+        this.attachServer($("#addServerText")[0].value);
         $("#addServerText").val("");
     };
 
     ServersPanel.prototype.onAddServerTextKeyPress = function (searchInput, event) {
         if (event.keyCode === 13) {
             searchInput.blur();
-            this.addServer($("#addServerText")[0].value);
+            this.attachServer($("#addServerText")[0].value);
             $("#addServerText").val("");
         }
     };
 
-    ServersPanel.prototype.addServer = function (serverAddress) {
-        if (!serverAddress || serverAddress.length === 0) {
+    ServersPanel.prototype.attachServer = function (serverAddress) {
+        if (!serverAddress) {
             return;
         }
 
+        serverAddress = serverAddress.trim();
+
+        serverAddress = serverAddress.replace("Http", "http");
+        if (serverAddress.lastIndexOf("http", 0) != 0) {
+            serverAddress = "http://" + serverAddress;
+        }
+
+        var thisExplorer = this,
+            request = new XMLHttpRequest(),
+            url = WorldWind.WmsUrlBuilder.fixGetMapString(serverAddress);
+
+        url += "service=WMS&request=GetCapabilities&vers";
+
+        request.open("GET", url, true);
+        request.onreadystatechange = function () {
+            if (request.readyState === 4 && request.status === 200) {
+                var xmlDom = request.responseXML;
+
+                if (!xmlDom && request.responseText.indexOf("<?xml") === 0) {
+                    xmlDom = new window.DOMParser().parseFromString(request.responseText, "text/xml");
+                }
+
+                if (!xmlDom) {
+                    alert(serverAddress + " retrieval failed. It is probably not a WMS server.");
+                    return;
+                }
+
+                var wmsCapsDoc = new WorldWind.WmsCapabilities(xmlDom);
+
+                if (wmsCapsDoc.version) { // if no version, then the URL doesn't point to a caps doc.
+                    thisExplorer.addServerPanel(serverAddress, wmsCapsDoc);
+                } else {
+                    alert(wmsServer +
+                    " WMS capabilities document invalid. The server is probably not a WMS server.");
+                }
+            } else if (request.readyState === 4) {
+                if (request.statusText) {
+                    alert(request.responseURL + " " + request.status + " (" + request.statusText + ")");
+                } else {
+                    alert("Failed to retrieve WMS capabilities from " + serverAddress + ".");
+                }
+            }
+        };
+
+        request.send(null);
+    };
+
+    ServersPanel.prototype.addServerPanel = function (serverAddress, wmsCapsDoc) {
         var treeId = this.idCounter++,
             headingID = this.idCounter++,
-            collapseID = this.idCounter++;
+            collapseID = this.idCounter++,
+            wmsService = wmsCapsDoc.service,
+            panelTitle = wmsService.title && wmsService.title.length > 0 ? wmsService.title : serverAddress;
         //
         //var html = '<div class="panel panel-default">';
         //html += '<div class="panel-heading" role="tab" id="' + headingID + '">';
@@ -77,7 +127,7 @@ define(function () {
             heading = $('<div class="panel-heading" role="tab" id="' + headingID + '"></div>'),
             title = $('<h4 class="panel-title wrap-panel-heading"></h4>'),
             anchor = $('<a data-toggle="collapse" href="#' + collapseID + '"' +
-            ' aria-expanded="true" aria-controls="' + collapseID + '">' + serverAddress + '</a>'),
+            ' aria-expanded="true" aria-controls="' + collapseID + '">' + panelTitle + '</a>'),
             bodyParent = $('<div id="' + collapseID + '" class="panel-collapse collapse in" role="tabpanel"' +
             ' aria-labelledby="' + headingID + '"></div>'),
             body = $('<div class="panel-body"></div>'),
@@ -93,7 +143,8 @@ define(function () {
         var serversItem = $("#servers");
         serversItem.append(topDiv);
 
-        this.attachServer(serverAddress, treeDiv, anchor);
+        var treeRoot = treeDiv.fancytree("getRootNode");
+        treeRoot.addChildren(this.assembleLayers(wmsCapsDoc.capability.layers, []));
     };
 
     ServersPanel.prototype.makeTree = function (serverAddress, treeId) {
@@ -141,74 +192,6 @@ define(function () {
         return treeDiv;
     };
 
-    ServersPanel.prototype.attachServer = function (serverAddress, treeDiv, anchor) {
-        if (!serverAddress) {
-            return;
-        }
-
-        serverAddress = serverAddress.trim();
-
-        if (serverAddress.lastIndexOf("http", 0) != 0) {
-            serverAddress = "http://" + serverAddress;
-        }
-
-        var thisExplorer = this,
-            request = new XMLHttpRequest(),
-            url = WorldWind.WmsUrlBuilder.fixGetMapString(serverAddress);
-
-        url += "service=WMS&request=GetCapabilities&vers";
-
-        request.open("GET", url, true);
-        request.onreadystatechange = function () {
-            if (request.readyState === 4 && request.status === 200) {
-                var xmlDom = request.responseXML;
-
-                if (!xmlDom && request.responseText.indexOf("<?xml") === 0) {
-                    xmlDom = new window.DOMParser().parseFromString(request.responseText, "text/xml");
-                }
-
-                if (!xmlDom) {
-                    alert(wmsServer + " retrieval failed. It is probably not a WMS server.");
-                    return;
-                }
-
-                var wmsCapsDoc = new WorldWind.WmsCapabilities(xmlDom);
-
-                if (wmsCapsDoc.version) { // if no version, then the URL doesn't point to a caps doc.
-                    var treeRoot = treeDiv.fancytree("getRootNode");
-                    if (wmsCapsDoc.service.title && wmsCapsDoc.service.title.length > 0) {
-                        anchor.text(wmsCapsDoc.service.title);
-                    } else {
-                        anchor.text(serverAddress);
-                    }
-                    treeRoot.addChildren(thisExplorer.assembleLayers(wmsCapsDoc.capability.layers, []));
-                    //treeRoot.addChildren([
-                    //    {
-                    //        title: wmsCapsDoc.service.title,
-                    //        selected: false,
-                    //        expanded: true,
-                    //        unselectable: true,
-                    //        hideCheckbox: true,
-                    //        folder: true,
-                    //        children: thisExplorer.assembleLayers(wmsCapsDoc.capability.layers, [])
-                    //    }
-                    //]);
-                } else {
-                    alert(wmsServer +
-                    " WMS capabilities document invalid. The server is probably not a WMS server.");
-                }
-            } else if (request.readyState === 4) {
-                if (request.statusText) {
-                    alert(request.responseURL + " " + request.status + " (" + request.statusText + ")");
-                } else {
-                    alert("Failed to retrieve WMS capabilities from " + serverAddress + ".");
-                }
-            }
-        };
-
-        request.send(null);
-    };
-
     ServersPanel.prototype.assembleLayers = function (layers, result) {
 
         for (var i = 0; i < layers.length; i++) {
@@ -223,9 +206,7 @@ define(function () {
                 subLayers = this.assembleLayers(layer.layers, []);
             }
 
-            if (layer.name) {
-
-            } else {
+            if (!layer.name) {
                 node.expanded = true;
                 node.unselectable = true;
                 node.hideCheckbox = true;
@@ -264,32 +245,6 @@ define(function () {
         this.wwd.redraw();
         this.layersPanel.synchronizeLayerList();
     };
-    //
-    //ServersPanel.prototype.createLayerNodes = function () {
-    //    var nodes = [];
-    //
-    //    for (var i = 0; i < this.wwd.layers.length; i++) {
-    //        var layer = this.wwd.layers[i];
-    //
-    //        nodes.push({
-    //            title: layer.displayName,
-    //            selected: layer.enabled,
-    //            layer: layer
-    //        });
-    //    }
-    //
-    //    var baseNode = {
-    //        title: "Base Layers",
-    //        selected: false,
-    //        expanded: true,
-    //        unselectable: true,
-    //        hideCheckbox: true,
-    //        folder: true,
-    //        children: nodes
-    //    };
-    //
-    //    return [baseNode];
-    //};
 
     return ServersPanel;
 });
