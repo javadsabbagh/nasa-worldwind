@@ -17,8 +17,6 @@ define(function () {
      * @param {WorldWindow} worldWindow The World Window to associate this layers panel with.
      */
     var LayersPanel = function (worldWindow) {
-        var thisLayersPanel = this;
-
         this.wwd = worldWindow;
 
         this.synchronizeLayerList();

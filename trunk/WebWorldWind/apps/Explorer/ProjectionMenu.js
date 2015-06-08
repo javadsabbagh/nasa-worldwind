@@ -80,16 +80,13 @@ define(function () {
         ];
         var projectionDropdown = $("#projectionDropdown");
 
-        var ulItem = $('<ul class="dropdown-menu">');
+        var ulItem = $('<ul class="dropdown-menu"></ul>');
         projectionDropdown.append(ulItem);
 
         for (var i = 0; i < projectionNames.length; i++) {
             var projectionItem = $('<li><a>' + projectionNames[i] + '</a></li>');
             ulItem.append(projectionItem);
         }
-
-        ulItem = $('</ul>');
-        projectionDropdown.append(ulItem);
     };
 
     return ProjectionMenu;
