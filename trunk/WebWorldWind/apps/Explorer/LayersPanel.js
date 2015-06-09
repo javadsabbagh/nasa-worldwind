@@ -18,6 +18,16 @@ define(function () {
      */
     var LayersPanel = function (worldWindow) {
         this.wwd = worldWindow;
+        //
+        //$("#layerList").sortable({
+        //    handle: '.list-group-item',
+        //    update: function () {
+        //        console.log("GOT HERE");
+        //    },
+        //    axis: 'y',
+        //    containment: 'parent',
+        //    cursor: 'move'
+        //});
 
         this.synchronizeLayerList();
     };
@@ -58,13 +68,14 @@ define(function () {
             }
             var layerItem = $('<button class="list-group-item btn btn-block">' + layer.displayName + '</button>');
             layerListItem.append(layerItem);
+            //
+            //layerItem.draggable({cancel:false});
 
             if (layer.enabled) {
                 layerItem.addClass("active");
             } else {
                 layerItem.removeClass("active");
             }
-            this.wwd.redraw();
         }
 
         var thisLayersPanel = this;
