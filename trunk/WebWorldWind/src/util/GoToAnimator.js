@@ -183,7 +183,6 @@ define([
         // Intentionally not documented.
         GoToAnimator.prototype.update = function () {
             // This is the timer callback function. It invokes the range animator and the pan animator.
-            console.log("UPDATING " + Date.now());
 
             var currentPosition = new Position(
                 this.wwd.navigator.lookAtLocation.latitude,
