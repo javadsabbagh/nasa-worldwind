@@ -73,6 +73,8 @@ requirejs(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
         };
 
+        var oldestEarthquake = 0;
+
         //this is the primary handler for the earthquake app
         function EarthquakeHandler (database,minMag,wwd,layer) {
             var globalMinMag; //The minimum magnitude to be displayed
@@ -138,13 +140,13 @@ requirejs(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                     // Create the custom image for the placemark for each earthquake.
                     var canvas = document.createElement("canvas"),
                         ctx2d = canvas.getContext("2d"),
-                        size = this.earthquakeData[i].magnitude*4.4 , c = size / 2  - 0.5, innerRadius = 0, outerRadius = this.earthquakeData[i].magnitude*2.2;
+                        size = this.earthquakeData[i].magnitude*5 , c = size / 2  - 0.5, innerRadius = 0, outerRadius = this.earthquakeData[i].magnitude*2.2;
                     canvas.width = size;
                     canvas.height = size;
 
                     ctx2d.fillStyle = getColorSpectrum(this.earthquakeData[i].age,this.earthquakeData[Handler.numberOfEarthquakes-1].age);
                     ctx2d.alpha = true;
-                    ctx2d.globalAlpha = .7;
+                    ctx2d.globalAlpha = .55;
                     ctx2d.arc(c, c, outerRadius, 0, 2 * Math.PI, false);
                     ctx2d.fill();
 
@@ -241,8 +243,6 @@ requirejs(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             this.updateEarthquakes(database,globalMinMag,wwd); //adds all the earthquakes for the first time.
             this.magManager = new this.MagnitudeManager(wwd,layer); //creates the manager for the first
 
-            // Increment the Blue Marble layer's time at a specified frequency.
-            var currentIndex = 0;
         };
 
         // Tell World Wind to log only warnings.
@@ -276,6 +276,21 @@ requirejs(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         //console.log(new Date().getTime()/(1000) - baseT1)
 
         var earthquakeHandler = new EarthquakeHandler(xmlDocA,3,wwd,placemarkLayer);
+
+        // Increment the Blue Marble layer's time at a specified frequency.
+        var currentIndex = 0;
+        window.setInterval(function (){
+            currentIndex++
+            placemarkLayer.renderables[0].attributes.imageScale = currentIndex/10;
+            placemarkLayer.renderables[0].highlightAttributes.imageScale = currentIndex/10*2;
+            if (currentIndex > 20){
+                currentIndex = 0;
+            };
+            wwd.redraw();
+        }, 50);
+        for (var i in placemarkLayer.renderables[oldestEarthquake].attributes){
+            console.log(i);
+        }
 
         // Add the placemarks layer to the World Window's layer list.
         wwd.addLayer(placemarkLayer);
