@@ -163,6 +163,13 @@ define([
              */
             this.goToAnimator = new GoToAnimator(this);
 
+            // Documented with its property accessor below.
+            this._orderedRenderingFilters = [
+                function (dc) {
+                    thisWindow.declutter(dc, 1);
+                }
+            ];
+
             // Set up to handle WebGL context lost events.
             var thisWindow = this;
 
@@ -192,6 +199,26 @@ define([
             // Render to the WebGL context in an animation frame loop until the WebGL context is lost.
             this.animationFrameLoop();
         };
+
+        Object.defineProperties(WorldWindow.prototype, {
+            /**
+             * An array of functions to call during ordered rendering prior to rendering the ordered renderables.
+             * Each function is passed one argument, the current draw context. The function may modify the
+             * ordered renderables in the draw context's ordered renderable list, which has been sorted from front
+             * to back when the filter function is called. Ordered rendering filters are typically used to apply
+             * decluttering. The default set of filter functions contains one function that declutters shapes with
+             * declutter group ID of 1.
+             * @type {Function[]}
+             * @default [WorldWindow.declutter]{@link WorldWindow#declutter} with a group ID of 1
+             * @readonly
+             * @memberof WorldWindow.prototype
+             */
+            orderedRenderingFilters : {
+                get: function () {
+                    return this._orderedRenderingFilters;
+                }
+            }
+        });
 
         /**
          * Converts window coordinates to coordinates relative to this World Window's canvas.
@@ -853,6 +880,13 @@ define([
                 or;
 
             dc.sortOrderedRenderables();
+
+            if (this._orderedRenderingFilters) {
+                for (var f = 0; f < this._orderedRenderingFilters.length; f++) {
+                    this._orderedRenderingFilters[f](this.drawContext);
+                }
+            }
+
             dc.orderedRenderingMode = true;
 
             while (or = dc.popOrderedRenderable()) {
@@ -981,7 +1015,41 @@ define([
             this.goToAnimator.goTo(position, completionCallback);
         };
 
+        /**
+         * Declutters the current ordered renderables with a specified group ID. This function is not called by
+         * applications directly. It's meant to be invoked as an ordered rendering filter in this World Window's
+         * [orderedRenderingFilters]{@link WorldWindow#orderedRenderingFilters} property.
+         * <p>
+         * The function operates by setting the target visibility of occluded shapes to 0 and unoccluded shapes to 1.
+         * @param {DrawContext} dc The current draw context.
+         * @param {Number} groupId The ID of the group to declutter.
+         */
+        WorldWindow.prototype.declutter = function (dc, groupId) {
+            // Collect all the declutterables in the specified group.
+            var declutterables = [];
+            for (var i = 0; i < dc.orderedRenderables.length; i++) {
+                var orderedRenderable = dc.orderedRenderables[i].orderedRenderable;
+                if (orderedRenderable.declutterGroup === groupId) {
+                    declutterables.push(orderedRenderable);
+                }
+            }
+
+            // Filter the declutterables by determining which are partially occluded. Since the ordered renderable
+            // list was already sorted from front to back, the front-most will represent an entire occluded group.
+            var rects = [];
+            for (var j = 0; j < declutterables.length; j++) {
+                var declutterable = declutterables[j],
+                    screenBounds = declutterable.screenBounds;
+
+                if (screenBounds && screenBounds.intersectsRectangles(rects)) {
+                    declutterable.targetVisibility = 0;
+                } else {
+                    declutterable.targetVisibility = 1;
+                    rects.push(screenBounds);
+                }
+            }
+        };
+
         return WorldWindow;
     }
-)
-;
+);

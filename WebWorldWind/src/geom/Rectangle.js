@@ -128,6 +128,23 @@ define([
         };
 
         /**
+         * Indicates whether this rectangle intersects any rectangle in a specified array of rectangles.
+         * @param {Rectangle[]} rectangles The rectangles to test intersection with.
+         * @returns {Boolean} true if this rectangle intersects any rectangle in the array, otherwise false.
+         */
+        Rectangle.prototype.intersectsRectangles = function (rectangles) {
+            if (rectangles) {
+                for (var i = 0; i < rectangles.length; i++){
+                    if (this.intersects(rectangles[i])) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        };
+
+        /**
          * Returns a string representation of this object.
          * @returns {String} A string representation of this object.
          */

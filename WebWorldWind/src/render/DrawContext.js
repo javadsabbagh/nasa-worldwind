@@ -175,6 +175,13 @@ define([
             this.timestamp = Date.now();
 
             /**
+             * The [time stamp]{@link DrawContext#timestamp} of the previous frame, in milliseconds.
+             * @type {Number}
+             * @readonly
+             */
+            this.previousTimestamp = this.timestamp;
+
+            /**
              * Indicates whether a redraw has been requested during the current frame. When true, this causes the World
              * Window associated with this draw context to redraw after the current frame.
              * @type {Boolean}
@@ -235,6 +242,14 @@ define([
              * @type {Number}
              */
             this.verticalExaggeration = 1;
+
+            /**
+             * The number of milliseconds over which to fade shapes that support fading. Fading is most typically
+             * used during decluttering.
+             * @type {Number}
+             * @default 500
+             */
+            this.fadeTime = 500;
 
             /**
              * Frame statistics.
@@ -327,9 +342,9 @@ define([
             this.orderedRenderablesCounter = 0;
 
             // Advance the per-frame timestamp.
-            var oldTimeStamp = this.timestamp;
+            this.previousTimestamp = this.timestamp;
             this.timestamp = Date.now();
-            if (this.timestamp === oldTimeStamp)
+            if (this.timestamp === this.previousTimeStamp)
                 ++this.timestamp;
 
             // Reset properties set by the World Window every frame.

@@ -120,6 +120,36 @@ define([
              */
             this.alwaysOnTop = false;
 
+            /**
+             * This shape's target visibility, a value between 0 and 1. During ordered rendering this shape modifies its
+             * [current visibility]{@link Text#currentVisibility} towards its target visibility at the rate
+             * specified by the draw context's [fadeVelocity]{@link DrawContext#fadeVelocity} property. The target
+             * visibility and current visibility are used to control the fading in and out of this shape.
+             * @type {Number}
+             * @default 1
+             */
+            this.targetVisibility = 1;
+
+            /**
+             * This shape's current visibility, a value between 0 and 1. This property scales the shape's effective
+             * opacity. It is incremented or decremented each frame according to the draw context's
+             * [fade velocity]{@link DrawContext#fadeVelocity} property in order to achieve this shape's current
+             * [target visibility]{@link Text#targetVisibility}. This current visibility and target visibility are
+             * used to control the fading in and out of this shape.
+             * @type {Number}
+             * @default 1
+             * @readonly
+             */
+            this.currentVisibility = 1;
+
+            /**
+             * Indicates the group ID of the declutter group to include this Text shape. If non-zer0, this shape
+             * is decluttered relative to all other shapes within its group.
+             * @type {Number}
+             * @default 0
+             */
+            this.declutterGroup = 0;
+
             // Internal use only. Intentionally not documented.
             this.activeAttributes = null;
 
@@ -165,9 +195,24 @@ define([
             this.pickDelegate = that.pickDelegate;
             this.alwaysOnTop = that.alwaysOnTop;
             this.depthOffset = that.depthOffset;
+            this.declutterGroup = that.declutterGroup;
 
             return this;
         };
+
+        Object.defineProperties(Text.prototype, {
+            /**
+             * Indicates the screen coordinate bounds of this shape during ordered rendering.
+             * @type {Rectangle}
+             * @readonly
+             * @memberof Text.prototype
+             */
+            screenBounds: {
+                get: function () {
+                    return this.imageBounds;
+                }
+            }
+        });
 
         /**
          * Renders this text. This method is typically not called by applications but is called by
@@ -210,6 +255,10 @@ define([
          * @param {DrawContext} dc The current draw context.
          */
         Text.prototype.renderOrdered = function (dc) {
+            if (this.currentVisibility === 0 && this.targetVisibility === 0) {
+                return;
+            }
+
             this.drawOrderedText(dc);
 
             if (dc.pickingMode) {
@@ -384,6 +433,21 @@ define([
                 program = dc.currentProgram,
                 textureBound;
 
+            // Compute the effective visibility.
+            if (this.currentVisibility < this.targetVisibility) {
+                this.currentVisibility = Math.min(1,
+                    this.currentVisibility + (dc.timestamp - dc.previousTimestamp) / dc.fadeTime);
+                dc.redrawRequested = true;
+            } else if (this.currentVisibility > this.targetVisibility) {
+                this.currentVisibility = Math.max(0,
+                    this.currentVisibility - (dc.timestamp - dc.previousTimestamp) / dc.fadeTime);
+                dc.redrawRequested = true;
+            }
+
+            if (this.currentVisibility === 0) {
+                return;
+            }
+
             // Compute and specify the MVP matrix.
             Text.matrix.copy(dc.screenProjection);
             Text.matrix.multiplyMatrix(this.imageTransform);
@@ -396,7 +460,7 @@ define([
                 program.loadTextureEnabled(gl, false);
             } else {
                 program.loadColor(gl, this.activeAttributes.color);
-                program.loadOpacity(gl, this.layer.opacity);
+                program.loadOpacity(gl, this.layer.opacity * this.currentVisibility);
 
                 this.texCoordMatrix.setToIdentity();
                 if (this.activeTexture) {
