@@ -10,7 +10,7 @@ requirejs(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         //var baseT1 = new Date().getTime()/(1000)
         //console.log(new Date().getTime()/(1000) - baseT1)
         var baseT1 = new Date().getTime()/(1000)
-        var xmlDocA = loadXMLDoc("http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.quakeml");
+        var xmlDocA = loadXMLDoc("http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.quakeml");
         console.log(new Date().getTime()/(1000) - baseT1)
         //displays earthquake info on mouseover. This is a rough cut to be changed as it does not localize itself to the window.
         var displayInfo = function (database,handler) {
@@ -128,11 +128,13 @@ requirejs(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
                     this.earthquakeData[i].info = "M " + getXVal("mag",database,this.xmlHasher[i]) + " - "
                         + database.getElementsByTagName("description")[this.xmlHasher[i]].getElementsByTagName("text")[0].childNodes[0].nodeValue
-                        + "<br>"  + this.earthquakeData[i].stamp + "<br>" + getXVal("depth",database,i)/1000 + "km deep";
+                        + "<br>"  + this.earthquakeData[i].stamp + "<br>" + Math.round(getXVal("depth",database,i))/1000 + "km deep";
                 }
 
                 if (thenDraw){this.drawEarthquakes(start,stop); wwd.redraw();}
             };
+
+            //adds earthquake placemark to the layer and redraws the window
             this.drawEarthquakes = function(start,stop){
 
                 //Creates a placemark for each earthquake object.
@@ -242,7 +244,33 @@ requirejs(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
             this.updateEarthquakes(database,globalMinMag,wwd); //adds all the earthquakes for the first time.
             this.magManager = new this.MagnitudeManager(wwd,layer); //creates the manager for the first
+            // Animate Latest Earthquake
+            var currentIndex = 0;
+            window.setInterval(function (){
+                // Create the custom image for the placemark for each earthquake.
+                var canvas = document.createElement("canvas"),
+                    ctx2d = canvas.getContext("2d"),
+                    size = Handler.earthquakeData[0].magnitude*5 , c = size / 2  - 0.5, innerRadius = 0,
+                    outerRadius = Handler.earthquakeData[0].magnitude*2.2;
+                canvas.width = size;
+                canvas.height = size;
 
+                ctx2d.fillStyle = getColorSpectrum(Handler.earthquakeData[0].age,Handler.earthquakeData[Handler.numberOfEarthquakes-1].age);
+                ctx2d.alpha = true;
+                ctx2d.globalAlpha = 1-currentIndex/20;
+                ctx2d.arc(c, c, outerRadius, 0, 2 * Math.PI, false);
+                ctx2d.fill();
+
+                currentIndex += 1
+                placemarkLayer.renderables[0].attributes.imageScale = currentIndex/10;
+                placemarkLayer.renderables[0].highlightAttributes.imageScale = currentIndex/10*2;
+                placemarkLayer.renderables[0].attributes.imageSource = new WorldWind.ImageSource(canvas);
+                placemarkLayer.renderables[0].highlightAttributes.imageSource = new WorldWind.ImageSource(canvas);
+                if (currentIndex > 20){
+                    currentIndex = 0;
+                };
+                wwd.redraw();
+            }, 50);
         };
 
         // Tell World Wind to log only warnings.
@@ -266,7 +294,6 @@ requirejs(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             layers[l].layer.enabled = layers[l].enabled;
             wwd.addLayer(layers[l].layer);
         }
-
         var placemark,
             placemarkAttributes = new WorldWind.PlacemarkAttributes(null),
             highlightAttributes,
@@ -277,20 +304,6 @@ requirejs(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
         var earthquakeHandler = new EarthquakeHandler(xmlDocA,3,wwd,placemarkLayer);
 
-        // Increment the Blue Marble layer's time at a specified frequency.
-        var currentIndex = 0;
-        window.setInterval(function (){
-            currentIndex++
-            placemarkLayer.renderables[0].attributes.imageScale = currentIndex/10;
-            placemarkLayer.renderables[0].highlightAttributes.imageScale = currentIndex/10*2;
-            if (currentIndex > 20){
-                currentIndex = 0;
-            };
-            wwd.redraw();
-        }, 50);
-        for (var i in placemarkLayer.renderables[oldestEarthquake].attributes){
-            console.log(i);
-        }
 
         // Add the placemarks layer to the World Window's layer list.
         wwd.addLayer(placemarkLayer);
@@ -312,5 +325,5 @@ requirejs(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         document.getElementById("canvasOne").onmousemove = function tss () {
             displayInfo(xmlDocA,earthquakeHandler);
         };
-
+        //HI ALAN
     });
