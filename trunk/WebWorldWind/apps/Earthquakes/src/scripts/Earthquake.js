@@ -325,5 +325,5 @@ requirejs(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         document.getElementById("canvasOne").onmousemove = function tss () {
             displayInfo(xmlDocA,earthquakeHandler);
         };
-        //HI ALAN
+        //BYE MATT...JK
     });
