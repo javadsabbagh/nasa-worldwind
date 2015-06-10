@@ -6,48 +6,45 @@ requirejs(['http://worldwindserver.net/webworldwind/worldwindlib.js',
               CoordinateController) {
         "use strict";
 
-        //displays
-        var displayInfo = function (database) {
+        //set the earthquake database
+        //var baseT1 = new Date().getTime()/(1000)
+        //console.log(new Date().getTime()/(1000) - baseT1)
+        var baseT1 = new Date().getTime()/(1000)
+        var xmlDocA = loadXMLDoc("http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.quakeml");
+        console.log(new Date().getTime()/(1000) - baseT1)
+        //displays earthquake info on mouseover. This is a rough cut to be changed as it does not localize itself to the window.
+        var displayInfo = function (database,handler) {
             var display = $('#eData');
 
             for (var i in placemarkLayer.renderables) {
 
                 if (placemarkLayer.renderables[i].highlighted) {
                     display.empty();
-                    display.append('<p>' + earthquakeData[i].info + '</p>');
-                    //console.log(display);
+                    display.append('<p>' + handler.earthquakeData[i].info + '</p>');
                 }
 
             }
         };
 
-        //picks color based on days ago
-        function getColor(daysAgo) {
-            switch (daysAgo) {
-                case 0:
-                    return "red"
-                    break;
-                case 1:
-                    return "orange"
-                    break;
-                case 2:
-                    return "yellow"
-                    break;
-                case 3:
-                    return "green"
-                    break;
-                case 4:
-                    return "blue"
-                    break;
-                case 5:
-                    return "gray"
-                    break;
-                case 6:
-                    return "black"
-                    break;
-                default:
-                    return "black"
-            }
+
+        function getColorSpectrum(daysAge,limittingAge){
+            var r, g, b;
+            var param, retVar;
+            var hashSect = daysAge/limittingAge;
+            if (hashSect <= .2){
+                param = (hashSect/.2)*255
+                retVar = "rgb(255," + Math.round(param.toString()) + ",0)"
+            } else if (hashSect <= .4){
+                param = 255-((hashSect -.2)/.2)*255
+                retVar = "rgb(" + Math.round(param.toString()) + ",255" + ",0)"
+            } else if (hashSect <= .6){
+                param = ((hashSect -.4)/.2)*255
+                retVar = "rgb(0,255," + Math.round(param.toString()) + ")"
+            } else {
+                param = 255-((hashSect - .6)/.4)*255
+                retVar = "rgb(0," + Math.round(param.toString()) + ",255)"
+            };
+            return retVar;
         };
 
         //calls xml doc from url
@@ -67,11 +64,6 @@ requirejs(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             return xhttp.onreadystatechange();
         }
 
-
-        //set the earthquake database
-        var xmlDocA = loadXMLDoc("http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.quakeml");
-
-
         //retrieve a number from that database that has a value tag
         var getXVal = function(ex,database,iter){
             return database.getElementsByTagName(ex)[iter].getElementsByTagName("value")[0].childNodes[0].nodeValue;
@@ -81,167 +73,184 @@ requirejs(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
         };
 
-        //counts the number of earthquakes
-        var xmlHasher = []; //hashes the number on the array to the xml doc
+        //this is the primary handler for the earthquake app
+        function EarthquakeHandler (database,minMag,wwd,layer) {
+            var globalMinMag; //The minimum magnitude to be displayed
+            var Handler = this; //for objects inside this one that need to call a method/property from this object.
+            this.xmlHasher = []; //Maps the temporary loop variable to the number in which that earthquake resides in the xml database
 
-        //counts the earthquakes that meat the minMag
-        var countEarthquakes = function(dB,minMag) {
-            var numEarth = 0;
-            var itchy = 0;
-            while (typeof xmlDocA.getElementsByTagName("event")[itchy] === 'object'){
-                if (getXVal("mag",dB,itchy) >= minMag) {
-                    xmlHasher[numEarth] = itchy;
-                    numEarth++;
+            //counts all the earthquakes that have equal to or greater than the minimum magnitude in a given database.
+            this.countEarthquakes = function(database,minMag) {
+                var numEarth = 0;
+                var itchy = 0;
+                while (typeof xmlDocA.getElementsByTagName("event")[itchy] === 'object'){
+                    if (getXVal("mag",database,itchy) >= minMag) {
+                        this.xmlHasher[numEarth] = itchy;
+                        numEarth++;
+                    };
+                    itchy++;
                 };
-                itchy++;
+                return numEarth;
             };
-            console.log(itchy)
-            return numEarth;
+
+            //grabs all the relevant earthquake data from a given database. It then draws the earthquakes and updates the window if thenDraw = true
+            this.updateEarthquakes = function (database,minMag,wwd) {
+                minMag = typeof minMag !== 'undefined' ? minMag: 2.5;
+                var thenDraw = true; //do we want to autmatically update the worldwindow?
+                var stop = 8500; //the stopping point in the earthquake data array for which we stop considering earthquakes
+                var start = 0; //the starting point in the earthquake data array for which we start considering earthquakes
+                this.earthquakeData = []; //this array will store earthquake ids. Earth element in the array in an object associated with an earthquake.
+                this.numberOfEarthquakes = this.countEarthquakes(database,minMag);
+
+                //this loops through all the earthquakes that met the criteria of min mag and grabs the relevant info
+                for (var i = start; i < Math.min(this.xmlHasher.length,stop); i++){
+                    this.earthquakeData[i] = {};
+                    this.earthquakeData[i].lat = getXVal("latitude",database, this.xmlHasher[i]);
+                    this.earthquakeData[i].long = getXVal("longitude",database, this.xmlHasher[i]);
+                    this.earthquakeData[i].magnitude = getXVal("mag",database, this.xmlHasher[i]);
+                    this.earthquakeData[i].date = getXVal("time",database,this.xmlHasher[i]);
+
+                    //simultaneously calculates age in days or if the age is less than a day, it counts the age in hours.
+                    this.earthquakeData[i].age = Math.abs(
+                            (new Date().getTime() - new Date(this.earthquakeData[i].date).getTime())/(24*60*60*1000)
+                    )
+                    switch (Math.floor(this.earthquakeData[i].age)){
+                        case 0: this.earthquakeData[i].stamp = Math.floor(Math.abs(
+                                (new Date().getTime() - new Date(this.earthquakeData[i].date).getTime())/(60*60*1000)
+                            )) + " Hours Ago"
+                            break;
+                        case 1: this.earthquakeData[i].stamp = Math.floor(this.earthquakeData[i].age) + " Day Ago"
+                            break;
+                        default: this.earthquakeData[i].stamp = Math.floor(this.earthquakeData[i].age) + " Days Ago"
+                    }
+
+                    this.earthquakeData[i].info = "M " + getXVal("mag",database,this.xmlHasher[i]) + " - "
+                        + database.getElementsByTagName("description")[this.xmlHasher[i]].getElementsByTagName("text")[0].childNodes[0].nodeValue
+                        + "<br>"  + this.earthquakeData[i].stamp + "<br>" + getXVal("depth",database,i)/1000 + "km deep";
+                }
+
+                if (thenDraw){this.drawEarthquakes(start,stop); wwd.redraw();}
+            };
+            this.drawEarthquakes = function(start,stop){
+
+                //Creates a placemark for each earthquake object.
+                for (var i = start; i < Math.min(this.numberOfEarthquakes,stop); i++){
+                    // Create the custom image for the placemark for each earthquake.
+                    var canvas = document.createElement("canvas"),
+                        ctx2d = canvas.getContext("2d"),
+                        size = this.earthquakeData[i].magnitude*4.4 , c = size / 2  - 0.5, innerRadius = 0, outerRadius = this.earthquakeData[i].magnitude*2.2;
+                    canvas.width = size;
+                    canvas.height = size;
+
+                    ctx2d.fillStyle = getColorSpectrum(this.earthquakeData[i].age,this.earthquakeData[Handler.numberOfEarthquakes-1].age);
+                    ctx2d.alpha = true;
+                    ctx2d.globalAlpha = .7;
+                    ctx2d.arc(c, c, outerRadius, 0, 2 * Math.PI, false);
+                    ctx2d.fill();
+
+                    // Create the placemark.
+                    placemark = new WorldWind.Placemark(new WorldWind.Position(this.earthquakeData[i].lat, this.earthquakeData[i].long, 1e2));
+                    placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
+
+                    // Create the placemark attributes for the placemark.
+                    placemarkAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
+                    placemarkAttributes.imageScale = 1;
+                    placemarkAttributes.imageColor = WorldWind.Color.WHITE;
+
+                    // Wrap the canvas created above in an ImageSource object to specify it as the placemark image source.
+                    placemarkAttributes.imageSource = new WorldWind.ImageSource(canvas);
+                    placemark.attributes = placemarkAttributes;
+
+                    // Create the highlight attributes for this placemark. Note that the normal attributes are specified as
+                    // the default highlight attributes so that all properties are identical except the image scale. You could
+                    // instead vary the color, image, or other property to control the highlight representation.
+                    highlightAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
+                    highlightAttributes.imageScale = 1.2;
+                    placemark.highlightAttributes = highlightAttributes;
+
+                    // Add the placemark to the layer.
+                    placemarkLayer.addRenderable(placemark);
+                };
+            };
+
+            //this creates the dropdown button for the minimum magnitude and also adds functionality. Modelled off of layerManager
+            this.MagnitudeManager = function (worldWindow,layer) {
+                var thisExplorer = this;
+
+                this.wwd = worldWindow;
+
+                //Creates the list of options
+                this.createMagOptions();
+                $("#minMag").find(" li").on("click", function (e) {
+                    thisExplorer.onProjectionClick(e,layer);
+                });
+            };
+
+            //this adds functionality. Whenever the option is clicked, it sets globalMinMag to that value.
+            this.MagnitudeManager.prototype.onProjectionClick = function (event,layer) {
+                var magSelected = event.target.innerText || event.target.innerHTML; //retrieves the value of the button selected in the dropdown menu
+                $("#minMag").find("button").html(magSelected + ' <span class="caret"></span>'); //finds the button in the dropdown menu
+                switch (magSelected) {
+                    case ("2.5"): globalMinMag = 2.5;
+                        break;
+                    case ("3"): globalMinMag = 3;
+                        break;
+                    case ("4"): globalMinMag = 4;
+                        break;
+                    case ("5"): globalMinMag = 5;
+                        break;
+                    case ("6"): globalMinMag = 6;
+                        break;
+                    case ("7"): globalMinMag = 7;
+                        break;
+                    default: globalMinMag = 2.5;
+                }
+
+                layer.removeAllRenderables(); //clears the layer of all earthquakes so the ones we care about can be readded.
+                Handler.updateEarthquakes(database,globalMinMag,wwd); //adds the relevant earthquakes back to the layer and then refreshes the window
+            };
+
+            //this creates the dropdown menu. No real functionality.
+            this.MagnitudeManager.prototype.createMagOptions = function () {
+                var magSelection = [
+                    "2.5",
+                    "3",
+                    "4",
+                    "5",
+                    "6",
+                    "7"
+                ];
+
+                var magDropdown = $("#minMag");
+
+                var dropdownButton = $('<button class="btn btn-info btn-block dropdown-toggle" type="button" data-toggle="dropdown">Magnitude<span class="caret"></span></button>');
+                magDropdown.append(dropdownButton);
+
+                var ulItem = $('<ul class="dropdown-menu">');
+                magDropdown.append(ulItem);
+
+                for (var i = 0; i < magSelection.length; i++) {
+                    var magOption = $('<li><a >' + magSelection[i] + '</a></li>');
+                    ulItem.append(magOption);
+                }
+
+                ulItem = $('</ul>');
+                magDropdown.append(ulItem);
+            };
+
+            this.updateEarthquakes(database,globalMinMag,wwd); //adds all the earthquakes for the first time.
+            this.magManager = new this.MagnitudeManager(wwd,layer); //creates the manager for the first
+
+            // Increment the Blue Marble layer's time at a specified frequency.
+            var currentIndex = 0;
         };
-
-        /*
-         runs through and creates objects for each earthquake
-         earthquakeData[n] has properties lat, long
-         */
-        var earthquakeData = [];
-        /*
-        var updateEarthquakes = function (database,minMag) {
-            minMag = typeof minMag !== 'undefined' ? minMag: 2;
-            earthquakeData = [];
-            var renNum = 0;
-            for (var i = 0; i < countEarthquakes(xmlDocA); i++){
-                if (getXVal("mag",database,i) >= minMag){
-                    earthquakeData[renNum] = {};
-                    earthquakeData[renNum].lat = getXVal("latitude",database, i);
-                    earthquakeData[renNum].long = getXVal("longitude",database, i);
-                    earthquakeData[renNum].magnitude = getXVal("mag",database, i);
-                    earthquakeData[renNum].date = getXVal("time",database,i);
-                    earthquakeData[renNum].age = Math.floor(
-                        Math.abs(
-                            (new Date().getTime() - new Date(earthquakeData[renNum].date).getTime())/(24*60*60*1000)
-                        )
-                    );
-                    switch (earthquakeData[renNum].age){
-                        case 0: earthquakeData[renNum].stamp = Math.floor(Math.abs(
-                                (new Date().getTime() - new Date(earthquakeData[renNum].date).getTime())/(60*60*1000)
-                            )) + " Hours Ago"
-                            break;
-                        case 1: earthquakeData[renNum].stamp = earthquakeData[renNum].age + " Day Ago"
-                            break;
-                        default: earthquakeData[renNum].stamp = earthquakeData[renNum].age + " Days Ago"
-                    }
-
-                    earthquakeData[renNum].info = "M " + getXVal("mag",database,i) + " - " + database.getElementsByTagName("description")[i].getElementsByTagName("text")[0].childNodes[0].nodeValue
-                        + "<br>"  + earthquakeData[renNum].stamp + "<br>" + getXVal("depth",database,i)/1000 + "km deep";
-
-                    renNum++;
-                };
-            }
-        }
-        */
-        var earthquakeHandler = {};
-
-        earthquakeHandler.updateEarthquakes = function (database,minMag,start,stop,thenDraw,wwd) {
-            minMag = typeof minMag !== 'undefined' ? minMag: 2;
-            this.numberOfEarthquakes = countEarthquakes(database,minMag);
-            console.log(this.numberOfEarthquakes)
-            earthquakeData = [];
-            var renNum = 0;
-            for (var i = start; i < Math.min(xmlHasher.length,stop); i++){
-                if (getXVal("mag",database,xmlHasher[i]) >= minMag){
-                    earthquakeData[renNum] = {};
-                    earthquakeData[renNum].lat = getXVal("latitude",database, xmlHasher[i]);
-                    earthquakeData[renNum].long = getXVal("longitude",database, xmlHasher[i]);
-                    earthquakeData[renNum].magnitude = getXVal("mag",database, xmlHasher[i]);
-                    earthquakeData[renNum].date = getXVal("time",database,xmlHasher[i]);
-                    earthquakeData[renNum].age = Math.floor(
-                        Math.abs(
-                            (new Date().getTime() - new Date(earthquakeData[renNum].date).getTime())/(24*60*60*1000)
-                        )
-                    );
-                    switch (earthquakeData[renNum].age){
-                        case 0: earthquakeData[renNum].stamp = Math.floor(Math.abs(
-                                (new Date().getTime() - new Date(earthquakeData[renNum].date).getTime())/(60*60*1000)
-                            )) + " Hours Ago"
-                            break;
-                        case 1: earthquakeData[renNum].stamp = earthquakeData[renNum].age + " Day Ago"
-                            break;
-                        default: earthquakeData[renNum].stamp = earthquakeData[renNum].age + " Days Ago"
-                    }
-
-                    earthquakeData[renNum].info = "M " + getXVal("mag",database,xmlHasher[i]) + " - " + database.getElementsByTagName("description")[xmlHasher[i]].getElementsByTagName("text")[0].childNodes[0].nodeValue
-                        + "<br>"  + earthquakeData[renNum].stamp + "<br>" + getXVal("depth",database,i)/1000 + "km deep";
-
-                    renNum++;
-                };
-            }
-            if (thenDraw){this.drawEarthquakes(start,stop); wwd.redraw();}
-        }
-        earthquakeHandler.drawEarthquakes = function(start,stop){
-            //Create a placemark for each earthquake object.
-            for (var i = start; i < Math.min(this.numberOfEarthquakes,stop); i++){
-                // Create the custom image for the placemark for each earthquake. These are random colors but the color could corrospond to magnitude
-                var canvas = document.createElement("canvas"),
-                    ctx2d = canvas.getContext("2d"),
-                    size = earthquakeData[i].magnitude*6 , c = size / 2  - 0.5, innerRadius = 0, outerRadius = earthquakeData[i].magnitude*3;
-                canvas.width = size;
-                canvas.height = size;
-                ctx2d.fillStyle = getColor(earthquakeData[i].age);
-                ctx2d.alpha = true;
-                ctx2d.globalAlpha = .7;
-                ctx2d.arc(c, c, outerRadius, 0, 2 * Math.PI, false);
-                ctx2d.fill();
-
-
-
-                var canvasTwo = document.createElement("canvas"),
-                    ctx2d2 = canvasTwo.getContext("2d");
-                canvasTwo.width = 50;
-                canvasTwo.height = 50;
-                ctx2d2.font="20px Georgia";
-                ctx2d2.fillText("hi",10,50);
-
-                // Create the placemark.
-                placemark = new WorldWind.Placemark(new WorldWind.Position(earthquakeData[i].lat, earthquakeData[i].long, 1e2));
-                placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
-
-                // Create the placemark attributes for the placemark.
-                placemarkAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
-
-                // Wrap the canvas created above in an ImageSource object to specify it as the placemark image source.
-                placemarkAttributes.imageSource = new WorldWind.ImageSource(canvas);
-                placemark.attributes = placemarkAttributes;
-
-
-                // Create the highlight attributes for this placemark. Note that the normal attributes are specified as
-                // the default highlight attributes so that all properties are identical except the image scale. You could
-                // instead vary the color, image, or other property to control the highlight representation.
-                highlightAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
-                //highlightAttributes.imageSource = new WorldWind.ImageSource(canvasTwo);
-                highlightAttributes.imageScale = 1.2;
-                placemark.highlightAttributes = highlightAttributes;
-
-                // Add the placemark to the layer.
-                placemarkLayer.addRenderable(placemark);
-            };
-        }
-        /*
-        //update the Earthquakes object
-        var baseT2 = new Date().getTime()/(1000)
-        console.log("Parsing")
-        console.log(xmlDocA)
-        updateEarthquakes(xmlDocA);
-        console.log(new Date().getTime()/(1000) - baseT2)
-        */
-
-
-
 
         // Tell World Wind to log only warnings.
         WorldWind.Logger.setLoggingLevel(WorldWind.Logger.LEVEL_WARNING);
 
         // Create the World Window.
         var wwd = new WorldWind.WorldWindow("canvasOne");
+
 
         // Add imagery layers.
         var layers = [
@@ -263,13 +272,10 @@ requirejs(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             highlightAttributes,
             placemarkLayer = new WorldWind.RenderableLayer("Placemarks");
 
-        // Set up the common placemark attributes.
-        placemarkAttributes.imageScale = 1;
-        placemarkAttributes.imageColor = WorldWind.Color.WHITE;
-
         //var baseT1 = new Date().getTime()/(1000)
-        earthquakeHandler.updateEarthquakes(xmlDocA,2,0,500,true,wwd);
         //console.log(new Date().getTime()/(1000) - baseT1)
+
+        var earthquakeHandler = new EarthquakeHandler(xmlDocA,3,wwd,placemarkLayer);
 
         // Add the placemarks layer to the World Window's layer list.
         wwd.addLayer(placemarkLayer);
@@ -282,37 +288,14 @@ requirejs(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
         // Create a coordinate controller to update the coordinate overlay elements.
         var coordinateController = new CoordinateController(wwd);
+
         // Now set up to handle highlighting.
         var highlightController = new WorldWind.HighlightController(wwd);
 
+
+        //adds the earthquake info to the webpage on mouseover. This needs to be localized to the window. Could be done by changing the worldwindow event listener
         document.getElementById("canvasOne").onmousemove = function tss () {
-            displayInfo(xmlDocA);
+            displayInfo(xmlDocA,earthquakeHandler);
         };
 
-        // Now set up to handle clicks and taps.
-
-        // The common gesture-handling function.
-        var handleClick = function (recognizer) {
-            // Obtain the event location.
-            var x = recognizer.clientX,
-                y = recognizer.clientY;
-
-            // Perform the pick. Must first convert from window coordinates to canvas coordinates, which are
-            // relative to the upper left corner of the canvas rather than the upper left corner of the page.
-            var pickList = wwd.pick(wwd.canvasCoordinates(x, y));
-
-            // If only one thing is picked and it is the terrain, tell the world window to go to the picked location.
-            if (pickList.objects.length == 1 && pickList.objects[0].isTerrain) {
-                var position = pickList.objects[0].position;
-                wwd.goTo(new WorldWind.Location(position.latitude, position.longitude));
-            }
-        };
-
-        // Listen for mouse clicks.
-        var clickRecognizer = new WorldWind.ClickRecognizer(wwd);
-        clickRecognizer.addGestureListener(handleClick);
-
-        // Listen for taps on mobile devices.
-        var tapRecognizer = new WorldWind.TapRecognizer(wwd);
-        tapRecognizer.addGestureListener(handleClick);
     });
