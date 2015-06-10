@@ -310,33 +310,9 @@ requirejs(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
         var earthquakeHandler = new EarthquakeHandler(xmlDocA,3,wwd,placemarkLayer);
 
-         function EarthquakeControlsLayer (worldWindow) {
-             var earthContLay = new WorldWind.RenderableLayer();
-             var screenOffset = new WorldWind.Offset(WorldWind.OFFSET_FRACTION, 0, WorldWind.OFFSET_FRACTION, 0),
-                 imagePath = WorldWind.configuration.baseUrl + "images/view/";
-             var HandlerT = this;
-
-             earthContLay.displayName = "Mag Controls";
-             this.wwd = worldWindow;
-
-             this.magControl = new WorldWind.ScreenImage(screenOffset.clone(), imagePath + "view-pan-64x64.png");
-             this.magControl.imageOffset = new WorldWind.Offset(WorldWind.OFFSET_FRACTION, 0, WorldWind.OFFSET_FRACTION, 0);
-
-             this.magControl.imageOffset = screenOffset.clone();
-             this._inactiveOpacity = 0.5;
-             this._activeOpacity = 1.0;
-             this.magControl.opacity = this._inactiveOpacity;
-             this.magControl.size = 64;
-
-             earthContLay.addRenderable(this.magControl);
-             wwd.addLayer(earthContLay);
-
-         };
-
-
         // Add the placemarks layer to the World Window's layer list.
         wwd.addLayer(placemarkLayer);
-        var earthquakeController = new EarthquakeControlsLayer(wwd);
+
         // Draw the World Window for the first time.
         wwd.redraw();
 
