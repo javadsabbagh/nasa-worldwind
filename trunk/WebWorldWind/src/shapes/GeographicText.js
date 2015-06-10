@@ -46,6 +46,14 @@ define([
              * @type {Position}
              */
             this.position = position;
+
+            /**
+             * Indicates the group ID of the declutter group to include this Text shape. If non-zero, this shape
+             * is decluttered relative to all other shapes within its group.
+             * @type {Number}
+             * @default 1
+             */
+            this.declutterGroup = 1;
         };
 
         // Internal use only. Intentionally not documented.
