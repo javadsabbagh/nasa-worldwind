@@ -29,20 +29,26 @@ requirejs(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
         function getColorSpectrum(daysAge,limittingAge){
             var r, g, b;
-            var param, retVar;
+            var paramOne = 255, retVar, paramTwo = 0, paramThree = 0;
             var hashSect = daysAge/limittingAge;
-            if (hashSect <= .2){
-                param = (hashSect/.2)*255
-                retVar = "rgb(255," + Math.round(param.toString()) + ",0)"
-            } else if (hashSect <= .4){
-                param = 255-((hashSect -.2)/.2)*255
-                retVar = "rgb(" + Math.round(param.toString()) + ",255" + ",0)"
-            } else if (hashSect <= .6){
-                param = ((hashSect -.4)/.2)*255
-                retVar = "rgb(0,255," + Math.round(param.toString()) + ")"
-            } else {
-                param = 255-((hashSect - .6)/.4)*255
-                retVar = "rgb(0," + Math.round(param.toString()) + ",255)"
+            if (hashSect <= .34){
+                paramTwo = (hashSect/.34)*132
+                retVar = "rgb("+ Math.round(paramOne.toString())
+                    + "," + Math.round(paramTwo.toString())
+                    + "," + Math.round(paramThree.toString()) +")";
+            } else if (hashSect <= .67){
+                paramOne = 255-((hashSect - .34)/.33)*(255-158)
+                paramTwo = 132 + ((hashSect - .34)/.33)*(255-132)
+                retVar = "rgb("+ Math.round(paramOne.toString())
+                    + "," + Math.round(paramTwo.toString())
+                    + "," + Math.round(paramThree.toString()) +")";
+            } else{
+                paramOne = 152 - ((hashSect - .34)/.33)*(152)
+                paramTwo = 255 - ((hashSect - .34)/.33)*(255)
+                paramThree = (hashSect/.34)*255
+                retVar = "rgb("+ Math.round(paramOne.toString())
+                    + "," + Math.round(paramTwo.toString())
+                    + "," + Math.round(paramThree.toString()) +")";
             };
             return retVar;
         };
@@ -287,7 +293,7 @@ requirejs(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             {layer: new WorldWind.BingAerialWithLabelsLayer(null), enabled: true},
             {layer: new WorldWind.OpenStreetMapImageLayer(null), enabled: false},
             {layer: new WorldWind.CompassLayer(), enabled: true},
-            {layer: new WorldWind.ViewControlsLayer(wwd), enabled: true}
+            {layer: new WorldWind.ViewControlsLayer(wwd), enabled: false}
         ];
 
         for (var l = 0; l < layers.length; l++) {
@@ -304,18 +310,43 @@ requirejs(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
         var earthquakeHandler = new EarthquakeHandler(xmlDocA,3,wwd,placemarkLayer);
 
+         function EarthquakeControlsLayer (worldWindow) {
+             var earthContLay = new WorldWind.RenderableLayer();
+             var screenOffset = new WorldWind.Offset(WorldWind.OFFSET_FRACTION, 0, WorldWind.OFFSET_FRACTION, 0),
+                 imagePath = WorldWind.configuration.baseUrl + "images/view/";
+             var HandlerT = this;
+
+             earthContLay.displayName = "Mag Controls";
+             this.wwd = worldWindow;
+
+             this.magControl = new WorldWind.ScreenImage(screenOffset.clone(), imagePath + "view-pan-64x64.png");
+             this.magControl.imageOffset = new WorldWind.Offset(WorldWind.OFFSET_FRACTION, 0, WorldWind.OFFSET_FRACTION, 0);
+
+             this.magControl.imageOffset = screenOffset.clone();
+             this._inactiveOpacity = 0.5;
+             this._activeOpacity = 1.0;
+             this.magControl.opacity = this._inactiveOpacity;
+             this.magControl.size = 64;
+
+             earthContLay.addRenderable(this.magControl);
+             wwd.addLayer(earthContLay);
+
+         };
+
 
         // Add the placemarks layer to the World Window's layer list.
         wwd.addLayer(placemarkLayer);
-
+        var earthquakeController = new EarthquakeControlsLayer(wwd);
         // Draw the World Window for the first time.
         wwd.redraw();
 
         // Create a layer manager for controlling layer visibility.
         var layerManger = new LayerManager(wwd);
 
+
         // Create a coordinate controller to update the coordinate overlay elements.
         var coordinateController = new CoordinateController(wwd);
+
 
         // Now set up to handle highlighting.
         var highlightController = new WorldWind.HighlightController(wwd);
@@ -325,5 +356,4 @@ requirejs(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         document.getElementById("canvasOne").onmousemove = function tss () {
             displayInfo(xmlDocA,earthquakeHandler);
         };
-        //Thealkdjf;lKSDJ;LAFJD
     });
