@@ -452,15 +452,17 @@ define([
                 this.pickColor = dc.uniquePickColor();
             }
 
-            // Compute the effective visibility.
-            if (this.currentVisibility < this.targetVisibility) {
-                this.currentVisibility = Math.min(1,
-                    this.currentVisibility + (dc.timestamp - dc.previousTimestamp) / dc.fadeTime);
-                dc.redrawRequested = true;
-            } else if (this.currentVisibility > this.targetVisibility) {
-                this.currentVisibility = Math.max(0,
-                    this.currentVisibility - (dc.timestamp - dc.previousTimestamp) / dc.fadeTime);
-                dc.redrawRequested = true;
+            // Compute the effective visibility. Use the current value if picking.
+            if (!dc.pickingMode) {
+                if (this.currentVisibility != this.targetVisibility) {
+                    var visibilityDelta = (dc.timestamp - dc.previousTimestamp) / dc.fadeTime;
+                    if (this.currentVisibility < this.targetVisibility) {
+                        this.currentVisibility = Math.min(1, this.currentVisibility + visibilityDelta);
+                    } else {
+                        this.currentVisibility = Math.max(0, this.currentVisibility - visibilityDelta);
+                    }
+                    dc.redrawRequested = true;
+                }
             }
 
             if (this.currentVisibility > 0) {

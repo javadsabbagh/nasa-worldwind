@@ -47,10 +47,18 @@ define([
          * placemark attributes indicate a valid image, the placemark's image is drawn as a rectangle in the
          * image's original dimensions, scaled by the image scale attribute. Otherwise, the placemark is drawn as a
          * square with width and height equal to the value of the image scale attribute, in pixels.
+         * <p>
+         * By default, placemarks participate in decluttering with a [declutterGroupID]{@link Placemark#declutterGroup}
+         * of 2. Only placemark labels are decluttered relative to other placemark labels. The placemarks themselves
+         * are optionally scaled with eye distance to achieve decluttering of the placemark as a whole.
+         * See [eyeDistanceScaling]{@link Placemark#eyeDistanceScaling}.
          * @param {Position} position The placemark's geographic position.
+         * @param {Boolean} eyeDistanceScaling Indicates whether the size of this placemark scales with eye distance.
+         * See [eyeDistanceScalingThreshold]{@link Placemark#eyeDistanceScalingThreshold} and
+         * [eyeDistanceScalingLabelThreshold]{@link Placemark#eyeDistanceScalingLabelThreshold}.
          * @throws {ArgumentError} If the specified position is null or undefined.
          */
-        var Placemark = function (position) {
+        var Placemark = function (position, eyeDistanceScaling) {
             if (!position) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Placemark", "constructor", "missingPosition"));
@@ -87,6 +95,31 @@ define([
              * @type {Position}
              */
             this.position = position;
+
+            /**
+             * Indicates whether this placemark's size is reduced at higher eye distances. If true, this placemark's
+             * size is scaled inversely proportional to the eye distance if the eye distance is greater than the
+             * value of the [eyeDistanceScalingThreshold]{@link Placemark#eyeDistanceScalingThreshold} property.
+             * When the eye distance is below the threshold, this placemark is scaled only according to the
+             * [imageScale]{@link PlacemarkAttributes#imageScale}.
+             * @type {Boolean}
+             */
+            this.eyeDistanceScaling = eyeDistanceScaling;
+
+            /**
+             * The eye distance above which to reduce the size of this placemark, in meters. If
+             * [eyeDistanceScaling]{@link Placemark#eyeDistanceScaling} is true, this placemark's image, label and leader
+             * line sizes are reduced as the eye distance increases beyond this threshold.
+             * @type {Number}
+             * @default 1e6 (meters)
+             */
+            this.eyeDistanceScalingThreshold = 1e6;
+
+            /**
+             * The eye altitude above which this placemark's label is not displayed.
+             * @type {number}
+             */
+            this.eyeDistanceScalingLabelThreshold = 1.5 * this.eyeDistanceScalingThreshold;
 
             /**
              * This placemark's textual label. If null, no label is drawn.
@@ -128,6 +161,36 @@ define([
              */
             this.updateImage = true;
 
+            /**
+             * Indicates the group ID of the declutter group to include this Text shape. If non-zero, this shape
+             * is decluttered relative to all other shapes within its group.
+             * @type {Number}
+             * @default 2
+             */
+            this.declutterGroup = 2;
+
+            /**
+             * This shape's target visibility, a value between 0 and 1. During ordered rendering this shape modifies its
+             * [current visibility]{@link Text#currentVisibility} towards its target visibility at the rate
+             * specified by the draw context's [fadeVelocity]{@link DrawContext#fadeVelocity} property. The target
+             * visibility and current visibility are used to control the fading in and out of this shape.
+             * @type {Number}
+             * @default 1
+             */
+            this.targetVisibility = 1;
+
+            /**
+             * This shape's current visibility, a value between 0 and 1. This property scales the shape's effective
+             * opacity. It is incremented or decremented each frame according to the draw context's
+             * [fade velocity]{@link DrawContext#fadeVelocity} property in order to achieve this shape's current
+             * [target visibility]{@link Text#targetVisibility}. This current visibility and target visibility are
+             * used to control the fading in and out of this shape.
+             * @type {Number}
+             * @default 1
+             * @readonly
+             */
+            this.currentVisibility = 1;
+
             // Internal use only. Intentionally not documented.
             this.activeAttributes = null;
 
@@ -168,6 +231,20 @@ define([
         Placemark.scratchPoint = new Vec3(0, 0, 0); // scratch variable
 
         Placemark.prototype = Object.create(Renderable.prototype);
+
+        Object.defineProperties(Placemark.prototype, {
+            /**
+             * Indicates the screen coordinate bounds of this shape during ordered rendering.
+             * @type {Rectangle}
+             * @readonly
+             * @memberof Placemark.prototype
+             */
+            screenBounds: {
+                get: function () {
+                    return this.labelBounds;
+                }
+            }
+        });
 
         /**
          * Copies the contents of a specified placemark to this placemark.
@@ -303,6 +380,9 @@ define([
                 return null;
             }
 
+            var visibilityScale = this.eyeDistanceScaling ?
+                Math.max(0.0, Math.min(1, this.eyeDistanceScalingThreshold / this.eyeDistance)) : 1;
+
             // Compute the placemark's transform matrix and texture coordinate matrix according to its screen point, image size,
             // image offset and image scale. The image offset is defined with its origin at the image's bottom-left corner and
             // axes that extend up and to the right from the origin point. When the placemark has no active texture the image
@@ -310,7 +390,7 @@ define([
             if (this.activeTexture) {
                 w = this.activeTexture.originalImageWidth;
                 h = this.activeTexture.originalImageHeight;
-                s = this.activeAttributes.imageScale;
+                s = this.activeAttributes.imageScale * visibilityScale;
                 offset = this.activeAttributes.imageOffset.offsetForSize(w, h);
 
                 this.imageTransform.setTranslation(
@@ -320,7 +400,7 @@ define([
 
                 this.imageTransform.setScale(w * s, h * s, 1);
             } else {
-                s = this.activeAttributes.imageScale;
+                s = this.activeAttributes.imageScale * visibilityScale;
                 offset = this.activeAttributes.imageOffset.offsetForSize(s, s);
 
                 this.imageTransform.setTranslation(
@@ -348,7 +428,7 @@ define([
 
                 w = this.labelTexture.imageWidth;
                 h = this.labelTexture.imageHeight;
-                s = this.activeAttributes.labelAttributes.scale;
+                s = this.activeAttributes.labelAttributes.scale * visibilityScale;
                 offset = this.activeAttributes.labelAttributes.offset.offsetForSize(w, h);
 
                 this.labelTransform.setTranslation(
@@ -452,7 +532,6 @@ define([
             // Tell the program which texture unit to use.
             program.loadTextureUnit(gl, WebGLRenderingContext.TEXTURE0);
             program.loadModulateColor(gl, dc.pickingMode);
-            program.loadOpacity(gl, !dc.pickingMode ? this.layer.opacity : 1);
 
             // The currentTexture field is used to avoid re-specifying textures unnecessarily. Clear it to start.
             Placemark.currentTexture = null;
@@ -486,6 +565,27 @@ define([
             if (dc.pickingMode) {
                 this.pickColor = dc.uniquePickColor();
             }
+
+            if (this.eyeDistanceScaling && (this.eyeDistance > this.eyeDistanceScalingLabelThreshold)) {
+                // Target visibility is set to 0 to cause the label to be faded in or out. Nothing else
+                // here uses target visibility.
+                this.targetVisibility = 0;
+            }
+
+            // Compute the effective visibility. Use the current value if picking.
+            if (!dc.pickingMode && this.mustDrawLabel()) {
+                if (this.currentVisibility != this.targetVisibility) {
+                    var visibilityDelta = (dc.timestamp - dc.previousTimestamp) / dc.fadeTime;
+                    if (this.currentVisibility < this.targetVisibility) {
+                        this.currentVisibility = Math.min(1, this.currentVisibility + visibilityDelta);
+                    } else {
+                        this.currentVisibility = Math.max(0, this.currentVisibility - visibilityDelta);
+                    }
+                    dc.redrawRequested = true;
+                }
+            }
+
+            program.loadOpacity(gl, dc.pickingMode ? 1 : this.layer.opacity);
 
             // Draw the leader line first so that the image and label have visual priority.
             if (this.mustDrawLeaderLine(dc)) {
@@ -575,7 +675,9 @@ define([
             // Draw the placemark's image quad.
             gl.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 4);
 
-            if (this.mustDrawLabel()) {
+            if (this.mustDrawLabel() && this.currentVisibility > 0) {
+                program.loadOpacity(gl, dc.pickingMode ? 1 : this.layer.opacity * this.currentVisibility);
+
                 Placemark.matrix.copy(dc.screenProjection);
                 Placemark.matrix.multiplyMatrix(this.labelTransform);
                 program.loadModelviewProjection(gl, Placemark.matrix);
