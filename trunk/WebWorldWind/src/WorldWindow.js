@@ -1022,9 +1022,16 @@ define([
          * <p>
          * The function operates by setting the target visibility of occluded shapes to 0 and unoccluded shapes to 1.
          * @param {DrawContext} dc The current draw context.
-         * @param {Number} groupId The ID of the group to declutter.
+         * @param {Number} groupId The ID of the group to declutter. Must not be null, undefined or 0.
+         * @throws {ArgumentError} If the specified group ID is null, undefined or 0.
          */
         WorldWindow.prototype.declutter = function (dc, groupId) {
+            if (!groupId) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "WorldWindow", "declutter",
+                        "Group ID is null, undefined or 0."));
+            }
+
             // Collect all the declutterables in the specified group.
             var declutterables = [];
             for (var i = 0; i < dc.orderedRenderables.length; i++) {
