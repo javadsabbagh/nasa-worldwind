@@ -210,6 +210,8 @@ define([
             this.alwaysOnTop = that.alwaysOnTop;
             this.depthOffset = that.depthOffset;
             this.declutterGroup = that.declutterGroup;
+            this.targetVisibility = that.targetVisibility;
+            this.currentVisibility = that.currentVisibility;
 
             return this;
         };

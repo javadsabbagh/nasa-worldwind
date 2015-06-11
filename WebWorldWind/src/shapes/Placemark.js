@@ -261,6 +261,8 @@ define([
             this.pickDelegate = that.pickDelegate;
             this.alwaysOnTop = that.alwaysOnTop;
             this.depthOffset = that.depthOffset;
+            this.targetVisibility = that.targetVisibility;
+            this.currentVisibility = that.currentVisibility;
 
             return this;
         };
