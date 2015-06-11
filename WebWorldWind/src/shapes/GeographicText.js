@@ -48,8 +48,10 @@ define([
             this.position = position;
 
             /**
-             * Indicates the group ID of the declutter group to include this Text shape. If non-zero, this shape
-             * is decluttered relative to all other shapes within its group.
+             * Indicates the group ID of the declutter group to include this Text shape. This shape
+             * is decluttered relative to all other shapes within its group by the default
+             * [declutter filter]{@link WorldWindow#declutter}. To prevent decluttering of this shape, set its
+             * declutter group to 0.
              * @type {Number}
              * @default 1
              */
