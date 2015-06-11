@@ -150,12 +150,8 @@ define([
              */
             this.frameStatistics = new FrameStatistics();
 
-            /**
-             * The list of callbacks to call immediately after performing a redraw. The callbacks have a single
-             * argument: this world window, e.g., <code>redrawCallback(WorldWindow);</code>
-             * @type {function[]}
-             */
-            this.redrawCallbacks = [];
+            // Documented with its property accessor below.
+            this._redrawCallbacks = [];
 
             /**
              * The {@link GoToAnimator} used by this world window to respond to its goTo method.
@@ -211,7 +207,8 @@ define([
              * to back when the filter function is called. Ordered rendering filters are typically used to apply
              * decluttering. The default set of filter functions contains one function that declutters shapes with
              * declutter group ID of 1 ({@link GeographicText} by default) and one function that declutters shapes
-             * with declutter group ID 2 ({@link Placemark} by default).
+             * with declutter group ID 2 ({@link Placemark} by default). Applications can add functions to this
+             * array or remove them.
              * @type {Function[]}
              * @default [WorldWindow.declutter]{@link WorldWindow#declutter} with a group ID of 1
              * @readonly
@@ -220,6 +217,19 @@ define([
             orderedRenderingFilters : {
                 get: function () {
                     return this._orderedRenderingFilters;
+                }
+            },
+            /**
+             * The list of callbacks to call immediately after performing a redraw. The callbacks have a single
+             * argument: this world window, e.g., <code>redrawCallback(WorldWindow);</code>. Applications may
+             * add functions to this array or remove them.
+             * @type {Function[]}
+             * @readonly
+             * @memberof WorldWindow.prototype
+             */
+            redrawCallbacks : {
+                get: function () {
+                    return this._redrawCallbacks;
                 }
             }
         });
@@ -506,8 +516,8 @@ define([
                 this.resetDrawContext();
                 this.drawFrame();
 
-                for (var i = 0, len = this.redrawCallbacks.length; i < len; i++) {
-                    this.redrawCallbacks[i](this);
+                for (var i = 0, len = this._redrawCallbacks.length; i < len; i++) {
+                    this._redrawCallbacks[i](this);
                 }
 
                 if (this.drawContext.redrawRequested) {
