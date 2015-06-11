@@ -167,6 +167,9 @@ define([
             this._orderedRenderingFilters = [
                 function (dc) {
                     thisWindow.declutter(dc, 1);
+                },
+                function (dc) {
+                    thisWindow.declutter(dc, 2);
                 }
             ];
 
@@ -207,7 +210,8 @@ define([
              * ordered renderables in the draw context's ordered renderable list, which has been sorted from front
              * to back when the filter function is called. Ordered rendering filters are typically used to apply
              * decluttering. The default set of filter functions contains one function that declutters shapes with
-             * declutter group ID of 1.
+             * declutter group ID of 1 ({@link GeographicText} by default) and one function that declutters shapes
+             * with declutter group ID 2 ({@link Placemark} by default).
              * @type {Function[]}
              * @default [WorldWindow.declutter]{@link WorldWindow#declutter} with a group ID of 1
              * @readonly
