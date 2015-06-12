@@ -95,6 +95,10 @@ define(function () {
         // Update the layer state for the selected layer.
         for (var i = 0, len = this.wwd.layers.length; i < len; i++) {
             var layer = this.wwd.layers[i];
+            if (layer.hide) {
+                continue;
+            }
+
             if (layer.displayName === layerName) {
                 layer.enabled = !layer.enabled;
                 if (layer.enabled) {
@@ -115,6 +119,9 @@ define(function () {
         // Synchronize the displayed layer list with the World Window's layer list.
         for (var i = 0, len = this.wwd.layers.length; i < len; i++) {
             var layer = this.wwd.layers[i];
+            if (layer.hide) {
+                continue;
+            }
             var layerItem = $('<button class="list-group-item btn btn-block">' + layer.displayName + '</button>');
             layerListItem.append(layerItem);
 
