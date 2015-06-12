@@ -9,17 +9,17 @@ define(['../../src/WorldWind',
         '../util/GoToBox',
         '../util/LayersPanel',
         '../util/ProjectionMenu',
-        '../util/ServersPanel',
+        '../util/TerrainOpacityController',
         '../../examples/CoordinateController'],
     function (ww,
               GoToBox,
               LayersPanel,
               ProjectionMenu,
-              ServersPanel,
+              TerrainOpacityController,
               CoordinateController) {
         "use strict";
 
-        var Explorer = function () {
+        var SubSurface = function () {
             WorldWind.Logger.setLoggingLevel(WorldWind.Logger.LEVEL_WARNING);
 
             // Create the World Window.
@@ -49,10 +49,10 @@ define(['../../src/WorldWind',
             this.wwd.redraw();
             this.goToBox = new GoToBox(this.wwd);
             this.layersPanel = new LayersPanel(this.wwd);
-            this.serversPanel = new ServersPanel(this.wwd, this.layersPanel);
             this.projectionMenu = new ProjectionMenu(this.wwd);
             this.coordinateController = new CoordinateController(this.wwd);
+            this.terrainOpacityController = new TerrainOpacityController(this.wwd);
         };
 
-        return Explorer;
+        return SubSurface;
     });
