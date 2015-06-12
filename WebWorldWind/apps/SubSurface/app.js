@@ -3,15 +3,15 @@
  * National Aeronautics and Space Administration. All Rights Reserved.
  */
 /**
- * @version $Id$
+ * @version $Id: app.js 3059 2015-05-04 21:11:01Z tgaskins $
  */
 
 requirejs.config({
     "paths": {
-        "Explorer": "Explorer"
+        "SubSurface": "SubSurface"
     }
 });
 
-requirejs(["Explorer"], function (Explorer) {
-        new Explorer()
+requirejs(["SubSurface"], function (SubSurface) {
+    new SubSurface()
 });
