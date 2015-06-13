@@ -1066,7 +1066,9 @@ define([
                     declutterable.targetVisibility = 0;
                 } else {
                     declutterable.targetVisibility = 1;
-                    rects.push(screenBounds);
+                    if (screenBounds) {
+                        rects.push(screenBounds);
+                    }
                 }
             }
         };
