@@ -97,20 +97,20 @@ define([
         SurfacePolygon.prototype = Object.create(SurfaceShape.prototype);
 
         Object.defineProperties(SurfacePolygon.prototype, {
-            /**
-             * This polygon's boundaries. A two-dimensional array containing the polygon boundaries. Each entry of the
-             * array specifies the vertices for one boundary of the polygon. If the boundaries were specified to the
-             * constructor as a simple array of locations, then this property returns them in that form.
-             * @type {Position[][] | Position[]}
-             * @memberof SurfacePolygon.prototype
-             * @readonly
-             */
-            boundaries: {
-                // TODO: Make this property read/write once the boundaries are interpolated correctly.
-                get: function () {
-                    return this._boundariesSpecifiedSimply ? this._boundaries[0] : this._boundaries;
-                }
-            }
+            ///**
+            // * This polygon's boundaries. A two-dimensional array containing the polygon boundaries. Each entry of the
+            // * array specifies the vertices for one boundary of the polygon. If the boundaries were specified to the
+            // * constructor as a simple array of locations, then this property returns them in that form.
+            // * @type {Position[][] | Position[]}
+            // * @memberof SurfacePolygon.prototype
+            // * @readonly
+            // */
+            //boundaries: {
+            //    // TODO: Make this property read/write once the boundaries are interpolated correctly.
+            //    get: function () {
+            //        return this._boundariesSpecifiedSimply ? this._boundaries[0] : this._boundaries;
+            //    }
+            //}
         });
 
         // Internal use only. Intentionally not documented.
