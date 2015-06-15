@@ -86,9 +86,13 @@ define([
          * <p>
          *     When displayed on a 2D globe, this polygon displays as a {@link SurfacePolygon}.
          *
-         * @param {Position[][]} boundaries A two-dimensional array containing the polygon boundaries. Each entry of the
-         * array specifies the vertices for one boundary of the polygon, in geographic coordinates. The first boundary
-         * in the array is considered the outer boundary for the purpose of calculating the polygon's extent.
+         * @param {Position[][] | Position[]} boundaries A two-dimensional array containing the polygon boundaries.
+         * Each entry of the array specifies the vertices of one boundary.
+         * This argument may also be a simple array of positions,
+         * in which case the polygon is assumed to have only one boundary.
+         * Each boundary is considered implicitly closed, so the last position of the boundary need not and should not
+         * duplicate the first position of the boundary.
+         *
          * @throws {ArgumentError} If the specified boundaries array is null or undefined.
          */
         var Polygon = function (boundaries) {
@@ -98,6 +102,11 @@ define([
             }
 
             AbstractShape.call(this);
+
+            if (boundaries.length > 0 && boundaries[0].latitude) {
+                boundaries = [boundaries];
+                this._boundariesSpecifiedSimply = true;
+            }
 
             // Private. Documentation is with the defined property below and the constructor description above.
             this._boundaries = boundaries;
@@ -115,18 +124,25 @@ define([
 
         Object.defineProperties(Polygon.prototype, {
             /**
-             * This polygon's boundaries. See the description of the boundaries argument in the constructor.
-             * @type {Position[][]}
+             * This polygon's boundaries. A two-dimensional array containing the polygon boundaries. Each entry of the
+             * array specifies the vertices of one boundary. This property may also be a simple
+             * array of positions, in which case the polygon is assumed to have only one boundary.
+             * @type {Position[][] | Position[]}
              * @memberof Polygon.prototype
              */
             boundaries: {
                 get: function () {
-                    return this._boundaries;
+                    return this._boundariesSpecifiedSimply ? this._boundaries[0] : this._boundaries;
                 },
                 set: function (boundaries) {
                     if (!boundaries) {
                         throw new ArgumentError(
                             Logger.logMessage(Logger.LEVEL_SEVERE, "Polygon", "boundaries", "missingBoundaries"));
+                    }
+
+                    if (boundaries.length > 0 && boundaries[0].latitude) {
+                        boundaries = [boundaries];
+                        this._boundariesSpecifiedSimply = true;
                     }
 
                     this._boundaries = boundaries;
@@ -137,9 +153,9 @@ define([
 
             /**
              * This polygon's texture coordinates if this polygon is to be textured. A texture coordinate must be
-             * provided for each boundary position. The texture coordinates are specified in the same arrangement
-             * as the boundaries, with a two-dimensional array, each entry of which specifies the texture coordinates
-             * for one boundary. Each texture coordinate is a {@link Vec2} containing the s and t coordinates.
+             * provided for each boundary position. The texture coordinates are specified as a two-dimensional array,
+             * each entry of which specifies the texture coordinates for one boundary. Each texture coordinate is a
+             * {@link Vec2} containing the s and t coordinates.
              * @type {Vec2[][]}
              * @default null
              * @memberof Polygon.prototype
@@ -296,7 +312,17 @@ define([
             if (!currentData.extent) {
                 currentData.extent = new BoundingBox();
             }
-            currentData.extent.setToPoints(boundaryPoints[0]); // use only the first boundary
+            if (boundaryPoints.length === 1) {
+                currentData.extent.setToPoints(boundaryPoints[0]);
+            } else {
+                var allPoints = [];
+                for (b = 0; b < boundaryPoints.length; b++) {
+                    for (var p = 0; p < boundaryPoints[b].length; p++) {
+                        allPoints.push(boundaryPoints[b][p]);
+                    }
+                }
+                currentData.extent.setToPoints(allPoints);
+            }
             currentData.extent.translate(currentData.referencePoint);
 
             return this;
