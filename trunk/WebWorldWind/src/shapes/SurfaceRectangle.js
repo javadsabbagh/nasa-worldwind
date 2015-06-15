@@ -44,12 +44,13 @@ define([
          * @param {Location} center The rectangle's center location.
          * @param {Number} width The rectangle's width in meters.
          * @param {Number} height The rectangle's height in meters.
+         * @param {Number} heading The rectangle's heading.
          * @param {ShapeAttributes} attributes The attributes to apply to this shape. May be null, in which case
          * attributes must be set directly before the shape is drawn.
          * @throws {ArgumentError} If the specified center location is null or undefined or if either specified width
          * or height is negative.
          */
-        var SurfaceRectangle = function (center, width, height, attributes) {
+        var SurfaceRectangle = function (center, width, height, heading, attributes) {
             if (!center) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceRectangle", "constructor", "missingLocation"));
@@ -66,7 +67,7 @@ define([
             this._center = center;
             this._width = width;
             this._height = height;
-            this._heading = 0;
+            this._heading = heading;
         };
 
         SurfaceRectangle.prototype = Object.create(SurfaceShape.prototype);
