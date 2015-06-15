@@ -72,42 +72,42 @@ define([
              */
             this.pickDelegate = null;
 
-            /**
+            /*
              * The bounding sectors for this tile, which may be needed for crossing the dateline.
              * @type {Sector[]}
              * @protected
              */
             this._sectors = [];
 
-            /**
+            /*
              * The raw collection of locations defining this shape and are explicitly specified by the client of this class.
              * @type {Location[]}
              * @protected
              */
             this._locations = null;
 
-            /**
+            /*
              * Boundaries that are either the user specified locations or locations that are algorithmically generated.
              * @type {Location[]}
              * @protected
              */
             this._boundaries = null;
 
-            /**
+            /*
              * The collection of locations that describes a closed curve which can be filled.
              * @type {Location[][]}
              * @protected
              */
             this._interiorGeometry = null;
 
-            /**
+            /*
              * The collection of locations that describe the outline of the shape.
              * @type {Location[][]}
              * @protected
              */
             this._outlineGeometry = null;
 
-            /**
+            /*
              * Internal use only.
              * Inhibit the filling of the interior. This is to be used ONLY by polylines.
              * @type {Boolean}
@@ -115,7 +115,7 @@ define([
              */
             this._isInteriorInhibited = false;
 
-            /**
+            /*
              * Indicates whether this object's state key is invalid. Subclasses must set this value to true when their
              * attributes change. The state key will be automatically computed the next time it's requested. This flag
              * will be set to false when that occurs.

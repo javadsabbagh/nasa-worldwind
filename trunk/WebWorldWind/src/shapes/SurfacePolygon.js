@@ -99,8 +99,8 @@ define([
         Object.defineProperties(SurfacePolygon.prototype, {
             /**
              * This polygon's boundaries. A two-dimensional array containing the polygon boundaries. Each entry of the
-             * array specifies the vertices for one boundary of the polygon. This property may also be a simple
-             * array of positions, in which case the polygon is assumed to have only one boundary.
+             * array specifies the vertices for one boundary of the polygon. If the boundaries were specified to the
+             * constructor as a simple array of locations, then this property returns them in that form.
              * @type {Position[][] | Position[]}
              * @memberof SurfacePolygon.prototype
              * @readonly
