@@ -81,10 +81,10 @@ requirejs(['../src/WorldWind',
         wwd.addLayer(worldLayer);
 
         // Create data for cities.
-        //var cityLayer = new WorldWind.RenderableLayer("Cities");
-        //var cityShapefile = new WorldWind.Shapefile(shapefileLibrary + "/ne_50m_populated_places_simple/ne_50m_populated_places_simple.shp");
-        //cityShapefile.load(null, shapeConfigurationCallback, cityLayer);
-        //wwd.addLayer(cityLayer);
+        var cityLayer = new WorldWind.RenderableLayer("Cities");
+        var cityShapefile = new WorldWind.Shapefile(shapefileLibrary + "/ne_50m_populated_places_simple/ne_50m_populated_places_simple.shp");
+        cityShapefile.load(null, shapeConfigurationCallback, cityLayer);
+        wwd.addLayer(cityLayer);
 
         wwd.redraw();
 
