@@ -37,10 +37,11 @@ define([
          *         <li>Outline stipple pattern</li>
          * </ul>
          * @param {Array} boundaries The polygons boundary locations. If this argument is an array of
-         * [Locations]{@link Location} they define this polygons outer boundary. If it is an array of arrays of
-         * Locations then each internal array defines one of this polygon's boundaries.
+         * [Locations]{@link Location} they define this polygon's outer boundary. If it is an array of arrays of
+         * Locations then each array entry defines one of this polygon's boundaries.
          * @param {ShapeAttributes} attributes The attributes to apply to this shape. May be null, in which case
          * attributes must be set directly before the shape is drawn.
+         *
          * @throws {ArgumentError} If the specified boundaries are null or undefined.
          */
         var SurfacePolygon = function (boundaries, attributes) {
@@ -52,25 +53,75 @@ define([
 
             SurfaceShape.call(this, attributes);
 
-            /**
-             * This shape's boundaries, specified as an array locations if the polygon has a single boundary, or
-             * an array of arrays of locations if the polygon has multiple boundaries.
-             * @type {Array}
-             */
-            this._boundaries = boundaries;
+            // Convert the boundaries to the form SurfaceShape wants them.
+            // TODO: Eliminate this once the SurfaceShape code is rewritten to handle multiple boundaries in the
+            // form they were specified.
+            var newBoundaries = null;
+
+            // Determine whether we've been passed a boundary or a boundary list.
+            if (boundaries.length > 0 && boundaries[0].latitude) {
+                newBoundaries = boundaries.slice(0);
+                newBoundaries.push(boundaries[0]);
+                this._boundariesSpecifiedSimply = true;
+            } else if (boundaries.length > 1) {
+                var lastLocation = null;
+
+                newBoundaries = [];
+
+                for (var b = 0; b < boundaries.length; b++) {
+                    var firstLocation = boundaries[b][0];
+
+                    for (var i = 0; i < boundaries[b].length; i++) {
+                        newBoundaries.push(boundaries[b][i]);
+                    }
+
+                    newBoundaries.push(firstLocation);
+
+                    // Close the polygon for secondary parts by returning back to the first point
+                    // (which coincides with the last point of the first part in a well-formed shapefile).
+                    if (!!lastLocation) {
+                        newBoundaries.push(lastLocation);
+                    }
+                    else {
+                        lastLocation = newBoundaries[newBoundaries.length - 1];
+                    }
+                }
+            } else if (boundaries.length === 1) {
+                newBoundaries = boundaries[0].slice(0);
+                newBoundaries.push(boundaries[0][0]);
+            }
+
+            this._boundaries = newBoundaries;
         };
 
         SurfacePolygon.prototype = Object.create(SurfaceShape.prototype);
 
+        Object.defineProperties(SurfacePolygon.prototype, {
+            /**
+             * This polygon's boundaries. A two-dimensional array containing the polygon boundaries. Each entry of the
+             * array specifies the vertices for one boundary of the polygon. This property may also be a simple
+             * array of positions, in which case the polygon is assumed to have only one boundary.
+             * @type {Position[][] | Position[]}
+             * @memberof SurfacePolygon.prototype
+             * @readonly
+             */
+            boundaries: {
+                // TODO: Make this property read/write once the boundaries are interpolated correctly.
+                get: function () {
+                    return this._boundariesSpecifiedSimply ? this._boundaries[0] : this._boundaries;
+                }
+            }
+        });
+
         // Internal use only. Intentionally not documented.
-        SurfacePolygon.staticStateKey = function(shape) {
+        SurfacePolygon.staticStateKey = function (shape) {
             var shapeStateKey = SurfaceShape.staticStateKey(shape);
 
             return shapeStateKey;
         };
 
         // Internal use only. Intentionally not documented.
-        SurfacePolygon.prototype.computeStateKey = function() {
+        SurfacePolygon.prototype.computeStateKey = function () {
             return SurfacePolygon.staticStateKey(this);
         };
 

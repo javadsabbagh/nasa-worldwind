@@ -457,6 +457,14 @@ define([
         };
 
         /**
+         * Indicate whether the record is of a point type.
+         * @returns {Boolean} True if the record is of a point type.
+         */
+        ShapefileRecord.prototype.isMultiPointType = function() {
+            return this.shapefile.isMultiPointType();
+        };
+
+        /**
          * Indicate whether the record is of a polyline type.
          * @returns {Boolean} True if the record is of a polyline type.
          */
