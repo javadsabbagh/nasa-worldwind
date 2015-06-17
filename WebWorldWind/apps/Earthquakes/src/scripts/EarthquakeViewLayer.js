@@ -113,9 +113,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js'], function(ww)
 
                     var ThreeDimensionalCyclinder = function (color, center, radius, height) {
 
-
                         var coordinates = EarthToCartesian(center.longitude, center.latitude);
-
 
                         function getXCoordinate(angle) {
                             return center.longitude + radius * Math.sin(angle);

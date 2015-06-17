@@ -148,6 +148,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             //crude implementation to display the info of the earthquake highlighted
             document.getElementById("canvasOne").onmousemove = function tss () {
                 displayInfo(newLayer);
+                displayInfo(newColumns);
             };
 
             // Create a layer manager for controlling layer visibility.
