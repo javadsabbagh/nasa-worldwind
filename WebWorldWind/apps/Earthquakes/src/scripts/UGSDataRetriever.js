@@ -25,19 +25,21 @@ define(function() {
     }
 
     UGSDataRetriever.prototype.assembleAPICall = function() {
-        //return "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson"
-        return "http://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&limit=1000";
+        //return "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson"
+        return "http://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&limit=100";
     }
 
     UGSDataRetriever.prototype.parseDataFromUGDS = function(data) {
         var earthquakes = data['features'];
+
+
         var res = earthquakes.map(function(quake) {
             var geometry = quake['geometry'];
             var logistics = quake['properties'];
             var earthquake = {
                 magnitude: Number(logistics['mag']),
                 date: logistics['time'],
-                depth: Number(['coordinates'][2]),
+                depth: Number(geometry['coordinates'][2]),
                 lat: Number(geometry['coordinates'][1]),
                 long: Number(geometry['coordinates'][0])
             };
@@ -56,10 +58,9 @@ define(function() {
                 earthquake.stamp = stampTest;
             }
 
-            earthquake.info = 'M' + earthquake.magnitude + '-';
-            earthquake.info += logistics['place'] + "<br>" + earthquake.stamp + "<br>" + (earthquake.depth / 1000) +
+            earthquake.info = 'M' + earthquake.magnitude + ' - ';
+            earthquake.info += logistics['place'] + "<br>" + earthquake.stamp + "<br>" + (Math.round(earthquake.depth) / 1000) +
                     " km deep";
-
             return earthquake
 
 
