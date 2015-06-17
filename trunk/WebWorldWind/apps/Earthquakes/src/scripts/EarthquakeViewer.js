@@ -211,26 +211,34 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             //passes the retrieved data to the layer
             newLayer.Manage.createDataArray(arg);
 
-            //parses and draws earthquakes on layer
-            newLayer.Manage.parseDataArrayMag(2);
 
-            //animates most recent earthquake. the first renderable in the layer is the most recent earthquake
-            newLayer.Manage.Animations.animate(newLayer.renderables[0]);
             wwd.addLayer(newLayer);
-            $('#magnitudeSlider').slider({
+
+            //instantiate the slider
+
+
+            //wait for the slider to be ready
+            $('#magnitudeSlider').ready(function() {
+                var magSlider = $('#magnitudeSlider').slider({
                     formatter: function(value) {
                         return 'Current value: ' + value;
                     }
+                })
+                magSlider.on('slideStop',function(arg){
+
+                    //passes slider value to the layer
+                    newLayer.Manage.parseDataArrayMag(arg.value);
+
+                    //again animates the most recent displayed earthquake. When the renderables change, the renderable ceases to be animated.
+                    newLayer.Manage.Animations.animate(newLayer.renderables[0]);
                 });
-            $('#magnitudeSlider').on('slideStop',function(arg){
 
-                //passes slider value to the layer
-                newLayer.Manage.parseDataArrayMag(arg.value);
+                //parses and draws earthquakes on layer. Set minimum visible magnitude to the default value of the slider
+                newLayer.Manage.parseDataArrayMag(magSlider.slider('getValue'));
 
-                //again animates the most recent displayed earthquake. When the renderables change, the renderable ceases to be animated.
+                //animates most recent earthquake. the first renderable in the layer is the most recent earthquake
                 newLayer.Manage.Animations.animate(newLayer.renderables[0]);
             });
-
             document.getElementById("canvasOne").onmousemove = function tss () {
                 displayInfo(newLayer);
             };
