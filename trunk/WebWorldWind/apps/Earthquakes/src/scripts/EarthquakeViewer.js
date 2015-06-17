@@ -40,6 +40,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             //location to display the info
             var display = $('#eData');
 
+            //finds the highlighted renderable
             for (var i in layer.renderables) {
 
                 if (layer.renderables[i].highlighted) {
@@ -86,7 +87,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                     var placemark, highlightAttributes,
                         placemarkAttributes = new WorldWind.PlacemarkAttributes(null),
                         Array = eLayer.Manage.ParsedData;
-                    var colorSpect = [[255,0,0],[180,90,0],[90,180,0],[0,255,0]];
+                    var colorSpect = [[255,0,0],[0,255,0]];
                     //returns color based on the array and the fraction.
                     var GetColorSpectrum = function (fraction,spectrumArrayColors){
                         //array looks like [[r,g,b],[r,g,b],...
@@ -150,9 +151,9 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
                     //animates argument renderable.
                     animate: function (renderable) {
-                        if (eLayer.Manage.Animations.animated != undefined) {
+                        if (eLayer.Manage.ParsedData.length > 0 && eLayer.Manage.Animations.animating === true) {
                             eLayer.Manage.Animations.stopAnimation();
-                        } else {
+                        } else if (!eLayer.Manage.ParsedData.length > 0){
                             return
                         }
                         //saves the renderable memory location
@@ -174,6 +175,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                             if (INDEX > 20){
                                 INDEX = 0;
                             }
+                            eLayer.Manage.Animations.animating = true;
                             wwd.redraw();
                         },50)
                     },
@@ -186,6 +188,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
                         //returns all attributes of placemark before animation to the placemark
                         eLayer.Manage.Animations.animated = eLayer.Manage.Animations.CCdAnimated
+
+                        eLayer.Manage.Animations.animating = false;
                     }
                 }
             };
@@ -214,16 +218,18 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
             wwd.addLayer(newLayer);
 
-            //instantiate the slider
+
 
 
             //wait for the slider to be ready
             $('#magnitudeSlider').ready(function() {
+
+                //instantiate the slider
                 var magSlider = $('#magnitudeSlider').slider({
                     formatter: function(value) {
                         return 'Current value: ' + value;
                     }
-                })
+                });
                 magSlider.on('slideStop',function(arg){
 
                     //passes slider value to the layer
@@ -239,6 +245,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 //animates most recent earthquake. the first renderable in the layer is the most recent earthquake
                 newLayer.Manage.Animations.animate(newLayer.renderables[0]);
             });
+
+            //crude implementation to display the info of the earthquake highlighted
             document.getElementById("canvasOne").onmousemove = function tss () {
                 displayInfo(newLayer);
             };
@@ -257,6 +265,6 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         //
         var highlightController = new WorldWind.HighlightController(wwd);
 
-        //crude implementation to display the info of the earthquake highlighted
+
 
     });
