@@ -61,7 +61,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 //adds the data to the layer (does not draw on the layer). Stores all data in eLayer.Manage.Data as array of earthquake objects
                 createDataArray: function (JSONFile) {
                     eLayer.Manage.Data = JSONFile;
-                    eLayer.Manage.parseDataArrayMag(1);//parse out most of the insignificant earthquakes.
+                    eLayer.Manage.parseDataArrayMag(2);//parse out most of the insignificant earthquakes.
                 },
 
                 //shows the array of all earthquake objects and returns it if needed
@@ -150,7 +150,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
                     //animates argument renderable.
                     animate: function (renderable) {
-                        if (eLayer.Manage.Animations.animated) {
+                        if (eLayer.Manage.Animations.animated != undefined) {
                             eLayer.Manage.Animations.stopAnimation();
                         } else {
                             return
@@ -212,7 +212,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             newLayer.Manage.createDataArray(arg);
 
             //parses and draws earthquakes on layer
-            newLayer.Manage.parseDataArrayMag(1);
+            newLayer.Manage.parseDataArrayMag(2);
 
             //animates most recent earthquake. the first renderable in the layer is the most recent earthquake
             newLayer.Manage.Animations.animate(newLayer.renderables[0]);
@@ -231,7 +231,9 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 newLayer.Manage.Animations.animate(newLayer.renderables[0]);
             });
 
-
+            document.getElementById("canvasOne").onmousemove = function tss () {
+                displayInfo(newLayer);
+            };
         });
 
         // Draw the World Window for the first time.
@@ -248,7 +250,5 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         var highlightController = new WorldWind.HighlightController(wwd);
 
         //crude implementation to display the info of the earthquake highlighted
-        document.getElementById("canvasOne").onmousemove = function tss () {
-            displayInfo(newLayer);
-        };
+
     });
