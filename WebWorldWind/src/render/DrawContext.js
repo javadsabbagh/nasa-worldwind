@@ -357,6 +357,7 @@ define([
             this.terrain = null;
             this.verticalExaggeration = 1;
             this.frameStatistics = null;
+            this.accumulateOrderedRenderables = true;
 
             // Reset picking properties that may be set by the World Window.
             this.pickingMode = false;

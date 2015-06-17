@@ -145,6 +145,14 @@ define([
             this.deepPicking = false;
 
             /**
+             * Indicates whether this World Window should be configured for sub-surface rendering. If true, shapes
+             * below the terrain can be seen when the terrain is made transparent. If false, sub-surface shapes are
+             * not visible, however, performance is slightly increased.
+             * @type {boolean}
+             */
+            this.subsurfaceMode = true;
+
+            /**
              * Performance statistics for this WorldWindow.
              * @type {FrameStatistics}
              */
@@ -214,7 +222,7 @@ define([
              * @readonly
              * @memberof WorldWindow.prototype
              */
-            orderedRenderingFilters : {
+            orderedRenderingFilters: {
                 get: function () {
                     return this._orderedRenderingFilters;
                 }
@@ -227,7 +235,7 @@ define([
              * @readonly
              * @memberof WorldWindow.prototype
              */
-            redrawCallbacks : {
+            redrawCallbacks: {
                 get: function () {
                     return this._redrawCallbacks;
                 }
@@ -441,11 +449,14 @@ define([
         WorldWindow.prototype.createContext = function (canvas) {
             // Request a WebGL context with antialiasing is disabled. Antialiasing causes gaps to appear at the edges of
             // terrain tiles.
-            var glAttrs = {antialias: false},
+            var glAttrs = {antialias: false, stencil: true},
                 gl = canvas.getContext("webgl", glAttrs);
             if (!gl) {
                 gl = canvas.getContext("experimental-webgl", glAttrs);
             }
+
+            var actualAttributes = gl.getContextAttributes();
+            this.hasStencilBuffer = actualAttributes.stencil;
 
             // uncomment to debug WebGL
             //var gl = WebGLDebugUtils.makeDebugContext(this.canvas.getContext("webgl"),
@@ -607,6 +618,7 @@ define([
             } finally {
                 this.endFrame();
                 this.drawContext.frameStatistics.endFrame();
+                //console.log(this.drawContext.frameStatistics.frameTime);
             }
         };
 
@@ -619,6 +631,9 @@ define([
                 }
             } else {
                 this.doDraw();
+                if (this.subsurfaceMode && this.hasStencilBuffer) {
+                    this.redrawSurface();
+                }
             }
         };
 
@@ -675,17 +690,45 @@ define([
 
         // Internal function. Intentionally not documented.
         WorldWindow.prototype.doDraw = function () {
-            this.drawContext.surfaceShapeTileBuilder.clear();
+            this.drawContext.renderShapes = true;
 
-            this.drawLayers();
+            if (this.subsurfaceMode && this.hasStencilBuffer) {
+                this.drawContext.currentGlContext.disable(WebGLRenderingContext.STENCIL_TEST);
+                this.drawContext.surfaceShapeTileBuilder.clear();
+                this.drawLayers(true);
+                this.drawContext.surfaceShapeTileBuilder.doRender(this.drawContext);
 
-            this.drawContext.surfaceShapeTileBuilder.doRender(this.drawContext);
+                if (!this.deferOrderedRendering) {
+                    this.drawContext.currentGlContext.clear(
+                        WebGLRenderingContext.DEPTH_BUFFER_BIT | WebGLRenderingContext.STENCIL_BUFFER_BIT);
+                    this.drawContext.currentGlContext.enable(WebGLRenderingContext.STENCIL_TEST);
+                    this.drawContext.currentGlContext.stencilFunc(WebGLRenderingContext.ALWAYS, 1, 1);
+                    this.drawContext.currentGlContext.stencilOp(
+                        WebGLRenderingContext.REPLACE, WebGLRenderingContext.REPLACE, WebGLRenderingContext.REPLACE);
+                    this.drawOrderedRenderables();
 
-            if (!this.deferOrderedRendering) {
-                this.drawOrderedRenderables();
+                    this.drawContext.screenCreditController.drawCredits(this.drawContext);
+                }
+            } else {
+                this.drawContext.surfaceShapeTileBuilder.clear();
+                this.drawLayers(true);
+                this.drawContext.surfaceShapeTileBuilder.doRender(this.drawContext);
+
+                if (!this.deferOrderedRendering) {
+                    this.drawOrderedRenderables();
+                }
+
+                this.drawContext.screenCreditController.drawCredits(this.drawContext);
             }
+        };
 
-            this.drawContext.screenCreditController.drawCredits(this.drawContext);
+        WorldWindow.prototype.redrawSurface = function () {
+            this.drawContext.currentGlContext.stencilFunc(WebGLRenderingContext.EQUAL, 1, 1);
+            this.drawContext.currentGlContext.stencilOp(
+                WebGLRenderingContext.KEEP, WebGLRenderingContext.KEEP, WebGLRenderingContext.KEEP);
+            this.drawContext.surfaceShapeTileBuilder.clear();
+            this.drawLayers(false);
+            this.drawContext.surfaceShapeTileBuilder.doRender(this.drawContext);
         };
 
         // Internal function. Intentionally not documented.
@@ -697,7 +740,7 @@ define([
             if (!this.drawContext.pickTerrainOnly) {
                 this.drawContext.surfaceShapeTileBuilder.clear();
 
-                this.drawLayers();
+                this.drawLayers(true);
 
                 this.drawContext.surfaceShapeTileBuilder.doRender(this.drawContext);
 
@@ -793,6 +836,28 @@ define([
             }
             //
             //console.log(drawing);
+
+            if (this.subsurfaceMode && this.hasStencilBuffer) {
+                this.deferOrderedRendering = true;
+
+                if (this.terrainCenter) {
+                    drawing += " 0 ";
+                    this.makeCurrent(0);
+                    this.redrawSurface();
+                }
+
+                if (this.terrainRight) {
+                    drawing += " 1 ";
+                    this.makeCurrent(1);
+                    this.redrawSurface();
+                }
+
+                if (this.terrainLeft) {
+                    drawing += " -1 ";
+                    this.makeCurrent(-1);
+                    this.redrawSurface();
+                }
+            }
         };
 
         WorldWindow.prototype.pick2DContiguous = function () {
@@ -817,13 +882,15 @@ define([
         };
 
         // Internal function. Intentionally not documented.
-        WorldWindow.prototype.drawLayers = function () {
+        WorldWindow.prototype.drawLayers = function (accumulateOrderedRenderables) {
             // Draw all the layers attached to this WorldWindow.
 
             var beginTime = Date.now(),
                 dc = this.drawContext,
                 layers = dc.layers,
                 layer;
+
+            dc.accumulateOrderedRenderables = accumulateOrderedRenderables;
 
             for (var i = 0, len = layers.length; i < len; i++) {
                 layer = layers[i];

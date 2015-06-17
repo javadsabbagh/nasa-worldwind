@@ -187,6 +187,10 @@ define([
                 return;
             }
 
+            if (!dc.accumulateOrderedRenderables) {
+                return;
+            }
+
             // Create an ordered renderable, but don't create more than one per frame.
             var orderedScreenImage = null;
             if (this.lastFrameTime !== dc.timestamp) {
@@ -305,7 +309,8 @@ define([
             program.loadModulateColor(gl, dc.pickingMode);
 
             // Turn off depth testing.
-            gl.disable(WebGLRenderingContext.DEPTH_TEST);
+            // tag, 6/17/15: It's not clear why this call was here. It was carried over from WWJ.
+            //gl.disable(WebGLRenderingContext.DEPTH_TEST);
         };
 
         // Internal. Intentionally not documented.

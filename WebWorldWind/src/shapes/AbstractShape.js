@@ -194,6 +194,10 @@ define([
                 return;
             }
 
+            if (!dc.accumulateOrderedRenderables) {
+                return;
+            }
+
             if (dc.globe.is2D() && this.useSurfaceShapeFor2D) {
                 if (!this.surfaceShape) {
                     this.surfaceShape = this.createSurfaceShape();
