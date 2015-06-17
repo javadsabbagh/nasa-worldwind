@@ -26,7 +26,7 @@ define(function() {
 
     UGSDataRetriever.prototype.assembleAPICall = function() {
         //return "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson"
-        return "http://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&limit=100";
+        return "http://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&limit=500";
     }
 
     UGSDataRetriever.prototype.parseDataFromUGDS = function(data) {
@@ -51,11 +51,12 @@ define(function() {
             var stampTest = Math.floor(earthquake.age);
 
             if (stampTest === 0) {
-                earthquake.stamp = Math.floor(Math.abs((new Date().getTime() - new Date(earthquake.date).getTime())
-                    / (60 * 60 * 1000))) + ' Hours Ago';
+                var tempVal = Math.floor(Math.abs((new Date().getTime() - new Date(earthquake.date).getTime())
+                    / (60 * 60 * 1000)))
+                earthquake.stamp = tempVal  + ((tempVal === 1) ? " Hour" : " Hours") + ' Ago';
             } else {
-                var day = ((stampTest === 1) ? 'Day' : 'Days') + " Ago";
-                earthquake.stamp = stampTest;
+                var day = ((stampTest === 1) ? ' Day' : ' Days') + " Ago";
+                earthquake.stamp = stampTest + day;
             }
 
             earthquake.info = 'M' + earthquake.magnitude + ' - ';

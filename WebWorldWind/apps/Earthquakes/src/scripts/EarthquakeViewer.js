@@ -86,7 +86,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                     var placemark, highlightAttributes,
                         placemarkAttributes = new WorldWind.PlacemarkAttributes(null),
                         Array = eLayer.Manage.ParsedData;
-                    var colorSpect = [[255,0,0],[225,132,0],[200,167,0],[178,200,0],[152,255,0]];
+                    var colorSpect = [[255,0,0],[180,90,0],[90,180,0],[0,255,0]];
                     //returns color based on the array and the fraction.
                     var GetColorSpectrum = function (fraction,spectrumArrayColors){
                         //array looks like [[r,g,b],[r,g,b],...
@@ -97,9 +97,9 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                                     g = spectrumArrayColors[i][1]+fraction*(spectrumArrayColors[i+1][1]-spectrumArrayColors[i][1]),
                                     b = spectrumArrayColors[i][2]+fraction*(spectrumArrayColors[i+1][2]-spectrumArrayColors[i][2]);
 
-                                r = Math.round(r)
-                                g = Math.round(g)
-                                b = Math.round(b)
+                                r = Math.round(r);
+                                g = Math.round(g);
+                                b = Math.round(b);
                                 return "rgb("+ r + "," + g + "," + b + ")";
                             }
                         }
