@@ -241,6 +241,10 @@ define([
                 return;
             }
 
+            if (!dc.accumulateOrderedRenderables) {
+                return;
+            }
+
             // Create an ordered renderable for this text. If one has already been created this frame then we're
             // in 2D-continuous mode and another needs to be created for one of the alternate globe offsets.
             var orderedText;

@@ -54,7 +54,7 @@ define(['../../src/WorldWind',
 
             var placemarkAttributes = new WorldWind.PlacemarkAttributes(null);
             placemarkAttributes.imageScale = 0.1;
-            placemarkAttributes.imageColor = WorldWind.Color.WHITE;
+            placemarkAttributes.imageColor = WorldWind.Color.GREEN;
             placemarkAttributes.labelAttributes.offset = new WorldWind.Offset(
                 WorldWind.OFFSET_FRACTION, 0.5,
                 WorldWind.OFFSET_FRACTION, 1.0);

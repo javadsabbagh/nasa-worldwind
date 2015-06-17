@@ -291,6 +291,10 @@ define([
                 return;
             }
 
+            if (!dc.accumulateOrderedRenderables) {
+                return;
+            }
+
             if (dc.globe.projectionLimits
                 && !dc.globe.projectionLimits.containsLocation(this.position.latitude, this.position.longitude)) {
                 return;
@@ -641,7 +645,8 @@ define([
             }
 
             // Suppress frame buffer writes for the placemark image and its label.
-            gl.depthMask(false);
+            // tag, 6/17/15: It's not clear why this call was here. It was carried over from WWJ.
+            //gl.depthMask(false);
 
             gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, dc.unitQuadBuffer3());
             gl.vertexAttribPointer(program.vertexPointLocation, 3, WebGLRenderingContext.FLOAT, false, 0, 0);
