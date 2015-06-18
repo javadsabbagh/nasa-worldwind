@@ -46,7 +46,8 @@ define([
          * Placemarks may be drawn with either an image or as single-color square with a specified size. When the
          * placemark attributes indicate a valid image, the placemark's image is drawn as a rectangle in the
          * image's original dimensions, scaled by the image scale attribute. Otherwise, the placemark is drawn as a
-         * square with width and height equal to the value of the image scale attribute, in pixels.
+         * square with width and height equal to the value of the image scale attribute, in pixels, and color equal
+         * to the image color attribute.
          * <p>
          * By default, placemarks participate in decluttering with a [declutterGroupID]{@link Placemark#declutterGroup}
          * of 2. Only placemark labels are decluttered relative to other placemark labels. The placemarks themselves
@@ -673,10 +674,14 @@ define([
             }
             program.loadTextureMatrix(gl, this.texCoordMatrix);
 
-            if (this.activeTexture && this.activeTexture != Placemark.currentTexture) { // avoid unnecessary texture state changes
-                textureBound = this.activeTexture.bind(dc); // returns false if active texture is null or cannot be bound
-                program.loadTextureEnabled(gl, textureBound);
-                Placemark.currentTexture = this.activeTexture;
+            if (this.activeTexture) {
+                if (this.activeTexture != Placemark.currentTexture) { // avoid unnecessary texture state changes
+                    textureBound = this.activeTexture.bind(dc); // returns false if active texture is null or cannot be bound
+                    program.loadTextureEnabled(gl, textureBound);
+                    Placemark.currentTexture = this.activeTexture;
+                }
+            } else {
+                program.loadTextureEnabled(gl, false);
             }
 
             // Draw the placemark's image quad.
@@ -721,7 +726,8 @@ define([
                 gl.enable(WebGLRenderingContext.DEPTH_TEST);
             }
 
-            gl.depthMask(true);
+            // tag, 6/17/15: See note on depthMask above in this function.
+            //gl.depthMask(true);
         };
 
         // Internal. Intentionally not documented.
