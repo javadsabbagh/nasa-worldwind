@@ -149,8 +149,9 @@ define([
              * below the terrain can be seen when the terrain is made transparent. If false, sub-surface shapes are
              * not visible, however, performance is slightly increased.
              * @type {boolean}
+             * @default false
              */
-            this.subsurfaceMode = true;
+            this.subsurfaceMode = false;
 
             /**
              * Performance statistics for this WorldWindow.
