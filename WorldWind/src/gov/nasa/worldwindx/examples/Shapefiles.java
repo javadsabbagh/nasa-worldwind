@@ -5,149 +5,82 @@
  */
 package gov.nasa.worldwindx.examples;
 
-import gov.nasa.worldwind.WorldWind;
-import gov.nasa.worldwind.avlist.AVKey;
 import gov.nasa.worldwind.formats.shapefile.*;
-import gov.nasa.worldwind.geom.Sector;
-import gov.nasa.worldwind.layers.*;
+import gov.nasa.worldwind.layers.Layer;
 import gov.nasa.worldwind.util.*;
-import gov.nasa.worldwindx.examples.util.*;
+import gov.nasa.worldwindx.examples.util.RandomShapeAttributes;
 
 import javax.swing.*;
-import javax.swing.filechooser.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.io.File;
 
 /**
  * Illustrates how to import ESRI Shapefiles into World Wind. This uses a <code>{@link ShapefileLayerFactory}</code> to
- * parse a Shapefile's contents and convert the shapefile into an equivalent World Wind shape. This provides examples of
- * importing a Shapefile on the local hard drive and importing a Shapefile at a remote URL.
+ * parse a Shapefile's contents and convert the shapefile into an equivalent World Wind shape.
  *
- * @author Patrick Murris
  * @version $Id$
  */
 public class Shapefiles extends ApplicationTemplate
 {
     public static class AppFrame extends ApplicationTemplate.AppFrame
-        implements ShapefileLayerFactory.CompletionCallback
     {
-        protected RandomShapeAttributes randomAttrs = new RandomShapeAttributes();
-
         public AppFrame()
         {
-            makeMenu(this);
-        }
+            // Create an object to generate random attributes.
+            final RandomShapeAttributes randomAttrs = new RandomShapeAttributes();
 
-        public void loadShapefile(Object source)
-        {
-            this.randomAttrs.nextAttributes(); // display each shapefile in different attributes
-
-            ShapefileLayerFactory factory = (ShapefileLayerFactory) WorldWind.createConfigurationComponent(
-                AVKey.SHAPEFILE_LAYER_FACTORY);
-            factory.setNormalPointAttributes(this.randomAttrs.asPointAttributes());
-            factory.setNormalShapeAttributes(this.randomAttrs.asShapeAttributes());
-            factory.createFromShapefileSource(source, this); // add the layer in the completion callback
-
-            this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        }
-
-        @Override
-        public void completion(final Object result)
-        {
-            if (!SwingUtilities.isEventDispatchThread())
+            // Spawn a thread to load the shapefile.
+            Thread t = new Thread(new Runnable()
             {
-                SwingUtilities.invokeLater(new Runnable()
+                @Override
+                public void run()
                 {
-                    @Override
-                    public void run()
+                    ShapefileLayerFactory factory = new ShapefileLayerFactory();
+
+                    // Specify an attribute delegate to assign attributes for each shapefile record.
+                    factory.setAttributeDelegate(new ShapefileRenderable.AttributeDelegate()
                     {
-                        completion(result);
-                    }
-                });
-                return;
-            }
-
-            Layer layer = (Layer) result;
-            layer.setName(WWIO.getFilename(layer.getName())); // convert the layer name to the source's filename
-            this.getWwd().getModel().getLayers().add(layer);
-
-            Sector sector = (Sector) layer.getValue(AVKey.SECTOR);
-            if (sector != null)
-            {
-                ExampleUtil.goTo(this.getWwd(), sector);
-            }
-
-            this.setCursor(null);
-        }
-
-        @Override
-        public void exception(Exception e)
-        {
-            Logging.logger().log(java.util.logging.Level.SEVERE, e.getMessage(), e);
-        }
-    }
-
-    protected static void makeMenu(final AppFrame appFrame)
-    {
-        final JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setMultiSelectionEnabled(true);
-        fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("Shapefile", "shp"));
-        fileChooser.setFileFilter(fileChooser.getChoosableFileFilters()[1]);
-
-        JMenuBar menuBar = new JMenuBar();
-        appFrame.setJMenuBar(menuBar);
-        JMenu fileMenu = new JMenu("File");
-        menuBar.add(fileMenu);
-
-        JMenuItem openFileMenuItem = new JMenuItem(new AbstractAction("Open File...")
-        {
-            public void actionPerformed(ActionEvent actionEvent)
-            {
-                try
-                {
-                    int status = fileChooser.showOpenDialog(appFrame);
-                    if (status == JFileChooser.APPROVE_OPTION)
-                    {
-                        for (File file : fileChooser.getSelectedFiles())
+                        @Override
+                        public void assignAttributes(ShapefileRecord shapefileRecord,
+                            ShapefileRenderable.Record renderableRecord)
                         {
-                            appFrame.loadShapefile(file);
+                            renderableRecord.setAttributes(randomAttrs.nextAttributes().asShapeAttributes());
                         }
-                    }
-                }
-                catch (Exception e)
-                {
-                    e.printStackTrace();
-                }
-            }
-        });
+                    });
 
-        fileMenu.add(openFileMenuItem);
+                    // Load the shapefile. Define the completion callback.
+                    factory.createFromShapefileSource("testData/shapefiles/TM_WORLD_BORDERS-0.3.shp",
+                        new ShapefileLayerFactory.CompletionCallback()
+                        {
+                            @Override
+                            public void completion(Object result)
+                            {
+                                final Layer layer = (Layer) result; // the result is the layer the factory created
+                                layer.setName(WWIO.getFilename(layer.getName()));
 
-        JMenuItem openURLMenuItem = new JMenuItem(new AbstractAction("Open URL...")
-        {
-            public void actionPerformed(ActionEvent actionEvent)
-            {
-                try
-                {
-                    String status = JOptionPane.showInputDialog(appFrame, "URL");
-                    if (!WWUtil.isEmpty(status))
-                    {
-                        appFrame.loadShapefile(status.trim());
-                    }
-                }
-                catch (Exception e)
-                {
-                    e.printStackTrace();
-                }
-            }
-        });
+                                // Add the layer to the World Window's layer list on the Event Dispatch Thread.
+                                SwingUtilities.invokeLater(new Runnable()
+                                {
+                                    @Override
+                                    public void run()
+                                    {
+                                        AppFrame.this.getWwd().getModel().getLayers().add(layer);
+                                    }
+                                });
+                            }
 
-        fileMenu.add(openURLMenuItem);
+                            @Override
+                            public void exception(Exception e)
+                            {
+                                Logging.logger().log(java.util.logging.Level.SEVERE, e.getMessage(), e);
+                            }
+                        });
+                }
+            });
+            t.start();
+        }
     }
 
     public static void main(String[] args)
     {
-        start("World Wind Shapefile Viewer", AppFrame.class);
+        start("World Wind Shapefiles", AppFrame.class);
     }
 }
