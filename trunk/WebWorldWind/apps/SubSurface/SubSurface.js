@@ -41,6 +41,9 @@ define(['../../src/WorldWind',
                 this.wwd.addLayer(layers[l].layer);
             }
 
+            // Enable sub-surface rendering for the World Window.
+            this.wwd.subsurfaceMode = true;
+
             // Start the view pointing to a longitude within the current time zone.
             this.wwd.navigator.lookAtLocation.latitude = 30;
             this.wwd.navigator.lookAtLocation.longitude = -(180 / 12) * ((new Date()).getTimezoneOffset() / 60);
