@@ -114,7 +114,8 @@ define(function () {
     LayerManager.prototype.synchronizeLayerList = function () {
         var layerListItem = $("#layerList");
 
-        layerListItem.remove('a');
+        layerListItem.find("button").off("click");
+        layerListItem.find("button").remove();
 
         // Synchronize the displayed layer list with the World Window's layer list.
         for (var i = 0, len = this.wwd.layers.length; i < len; i++) {
