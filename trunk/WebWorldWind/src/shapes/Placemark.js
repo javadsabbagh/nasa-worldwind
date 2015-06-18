@@ -704,10 +704,12 @@ define([
                     program.loadColor(gl, this.pickColor);
                 }
 
-                if (this.activeAttributes.labelAttributes.depthTest && !depthTest) {
-                    depthTest = true;
-                    gl.enable(WebGLRenderingContext.DEPTH_TEST);
-                } else if (depthTest) {
+                if (this.activeAttributes.labelAttributes.depthTest) {
+                    if (!depthTest) {
+                        depthTest = true;
+                        gl.enable(WebGLRenderingContext.DEPTH_TEST);
+                    }
+                } else {
                     depthTest = false;
                     gl.disable(WebGLRenderingContext.DEPTH_TEST);
                 }
