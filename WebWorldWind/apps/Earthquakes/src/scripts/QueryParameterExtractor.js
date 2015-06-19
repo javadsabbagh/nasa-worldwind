@@ -23,7 +23,6 @@ define(function() {
     function URIParameterExtractor(callbacks) {
 
         this.queryParameters = qs;
-        console.log(this.queryParameters);
         callbacks.forEach(function(callback) {
             callback.call(this, qs);
         });

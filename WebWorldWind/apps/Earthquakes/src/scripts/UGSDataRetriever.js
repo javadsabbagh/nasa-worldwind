@@ -43,7 +43,7 @@ define(function() {
                 lat: Number(geometry['coordinates'][1]),
                 long: Number(geometry['coordinates'][0])
             };
-
+            earthquake.position = new WorldWind.Position(earthquake.lat, earthquake.long, 1e2);
             // How long ago the earthquake occurred in terms of days
             earthquake.age = Math.abs((new Date().getTime()) - new Date(earthquake.date).getTime()) /
                     (24 * 60 * 60 * 1000);
