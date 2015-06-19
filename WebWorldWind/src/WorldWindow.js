@@ -154,6 +154,16 @@ define([
             this.subsurfaceMode = false;
 
             /**
+             * The opacity to apply to terrain and surface shapes. This property is typically used when viewing
+             * the sub-surface. It modifies the opacity of the terrain and surface shapes as a whole. It should be
+             * a number between 0 and 1. It is compounded with the individual opacities of the image layers and
+             * surface shapes on the terrain.
+             * @type {Number}
+             * @default 1
+             */
+            this.surfaceOpacity = 1;
+
+            /**
              * Performance statistics for this WorldWindow.
              * @type {FrameStatistics}
              */
@@ -573,6 +583,7 @@ define([
             dc.layers = this.layers;
             dc.navigatorState = this.navigator.currentState();
             dc.verticalExaggeration = this.verticalExaggeration;
+            dc.surfaceOpacity = this.surfaceOpacity;
             dc.deepPicking = this.deepPicking;
             dc.frameStatistics = this.frameStatistics;
             dc.update();
