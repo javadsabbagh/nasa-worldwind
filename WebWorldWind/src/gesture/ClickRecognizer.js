@@ -6,27 +6,24 @@
  * @exports ClickRecognizer
  * @version $Id$
  */
-define([
-        '../gesture/GestureRecognizer',
-        '../geom/Vec2'
-    ],
-    function (GestureRecognizer,
-              Vec2) {
+define(['../gesture/GestureRecognizer'],
+    function (GestureRecognizer) {
         "use strict";
 
         /**
-         * Constructs a click gesture recognizer.
+         * Constructs a mouse click gesture recognizer.
          * @alias ClickRecognizer
          * @constructor
          * @augments GestureRecognizer
-         * @classdesc A concrete gesture recognizer subclass that looks for single or multiple clicks.
+         * @classdesc A concrete gesture recognizer subclass that looks for single or multiple mouse clicks.
+         * @throws {ArgumentError} If the specified target is null or undefined.
          */
         var ClickRecognizer = function (target) {
             GestureRecognizer.call(this, target);
 
             /**
              *
-             * @type {number}
+             * @type {Number}
              */
             this.numberOfClicks = 1;
 
@@ -36,171 +33,94 @@ define([
              */
             this.button = 0;
 
-            // Internal use only. Intentionally not documented.
-            this.threshold = 5;
+            // Intentionally not documented.
+            this.maxMouseMovement = 5;
 
-            // Internal use only. Intentionally not documented.
-            this.clickDuration = 500;
+            // Intentionally not documented.
+            this.maxClickDuration = 500;
 
-            // Internal use only. Intentionally not documented.
-            this.clickInterval = 400;
+            // Intentionally not documented.
+            this.maxClickInterval = 400;
 
-            // Internal use only. Intentionally not documented.
-            this.timeout = null;
-
-            // Internal use only. Intentionally not documented.
+            // Intentionally not documented.
             this.clicks = [];
+
+            // Intentionally not documented.
+            this.timeout = null;
         };
 
         ClickRecognizer.prototype = Object.create(GestureRecognizer.prototype);
 
-        Object.defineProperties(ClickRecognizer.prototype, {
-            /**
-             * Returns the X coordinate of this recognizer's click location.
-             * @type {Number}
-             * @memberof ClickRecognizer.prototype
-             */
-            clientX: {
-                get: function () {
-                    return this.clicks[0].location[0];
-                }
-            },
-
-            /**
-             * Returns the Y coordinate of this recognizer's click location.
-             * @type {Number}
-             * @memberof ClickRecognizer.prototype
-             */
-            clientY: {
-                get: function () {
-                    return this.clicks[0].location[1];
-                }
-            }
-        });
-
-        /**
-         * @returns {Vec2}
-         */
-        ClickRecognizer.prototype.location = function () {
-            return this.clicks.length > 0 ? this.clicks[0].location : null;
-        };
-
-        /**
-         *
-         * @param state
-         * @protected
-         */
-        ClickRecognizer.prototype.didTransitionToState = function (state) {
-            GestureRecognizer.prototype.didTransitionToState.call(this, state);
-
-            var inTerminalState = GestureRecognizer.terminalStates.indexOf(this.state) != -1;
-            if (inTerminalState) {
-                this.cancelFailAfterDelay();
-            }
-        };
-
-        /**
-         * @protected
-         */
+        // Documented in superclass.
         ClickRecognizer.prototype.reset = function () {
             GestureRecognizer.prototype.reset.call(this);
 
-            this.cancelFailAfterDelay();
             this.clicks = [];
+            this.cancelFailAfterDelay();
         };
 
-        /**
-         *
-         * @param event
-         * @protected
-         */
+        // Documented in superclass.
         ClickRecognizer.prototype.mouseDown = function (event) {
-            GestureRecognizer.prototype.mouseDown.call(this, event);
-
             if (this.state != WorldWind.POSSIBLE) {
                 return;
             }
 
             if (this.button != event.button) {
-                this.transitionToState(WorldWind.FAILED);
+                this.state = WorldWind.FAILED;
             } else {
-                this.clickStart();
+                var click = {
+                    clientX: this.clientX,
+                    clientY: this.clientY
+                };
+                this.clicks.push(click);
+                this.failAfterDelay(this.maxClickDuration); // fail if the click is down too long
             }
         };
 
-        /**
-         *
-         * @param event
-         * @protected
-         */
+        // Documented in superclass.
         ClickRecognizer.prototype.mouseMove = function (event) {
-            GestureRecognizer.prototype.mouseMove.call(this, event);
-
             if (this.state != WorldWind.POSSIBLE) {
                 return;
             }
 
-            var distance = this.clientLocation.distanceTo(this.clientStartLocation);
-            if (distance > this.threshold) {
-                this.transitionToState(WorldWind.FAILED);
+            var dx = this.translationX,
+                dy = this.translationY,
+                distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance > this.maxMouseMovement) {
+                this.state = WorldWind.FAILED;
             }
         };
 
-        /**
-         *
-         * @param event
-         * @protected
-         */
+        // Documented in superclass.
         ClickRecognizer.prototype.mouseUp = function (event) {
-            GestureRecognizer.prototype.mouseUp.call(this, event);
-
             if (this.state != WorldWind.POSSIBLE) {
                 return;
             }
 
-            this.clickEnd();
-        };
-
-        /**
-         *
-         * @param event
-         * @protected
-         */
-        ClickRecognizer.prototype.touchStart = function (event) {
-            GestureRecognizer.prototype.touchStart.call(this, event);
-
-            if (this.state == WorldWind.POSSIBLE) {
-                this.transitionToState(WorldWind.FAILED); // click does not recognize touch input
+            if (this.mouseButtonMask != 0) {
+                return; // wait until the last button is up
             }
-        };
 
-        /**
-         *
-         */
-        ClickRecognizer.prototype.clickStart = function () {
-            var click = {
-                location: new Vec2(this.clientLocation[0], this.clientLocation[1])
-            };
-
-            this.clicks.push(click);
-            this.failAfterDelay(this.clickDuration); // fail if the click takes too long
-        };
-
-        /**
-         * @protected
-         */
-        ClickRecognizer.prototype.clickEnd = function () {
             var clickCount = this.clicks.length;
             if (clickCount == this.numberOfClicks) {
-                this.transitionToState(WorldWind.RECOGNIZED);
+                this.clientX = this.clicks[0].clientX;
+                this.clientY = this.clicks[0].clientY;
+                this.state = WorldWind.RECOGNIZED;
             } else {
-                this.failAfterDelay(this.clickInterval); // fail if another click doesn't start soon enough
+                this.failAfterDelay(this.maxClickInterval); // fail if the interval between clicks is too long
             }
         };
 
-        /**
-         * @protected
-         */
+        // Documented in superclass.
+        ClickRecognizer.prototype.touchStart = function (touch) {
+            if (this.state != WorldWind.POSSIBLE) {
+                return;
+            }
+
+            this.state = WorldWind.FAILED; // mouse gestures fail upon receiving a touch event
+        };
+
+        // Intentionally not documented.
         ClickRecognizer.prototype.failAfterDelay = function (delay) {
             var self = this;
             if (self.timeout) {
@@ -209,13 +129,13 @@ define([
 
             self.timeout = window.setTimeout(function () {
                 self.timeout = null;
-                self.transitionToState(WorldWind.FAILED);
+                if (self.state == WorldWind.POSSIBLE) {
+                    self.state = WorldWind.FAILED; // fail if we haven't already reached a terminal state
+                }
             }, delay);
         };
 
-        /**
-         * @protected
-         */
+        // Intentionally not documented.
         ClickRecognizer.prototype.cancelFailAfterDelay = function () {
             var self = this;
             if (self.timeout) {

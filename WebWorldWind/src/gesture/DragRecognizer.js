@@ -6,157 +6,88 @@
  * @exports DragRecognizer
  * @version $Id$
  */
-define([
-        '../gesture/GestureRecognizer',
-        '../geom/Vec2'
-    ],
-    function (GestureRecognizer,
-              Vec2) {
+define(['../gesture/GestureRecognizer'],
+    function (GestureRecognizer) {
         "use strict";
 
         /**
-         * Constructs a drag gesture recognizer.
+         * Constructs a mouse drag gesture recognizer.
          * @alias DragRecognizer
          * @constructor
+         * @augments GestureRecognizer
          * @classdesc A concrete gesture recognizer subclass that looks for mouse drag gestures.
+         * @throws {ArgumentError} If the specified target is null or undefined.
          */
         var DragRecognizer = function (target) {
             GestureRecognizer.call(this, target);
 
             /**
              *
-             * @type {number}
+             * @type {Number}
              */
             this.button = 0;
 
-            /**
-             * The gesture's translation in the window's coordinate system. This indicates the cursor's absolute
-             * translation since the gesture was recognized.
-             * @type {Vec2}
-             */
-            this.translation = new Vec2(0, 0);
-
-            // Internal use only. Intentionally not documented.
-            this.referenceLocation = new Vec2(0, 0);
-
-            // Internal use only. Intentionally not documented.
-            this.threshold = 5;
-
-            // Internal use only. Intentionally not documented.
-            this.weight = 0.3;
+            // Intentionally not documented.
+            this.interpretDistance = 5;
         };
 
         DragRecognizer.prototype = Object.create(GestureRecognizer.prototype);
 
-        /**
-         * @param newState
-         * @protected
-         */
-        DragRecognizer.prototype.didTransitionToState = function (newState) {
-            GestureRecognizer.prototype.didTransitionToState.call(this, newState);
-
-            if (newState == WorldWind.BEGAN) {
-                this.gestureBegan();
-            } else if (newState == WorldWind.CHANGED) {
-                this.gestureChanged();
-            }
-        };
-
-        /**
-         * @protected
-         */
-        DragRecognizer.prototype.reset = function () {
-            GestureRecognizer.prototype.reset.call(this);
-
-            this.translation.set(0, 0);
-            this.referenceLocation.set(0, 0);
-        };
-
-        /**
-         *
-         * @param event
-         * @protected
-         */
+        // Documented in superclass.
         DragRecognizer.prototype.mouseMove = function (event) {
-            GestureRecognizer.prototype.mouseMove.call(this, event);
-
             if (this.state == WorldWind.POSSIBLE) {
                 if (this.shouldInterpret()) {
                     if (this.shouldRecognize()) {
-                        this.transitionToState(WorldWind.BEGAN);
+                        this.translationX = 0; // set translation to zero when the drag begins
+                        this.translationY = 0;
+                        this.state = WorldWind.BEGAN;
                     } else {
-                        this.transitionToState(WorldWind.FAILED);
+                        this.state = WorldWind.FAILED;
                     }
                 }
             } else if (this.state == WorldWind.BEGAN || this.state == WorldWind.CHANGED) {
-                this.transitionToState(WorldWind.CHANGED);
+                this.state = WorldWind.CHANGED;
             }
         };
 
-        /**
-         *
-         * @param event
-         * @protected
-         */
+        // Documented in superclass.
         DragRecognizer.prototype.mouseUp = function (event) {
-            GestureRecognizer.prototype.mouseUp.call(this, event);
-
-            if (this.buttonMask == 0) { // last button up
-                if (this.state == WorldWind.BEGAN || this.state == WorldWind.CHANGED) {
-                    this.transitionToState(WorldWind.ENDED);
+            if (this.mouseButtonMask == 0) { // last button up
+                if (this.state == WorldWind.POSSIBLE) {
+                    this.state = WorldWind.FAILED;
+                } else if (this.state == WorldWind.BEGAN || this.state == WorldWind.CHANGED) {
+                    this.state = WorldWind.ENDED;
                 }
             }
         };
 
-        /**
-         *
-         * @returns {boolean}
-         * @protected
-         */
-        DragRecognizer.prototype.shouldInterpret = function () {
-            var distance = this.clientLocation.distanceTo(this.clientStartLocation);
-            return distance > this.threshold; // interpret mouse movement when the cursor moves far enough
+        // Documented in superclass.
+        DragRecognizer.prototype.touchStart = function (touch) {
+            if (this.state == WorldWind.POSSIBLE) {
+                this.state = WorldWind.FAILED; // mouse gestures fail upon receiving a touch event
+            }
         };
 
         /**
          *
-         * @returns {boolean}
+         * @returns {Boolean}
+         * @protected
+         */
+        DragRecognizer.prototype.shouldInterpret = function () {
+            var dx = this.translationX,
+                dy = this.translationY,
+                distance = Math.sqrt(dx * dx + dy * dy);
+            return distance > this.interpretDistance; // interpret mouse movement when the cursor moves far enough
+        };
+
+        /**
+         *
+         * @returns {Boolean}
          * @protected
          */
         DragRecognizer.prototype.shouldRecognize = function () {
             var buttonBit = (1 << this.button);
-            return buttonBit == this.buttonMask; // true when the specified button is the only button down
-        };
-
-        /**
-         * @protected
-         */
-        DragRecognizer.prototype.gestureBegan = function () {
-            this.referenceLocation.copy(this.clientLocation);
-        };
-
-        /**
-         * @protected
-         */
-        DragRecognizer.prototype.gestureChanged = function () {
-            var dx = this.clientLocation[0] - this.referenceLocation[0],
-                dy = this.clientLocation[1] - this.referenceLocation[1],
-                w = this.weight;
-
-            this.translation[0] = this.translation[0] * (1 - w) + dx * w;
-            this.translation[1] = this.translation[1] * (1 - w) + dy * w;
-        };
-
-        /**
-         *
-         * @param event
-         */
-        DragRecognizer.prototype.touchStart = function (event) {
-            GestureRecognizer.prototype.touchStart.call(this, event);
-
-            if (this.state == WorldWind.POSSIBLE) {
-                this.transitionToState(WorldWind.FAILED); // drag does not recognize touch input
-            }
+            return buttonBit == this.mouseButtonMask; // true when the specified button is the only button down
         };
 
         return DragRecognizer;

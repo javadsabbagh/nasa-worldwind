@@ -6,130 +6,81 @@
  * @exports PanRecognizer
  * @version $Id$
  */
-define([
-        '../gesture/GestureRecognizer',
-        '../geom/Vec2'
-    ],
-    function (GestureRecognizer,
-              Vec2) {
+define(['../gesture/GestureRecognizer'],
+    function (GestureRecognizer) {
         "use strict";
 
         /**
          * Constructs a pan gesture recognizer.
          * @alias PanRecognizer
          * @constructor
+         * @augments GestureRecognizer
          * @classdesc A concrete gesture recognizer subclass that looks for touch panning gestures.
+         * @throws {ArgumentError} If the specified target is null or undefined.
          */
         var PanRecognizer = function (target) {
             GestureRecognizer.call(this, target);
 
             /**
              *
-             * @type {number}
+             * @type {Number}
              */
-            this.minimumNumberOfTouches = 1;
+            this.minNumberOfTouches = 1;
 
             /**
              *
              * @type {Number}
              */
-            this.maximumNumberOfTouches = Number.MAX_VALUE;
+            this.maxNumberOfTouches = Number.MAX_VALUE;
 
-            /**
-             * The gesture's translation in the window's coordinate system. This indicates the translation of the
-             * touches since the gesture was recognized.
-             * @type {Vec2}
-             */
-            this.translation = new Vec2(0, 0);
-
-            // Internal use only. Intentionally not documented.
-            this.actualTranslation = new Vec2(0, 0);
-
-            // Internal use only. Intentionally not documented.
-            this.referenceTranslation = new Vec2(0, 0);
-
-            // Internal use only. Intentionally not documented.
-            this.threshold = 20;
-
-            // Internal use only. Intentionally not documented.
-            this.weight = 0.4;
+            // Intentionally not documented.
+            this.interpretDistance = 20;
         };
 
         PanRecognizer.prototype = Object.create(GestureRecognizer.prototype);
 
-        /**
-         * @param newState
-         * @protected
-         */
-        PanRecognizer.prototype.didTransitionToState = function (newState) {
-            GestureRecognizer.prototype.didTransitionToState.call(this, newState);
-
-            if (newState == WorldWind.BEGAN) {
-                this.gestureBegan();
-            } else if (newState == WorldWind.CHANGED) {
-                this.gestureChanged();
-            }
-        };
-
-        /**
-         * @protected
-         */
-        PanRecognizer.prototype.reset = function () {
-            GestureRecognizer.prototype.reset.call(this);
-
-            this.translation.set(0, 0);
-            this.actualTranslation.set(0, 0);
-        };
-
-        /**
-         *
-         * @param event
-         * @protected
-         */
+        // Documented in superclass.
         PanRecognizer.prototype.mouseDown = function (event) {
-            GestureRecognizer.prototype.mouseDown.call(this, event);
-
             if (this.state == WorldWind.POSSIBLE) {
-                this.transitionToState(WorldWind.FAILED); // pan does not recognize mouse input
+                this.state = WorldWind.FAILED; // touch gestures fail upon receiving a mouse event
             }
         };
 
-        /**
-         *
-         * @param event
-         * @protected
-         */
-        PanRecognizer.prototype.touchMove = function (event) {
-            GestureRecognizer.prototype.touchMove.call(this, event);
-
-            var dx = this.clientLocation[0] - this.clientStartLocation[0] + this.touchCentroidShift[0],
-                dy = this.clientLocation[1] - this.clientStartLocation[1] + this.touchCentroidShift[1];
-            this.actualTranslation.set(dx, dy);
-
+        // Documented in superclass.
+        PanRecognizer.prototype.touchMove = function (touch) {
             if (this.state == WorldWind.POSSIBLE) {
                 if (this.shouldInterpret()) {
                     if (this.shouldRecognize()) {
-                        this.transitionToState(WorldWind.BEGAN);
+                        this.translationX = 0; // set translation to zero when the pan begins
+                        this.translationY = 0;
+                        this.state = WorldWind.BEGAN;
                     } else {
-                        this.transitionToState(WorldWind.FAILED);
+                        this.state = WorldWind.FAILED;
                     }
                 }
             } else if (this.state == WorldWind.BEGAN || this.state == WorldWind.CHANGED) {
-                this.transitionToState(WorldWind.CHANGED);
+                this.state = WorldWind.CHANGED;
             }
         };
 
-        /**
-         *
-         * @param event
-         * @protected
-         */
-        PanRecognizer.prototype.touchEndOrCancel = function (event) {
-            GestureRecognizer.prototype.touchEndOrCancel.call(this, event);
+        // Documented in superclass.
+        PanRecognizer.prototype.touchEnd = function (touch) {
+            if (this.touchCount == 0) { // last touch ended
+                if (this.state == WorldWind.POSSIBLE) {
+                    this.state = WorldWind.FAILED;
+                } else if (this.state == WorldWind.BEGAN || this.state == WorldWind.CHANGED) {
+                    this.state = WorldWind.ENDED;
+                }
+            }
+        };
 
-            if (event.targetTouches.length == 0) { // last touches cancelled
-                if (this.state == WorldWind.BEGAN || this.state == WorldWind.CHANGED) {
-                    this.transitionToState(event.type == "touchend" ? WorldWind.ENDED : WorldWind.CANCELLED);
+        // Documented in superclass.
+        PanRecognizer.prototype.touchCancel = function (touch) {
+            if (this.touchCount == 0) { // last touch cancelled
+                if (this.state == WorldWind.POSSIBLE) {
+                    this.state = WorldWind.FAILED;
+                } else if (this.state == WorldWind.BEGAN || this.state == WorldWind.CHANGED) {
+                    this.state = WorldWind.CANCELLED;
                 }
             }
         };
@@ -140,8 +91,10 @@ define([
          * @protected
          */
         PanRecognizer.prototype.shouldInterpret = function () {
-            var distance = this.actualTranslation.magnitude();
-            return distance > this.threshold; // interpret touches when the touch centroid moves far enough
+            var dx = this.translationX,
+                dy = this.translationY,
+                distance = Math.sqrt(dx * dx + dy * dy);
+            return distance > this.interpretDistance; // interpret touches when the touch centroid moves far enough
         };
 
         /**
@@ -150,29 +103,10 @@ define([
          * @protected
          */
         PanRecognizer.prototype.shouldRecognize = function () {
-            var touchCount = this.touchCount();
+            var touchCount = this.touchCount;
             return touchCount != 0
-                && touchCount >= this.minimumNumberOfTouches
-                && touchCount <= this.maximumNumberOfTouches
-        };
-
-        /**
-         * @protected
-         */
-        PanRecognizer.prototype.gestureBegan = function () {
-            this.referenceTranslation.copy(this.actualTranslation);
-        };
-
-        /**
-         * @protected
-         */
-        PanRecognizer.prototype.gestureChanged = function () {
-            var dx = this.actualTranslation[0] - this.referenceTranslation[0],
-                dy = this.actualTranslation[1] - this.referenceTranslation[1],
-                w = this.weight;
-
-            this.translation[0] = this.translation[0] * (1 - w) + dx * w;
-            this.translation[1] = this.translation[1] * (1 - w) + dy * w;
+                && touchCount >= this.minNumberOfTouches
+                && touchCount <= this.maxNumberOfTouches
         };
 
         return PanRecognizer;
