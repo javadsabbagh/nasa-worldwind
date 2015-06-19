@@ -252,6 +252,13 @@ define([
             this.fadeTime = 500;
 
             /**
+             * The opacity to apply to terrain and surface shapes. Should be a number between 0 and 1.
+             * @type {Number}
+             * @default 1
+             */
+            this.surfaceOpacity = 1;
+
+            /**
              * Frame statistics.
              * @type {FrameStatistics}
              */

@@ -35,13 +35,14 @@ define(function () {
     };
 
     TerrainOpacityController.prototype.updateOpacity = function (value) {
-        for (var i = 0; i < this.wwd.layers.length; i++) {
-            var layer = this.wwd.layers[i];
-
-            if (layer instanceof WorldWind.TiledImageLayer) {
-                layer.opacity = value / 100;
-            }
-        }
+        this.wwd.surfaceOpacity = value / 100;
+        //for (var i = 0; i < this.wwd.layers.length; i++) {
+        //    var layer = this.wwd.layers[i];
+        //
+        //    if (layer instanceof WorldWind.TiledImageLayer) {
+        //        layer.opacity = value / 100;
+        //    }
+        //}
 
         this.wwd.redraw();
     };

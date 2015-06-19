@@ -67,6 +67,8 @@ define([
 
             this.isSurfaceShapeTileRendering = surfaceTiles[0] instanceof SurfaceShapeTile;
 
+            opacity *= dc.surfaceOpacity;
+
             // For each terrain tile, render it for each overlapping surface tile.
             program = this.beginRendering(dc, opacity);
             terrain.beginRendering(dc);
