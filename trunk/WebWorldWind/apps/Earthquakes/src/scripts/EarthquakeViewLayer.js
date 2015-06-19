@@ -7,9 +7,13 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js'], function(ww)
 
         //manages most of what goes on in the layer. See methods of Manage for more details.
         eLayer.Manage = {
+
+            //determines whether to draw columns or placemarks
             setDisplayType: function (arg) {
                 eLayer.Manage.Draw.display = arg
             },
+
+            //adds things to the layer
             Draw: {
                 //returns color based on the array and the fraction.
                 GetColorSpectrum: function (fraction,spectrumArrayColors,wwS){
@@ -199,7 +203,6 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js'], function(ww)
                 },
             },
 
-
             //adds the data to the layer (does not draw on the layer). Stores all data in eLayer.Manage.Data as array of earthquake objects
             createDataArray: function (JSONFile) {
                 eLayer.Manage.Data = JSONFile;
@@ -218,7 +221,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js'], function(ww)
                 eLayer.Manage.ParsedData = eLayer.Manage.Data.filter(function(earthquake) {
                     return earthquake.magnitude >= val;
                 });
-                console.log(eLayer.Manage.Draw.display)
+
+
                 if (eLayer.Manage.Draw.display === 'columns'){
                     eLayer.Manage.Draw.Columns();
                 } else if (eLayer.Manage.Draw.display === 'placemarks'){
@@ -229,8 +233,6 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js'], function(ww)
 
             },
 
-
-
             //controls animated placemarks
             Animations: {
 
@@ -239,23 +241,24 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js'], function(ww)
                     if (!eLayer.Manage.Animations.canAnimate){
                         return
                     }
+
                     if (eLayer.Manage.ParsedData.length > 0 && eLayer.Manage.Animations.animating === true) {
                         eLayer.Manage.Animations.stopAnimation();
+
                     } else if (!eLayer.Manage.ParsedData.length > 0){
                         return
                     }
+
                     //saves the renderable memory location
                     eLayer.Manage.Animations.animated = renderable;
 
-                    //saves what the renderable looks like before animation
-                    eLayer.Manage.Animations.CCdAnimated = Object.create(renderable);
                     var INDEX = 0;
 
                     //grabs the interval key and begins animation
                     eLayer.Manage.Animations.animated.Key = window.setInterval(function () {
                         //changes alpha of the placemark
-                        renderable.attributes.imageColor = new WorldWind.Color(1,0,0,1 - INDEX/20);
-                        renderable.highlightAttributes.imageColor = new WorldWind.Color(1,0,0,1 - INDEX/20);
+                        renderable.attributes.imageColor = new WorldWind.Color(1,1,1,1 - INDEX/20);
+                        renderable.highlightAttributes.imageColor = new WorldWind.Color(1,1,1,1 - INDEX/20);
                         renderable.attributes.imageScale = 2* (.5+INDEX/20);
                         renderable.highlightAttributes.imageScale = 2.8* (.5+INDEX/20);
                         INDEX++;
@@ -274,8 +277,11 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js'], function(ww)
                     //stops animation
                     clearTimeout(eLayer.Manage.Animations.animated.Key);
 
-                    //returns all attributes of placemark before animation to the placemark
-                    eLayer.Manage.Animations.animated = eLayer.Manage.Animations.CCdAnimated
+                    //restore original properties
+                    eLayer.Manage.Animations.animated.attributes.imageScale = 1;
+                    eLayer.Manage.Animations.animated.highlightAttributes.imageScale = 1.2;
+                    eLayer.Manage.Animations.animated.attributes.imageColor = new WorldWind.Color(1,1,1,.55)
+                    eLayer.Manage.Animations.animated.highlightAttributes.imageColor = new WorldWind.Color(1,1,1,.55);
 
                     eLayer.Manage.Animations.animating = false;
                 }
@@ -293,7 +299,5 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js'], function(ww)
     };
 
     return EarthquakeViewLayer;
-
-
 
 });
