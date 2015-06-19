@@ -705,12 +705,18 @@ define([
             this.drawContext.renderShapes = true;
 
             if (this.subsurfaceMode && this.hasStencilBuffer) {
+                // Draw the surface and collect the ordered renderables.
                 this.drawContext.currentGlContext.disable(WebGLRenderingContext.STENCIL_TEST);
                 this.drawContext.surfaceShapeTileBuilder.clear();
                 this.drawLayers(true);
                 this.drawContext.surfaceShapeTileBuilder.doRender(this.drawContext);
 
                 if (!this.deferOrderedRendering) {
+                    // Clear the depth and stencil buffers prior to rendering the ordered renderables. This allows
+                    // sub-surface renderables to be drawn beneath the terrain. Turn on stenciling to capture the
+                    // fragments that ordered renderables draw. The terrain and surface shapes will be subsequently
+                    // drawn again, and the stencil buffer will ensure that they are drawn only where they overlap
+                    // the fragments drawn by the ordered renderables.
                     this.drawContext.currentGlContext.clear(
                         WebGLRenderingContext.DEPTH_BUFFER_BIT | WebGLRenderingContext.STENCIL_BUFFER_BIT);
                     this.drawContext.currentGlContext.enable(WebGLRenderingContext.STENCIL_TEST);
@@ -735,6 +741,8 @@ define([
         };
 
         WorldWindow.prototype.redrawSurface = function () {
+            // Draw the terrain and surface shapes but only where the current stencil buffer is non-zero.
+            // The non-zero fragments are from drawing the ordered renderables previously.
             this.drawContext.currentGlContext.stencilFunc(WebGLRenderingContext.EQUAL, 1, 1);
             this.drawContext.currentGlContext.stencilOp(
                 WebGLRenderingContext.KEEP, WebGLRenderingContext.KEEP, WebGLRenderingContext.KEEP);
