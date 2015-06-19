@@ -1,5 +1,6 @@
 
-define(['http://worldwindserver.net/webworldwind/worldwindlib.js'], function(ww) {
+define(['http://worldwindserver.net/webworldwind/worldwindlib.js'
+,'Cylinder'], function(ww, Cylinder) {
     'use strict';
     var EarthquakeViewLayer = function (worldWindow,name) {
         var wwd = worldWindow;
@@ -117,68 +118,104 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js'], function(ww)
 
                     var ThreeDimensionalCyclinder = function (color, center, radius, height) {
 
-                        var coordinates = EarthToCartesian(center.longitude, center.latitude);
 
-                        function getXCoordinate(angle) {
-                            return center.longitude + radius * Math.sin(angle);
-                        }
+                        //var coordinates = EarthToCartesian(center.longitude, center.latitude);
+                        //
+                        //function getXCoordinate(angle) {
+                        //    return center.longitude + radius * Math.sin(angle);
+                        //}
+                        //
+                        //function getYCoordinate(angle) {
+                        //    return center.latitude + radius * Math.cos(angle);
+                        //}
+                        //
+                        //var numPoints = 3;
+                        //
+                        //var angles = [];
+                        //
+                        //var fullCircle = 2 * Math.PI;
+                        //
+                        //var step = fullCircle / numPoints;
+                        //
+                        //var start = 0;
+                        //
+                        //for(var idx = 0; idx < numPoints; idx++) {
+                        //    angles.push(start);
+                        //    start += step;
+                        //}
+                        //
+                        //var locations = angles.map(function(angle) {
+                        //    var x = getXCoordinate(angle);
+                        //    var y = getYCoordinate(angle);
+                        //    return [x, y];
+                        //});
+                        //
+                        //
+                        //var positions = locations.map(function(location) {
+                        //    var loc = CartesianToEarth(location[0], location[1], coordinates.z)
+                        //    var lat = location[1];
+                        //    var long = location[0];
+                        //    return new WorldWind.Position(lat, long, height);
+                        //});
+                        //
+                        //var boundaries = [positions, []];
+                        //
+                        //for(var idx = 0; idx < positions.length; idx += 1) {
+                        //    boundaries[1].push(new WorldWind.Position(center.latitude, center.longitude, height));
+                        //}
+                        //
+                        //
+                        //
+                        //var cylinderAttribute = new WorldWind.ShapeAttributes(null);
+                        //cylinderAttribute.interiorColor = color;
+                        //cylinderAttribute.outlineColor = color;
+                        //cylinderAttribute.drawInterior = true;
+                        //cylinderAttribute.drawVerticals = true;
+                        //
+                        //var cylinder = new WorldWind.Polygon(boundaries);
+                        //cylinder.attributes = cylinderAttribute;
+                        //cylinder.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
+                        //cylinder.extrude = true;
+                        //
+                        //cylinder.eyeDistanceScalingThreshold = 1e6;
+                        //
+                        //cylinder.enabled = true;
+                        //
+                        //var cylinderRender = cylinder.render;
+                        //
+                        //function flatten(arr) {
+                        //    var ans = [].concat.apply([], arr);
+                        //    return ans;
+                        //}
+                        //
+                        //
+                        //
+                        //cylinder.render = function(dc) {
+                        //    //var cylinderBoundaries = flatten(cylinder._boundaries);
+                        //    //var someBoundary = flatten(cylinderBoundaries[0]);
+                        //    //var currHeight = someBoundary;
+                        //    ////console.log(currHeight);
+                        //    //var eyeDistance = Math.abs(dc.eyePosition.altitude - currHeight.altitude);
+                        //    ////console.log(eyeDistance);
+                        //    //var visibilityScale = Math.max(0.0, Math.min(1, this.eyeDistanceScalingThreshold /
+                        //    //    eyeDistance));
+                        //    //
+                        //    //if(Math.floor(visibilityScale) < 1) {
+                        //    //    cylinderBoundaries.forEach(function(boundary) {
+                        //    //       boundary.altitude = visibilityScale * boundary.altitude;
+                        //    //    });
+                        //    //}
+                        //
+                        //    cylinderRender(dc);
+                        //}
+                        //
+                        //
+                        //return cylinder;
 
-                        function getYCoordinate(angle) {
-                            return center.latitude + radius * Math.cos(angle);
-                        }
-
-                        var numPoints = 3;
-
-                        var angles = [];
-
-                        var fullCircle = 2 * Math.PI;
-
-                        var step = fullCircle / numPoints;
-
-                        var start = 0;
-
-                        for(var idx = 0; idx < numPoints; idx++) {
-                            angles.push(start);
-                            start += step;
-                        }
-
-                        var locations = angles.map(function(angle) {
-                            var x = getXCoordinate(angle);
-                            var y = getYCoordinate(angle);
-                            return [x, y];
-                        });
+                        return new Cylinder(color, center, radius, height);
 
 
-                        var positions = locations.map(function(location) {
-                            var loc = CartesianToEarth(location[0], location[1], coordinates.z)
-                            var lat = location[1];
-                            var long = location[0];
-                            return new WorldWind.Position(lat, long, height);
-                        });
-
-                        var boundaries = [positions, []];
-
-                        for(var idx = 0; idx < positions.length; idx += 1) {
-                            boundaries[1].push(new WorldWind.Position(center.latitude, center.longitude, height));
-                        }
-
-
-
-                        var cylinderAttribute = new WorldWind.ShapeAttributes(null);
-                        cylinderAttribute.interiorColor = color;
-                        cylinderAttribute.outlineColor = color;
-                        cylinderAttribute.drawInterior = true;
-                        cylinderAttribute.drawVerticals = true;
-
-                        var cylinder = new WorldWind.Polygon(boundaries);
-                        cylinder.attributes = cylinderAttribute;
-                        cylinder.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
-                        cylinder.extrude = true;
-
-                        return cylinder;
-
-
-                    };
+                    }
 
                     var colorSpect = [[255,0,0],[0,255,0]];
 
