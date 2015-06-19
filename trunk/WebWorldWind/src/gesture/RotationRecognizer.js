@@ -20,10 +20,14 @@ define([
          * @constructor
          * @augments GestureRecognizer
          * @classdesc A concrete gesture recognizer subclass that looks for two finger rotation gestures.
+         * @param {EventTarget} target The document element this gesture recognizer observes for mouse and touch events.
+         * @param {Function} callback An optional function to call when this gesture is recognized. If non-null, the
+         * function is called when this gesture is recognized, and is passed a single argument: this gesture recognizer,
+         * e.g., <code>gestureCallback(recognizer)</code>.
          * @throws {ArgumentError} If the specified target is null or undefined.
          */
-        var RotationRecognizer = function (target) {
-            GestureRecognizer.call(this, target);
+        var RotationRecognizer = function (target, callback) {
+            GestureRecognizer.call(this, target, callback);
 
             // Intentionally not documented.
             this._rotation = 0;

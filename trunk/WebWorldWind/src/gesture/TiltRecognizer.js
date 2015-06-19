@@ -16,10 +16,14 @@ define(['../gesture/PanRecognizer'],
          * @constructor
          * @augments PanRecognizer
          * @classdesc A concrete gesture recognizer subclass that looks for two finger tilt gestures.
+         * @param {EventTarget} target The document element this gesture recognizer observes for mouse and touch events.
+         * @param {Function} callback An optional function to call when this gesture is recognized. If non-null, the
+         * function is called when this gesture is recognized, and is passed a single argument: this gesture recognizer,
+         * e.g., <code>gestureCallback(recognizer)</code>.
          * @throws {ArgumentError} If the specified target is null or undefined.
          */
-        var TiltRecognizer = function (target) {
-            PanRecognizer.call(this, target);
+        var TiltRecognizer = function (target, callback) {
+            PanRecognizer.call(this, target, callback);
 
             // Intentionally not documented.
             this.maxTouchDistance = 250;

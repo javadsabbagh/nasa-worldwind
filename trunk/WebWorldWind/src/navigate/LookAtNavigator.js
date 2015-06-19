@@ -72,11 +72,6 @@ define([
                 worldWindow.canvas.style.setProperty("touch-action", "none");
             }
 
-            var self = this;
-            var commonGestureListener = function (recognizer) {
-                self.gestureStateChanged(recognizer);
-            };
-
             /**
              * The geographic location at the center of the viewport.
              * @type {Location}
@@ -93,48 +88,43 @@ define([
             // Development testing only. Set this to false to suppress default navigator limits on 2D globes.
             this.enable2DLimits = true;
 
-            // Intentionally not documented.
-            this.primaryDragRecognizer = new DragRecognizer(worldWindow);
-            this.primaryDragRecognizer.addGestureListener(function (recognizer) {
-                self.handlePanOrDrag(recognizer);
-            });
-            this.primaryDragRecognizer.addGestureListener(commonGestureListener);
+            var thisNavigator = this;
 
             // Intentionally not documented.
-            this.secondaryDragRecognizer = new DragRecognizer(worldWindow);
+            this.primaryDragRecognizer = new DragRecognizer(worldWindow, function (recognizer) {
+                thisNavigator.handlePanOrDrag(recognizer);
+            });
+
+            // Intentionally not documented.
+            this.secondaryDragRecognizer = new DragRecognizer(worldWindow, function (recognizer) {
+                thisNavigator.handleSecondaryDrag(recognizer);
+            });
             this.secondaryDragRecognizer.button = 2; // secondary mouse button
-            this.secondaryDragRecognizer.addGestureListener(function (recognizer) {
-                self.handleSecondaryDrag(recognizer);
-            });
-            this.secondaryDragRecognizer.addGestureListener(commonGestureListener);
 
             // Intentionally not documented.
-            this.panRecognizer = new PanRecognizer(worldWindow);
-            this.panRecognizer.addGestureListener(function (recognizer) {
-                self.handlePanOrDrag(recognizer);
+            this.panRecognizer = new PanRecognizer(worldWindow, function (recognizer) {
+                thisNavigator.handlePanOrDrag(recognizer);
             });
-            this.panRecognizer.addGestureListener(commonGestureListener);
 
             // Intentionally not documented.
-            this.pinchRecognizer = new PinchRecognizer(worldWindow);
-            this.pinchRecognizer.addGestureListener(function (recognizer) {
-                self.handlePinch(recognizer);
+            this.pinchRecognizer = new PinchRecognizer(worldWindow, function (recognizer) {
+                thisNavigator.handlePinch(recognizer);
             });
-            this.pinchRecognizer.addGestureListener(commonGestureListener);
 
             // Intentionally not documented.
-            this.rotationRecognizer = new RotationRecognizer(worldWindow);
-            this.rotationRecognizer.addGestureListener(function (recognizer) {
-                self.handleRotation(recognizer);
+            this.rotationRecognizer = new RotationRecognizer(worldWindow, function (recognizer) {
+                thisNavigator.handleRotation(recognizer);
             });
-            this.rotationRecognizer.addGestureListener(commonGestureListener);
 
             // Intentionally not documented.
-            this.tiltRecognizer = new TiltRecognizer(worldWindow);
-            this.tiltRecognizer.addGestureListener(function (recognizer) {
-                self.handleTilt(recognizer);
+            this.tiltRecognizer = new TiltRecognizer(worldWindow, function (recognizer) {
+                thisNavigator.handleTilt(recognizer);
             });
-            this.tiltRecognizer.addGestureListener(commonGestureListener);
+
+            // Register wheel event listeners on the WorldWindow's canvas.
+            worldWindow.addEventListener("wheel", function (event) {
+                thisNavigator.handleWheelEvent(event);
+            });
 
             // Establish the dependencies between gesture recognizers. The pan, pinch and rotate gesture may recognize
             // simultaneously with each other.
@@ -156,11 +146,6 @@ define([
             this.beginTilt = 0;
             this.beginRange = 0;
             this.lastRotation = 0;
-
-            // Register wheel event listeners on the WorldWindow's canvas.
-            worldWindow.addEventListener("wheel", function (event) {
-                self.handleWheelEvent(event);
-            });
         };
 
         LookAtNavigator.prototype = Object.create(Navigator.prototype);
@@ -216,6 +201,7 @@ define([
                 this.lookAtLocation.longitude += forwardDegrees * sinHeading + sideDegrees * cosHeading;
                 this.lastPoint.set(tx, ty);
                 this.applyLimits();
+                this.worldWindow.redraw();
             }
         };
 
@@ -273,6 +259,7 @@ define([
                 this.tilt = params.tilt;
                 this.roll = params.roll;
                 this.applyLimits();
+                this.worldWindow.redraw();
             }
         };
 
@@ -295,6 +282,7 @@ define([
                 this.heading = this.beginHeading + headingDegrees;
                 this.tilt = this.beginTilt + tiltDegrees;
                 this.applyLimits();
+                this.worldWindow.redraw();
             }
         };
 
@@ -311,6 +299,7 @@ define([
                     // began.
                     this.range = this.beginRange / scale;
                     this.applyLimits();
+                    this.worldWindow.redraw();
                 }
             }
         };
@@ -329,6 +318,7 @@ define([
                 this.heading -= rotation - this.lastRotation;
                 this.lastRotation = rotation;
                 this.applyLimits();
+                this.worldWindow.redraw();
             }
         };
 
@@ -346,6 +336,7 @@ define([
                 // Apply the change in heading and tilt to this navigator's corresponding properties.
                 this.tilt = this.beginTilt + tiltDegrees;
                 this.applyLimits();
+                this.worldWindow.redraw();
             }
         };
 
@@ -381,13 +372,7 @@ define([
             // Apply the change in range to this navigator's properties.
             this.range += meters;
             this.applyLimits();
-            this.sendRedrawEvent();
-        };
-
-        // Intentionally not documented.
-        //noinspection JSUnusedLocalSymbols
-        LookAtNavigator.prototype.gestureStateChanged = function (recognizer) {
-            this.sendRedrawEvent();
+            this.worldWindow.redraw();
         };
 
         // Intentionally not documented.
@@ -420,13 +405,6 @@ define([
                 // Force tilt to 0 when in 2D mode to keep the viewer looking straight down.
                 this.tilt = 0;
             }
-        };
-
-        // Intentionally not documented.
-        LookAtNavigator.prototype.sendRedrawEvent = function () {
-            var e = document.createEvent('Event');
-            e.initEvent(WorldWind.REDRAW_EVENT_TYPE, true, true);
-            this.worldWindow.canvas.dispatchEvent(e);
         };
 
         return LookAtNavigator;
