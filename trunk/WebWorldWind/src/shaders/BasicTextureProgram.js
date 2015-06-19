@@ -59,6 +59,7 @@ define([
                     '    gl_FragColor = color * floor(textureColor.a + 0.5);\n' +
                     'else\n' +
                     '    gl_FragColor = color * opacity;\n' +
+                    'if (gl_FragColor.a == 0.0) discard;\n' +
                     '}';
 
             // Call to the superclass, which performs shader program compiling and linking.
