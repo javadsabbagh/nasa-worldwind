@@ -78,8 +78,7 @@ define([
             this.worldWindow.addEventListener("mousemove", handlePick);
 
             // Listen for taps on mobile devices and highlight the placemarks that the user taps.
-            var tapRecognizer = new WorldWind.TapRecognizer(this.worldWindow);
-            tapRecognizer.addGestureListener(handlePick);
+            var tapRecognizer = new WorldWind.TapRecognizer(this.worldWindow, handlePick);
         };
 
         return HighlightController;

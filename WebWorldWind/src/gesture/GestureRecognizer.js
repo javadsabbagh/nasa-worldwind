@@ -269,37 +269,6 @@ define([
             return this._touches[index];
         };
 
-        // Intentionally not documented.
-        GestureRecognizer.prototype.addGestureListener = function (listener) {
-            if (!listener) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GestureRecognizer", "addGestureListener",
-                        "missingListener"));
-            }
-
-            if (typeof listener != "function") {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GestureRecognizer", "addGestureListener",
-                        "The specified listener is not a function."));
-            }
-
-            this._gestureCallbacks.push(listener);
-        };
-
-        // Intentionally not documented.
-        GestureRecognizer.prototype.removeGestureListener = function (listener) {
-            if (!listener) {
-                throw new ArgumentError(
-                    Logger.logMessage(Logger.LEVEL_SEVERE, "GestureRecognizer", "removeGestureListener",
-                        "missingListener"));
-            }
-
-            var index = this._gestureCallbacks.indexOf(listener);
-            if (index != -1) {
-                this._gestureCallbacks.splice(index, 1);
-            }
-        };
-
         /**
          *
          * @param recognizer
@@ -528,8 +497,7 @@ define([
         // Intentionally not documented.
         GestureRecognizer.prototype.callGestureCallbacks = function () {
             for (var i = 0, len = this._gestureCallbacks.length; i < len; i++) {
-                var callback = this._gestureCallbacks[i];
-                callback.call(callback, this);
+                this._gestureCallbacks[i](this);
             }
         };
 

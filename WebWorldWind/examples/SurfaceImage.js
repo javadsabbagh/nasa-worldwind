@@ -106,6 +106,5 @@ requirejs(['../src/WorldWind',
         wwd.addEventListener("mousemove", handlePick);
 
         // Listen for taps on mobile devices and highlight the placemarks that the user taps.
-        var tapRecognizer = new WorldWind.TapRecognizer(wwd);
-        tapRecognizer.addGestureListener(handlePick);
+        var tapRecognizer = new WorldWind.TapRecognizer(wwd, handlePick);
     });
