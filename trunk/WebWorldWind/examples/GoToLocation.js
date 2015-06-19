@@ -68,10 +68,8 @@ requirejs(['../src/WorldWind',
         };
 
         // Listen for mouse clicks.
-        var clickRecognizer = new WorldWind.ClickRecognizer(wwd);
-        clickRecognizer.addGestureListener(handleClick);
+        var clickRecognizer = new WorldWind.ClickRecognizer(wwd, handleClick);
 
         // Listen for taps on mobile devices.
-        var tapRecognizer = new WorldWind.TapRecognizer(wwd);
-        tapRecognizer.addGestureListener(handleClick);
+        var tapRecognizer = new WorldWind.TapRecognizer(wwd, handleClick);
     });
