@@ -118,6 +118,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './layer/TiledImageLayer',
         './util/TileFactory',
         './gesture/TiltRecognizer',
+        './gesture/Touch',
         './error/UnsupportedOperationError',
         './geom/Vec2',
         './geom/Vec3',
@@ -242,6 +243,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               TiledImageLayer,
               TileFactory,
               TiltRecognizer,
+              Touch,
               UnsupportedOperationError,
               Vec2,
               Vec3,
@@ -551,6 +553,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['TiledImageLayer'] = TiledImageLayer;
         WorldWind['TileFactory'] = TileFactory;
         WorldWind['TiltRecognizer'] = TiltRecognizer;
+        WorldWind['Touch'] = Touch;
         WorldWind['UnsupportedOperationError'] = UnsupportedOperationError;
         WorldWind['Vec2'] = Vec2;
         WorldWind['Vec3'] = Vec3;
