@@ -7,7 +7,7 @@ package gov.nasa.worldwind.formats.shapefile;
 
 import gov.nasa.worldwind.WWObjectImpl;
 import gov.nasa.worldwind.avlist.AVListImpl;
-import gov.nasa.worldwind.geom.Sector;
+import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.util.*;
 
@@ -57,7 +57,7 @@ public abstract class ShapefileRenderable extends WWObjectImpl
         protected ShapeAttributes normalAttrs;
         protected ShapeAttributes highlightAttrs;
         // Data structures supporting record tessellation and display.
-        protected CompoundVecBuffer pointBuffer;
+        protected final CompoundVecBuffer pointBuffer;
         protected int firstPartNumber;
         protected int numberOfParts;
         protected int numberOfPoints;
@@ -160,17 +160,37 @@ public abstract class ShapefileRenderable extends WWObjectImpl
             }
         }
 
-        protected int getBoundaryCount()
+        public int getBoundaryCount()
         {
             return this.numberOfParts;
         }
 
-        protected VecBuffer getBoundaryPoints(int ordinal)
+        public VecBuffer getBoundaryPoints(int index)
         {
+            if (index < 0 || index >= this.numberOfParts)
+            {
+                String msg = Logging.getMessage("generic.indexOutOfRange", index);
+                Logging.logger().severe(msg);
+                throw new IllegalArgumentException(msg);
+            }
+
             synchronized (this.pointBuffer) // synchronize access to the Shapefile's shared pointBuffer
             {
-                return this.pointBuffer.subBuffer(this.firstPartNumber + ordinal);
+                return this.pointBuffer.subBuffer(this.firstPartNumber + index);
             }
+        }
+
+        public Iterable<Position> getBoundaryPositions(int index)
+        {
+            if (index < 0 || index >= this.numberOfParts)
+            {
+                String msg = Logging.getMessage("generic.indexOutOfRange", index);
+                Logging.logger().severe(msg);
+                throw new IllegalArgumentException(msg);
+            }
+
+            VecBuffer points = this.getBoundaryPoints(index);
+            return points.getPositions();
         }
     }
 
