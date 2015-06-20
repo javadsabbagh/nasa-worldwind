@@ -302,8 +302,8 @@ define([
                 entry = {
                     listeners: [],
                     callback: function (event) { // calls listeners in reverse registration order
-                        for (var i = entry.listeners.length - 1; i >= 0; i--) {
-                            event.worldWindow = thisWorldWindow;
+                        event.worldWindow = thisWorldWindow;
+                        for (var i = 0, len = entry.listeners.length; i < len; i++) {
                             entry.listeners[i](event);
                         }
                     }
@@ -313,7 +313,7 @@ define([
 
             var index = entry.listeners.indexOf(listener);
             if (index == -1) { // suppress duplicate listeners
-                entry.listeners.push(listener); // add the listener to the list
+                entry.listeners.splice(0, 0, listener); // insert the listener at the beginning of the list
 
                 if (entry.listeners.length == 1) { // first listener added, add the event listener callback
                     this.canvas.addEventListener(type, entry.callback, false);
