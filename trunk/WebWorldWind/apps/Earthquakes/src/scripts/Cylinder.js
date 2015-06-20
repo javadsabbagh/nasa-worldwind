@@ -67,6 +67,9 @@ define([''], function(ww) {
         });
 
 
+
+
+
         var positions = locations.map(function(location) {
             var loc = CartesianToEarth(location[0], location[1], coordinates.z)
             var lat = location[1];
@@ -88,7 +91,7 @@ define([''], function(ww) {
         cylinderAttribute.drawInterior = true;
         cylinderAttribute.drawVerticals = true;
 
-        this.enabled = true;
+        //this.enabled = true;
 
         this.cylinder = new WorldWind.Polygon(boundaries);
         this.cylinder.attributes = cylinderAttribute;
@@ -98,8 +101,8 @@ define([''], function(ww) {
         this.cylinder.eyeDistanceScalingThreshold = 1e5;
 
         this.cylinder.enabled = true;
-
-        //var cylinderRender = cylinder.render;
+        //this.highlighted = this.cylinder.highlighted;
+            //var cylinderRender = cylinder.render;
 
         function flatten(arr) {
             var ans = [].concat.apply([], arr);
@@ -161,6 +164,28 @@ define([''], function(ww) {
 
 
     }
+
+    Object.defineProperties(Cylinder.prototype, {
+        highlighted: {
+            get: function() {
+                return this.cylinder.highlighted;
+            },
+
+            set: function(value) {
+                this.cylinder.highlighted = value;
+            }
+        },
+
+        enabled: {
+            get: function() {
+                return this.cylinder.enabled;
+            },
+
+            set: function(value) {
+                this.cylinder.enabled = value;
+            }
+        }
+    })
 
 
     return Cylinder;
