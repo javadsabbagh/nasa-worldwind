@@ -12,14 +12,22 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         this.speeds = ['16000', '8000', '4000', '2000', '1000'];
         this.speedIndex = 2;
         this.tourTimer = null;
-        console.log('set tour ,', tour);
+        //console.log('set tour ,', tour);
         this.tourRun = false;
         this.move = true;
+        this.callBacks =[];
 
+    }
+
+    TourManager.prototype.addCallback = function(callback) {
+        this.callBacks.push(callback);
     }
 
     TourManager.prototype.indicateTourFinished = function() {
         var self = this;
+        this.callBacks.forEach(function(callback){
+            callback(self)
+        });
         //bootbox.bootbox.alert(self.tourName + ' is finished', function() {
         //   'not needed callback';
         //});
@@ -33,12 +41,12 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
     }
 
     TourManager.prototype.startTour = function() {
-        console.log('tour started');
+        //console.log('tour started');
         this.tourRun = true;
         var self = this;
-        console.log('tour of ', this.tour);
+        //console.log('tour of ', this.tour);
         this.tourTimer = setInterval(function() {
-            console.log('checking');
+            //console.log('checking');
             //var tourStop = self.move();
             var tourStop = self.tour.goForward();
             //if(this.move === true) {
@@ -47,7 +55,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             //    tourStop = this.tour.goBack();
             //}
             if(tourStop !== null) {
-                console.log('going to ', tourStop);
+                //console.log('going to ', tourStop);
                 self.animator.goTo(tourStop);
             } else {
                 clearInterval(self.tourTimer);

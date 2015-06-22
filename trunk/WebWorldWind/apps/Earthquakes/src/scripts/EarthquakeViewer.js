@@ -8,7 +8,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         'http://worldwindserver.net/webworldwind/examples/CoordinateController.js',
         'UGSDataRetriever', 'QueryParameterExtractor', 'EarthquakeViewLayer',
         'TectonicPlatesLayer', 'PlateBoundaryDataProvider',
-        'TectonicPlateLabelLayer', 'Tour', 'TourManager'],
+        'TectonicPlateLabelLayer', 'Tour', 'TourManager','CommandsPanel'],
     function (ww,
               LayerManager,
               CoordinateController,
@@ -19,7 +19,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
               PlateBoundaryDataProvider,
               TectonicPlateLabelLayer,
               Tour,
-              TourManager)  {
+              TourManager,
+              CommandsPanel)  {
         "use strict";
         // Tell World Wind to log only warnings.
         WorldWind.Logger.setLoggingLevel(WorldWind.Logger.LEVEL_WARNING);
@@ -33,11 +34,11 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         var layers = [
             {layer: new WorldWind.BMNGLayer(), enabled: true},
             {layer: new WorldWind.BMNGLandsatLayer(), enabled: false},
-            {layer: new WorldWind.BingAerialWithLabelsLayer(null), enabled: true},
+            {layer: new WorldWind.BingAerialWithLabelsLayer(null), enabled: false},
             {layer: new WorldWind.OpenStreetMapImageLayer(null), enabled: false},
             {layer: new WorldWind.CompassLayer(), enabled: true},
             {layer: new WorldWind.ViewControlsLayer(wwd), enabled: true},
-            {layer: new WorldWind.OpenStreetMapImageLayer(), enabled: true}
+
         ];
 
         for (var l = 0; l < layers.length; l++) {
@@ -45,7 +46,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             wwd.addLayer(layers[l].layer);
         }
 
-        //displays info of highlighted earthquake in eData division
+        //displays info of highlighted earthquake in eData division, also sets the significant earthquake when clicked
         var displayInfo = function (layer) {
 
             //location to display the info
@@ -91,11 +92,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             wwd.addLayer(tectonicPlates);
             wwd.addLayer(newLayer);
             newColumns.Manage.createDataArray(arg);
-            wwd.addLayer(tectonicPlatesLabels);
             wwd.addLayer(newColumns);
-
-
-
+            newColumns.enabled = false
 
 
             //wait for the slider to be ready
@@ -227,8 +225,11 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                     }
                     return 0;
                 });
-
                 var timeTourManager = new TourManager(timeTour, goToAnimator);
+
+
+                var commandsPanel = new CommandsPanel(wwd,newLayer);
+
 
 
                 // Uncomment to initiate tours
