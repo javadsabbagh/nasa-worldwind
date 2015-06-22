@@ -195,6 +195,7 @@ define([
                 set: function (value) {
                     this._translationX = value;
                     this._clientStartX = this._clientX;
+                    this._touchCentroidShiftX = 0;
                 }
             },
 
@@ -210,6 +211,7 @@ define([
                 set: function (value) {
                     this._translationY = value;
                     this._clientStartY = this._clientY;
+                    this._touchCentroidShiftY = 0;
                 }
             },
 
@@ -354,6 +356,12 @@ define([
         };
 
         /**
+         * @protected
+         */
+        GestureRecognizer.prototype.prepareToRecognize = function () {
+        };
+
+        /**
          *
          * @param event
          * @protected
@@ -420,12 +428,14 @@ define([
             } else if (newState == WorldWind.RECOGNIZED) {
                 this.tryToRecognize(newState); // may prevent the transition to Recognized
                 if (this._state == newState) {
+                    this.prepareToRecognize();
                     this.callGestureCallbacks();
                     this.resetIfEventsEnded();
                 }
             } else if (newState == WorldWind.BEGAN) {
                 this.tryToRecognize(newState); // may prevent the transition to Began
                 if (this._state == newState) {
+                    this.prepareToRecognize();
                     this.callGestureCallbacks();
                 }
             } else if (newState == WorldWind.CHANGED) {
