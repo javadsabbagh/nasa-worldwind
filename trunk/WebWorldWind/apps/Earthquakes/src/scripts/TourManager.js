@@ -26,6 +26,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
     }
 
     TourManager.prototype.stopTour = function() {
+        this.tourRun = false;
         if(this.tourTimer !== null) {
             clearInterval(this.tourTimer);
         }
