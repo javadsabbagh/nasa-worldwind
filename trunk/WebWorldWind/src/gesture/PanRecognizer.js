@@ -55,8 +55,6 @@ define(['../gesture/GestureRecognizer'],
             if (this.state == WorldWind.POSSIBLE) {
                 if (this.shouldInterpret()) {
                     if (this.shouldRecognize()) {
-                        this.translationX = 0; // set translation to zero when the pan begins
-                        this.translationY = 0;
                         this.state = WorldWind.BEGAN;
                     } else {
                         this.state = WorldWind.FAILED;
@@ -87,6 +85,13 @@ define(['../gesture/GestureRecognizer'],
                     this.state = WorldWind.CANCELLED;
                 }
             }
+        };
+
+        // Documented in superclass.
+        PanRecognizer.prototype.prepareToRecognize = function () {
+            // set translation to zero when the pan begins
+            this.translationX = 0;
+            this.translationY = 0;
         };
 
         /**

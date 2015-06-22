@@ -91,8 +91,6 @@ define([
             if (this.rotationTouches.length == 2) {
                 if (this.state == WorldWind.POSSIBLE) {
                     if (this.shouldRecognize()) {
-                        this.referenceAngle = this.currentTouchAngle();
-                        this._rotation = 0;
                         this.state = WorldWind.BEGAN;
                     }
                 } else if (this.state == WorldWind.BEGAN || this.state == WorldWind.CHANGED) {
@@ -137,6 +135,12 @@ define([
                     }
                 }
             }
+        };
+
+        // Documented in superclass.
+        RotationRecognizer.prototype.prepareToRecognize = function () {
+            this.referenceAngle = this.currentTouchAngle();
+            this._rotation = 0;
         };
 
         // Intentionally not documented.

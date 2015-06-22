@@ -87,8 +87,6 @@ define(['../gesture/GestureRecognizer'],
             if (this.pinchTouches.length == 2) {
                 if (this.state == WorldWind.POSSIBLE) {
                     if (this.shouldRecognize()) {
-                        this.referenceDistance = this.currentPinchDistance();
-                        this._scale = 1;
                         this.state = WorldWind.BEGAN;
                     }
                 } else if (this.state == WorldWind.BEGAN || this.state == WorldWind.CHANGED) {
@@ -133,6 +131,12 @@ define(['../gesture/GestureRecognizer'],
                     this.state = WorldWind.CANCELLED;
                 }
             }
+        };
+
+        // Documented in superclass.
+        PinchRecognizer.prototype.prepareToRecognize = function () {
+            this.referenceDistance = this.currentPinchDistance();
+            this._scale = 1;
         };
 
         // Intentionally not documented.
