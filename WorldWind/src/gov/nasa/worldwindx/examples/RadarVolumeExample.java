@@ -39,13 +39,13 @@ public class RadarVolumeExample extends ApplicationTemplate
         protected double outerRange = 30e3;
         protected final int numAz = 25; // number of azimuth samplings
         protected final int numEl = 25; // number of elevation samplings
-        protected final Angle minimumElevation = Angle.fromDegrees(-90);
+        protected final Angle minimumElevation = Angle.fromDegrees(0);
 
         public AppFrame()
         {
             super(true, true, false);
 
-            Position center = Position.fromDegrees(36.8378, -118.8743, 100); // radar location
+            Position center = Position.fromDegrees(36.8378, -118.8743, 100e2); // radar location
             Angle startAzimuth = Angle.fromDegrees(140);
             Angle endAzimuth = Angle.fromDegrees(270);
             Angle startElevation = Angle.fromDegrees(-50);
@@ -348,7 +348,7 @@ public class RadarVolumeExample extends ApplicationTemplate
                 Position position = positions.get(i);
 
                 // Mark the position as obstructed if it's below the minimum elevation.
-                if (this.isBelowMinimumElevation(position, i, origin.getAltitude()))
+                if (this.isBelowMinimumElevation(position, originPoint))
                 {
                     obstructionFlags[i - 1] = RadarVolume.EXTERNAL_OBSTRUCTION;
                     continue;
@@ -441,13 +441,14 @@ public class RadarVolumeExample extends ApplicationTemplate
             return obstructionFlags;
         }
 
-        protected boolean isBelowMinimumElevation(Position position, int positionIndex, double referenceAltitude)
+        protected boolean isBelowMinimumElevation(Position position, Vec4 cartesianOrigin)
         {
-            double R = positionIndex < this.numAz * this.numEl ? this.innerRange : this.outerRange;
+            Globe globe = this.getWwd().getModel().getGlobe();
 
-            double elevation = Math.asin((position.getAltitude() - referenceAltitude) / R);
+            Vec4 cartesianPosition = globe.computeEllipsoidalPointFromPosition(position);
+            Angle angle = cartesianOrigin.angleBetween3(cartesianPosition.subtract3(cartesianOrigin));
 
-            return elevation < this.minimumElevation.radians;
+            return angle.radians > (Math.PI / 2 - this.minimumElevation.radians);
         }
 
         List<Position> makePositions(List<Vec4> vertices)
