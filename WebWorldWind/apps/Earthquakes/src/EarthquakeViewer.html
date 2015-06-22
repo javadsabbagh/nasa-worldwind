@@ -37,28 +37,17 @@
     <div class="row">
         <div class="col-sm-3">
             <h4>INFO</h4>
-            <div class="dropdown" id="eData">
+            <div id="eData">
             </div>
             <h4>Projection</h4>
             <div class="dropdown" id="projectionDropdown">
             </div>
-            <h4>Control Panel</h4>
-            <div id="CPanel">
-<!--
-                <div class="btn-group btn-group-justified">
-                    <div class="btn-group" id="CPanelUp"></div>
+            <div id="Panels">
+                <button type="button" class="btn btn-info btn-block dropdown-toggle" data-toggle="collapse" data-target="#cp">Control Panel<span class="caret"></span></button>
+                <div id="cp" class="collapse">
+                    <div class="list-group" id="CPanel">
+                    </div>
                 </div>
-                <div class="btn-group btn-group-justified" id="CPanelMid">
-                    <div class="btn-group" id="CPanelLeft"></div>
-                    <div class="btn-group" id="CPanelRight"></div>
-                </div>
-                <div class="btn-group btn-group-justified">
-                    <div class="btn-group" id="CPanelDown"></div>
-                </div>
-                <div class="btn-group btn-group-justified">
-                    <div class="btn-group" id="ShowButt"></div>
-                </div>
--->
             </div>
             <h4>MinMag</h4>
             <div id="minMag"><input id="magnitudeSlider"
@@ -70,8 +59,10 @@
                                                      data-slider-value="2"/>
             </div>
             <br>
-            <h4>Layers</h4>
-            <div class="list-group" id="layerList">
+            <button type="button" class="btn btn-info btn-block dropdown-toggle" data-toggle="collapse" data-target="#LAYER">Layers<span class="caret"></span></button>
+            <div id="LAYER" class="collapse">
+                <div class="list-group" id="layerList">
+                </div>
             </div>
             <br>
             <h4>Destination</h4>
