@@ -249,7 +249,7 @@ public abstract class AbstractSurfaceShape extends AbstractSurfaceObject impleme
             throw new IllegalArgumentException(message);
         }
 
-        CacheEntry entry = this.sectorCache.get(dc.getGlobe());
+        CacheEntry entry = this.sectorCache.get(dc.getGlobe().getGlobeStateKey());
         if (entry != null && entry.isValid(dc))
         {
             return (List<Sector>) entry.object;
@@ -257,7 +257,7 @@ public abstract class AbstractSurfaceShape extends AbstractSurfaceObject impleme
         else
         {
             entry = new CacheEntry(this.computeSectors(dc), dc);
-            this.sectorCache.put(dc.getGlobe(), entry);
+            this.sectorCache.put(dc.getGlobe().getGlobeStateKey(), entry);
             return (List<Sector>) entry.object;
         }
     }
