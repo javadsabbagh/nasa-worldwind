@@ -250,7 +250,7 @@ public abstract class AbstractSurfaceShape extends AbstractSurfaceObject impleme
         }
 
         CacheEntry entry = this.sectorCache.get(dc.getGlobe().getGlobeStateKey());
-        if (entry != null && entry.isValid(dc))
+        if (entry != null)
         {
             return (List<Sector>) entry.object;
         }
@@ -947,7 +947,7 @@ public abstract class AbstractSurfaceShape extends AbstractSurfaceObject impleme
 
         Object key = this.createGeometryKey(dc, sdc);
         CacheEntry entry = this.geometryCache.get(key);
-        if (entry != null && entry.isValid(dc))
+        if (entry != null)
         {
             return (List<List<LatLon>>) entry.object;
         }

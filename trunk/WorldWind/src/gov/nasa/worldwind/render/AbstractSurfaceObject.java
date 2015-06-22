@@ -187,15 +187,15 @@ public abstract class AbstractSurfaceObject extends WWObjectImpl implements Surf
             throw new IllegalArgumentException(message);
         }
 
-        CacheEntry entry = this.extentCache.get(dc.getGlobe());
-        if (entry != null && entry.isValid(dc))
+        CacheEntry entry = this.extentCache.get(dc.getGlobe().getGlobeStateKey());
+        if (entry != null)
         {
             return (Extent) entry.object;
         }
         else
         {
             entry = new CacheEntry(this.computeExtent(dc), dc);
-            this.extentCache.put(dc.getGlobe(), entry);
+            this.extentCache.put(dc.getGlobe().getGlobeStateKey(), entry);
             return (Extent) entry.object;
         }
     }
@@ -839,19 +839,6 @@ public abstract class AbstractSurfaceObject extends WWObjectImpl implements Surf
         {
             this.object = object;
             this.globeStateKey = dc.getGlobe().getStateKey(dc);
-        }
-
-        /**
-         * Determines if this cache entry is valid for the specified drawing context. The entry depends on the state of
-         * the globe used to compute it.
-         *
-         * @param dc the current drawing context.
-         *
-         * @return true if this cache entry is valid; false otherwise;
-         */
-        protected boolean isValid(DrawContext dc)
-        {
-            return this.globeStateKey.equals(dc.getGlobe().getStateKey(dc));
         }
     }
 }
