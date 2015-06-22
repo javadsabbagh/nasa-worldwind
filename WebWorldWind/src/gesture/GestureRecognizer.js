@@ -251,7 +251,7 @@ define([
              */
             gestureCallbacks: {
                 get: function () {
-                    return this._gestureCallbacks.length;
+                    return this._gestureCallbacks;
                 }
             }
         });
