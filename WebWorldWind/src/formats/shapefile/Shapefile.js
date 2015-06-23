@@ -325,13 +325,13 @@ define([
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Shapefile", "addRenderablesForShapefile", "missingLayer"));
             }
 
-            if (this.shapeType === WorldWind.POINT) {
+            if (this.isPointType()) {
                 this.addRenderablesForPoints(layer);
-            } else if (this.shapeType === WorldWind.MULTI_POINT) {
+            } else if (this.isMultiPointType()) {
                 this.addRenderablesForMultiPoints(layer);
-            } else if (this.shapeType === WorldWind.POLYLINE) {
+            } else if (this.isPolylineType()) {
                 this.addRenderablesForPolylines(layer);
-            } else if (this.shapeType === WorldWind.POLYGON) {
+            } else if (this.isPolygonType()) {
                 this.addRenderablesForPolygons(layer);
             }
         };
