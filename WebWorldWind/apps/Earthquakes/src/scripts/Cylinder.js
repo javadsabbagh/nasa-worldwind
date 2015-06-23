@@ -98,7 +98,7 @@ define([''], function(ww) {
         this.cylinder.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
         this.cylinder.extrude = true;
 
-        this.cylinder.eyeDistanceScalingThreshold = 1e5;
+        this.cylinder.eyeDistanceScalingThreshold = 1e6;
 
         this.cylinder.enabled = true;
         //this.highlighted = this.cylinder.highlighted;
@@ -111,15 +111,63 @@ define([''], function(ww) {
 
 
 
+        function positionDistances(pos1, pos2) {
+            var dlong = pos2.longitude - pos1.longitude;
+            var dlat = pos2.latitude  - pos1.latitude;
+            var aPrime = Math.sin(dlat / 2);
+            var aBeta = Math.cos(pos1.latitude) *
+                Math.cos(pos2.latitude);
+            var aGamma = Math.sin(dlong / 2);
+            var a = aPrime * aPrime +
+                aBeta * aGamma * aGamma;
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            var d = earthRadiusInfo.earthRadiusInKm * c;
+            var altitudeDiff = pos1.altitude - pos2.altitude;
+            var ans  =  Math.sqrt(altitudeDiff * altitudeDiff +
+                d * d);
+            //console.log('ans :' , ans);
+            //ans = Math.sqrt(pos1.altitude - pos2.altitude);
+            console.log('before return d, altitudeDiff: ', ans);
+            ans = altitudeDiff;
+            return ans;
+        }
+
         this.render = function(dc) {
             var cylinderBoundaries = flatten(this.cylinder._boundaries);
             var someBoundary = cylinderBoundaries[0];
             var currHeight = someBoundary;
             //console.log(currHeight);
-            var eyeDistance = Math.abs(dc.eyePosition.altitude - currHeight.altitude);
+            //var eyeDistance = Math.abs(dc.eyePosition.altitude - currHeight.altitude);
 
-            //console.log(eyeDistance);
-            var visibilityScale = (eyeDistance / this.cylinder.eyeDistanceScalingThreshold);
+            //var eyeDistance = positionDistances(dc.eyePosition, currHeight);
+            ////console.log('eyeDistance :', eyeDistance);
+            ////var visibilityScale = Math.max(0.0, Math.min(1, this.eyeDistanceScalingThreshold / eyeDistance));
+            //var visibilityScale = eyeDistance / 1e4;
+            cylinderBoundaries.forEach(function(boundary) {
+                //console.log('scalling down');
+                //console.log(visibilityScale, ' ', eyeDistance, ' ', currHeight);
+
+                // method one
+               //if(Math.floor(visibilityScale) < 1) {
+               //
+               //    boundary.altitude = 0;//visibilityScale * height;
+               //} else {
+               //    boundary.altitude = height;
+               //}
+
+
+                // method 2
+                if(dc.eyePosition.altitude < height) {
+                    boundary.altitude = 0
+                } else {
+                    boundary.altitude = height;
+                }
+
+
+
+               //boundary.altitude = visibilityScale * height;
+            });
+                //(eyeDistance / this.cylinder.eyeDistanceScalingThreshold);
                 //Math.max(0.0, Math.min(1, this.cylinder.eyeDistanceScalingThreshold /
                 //eyeDistance));
 
@@ -159,6 +207,8 @@ define([''], function(ww) {
             this.cylinder.render(dc);
 
         }
+
+
 
 
 
