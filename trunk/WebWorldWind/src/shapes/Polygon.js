@@ -524,7 +524,7 @@ define([
 
                 stride = hasCapTexture ? 20 : 12;
 
-                if (hasCapTexture) {
+                if (hasCapTexture && !dc.pickingMode) {
                     this.activeTexture = dc.gpuResourceCache.resourceForKey(this.capImageSource());
                     if (!this.activeTexture) {
                         this.activeTexture =
@@ -583,7 +583,7 @@ define([
                     }
 
                     // Draw the extruded boundary.
-                    if (this.activeAttributes.drawInterior && this._extrude && !hasSideTextures) {
+                    if (this.activeAttributes.drawInterior && this._extrude && (!hasSideTextures || dc.pickingMode)) {
                         this.applyMvpMatrix(dc);
 
                         color = this.activeAttributes.interiorColor;
@@ -639,7 +639,7 @@ define([
                 // If the extruded boundaries are textured, draw them here. This is a separate block because the
                 // operation must create its own vertex VBO in order to include texture coordinates. It can't simply
                 // use the previously computed boundary-points VBO.
-                if (hasSideTextures && this.activeAttributes.drawInterior && this._extrude) {
+                if (hasSideTextures && this.activeAttributes.drawInterior && this._extrude && !dc.pickingMode) {
                     this.applyMvpMatrix(dc);
 
                     color = this.activeAttributes.interiorColor;
@@ -669,7 +669,6 @@ define([
                             if (textureBound) {
                                 program.loadTextureEnabled(gl, true);
                                 program.loadTextureUnit(gl, WebGLRenderingContext.TEXTURE0);
-                                program.loadModulateColor(gl, dc.pickingMode);
                                 gl.enableVertexAttribArray(program.vertexTexCoordLocation);
                             } else {
                                 program.loadTextureEnabled(gl, false);
