@@ -75,6 +75,53 @@ requirejs(['../src/WorldWind',
         meshLayer.addRenderable(mesh);
         wwd.addLayer(meshLayer);
 
+        // Create a mesh that displays a custom image.
+
+        var canvas = document.createElement("canvas"),
+            ctx2d = canvas.getContext("2d"),
+            size = 64, c = size / 2  - 0.5, innerRadius = 5, outerRadius = 20;
+
+        canvas.width = size;
+        canvas.height = size;
+
+        var gradient = ctx2d.createRadialGradient(c, c, innerRadius, c, c, outerRadius);
+        gradient.addColorStop(0, 'rgb(255, 0, 0)');
+        gradient.addColorStop(0.5, 'rgb(0, 255, 0)');
+        gradient.addColorStop(1, 'rgb(255, 0, 0)');
+
+        ctx2d.fillStyle = gradient;
+        ctx2d.arc(c, c, outerRadius, 0, 2 * Math.PI, false);
+        ctx2d.fill();
+
+        // Create the mesh's positions.
+        meshPositions = [];
+        for (lat = 30; lat <= 35; lat += 0.5) {
+            row = [];
+            for (lon = -100; lon <= -90; lon += 0.5) {
+                row.push(new WorldWind.Position(lat, lon, 100e3));
+            }
+
+            meshPositions.push(row);
+        }
+
+        // Create the mesh.
+        mesh = new WorldWind.GeographicMesh(meshPositions);
+
+        // Create and assign the mesh's attributes.
+        meshAttributes = new WorldWind.ShapeAttributes(null);
+        meshAttributes.outlineColor = WorldWind.Color.BLUE;
+        meshAttributes.interiorColor = new WorldWind.Color(1, 1, 1, 0.7);
+        meshAttributes.imageSource = new WorldWind.ImageSource(canvas);
+        mesh.attributes = meshAttributes;
+
+        // Create and assign the mesh's highlight attributes.
+        var highlightAttributes = new WorldWind.ShapeAttributes(meshAttributes);
+        highlightAttributes.outlineColor = WorldWind.Color.WHITE;
+        mesh.highlightAttributes = highlightAttributes;
+
+        // Add the shape to the layer.
+        meshLayer.addRenderable(mesh);
+
         // Draw the World Window for the first time.
         wwd.redraw();
 
