@@ -5,9 +5,10 @@ define(['xmlToJSON'],
 
         };
 
-        OSMDataRetriever.prototype.buildAPICall = function(){
-            console.log('Retrieving data location...');
-            return 'http://api06.dev.openstreetmap.org/api/0.6/map?bbox=-88.4,42.02,-88.25,42.09';
+        OSMDataRetriever.prototype.buildAPICall = function(boundingBoxCoords){
+            //console.log('Retrieving data location...');
+            var param = boundingBoxCoords.join(',');
+            return 'http://api06.dev.openstreetmap.org/api/0.6/map?bbox=' + param;
         };
 
         OSMDataRetriever.prototype.translateOSMData = function (data) {
@@ -15,10 +16,10 @@ define(['xmlToJSON'],
             return XTJ(data)
         };
 
-        OSMDataRetriever.prototype.requestOSMData = function(callback){
+        OSMDataRetriever.prototype.requestOSMData = function(boundingBoxCoords, callback){
             console.log('Fetching OSM Data...');
             var self = this
-            var url = this.buildAPICall();
+            var url = this.buildAPICall(boundingBoxCoords);
             $.get(url, function(data) {
                 console.log('OSM Data Fetched!')
                 console.log(data);
