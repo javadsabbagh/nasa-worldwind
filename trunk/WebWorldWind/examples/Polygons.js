@@ -23,7 +23,7 @@ requirejs(['../src/WorldWind',
         var wwd = new WorldWind.WorldWindow("canvasOne");
 
         /**
-         * Added imagery layers.
+         * Add imagery layers.
          */
         var layers = [
             {layer: new WorldWind.BMNGLayer(), enabled: true},
