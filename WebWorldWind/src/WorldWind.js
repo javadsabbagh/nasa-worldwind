@@ -36,6 +36,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './render/FramebufferTile',
         './render/FramebufferTileController',
         './geom/Frustum',
+        './shapes/GeographicMesh',
         './projections/GeographicProjection',
         './shapes/GeographicText',
         './gesture/GestureRecognizer',
@@ -161,6 +162,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               FramebufferTile,
               FramebufferTileController,
               Frustum,
+              GeographicMesh,
               GeographicProjection,
               GeographicText,
               GestureRecognizer,
@@ -471,6 +473,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['FramebufferTile'] = FramebufferTile;
         WorldWind['FramebufferTileController'] = FramebufferTileController;
         WorldWind['Frustum'] = Frustum;
+        WorldWind['GeographicMesh'] = GeographicMesh;
         WorldWind['GeographicProjection'] = GeographicProjection;
         WorldWind['GeographicText'] = GeographicText;
         WorldWind['GestureRecognizer'] = GestureRecognizer;
