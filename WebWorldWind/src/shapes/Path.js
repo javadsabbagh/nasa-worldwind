@@ -67,6 +67,10 @@ define([
          * <p>
          *     A path displays as a curtain if its [extrude]{@link Path#extrude} property is true. A curtain extends
          *     from the line formed by the path positions to the ground.
+         * <p>
+         *     This shape uses a {@link SurfacePolyline} when drawing on 2D globes and this shape's
+         *     [useSurfaceShapeFor2D]{@link AbstractShape#useSurfaceShapeFor2D} is true.
+         *
          * @param {Position[]} positions An array containing the path positions.
          * @throws {ArgumentError} If the specified positions array is null or undefined.
          */
