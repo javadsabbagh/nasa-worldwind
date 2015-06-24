@@ -104,33 +104,49 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         /*
             Takes the renderable and constructs a "node" for insertion into
             the RTree
+            @param point: the renderable to be considered for insertion into the RTRee
+            @param extractPoints: a function to apply to the renderable object to
+                                  extract the 4 element array needed for the Rtree's
+                                  bound related methods
+            @return: the array that acts as an RTree node
          */
-        OpenStreetMapLayer.prototype.createRTreeNode = function(point) {
-            var long = point.longitude;
-            var lat = point.latitude;
-            return [long, lat, long, lat, point];
+        OpenStreetMapLayer.prototype.createRTreeNode = function(point, extractPoints) {
+            var arr = extractPoints(point);
+            arr.push(point);
+            return arr;
         }
 
         /*
             Takes a renderable, disables it, and adds it to the RTree
+            @param renderable: the renderable to be inserted
+            @param extractPoints: a function to apply to the renderable object to
+                                  extract the 4 element array needed for the Rtree's
+                                  bound related methods
          */
-        OpenStreetMapLayer.prototype.addRenderable = function(renderable) {
+        OpenStreetMapLayer.prototype.addRenderable = function(renderable, extractPoints) {
             renderable.enabled = false;
             this._drawLayer.addRenderable(renderable);
-            var node = this.createRTreeNode(renderable);
+            var node = this.createRTreeNode(renderable, extractPoints);
             this._renderables.insert(node);
         }
 
         /*
             Takes an iterable of renderables, construct their RTree nodes and
             adds them to the RTree
+
+            Takes a renderable, disables it, and adds it to the RTree
+            @param renderable: the renderable to be inserted
+            @param extractPoints: a function to apply to the renderable object to
+                                  extract the 4 element array needed for the Rtree's
+                                  bound related methods
+
          */
-        OpenStreetMapLayer.prototype.addRenderables = function(renderables) {
+        OpenStreetMapLayer.prototype.addRenderables = function(renderables, extractPoints) {
             var self = this;
             this._drawLayer.addRenderables(renderables);
             var nodes = renderables.map(function(renderable) {
                 renderable.enabled = false;
-                return self.createRTreeNode(renderable);
+                return self.createRTreeNode(renderable, extractPoints);
             });
             this._renderables.load(nodes);
         }
