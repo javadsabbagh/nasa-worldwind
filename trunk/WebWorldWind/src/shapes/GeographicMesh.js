@@ -95,6 +95,16 @@ define([
 
             AbstractShape.call(this);
 
+            /**
+             * Indicates whether this mesh is pickable when the pick point intersects transparent pixels of the
+             * image applied to this mesh. If no image is applied to this mesh, this property is ignored. If this
+             * property is true and an image with fully transparent pixels is applied to the mesh, the mesh is
+             * pickable at those transparent pixels, otherwise this mesh is not pickable at those transparent pixels.
+             * @type {Boolean}
+             * @default true
+             */
+            this.pickTransparentImagePixels = true;
+
             // Private. Documentation is with the defined property below and the constructor description above.
             this._positions = positions;
 
@@ -469,7 +479,7 @@ define([
                 program.loadColor(gl, dc.pickingMode ? pickColor : color);
                 program.loadOpacity(gl, dc.pickingMode ? (opacity > 0 ? 1 : 0) : opacity);
 
-                if (hasTexture) {
+                if (hasTexture && (!dc.pickingMode || !this.pickTransparentImagePixels)) {
                     this.activeTexture = dc.gpuResourceCache.resourceForKey(this.activeAttributes.imageSource);
                     if (!this.activeTexture) {
                         this.activeTexture =
