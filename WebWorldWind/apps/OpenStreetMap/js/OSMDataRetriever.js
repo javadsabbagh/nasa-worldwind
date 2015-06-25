@@ -65,9 +65,13 @@ define(['xmlToJSON'],
                         },
                         info: {}
                     };
-                    node.tag.forEach(function (tag) {
-                        reducedJSON.nodes[index].info[tag['@attributes'].k] = tag['@attributes'].v
-                    });
+                    if (node.tag) {
+                        node.tag.forEach(function (tag) {
+                            reducedJSON.nodes[index].info[tag['@attributes'].k] = tag['@attributes'].v
+                        });
+                    } else {
+                        console.log('Node@ ' + reducedJSON.nodes[index].location.lat + ',' + reducedJSON.nodes[index].location.lon + 'has no other information.')
+                    };
                     index++;
                 });
                 return reducedJSON;
