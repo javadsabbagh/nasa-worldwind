@@ -61,10 +61,12 @@ define([
                 // Highlight the items picked by simply setting their highlight flag to true.
                 if (pickList.objects.length > 0) {
                     for (var p = 0; p < pickList.objects.length; p++) {
-                        pickList.objects[p].userObject.highlighted = true;
+                        if (!pickList.objects[p].isTerrain) {
+                            pickList.objects[p].userObject.highlighted = true;
 
-                        // Keep track of highlighted items in order to de-highlight them later.
-                        highlightedItems.push(pickList.objects[p].userObject);
+                            // Keep track of highlighted items in order to de-highlight them later.
+                            highlightedItems.push(pickList.objects[p].userObject);
+                        }
                     }
                 }
 
