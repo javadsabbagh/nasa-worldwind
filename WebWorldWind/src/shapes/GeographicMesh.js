@@ -63,7 +63,8 @@ define([
          *     image is stretched over the full mesh. If texture coordinates are specified, there must be one texture
          *     coordinate for each vertex in the mesh.
          * <p>
-         *     When displayed on a 2D globe, this mesh displays as a {@link SurfacePolygon}.
+         *     When displayed on a 2D globe, this mesh displays as a {@link SurfacePolygon} if its
+         *     [useSurfaceShapeFor2D]{@link AbstractShape#useSurfaceShapeFor2D} property is true.
          *
          * @param {Position[][]} positions A two-dimensional array containing the mesh vertices.
          * Each entry of the array specifies the vertices of one row of the mesh. The arrays for all rows must
@@ -170,7 +171,9 @@ define([
              * This mesh's texture coordinates if this mesh is textured. A texture coordinate must be
              * provided for each mesh position. The texture coordinates are specified as a two-dimensional array,
              * each entry of which specifies the texture coordinates for one row of the mesh. Each texture coordinate
-             * is a {@link Vec2} containing the s and t coordinates.
+             * is a {@link Vec2} containing the s and t coordinates. If no texture coordinates are specified and
+             * the attributes associated with this mesh indicate an image source, then texture coordinates are
+             * automatically generated for the mesh.
              * @type {Vec2[][]}
              * @default null
              * @memberof GeographicMesh.prototype

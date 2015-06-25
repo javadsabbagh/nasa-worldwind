@@ -83,7 +83,8 @@ define([
          *     coordinates for extruded boundary segments are implicitly defined to fit the full texture to each
          *     boundary segment.
          * <p>
-         *     When displayed on a 2D globe, this polygon displays as a {@link SurfacePolygon}.
+         *     When displayed on a 2D globe, this polygon displays as a {@link SurfacePolygon} if its
+         *     [useSurfaceShapeFor2D]{@link AbstractShape#useSurfaceShapeFor2D} property is true.
          *
          * @param {Position[][] | Position[]} boundaries A two-dimensional array containing the polygon boundaries.
          * Each entry of the array specifies the vertices of one boundary.
