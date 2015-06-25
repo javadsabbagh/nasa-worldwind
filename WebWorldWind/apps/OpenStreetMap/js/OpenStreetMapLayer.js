@@ -1,9 +1,11 @@
 define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         'OpenStreetMapConfig',
-        'rbush'],
+        'rbush', 'OSMDataRetriever', 'Set'],
     function(ww,
              OpenStreetMapConfig,
-             rbush) {
+             rbush,
+             OSMDataRetriever,
+             Set) {
 
         'use strict';
 
@@ -28,128 +30,212 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             this._drawLayer = new WorldWind.RenderableLayer('Building Layer');
             this._enabled =  true;
             this._displayName = 'Open Street Maps';
-            this._renderables = new rbush(this._config.rTreeSize);
+            this._tree = new rbush(this._config.rTreeSize);
             this._visibleNodes = [];
+            this._dataRetriever = new OSMDataRetriever();
+            this._set = new Set();
+
+        }
+
+
+        /*
+
+            Given a WorldWind Location or WorldWind Position, uses the maximum bounding
+            box distances from the config object to define a bounding box for usage in
+            the OpenStreetMap API and the RTree.
+            Based on Java implementation given at http://janmatuschek.de/LatitudeLongitudeBoundingCoordinates
+            @param center : the object containing the longitude and latitude points of the bounding rect's
+                            center point
+            @return : returns an array, [left, top, right, bottom], that represents the bounding rectangle
+         */
+
+        OpenStreetMapLayer.prototype.getBoundingRectLocs = function(center) {
+
+            function degreeToRadian(degrees) {
+                return degrees * (Math.PI / 180);
+            }
+
+            function radiansToDegree(radians) {
+                return radians * 180 / Math.PI;
+            }
+
+            var earthRadiusInKM = 6317;
+
+
+            var MINIMUM_LATITUDE = degreeToRadian(-90);
+            var MAXIMUM_LATITUDE = degreeToRadian(90);
+            var MINUMUM_LONGITUDE = degreeToRadian(-180);
+            var MAXIMUM_LONGITUDE = degreeToRadian(180);
+
+            var radianDistance = this._config.drawRadius / earthRadiusInKM;
+
+            var radianLatitude = degreeToRadian(center.latitude);
+            var radianLongitude = degreeToRadian(center.longitude);
+
+            var minLatitude = radianLatitude - radianDistance;
+            var maxLatitude = radianLatitude + radianDistance;
+
+            var minLongitude = 0;
+            var maxLongitude = 0;
+
+            if(minLatitude > MINIMUM_LATITUDE && maxLatitude < MAXIMUM_LATITUDE) {
+                var deltaLongitude = Math.asin(Math.sin(radianDistance) / Math.cos(radianLatitude));
+                minLongitude = radianLongitude - deltaLongitude;
+                maxLongitude = radianLongitude + deltaLongitude;
+
+                if(minLongitude < MINUMUM_LONGITUDE) {
+                    minLongitude += 2 * Math.PI;
+                }
+
+                if(maxLongitude > MAXIMUM_LONGITUDE) {
+                    maxLongitude -= 2 * Math.PI;
+                }
+            } else {
+                minLatitude = Math.max(minLatitude, MINIMUM_LATITUDE);
+                maxLatitude = Math.min(maxLatitude, MAXIMUM_LATITUDE);
+                minLongitude = MINUMUM_LONGITUDE;
+                maxLongitude = MAXIMUM_LONGITUDE;
+            }
+
+            return [
+                radiansToDegree(minLongitude),
+                radiansToDegree(minLatitude),
+                radiansToDegree(maxLongitude),
+                radiansToDegree(maxLatitude)
+            ];
 
         }
 
         /*
-            Uses the information stored in the configuration object to
-            extract the visible nodes from the RTree
-            @param center: the center point of the area currently, being
-                           observed by the user
-            @return: an array of nodes from the RTree that represent renderables
-                     within a close proximity of the center point supplied
+            Uses a center point and the default configuration for the drawable bounding rectangle's
+            size to get all of the nodes from the RTree to draw said nodes
+            @param center: the center point of the bounding rectangle
+            @return: the RTree nodes that need to be considered to be drawn
          */
-
-        OpenStreetMapLayer.prototype.getVisibleNodes = function(center) {
-
-            var boxMinLong = undefined;
-            var boxMinLat = undefined;
-            var boxMaxLong = undefined;
-            var boxMaxLat = undefined;
-
-            var nodes = this._renderables.search(boxMinLong, boxMinLat, boxMaxLong, boxMaxLat);
-
-            return nodes;
+        OpenStreetMapLayer.prototype.getAllNodesToDraw = function(center) {
+            var boundingRectangle = this.getBoundingRectLocs(center);
+            var rTreeNodesToBeConsidered = this._tree.search(boundingRectangle);
+            return rTreeNodesToBeConsidered;
         }
 
+
         /*
-            Uses getVisibleNodes to retrieve the nodes that should be visible to
-            the user and enable the renderables stored in them for rendering
-            @param center: the center point of the area currently, being
-                           xobserved by the user
-            @return : the visible nodes in the layer, their enabled property set to true,
-                      as retrieved from the RTree
+            Scans through an iterable of rTreeNodes, plucks out the renderable (stored as the
+            last element of the array), and sets the enabled property of the renderable
+            @param nodes : the RTree nodes to be considered
+                           NB: stored as [left, top, right, bottom, renderable]
+            @param enabled : the value to set the enabled property field to
          */
-        OpenStreetMapLayer.prototype.enableVisibleNodes = function(center) {
-            var nodes = this.getVisibleNodes(center);
+        OpenStreetMapLayer.prototype.setEnabledPropertyOnNodes = function(nodes, enabled) {
             nodes.forEach(function(node) {
                 var renderableObject = node[node.length - 1];
-                renderableObject.enabled = true;
-            });
-            return nodes;
+                renderableObject.enabled = enabled;
+            })
         }
 
 
         /*
-            Disables all nodes that were previously renderable
+            Retrieves nodes within a configured bounding rectangle, enable their
+            constituent renderables, and returns the nodes;
+            @param center: the center point of the bounding rectangle
+            @return: the RTree nodes to be considered
          */
-        OpenStreetMapLayer.prototype.disableVisibleNodes = function() {
-            this._visibleNodes.forEach(function(node) {
-                node[node.length - 1].enabled = false;
-            });
+        OpenStreetMapLayer.prototype.enableNodesToBeDrawn = function(center) {
+            var rTreeNodesToBeConsidered = this.getAllNodesToDraw(center);
+            this.setEnabledPropertyOnNodes(rTreeNodesToBeConsidered, true);
+            return rTreeNodesToBeConsidered;
         }
+
+        /*
+            Iterates, through the renderables currently being drawn,
+            disables them, and clears the the visible nodes array
+         */
+        OpenStreetMapLayer.prototype.resetVisibleNodes = function() {
+            this.setEnabledPropertyOnNodes(this._visibleNodes, false);
+            this._visibleNodes = [];
+        }
+
+
+        /*
+            Takes a renderable and a function to extract its bounding rectangle to yield
+            an RTree node.
+            @param renderable : the renderable to be drawn
+            @param extractBoundingRectFun : the function to extract a bounding box for a
+                                            renderable
+            @return : an array to be inserted into an RTree as a node
+         */
+        OpenStreetMapLayer.prototype.createRTreeNode = function(renderable, extractBoundingRectFun) {
+            renderable.enabled = false;
+            var boundingRect = extractBoundingRectFun(renderable);
+            boundingRect.push(renderable);
+            return boundingRect;
+        }
+
+
+        /*
+            Accepts a renderable and a function to extract a boundingRectangle from the renderable to insert
+            and manage said renderable in the layer
+            @param renderable : the renderable to be added
+            @param extractBoundingRectFun : the function to be used to extract the bouding rectangle from
+                                            the renderable
+         */
+        OpenStreetMapLayer.prototype.addRenderable = function(renderable, extractBoundingRectFun) {
+            var node = this.createRTreeNode(renderable, extractBoundingRectFun);
+            this._drawLayer.addRenderable(renderable);
+            this._tree.insert(node);
+        }
+
+
+        /*
+            Accepts an iterable of renderables and loads them appropriately
+            @param renderable : the renderable to be added
+            @param extractBoundingRectFun : the function to be used to extract the bouding rectangle from
+                                            the renderable
+
+         */
+        OpenStreetMapLayer.prototype.addRenderables = function(renderables, extractBouundingRectFun) {
+            var self = this;
+            var nodes = renderables.map(function(renderable) {
+                return self.addRenderable(renderable, extractBouundingRectFun);
+            });
+            this._drawLayer.addRenderables(renderables);
+            this._tree.load(nodes);
+        }
+
 
         /*
             Abstracts over the render functions of both the open street map layer
             and the renderable layer
+            @param dc :  the DrawContext object to be passed to the two
+                         constituent layers' render functions
          */
         OpenStreetMapLayer.prototype.render = function(dc) {
+            var self = this;
             if(this._enabled) {
-                var currEyeAltitude = getEyeAltitude(dc);
                 this._baseLayer.render(dc);
+                var currEyeAltitude = getEyeAltitude(dc);
                 if(currEyeAltitude <= this._config.drawHeight) {
-                    this.disableVisibleNodes();
-                    this._visibleNodes = this.enableVisibleNodes(dc.center);
-                    this._drawLayer.render(dc);
+                    var center = dc.eyePosition;
+                    var boundingRect = this.getBoundingRectLocs(center);
+                    console.log('center ' ,center);
+                    console.log('going to box ', boundingRect);
+                    this._dataRetriever.requestOSMData(boundingRect, function(data){
+                        console.log(data, ' is ');
+                        self.resetVisibleNodes();
+                        self._visibleNodes.push(self.enableNodesToBeDrawn(center));
+                        self._drawLayer.render(dc);
+                    }) ;
                 } else {
-                    this.disableVisibleNodes();
+                    this.resetVisibleNodes();
                     this._visibleNodes = [];
                 }
             }
 
         }
 
-        /*
-            Takes the renderable and constructs a "node" for insertion into
-            the RTree
-            @param point: the renderable to be considered for insertion into the RTRee
-            @param extractPoints: a function to apply to the renderable object to
-                                  extract the 4 element array needed for the Rtree's
-                                  bound related methods
-            @return: the array that acts as an RTree node
-         */
-        OpenStreetMapLayer.prototype.createRTreeNode = function(point, extractPoints) {
-            var arr = extractPoints(point);
-            arr.push(point);
-            return arr;
-        }
 
-        /*
-            Takes a renderable, disables it, and adds it to the RTree
-            @param renderable: the renderable to be inserted
-            @param extractPoints: a function to apply to the renderable object to
-                                  extract the 4 element array needed for the Rtree's
-                                  bound related methods
-         */
-        OpenStreetMapLayer.prototype.addRenderable = function(renderable, extractPoints) {
-            renderable.enabled = false;
-            this._drawLayer.addRenderable(renderable);
-            var node = this.createRTreeNode(renderable, extractPoints);
-            this._renderables.insert(node);
-        }
 
-        /*
-            Takes an iterable of renderables, construct their RTree nodes and
-            adds them to the RTree
 
-            Takes a renderable, disables it, and adds it to the RTree
-            @param renderable: the renderable to be inserted
-            @param extractPoints: a function to apply to the renderable object to
-                                  extract the 4 element array needed for the Rtree's
-                                  bound related methods
-
-         */
-        OpenStreetMapLayer.prototype.addRenderables = function(renderables, extractPoints) {
-            var self = this;
-            this._drawLayer.addRenderables(renderables);
-            var nodes = renderables.map(function(renderable) {
-                renderable.enabled = false;
-                return self.createRTreeNode(renderable, extractPoints);
-            });
-            this._renderables.load(nodes);
-        }
 
         Object.defineProperties(OpenStreetMapLayer.prototype, {
            enabled : {
