@@ -69,11 +69,13 @@ define([
          * @param {Position[][]} positions A two-dimensional array containing the mesh vertices.
          * Each entry of the array specifies the vertices of one row of the mesh. The arrays for all rows must
          * have the same length. There must be at least two rows, and each row must have at least two vertices.
+         * @param {ShapeAttributes} attributes The attributes to associate with this mesh. May be null, in which case
+         * default attributes are associated.
          *
          * @throws {ArgumentError} If the specified positions array is null or undefined, the number of rows or the
          * number of vertices per row is less than 2, or the array lengths are inconsistent.
          */
-        var GeographicMesh = function (positions) {
+        var GeographicMesh = function (positions, attributes) {
             if (!positions) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "GeographicMesh", "constructor", "missingPositions"));
@@ -94,7 +96,7 @@ define([
                 }
             }
 
-            AbstractShape.call(this);
+            AbstractShape.call(this, attributes);
 
             /**
              * Indicates whether this mesh is pickable when the pick point intersects transparent pixels of the

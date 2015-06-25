@@ -39,13 +39,16 @@ define([
          *     maintains a cache of data computed relative to the globe displayed in each window. During rendering,
          *     the data for the currently active globe, as indicated in the draw context, is made current.
          *     Subsequently called methods rely on the existence of this data cache entry.
+         *
+         * @param {ShapeAttributes} attributes The attributes to associate with this shape. May be null, in which case
+         * default attributes are associated.
          */
-        var AbstractShape = function () {
+        var AbstractShape = function (attributes) {
 
             Renderable.call(this);
 
             // Documented with its property accessor below.
-            this._attributes = new ShapeAttributes(null);
+            this._attributes = attributes ? attributes : new ShapeAttributes(null);
 
             // Documented with its property accessor below.
             this._highlightAttributes = null;

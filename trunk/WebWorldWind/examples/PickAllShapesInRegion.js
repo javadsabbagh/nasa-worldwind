@@ -74,7 +74,7 @@ requirejs(['../src/WorldWind',
             latitude -= j > 0 ? latDelta : 0;
             for (var i = 0, len = images.length; i < len; i++) {
                 placemark = new WorldWind.Placemark(
-                    new WorldWind.Position(latitude, longitude + i * lonDelta, 1e2), true);
+                    new WorldWind.Position(latitude, longitude + i * lonDelta, 1e2), true, null);
                 placemarkAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
                 placemarkAttributes.imageSource = pinLibrary + images[i];
                 highlightAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);

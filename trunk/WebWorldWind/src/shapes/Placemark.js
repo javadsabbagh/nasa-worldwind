@@ -57,9 +57,11 @@ define([
          * @param {Boolean} eyeDistanceScaling Indicates whether the size of this placemark scales with eye distance.
          * See [eyeDistanceScalingThreshold]{@link Placemark#eyeDistanceScalingThreshold} and
          * [eyeDistanceScalingLabelThreshold]{@link Placemark#eyeDistanceScalingLabelThreshold}.
+         * @param {PlacemarkAttributes} attributes The attributes to associate with this placemark. May be null,
+         * in which case default attributes are associated.
          * @throws {ArgumentError} If the specified position is null or undefined.
          */
-        var Placemark = function (position, eyeDistanceScaling) {
+        var Placemark = function (position, eyeDistanceScaling, attributes) {
             if (!position) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Placemark", "constructor", "missingPosition"));
@@ -73,7 +75,7 @@ define([
              * @type {PlacemarkAttributes}
              * @default see [PlacemarkAttributes]{@link PlacemarkAttributes}
              */
-            this.attributes = new PlacemarkAttributes(null);
+            this.attributes = attributes ? attributes : new PlacemarkAttributes(null);
 
             /**
              * The attributes used when this placemark's highlighted flag is true. If null and the

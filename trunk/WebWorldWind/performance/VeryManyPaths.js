@@ -45,7 +45,7 @@ requirejs(['../src/WorldWind',
                 positions.push(new WorldWind.Position(ll.latitude, ll.longitude, startPosition.altitude))
             }
 
-            path = new WorldWind.Path(positions);
+            path = new WorldWind.Path(positions, null);
             path.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
             path.extrude = true;
 

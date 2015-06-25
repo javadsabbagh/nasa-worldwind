@@ -72,15 +72,17 @@ define([
          *     [useSurfaceShapeFor2D]{@link AbstractShape#useSurfaceShapeFor2D} is true.
          *
          * @param {Position[]} positions An array containing the path positions.
+         * @param {ShapeAttributes} attributes The attributes to associate with this path. May be null, in which case
+         * default attributes are associated.
          * @throws {ArgumentError} If the specified positions array is null or undefined.
          */
-        var Path = function (positions) {
+        var Path = function (positions, attributes) {
             if (!positions) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Path", "constructor", "missingPositions"));
             }
 
-            AbstractShape.call(this);
+            AbstractShape.call(this, attributes);
 
             // Private. Documentation is with the defined property below.
             this._positions = positions;

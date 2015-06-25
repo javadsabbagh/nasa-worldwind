@@ -57,7 +57,7 @@ requirejs(['../src/WorldWind',
 
         // Create the polygon and assign its attributes.
 
-        var polygon = new WorldWind.Polygon(boundaries);
+        var polygon = new WorldWind.Polygon(boundaries, null);
         polygon.altitudeMode = WorldWind.ABSOLUTE;
         polygon.extrude = true; // extrude the polygon edges to the ground
 
@@ -86,7 +86,7 @@ requirejs(['../src/WorldWind',
         boundaries[0].push(new WorldWind.Position(45, -80, 1e5));
         boundaries[0].push(new WorldWind.Position(45, -90, 1e5));
 
-        polygon = new WorldWind.Polygon(boundaries);
+        polygon = new WorldWind.Polygon(boundaries, null);
         polygon.altitudeMode = WorldWind.ABSOLUTE;
         polygon.extrude = true;
         polygon.textureCoordinates = [
@@ -127,7 +127,7 @@ requirejs(['../src/WorldWind',
         boundaries[1].push(new WorldWind.Position(33, -94, 1e5));
         boundaries[1].push(new WorldWind.Position(33, -96, 1e5));
 
-        polygon = new WorldWind.Polygon(boundaries);
+        polygon = new WorldWind.Polygon(boundaries, null);
         polygon.altitudeMode = WorldWind.ABSOLUTE;
         polygon.extrude = false;
         polygon.textureCoordinates = [
@@ -164,7 +164,7 @@ requirejs(['../src/WorldWind',
         boundaries[1].push(new WorldWind.Position(89, +135, 1e5));
         boundaries[1].push(new WorldWind.Position(89, -135, 1e5));
 
-        polygon = new WorldWind.Polygon(boundaries);
+        polygon = new WorldWind.Polygon(boundaries, null);
         polygon.altitudeMode = WorldWind.ABSOLUTE;
         polygon.extrude = true;
         polygon.textureCoordinates = [

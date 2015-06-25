@@ -46,7 +46,7 @@ requirejs(['../src/WorldWind',
         pathPositions.push(new WorldWind.Position(46, -122, 1e4));
 
         // Create the path.
-        var path = new WorldWind.Path(pathPositions);
+        var path = new WorldWind.Path(pathPositions, null);
         path.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
         path.followTerrain = true;
         path.extrude = true; // make it a curtain
