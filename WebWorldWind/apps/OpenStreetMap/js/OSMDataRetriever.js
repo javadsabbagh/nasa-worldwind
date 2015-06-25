@@ -1,5 +1,5 @@
-define(['xmlToJSON'],
-    function (XTJ){
+define(['xmlToJSON', 'osmtogeojson'],
+    function (XTJ, osmtogeojson){
         'use strict';
         function OSMDataRetriever () {
 
@@ -27,7 +27,7 @@ define(['xmlToJSON'],
          */
         OSMDataRetriever.prototype.translateOSMData = function (data) {
             console.log('Translating OSM XML data to JSON...');
-            return XTJ(data)
+            return osmtogeojson(data);
         };
 
         /*
@@ -36,48 +36,49 @@ define(['xmlToJSON'],
         @param JSOND: JSON data structure in the form outputted from translateOSMData().
          */
         OSMDataRetriever.prototype.reduceOSMData = function (JSOND) {
-            console.log('Interpreting JSON Data...')
-            var reducedJSON = {
-                _overHead: {
-                    boundingBox: [
-                        JSOND.osm['bounds']['@attributes']['minlon'],
-                        JSOND.osm['bounds']['@attributes']['minlat'],
-                        JSOND.osm['bounds']['@attributes']['maxlon'],
-                        JSOND.osm['bounds']['@attributes']['maxlat']
-                    ]
-                },
-                nodes: []
-            };
-
-            for (var oInfo in JSOND.osm['@attributes']) {
-                reducedJSON._overHead[oInfo] = JSOND.osm['@attributes'][oInfo]
-            }
-            var index = 0;
-            if (JSOND.osm.node) {
-                JSOND.osm.node.forEach(function (node) {
-                    reducedJSON.nodes[index] = {
-                        _overHead: {
-                            timestamp: node['@attributes'].timestamp
-                        },
-                        location: {
-                            lat: node['@attributes'].lat,
-                            lon: node['@attributes'].lon
-                        },
-                        info: {}
-                    };
-                    if (node.tag) {
-                        node.tag.forEach(function (tag) {
-                            reducedJSON.nodes[index].info[tag['@attributes'].k] = tag['@attributes'].v
-                        });
-                    } else {
-                        console.log('Node@ ' + reducedJSON.nodes[index].location.lat + ',' + reducedJSON.nodes[index].location.lon + 'has no other information.')
-                    };
-                    index++;
-                });
-                return reducedJSON;
-            } else {
-                console.log('No nodes in bounding box.')
-            }
+            console.log('Interpreting JSON Data...');
+            return (JSOND);
+            //var reducedJSON = {
+            //    _overHead: {
+            //        boundingBox: [
+            //            JSOND.osm['bounds']['@attributes']['minlon'],
+            //            JSOND.osm['bounds']['@attributes']['minlat'],
+            //            JSOND.osm['bounds']['@attributes']['maxlon'],
+            //            JSOND.osm['bounds']['@attributes']['maxlat']
+            //        ]
+            //    },
+            //    nodes: []
+            //};
+            //
+            //for (var oInfo in JSOND.osm['@attributes']) {
+            //    reducedJSON._overHead[oInfo] = JSOND.osm['@attributes'][oInfo]
+            //}
+            //var index = 0;
+            //if (JSOND.osm.node) {
+            //    JSOND.osm.node.forEach(function (node) {
+            //        reducedJSON.nodes[index] = {
+            //            _overHead: {
+            //                timestamp: node['@attributes'].timestamp
+            //            },
+            //            location: {
+            //                lat: node['@attributes'].lat,
+            //                lon: node['@attributes'].lon
+            //            },
+            //            info: {}
+            //        };
+            //        if (node.tag) {
+            //            node.tag.forEach(function (tag) {
+            //                reducedJSON.nodes[index].info[tag['@attributes'].k] = tag['@attributes'].v
+            //            });
+            //        } else {
+            //            console.log('Node@ ' + reducedJSON.nodes[index].location.lat + ',' + reducedJSON.nodes[index].location.lon + 'has no other information.')
+            //        };
+            //        index++;
+            //    });
+            //    return reducedJSON;
+            //} else {
+            //    console.log('No nodes in bounding box.')
+            //}
         };
 
         /*

@@ -130,6 +130,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
          */
         OpenStreetMapLayer.prototype.setEnabledPropertyOnNodes = function(nodes, enabled) {
             nodes.forEach(function(node) {
+                console.log('node is ', node);
                 var renderableObject = node[node.length - 1];
                 renderableObject.enabled = enabled;
             })
@@ -236,14 +237,14 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                     var key = this.createBoundingRectKey(boundingRect);
                     if(this._set.contains(key)) {
                         self.resetVisibleNodes();
-                        self._visibleNodes.push(self.enableNodesToBeDrawn(center));
+                        self._visibleNodes = self._visibleNodes.concat(self.enableNodesToBeDrawn(center));
                         self._drawLayer.render(dc);
                     } else {
                         this._dataRetriever.requestOSMData(boundingRect, function(data){
-                            this._set.add(key);
+                            self._set.add(key);
                             console.log(data, ' is ');
                             self.resetVisibleNodes();
-                            self._visibleNodes.push(self.enableNodesToBeDrawn(center));
+                            self._visibleNodes = self._visibleNodes.concat(self.enableNodesToBeDrawn(center));
                             self._drawLayer.render(dc);
                         });
                     }
