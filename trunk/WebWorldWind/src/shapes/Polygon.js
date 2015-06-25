@@ -257,6 +257,10 @@ define([
             return this.activeAttributes.imageSource[side];
         };
 
+        Polygon.prototype.createSurfaceShape = function () {
+            return new SurfacePolygon(this.boundaries, null);
+        };
+
         // Overridden from AbstractShape base class.
         Polygon.prototype.doMakeOrderedRenderable = function (dc) {
             // A null reference position is a signal that there are no boundaries to render.

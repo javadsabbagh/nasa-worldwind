@@ -231,6 +231,29 @@ define([
         };
 
         // Overridden from AbstractShape base class.
+        GeographicMesh.prototype.createSurfaceShape = function () {
+            var boundaries = [];
+
+            for (var c = 0; c < this.numColumns; c++) {
+                boundaries.push(this._positions[0][c]);
+            }
+
+            for (var r = 1; r < this.numRows; r++) {
+                boundaries.push(this._positions[r][this.numColumns - 1]);
+            }
+
+            for (c = this.numColumns - 2; c >= 0; c--) {
+                boundaries.push(this._positions[this.numRows -1][c]);
+            }
+
+            for (r = this.numRows - 2; r > 0; r--) {
+                boundaries.push(this._positions[r][0]);
+            }
+
+            return new SurfacePolygon(boundaries, null);
+        };
+
+        // Overridden from AbstractShape base class.
         GeographicMesh.prototype.doMakeOrderedRenderable = function (dc) {
             // A null reference position is a signal that there are no boundaries to render.
             if (!this.activeAttributes.drawInterior && !this.activeAttributes.drawOutline) {
