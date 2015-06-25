@@ -166,7 +166,7 @@ define([
         });
 
         /**
-         * Clears this shape's data cache. Should be called by subclasses when state changes that invalidates
+         * Clears this shape's data cache. Should be called by subclasses when state changes invalidate
          * cached data.
          * @protected
          */
