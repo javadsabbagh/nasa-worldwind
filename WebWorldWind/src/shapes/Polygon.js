@@ -92,16 +92,18 @@ define([
          * in which case the polygon is assumed to have only one boundary.
          * Each boundary is considered implicitly closed, so the last position of the boundary need not and should not
          * duplicate the first position of the boundary.
+         * @param {ShapeAttributes} attributes The attributes to associate with this polygon. May be null, in which case
+         * default attributes are associated.
          *
          * @throws {ArgumentError} If the specified boundaries array is null or undefined.
          */
-        var Polygon = function (boundaries) {
+        var Polygon = function (boundaries, attributes) {
             if (!boundaries) {
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "Polygon", "constructor", "missingBoundaries"));
             }
 
-            AbstractShape.call(this);
+            AbstractShape.call(this, attributes);
 
             if (boundaries.length > 0 && boundaries[0].latitude) {
                 boundaries = [boundaries];

@@ -88,7 +88,7 @@ requirejs(['../src/WorldWind',
         // For each placemark image, create a placemark with a label.
         for (var i = 0, len = images.length; i < len; i++) {
             // Create the placemark and its label.
-            placemark = new WorldWind.Placemark(new WorldWind.Position(latitude, longitude + i, 1e2));
+            placemark = new WorldWind.Placemark(new WorldWind.Position(latitude, longitude + i, 1e2), false, null);
             placemark.label = "Placemark " + i.toString() + "\n"
             + "Lat " + latitude.toPrecision(4).toString() + "\n"
             + "Lon " + longitude.toPrecision(5).toString();

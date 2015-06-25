@@ -54,7 +54,7 @@ requirejs(['../src/WorldWind',
         }
 
         // Create the mesh.
-        var mesh = new WorldWind.GeographicMesh(meshPositions);
+        var mesh = new WorldWind.GeographicMesh(meshPositions, null);
 
         // Create and assign the mesh's attributes.
         var meshAttributes = new WorldWind.ShapeAttributes(null);
@@ -105,7 +105,7 @@ requirejs(['../src/WorldWind',
         }
 
         // Create the mesh.
-        mesh = new WorldWind.GeographicMesh(meshPositions);
+        mesh = new WorldWind.GeographicMesh(meshPositions, null);
 
         // Create and assign the mesh's attributes.
         meshAttributes = new WorldWind.ShapeAttributes(null);

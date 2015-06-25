@@ -383,12 +383,9 @@ define([
                         var longitude = points[idx],
                             latitude = points[idx + 1],
                             position = new Position(latitude, longitude, altitude),
-                            placemark = new Placemark(position);
+                            placemark = new Placemark(position, false, configuration.attributes);
 
                         placemark.altitudeMode = configuration.altitudeMode || WorldWind.RELATIVE_TO_GROUND;
-                        if (configuration.attributes) {
-                            placemark.attributes = configuration.attributes;
-                        }
                         if (configuration.highlightAttributes) {
                             placemark.highlightAttributes = configuration.highlightAttributes;
                         }
@@ -450,12 +447,9 @@ define([
                         var longitude = points[idx],
                             latitude = points[idx + 1],
                             position = new Position(latitude, longitude, altitude),
-                            placemark = new Placemark(position);
+                            placemark = new Placemark(position, false, configuration.attributes);
 
                         placemark.altitudeMode = configuration.altitudeMode || WorldWind.RELATIVE_TO_GROUND;
-                        if (configuration.attributes) {
-                            placemark.attributes = configuration.attributes;
-                        }
                         if (configuration.highlightAttributes) {
                             placemark.highlightAttributes = configuration.highlightAttributes;
                         }
@@ -529,13 +523,10 @@ define([
                     if (!altitude) {
                         shape = new SurfacePolyline(positions, configuration.attributes);
                     } else {
-                        shape = new Path(positions);
+                        shape = new Path(positions, configuration.attributes);
                         shape.altitudeMode = configuration.altitudeMode || WorldWind.RELATIVE_TO_GROUND;
                     }
 
-                    if (configuration.attributes) {
-                        shape.attributes = configuration.attributes;
-                    }
                     if (configuration.highlightAttributes) {
                         shape.highlightAttributes = configuration.highlightAttributes;
                     }
@@ -621,19 +612,16 @@ define([
 
                 var shape;
                 if (height) {
-                    shape = new Polygon(boundaries);
+                    shape = new Polygon(boundaries, configuration.attributes);
                     shape.extrude = true;
                     shape.altitudeMode = configuration.altitudeMode || WorldWind.RELATIVE_TO_GROUND;
                 } else if (!altitude) {
                     shape = new SurfacePolygon(boundaries, configuration.attributes);
                 } else {
-                    shape = new Polygon(boundaries);
+                    shape = new Polygon(boundaries, configuration.attributes);
                     shape.altitudeMode = configuration.altitudeMode || WorldWind.RELATIVE_TO_GROUND;
                 }
 
-                if (configuration.attributes) {
-                    shape.attributes = configuration.attributes;
-                }
                 if (configuration.highlightAttributes) {
                     shape.highlightAttributes = configuration.highlightAttributes;
                 }

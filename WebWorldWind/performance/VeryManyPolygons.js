@@ -63,7 +63,7 @@ requirejs(['../src/WorldWind',
                         new WorldWind.Position(lat + width, lon + width, height),
                         new WorldWind.Position(lat + width, lon, height)
                     ],
-                    polygon = new WorldWind.Polygon([boundary]);
+                    polygon = new WorldWind.Polygon([boundary], null);
 
                 polygon.altitudeMode = WorldWind.ABSOLUTE;
                 polygon.extrude = attributes.drawVerticals;
