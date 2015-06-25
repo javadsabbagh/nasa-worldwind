@@ -12,6 +12,7 @@ define(['xmlToJSON'],
                                    [LEFT , BOTTOM , RIGHT , TOP]
          @return: API call URL
          */
+
         OSMDataRetriever.prototype.buildAPICall = function(boundingBoxCoords){
             //console.log('Retrieving data location...');
             var param = boundingBoxCoords.join(',');
@@ -47,27 +48,32 @@ define(['xmlToJSON'],
                 },
                 nodes: []
             };
-            for (var oInfo in JSOND.osm['@attributes']){
+
+            for (var oInfo in JSOND.osm['@attributes']) {
                 reducedJSON._overHead[oInfo] = JSOND.osm['@attributes'][oInfo]
             }
             var index = 0;
-            JSOND.osm.node.forEach(function(node){
-                reducedJSON.nodes[index] = {
-                    _overHead: {
-                        timestamp: node['@attributes'].timestamp
-                    },
-                    location: {
-                        lat: node['@attributes'].lat,
-                        lon: node['@attributes'].lon
-                    },
-                    info: {}
-                };
-                node.tag.forEach(function(tag){
-                    reducedJSON.nodes[index].info[tag['@attributes'].k] = tag['@attributes'].v
+            if (JSOND.osm.node) {
+                JSOND.osm.node.forEach(function (node) {
+                    reducedJSON.nodes[index] = {
+                        _overHead: {
+                            timestamp: node['@attributes'].timestamp
+                        },
+                        location: {
+                            lat: node['@attributes'].lat,
+                            lon: node['@attributes'].lon
+                        },
+                        info: {}
+                    };
+                    node.tag.forEach(function (tag) {
+                        reducedJSON.nodes[index].info[tag['@attributes'].k] = tag['@attributes'].v
+                    });
+                    index++;
                 });
-                index++;
-            });
-            return reducedJSON;
+                return reducedJSON;
+            } else {
+                console.log('No nodes in bounding box.')
+            }
         };
 
         /*
