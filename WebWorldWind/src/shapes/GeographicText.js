@@ -93,6 +93,10 @@ define([
             dc.surfacePointForMode(this.position.latitude, this.position.longitude, this.position.altitude,
                 this.altitudeMode, GeographicText.placePoint);
 
+            if (!dc.navigatorState.frustumInModelCoordinates.containsPoint(GeographicText.placePoint)) {
+                return false;
+            }
+
             this.eyeDistance = this.alwaysOnTop ? 0 : dc.navigatorState.eyePoint.distanceTo(GeographicText.placePoint);
 
             // Compute the text's screen point in the OpenGL coordinate system of the WorldWindow by projecting its model
@@ -101,8 +105,10 @@ define([
             // yet as a screen element the text is expected to be visible. We adjust its depth values rather than moving
             // the text itself to avoid obscuring its actual position.
             if (!dc.navigatorState.projectWithDepth(GeographicText.placePoint, this.depthOffset, this.screenPoint)) {
-                return null;
+                return false;
             }
+
+            return true;
         };
 
         return GeographicText;

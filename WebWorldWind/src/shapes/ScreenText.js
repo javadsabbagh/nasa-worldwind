@@ -66,9 +66,11 @@ define([
         // Documented in superclass.
         ScreenText.prototype.computeScreenPointAndEyeDistance = function (dc) {
             dc.navigatorState.convertPointToViewport(this.screenPosition, this.screenPoint);
-            this.screenPoint[2] = 1;
+            this.screenPoint[2] = 0;
 
             this.eyeDistance = 0;
+
+            return true;
         };
 
         return ScreenText;

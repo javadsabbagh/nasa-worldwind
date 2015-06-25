@@ -949,6 +949,9 @@ requirejs(['../src/WorldWind',
         // Set up the common text attributes.
         textAttributes.color = WorldWind.Color.CYAN;
 
+        // Set the depth test property such that the terrain does not obscure the text.
+        textAttributes.depthTest = false;
+
         // For each peak, create a text shape.
         for (var i = 0, len = peaks.length; i < len; i++) {
             var peak = peaks[i],
