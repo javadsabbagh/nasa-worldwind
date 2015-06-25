@@ -195,6 +195,9 @@ define([
             this.currentVisibility = 1;
 
             // Internal use only. Intentionally not documented.
+            this.enableBulkRendering = true;
+
+            // Internal use only. Intentionally not documented.
             this.activeAttributes = null;
 
             // Internal use only. Intentionally not documented.
@@ -493,7 +496,7 @@ define([
 
             try {
                 this.doDrawOrderedPlacemark(dc);
-                if (!dc.pickingMode) {
+                if (!dc.pickingMode && this.enableBulkRendering) {
                     this.drawBatchOrderedPlacemarks(dc);
                 }
             } finally {
@@ -541,9 +544,6 @@ define([
             // Tell the program which texture unit to use.
             program.loadTextureUnit(gl, WebGLRenderingContext.TEXTURE0);
             program.loadModulateColor(gl, dc.pickingMode);
-
-            // The currentTexture field is used to avoid re-specifying textures unnecessarily. Clear it to start.
-            Placemark.currentTexture = null;
         };
 
         // Internal. Intentionally not documented.
@@ -559,9 +559,6 @@ define([
             dc.bindProgram(null);
             gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, null);
             gl.bindTexture(WebGLRenderingContext.TEXTURE_2D, null);
-
-            // Avoid keeping a dangling reference to the current texture.
-            Placemark.currentTexture = null;
         };
 
         // Internal. Intentionally not documented.
@@ -677,11 +674,8 @@ define([
             program.loadTextureMatrix(gl, this.texCoordMatrix);
 
             if (this.activeTexture) {
-                if (this.activeTexture != Placemark.currentTexture) { // avoid unnecessary texture state changes
-                    textureBound = this.activeTexture.bind(dc); // returns false if active texture is null or cannot be bound
-                    program.loadTextureEnabled(gl, textureBound);
-                    Placemark.currentTexture = this.activeTexture;
-                }
+                textureBound = this.activeTexture.bind(dc); // returns false if active texture is null or cannot be bound
+                program.loadTextureEnabled(gl, textureBound);
             } else {
                 program.loadTextureEnabled(gl, false);
             }
@@ -705,7 +699,6 @@ define([
 
                     textureBound = this.labelTexture.bind(dc);
                     program.loadTextureEnabled(gl, textureBound);
-                    Placemark.currentTexture = this.labelTexture;
                 } else {
                     program.loadTextureEnabled(gl, false);
                     program.loadColor(gl, this.pickColor);
