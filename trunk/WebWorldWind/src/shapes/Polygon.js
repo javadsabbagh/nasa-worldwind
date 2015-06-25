@@ -81,8 +81,7 @@ define([
          *     specified is applied to the remaining segments. Texture coordinates for the polygon's texture are
          *     specified via this polygon's [textureCoordinates]{@link Polygon#textureCoordinates} property. Texture
          *     coordinates for extruded boundary segments are implicitly defined to fit the full texture to each
-         *     boundary segment. The imageOffset and imageScale properties of this polygon's shape attributes are not
-         *     utilized.
+         *     boundary segment.
          * <p>
          *     When displayed on a 2D globe, this polygon displays as a {@link SurfacePolygon}.
          *

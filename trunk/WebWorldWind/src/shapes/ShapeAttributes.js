@@ -37,8 +37,6 @@ define([
             this._outlineStippleFactor = attributes ? attributes._outlineStippleFactor : 0;
             this._outlineStipplePattern = attributes ? attributes._outlineStipplePattern : 0xF0F0;
             this._imageSource = attributes ? attributes._imageSource : null;
-            this._imageScale = attributes ? attributes._imageScale : 1.0;
-            this._imageOffset = attributes ? attributes._imageOffset : null;
             this._depthTest = attributes ? attributes._depthTest : true;
             this._drawVerticals = attributes ? attributes._drawVerticals : false;
 
@@ -70,8 +68,6 @@ define([
                   " osp " + this._outlineStipplePattern +
                   " is " + (this._imageSource ?
                         (this.imageSource instanceof ImageSource ? this.imageSource.key : this.imageSource) : "null") +
-                  " isc " + this._imageScale +
-                  " io " + (this._imageOffset ? this.imageOffset.toString() : "null") +
                   " dt " + this._depthTest +
                   " dv " + this._drawVerticals;
         };
@@ -246,41 +242,6 @@ define([
                 },
                 set: function (value) {
                     this._imageSource = value;
-                    this.stateKeyInvalid = true;
-                }
-            },
-
-            /**
-             * Indicates the associated shape's image scale, the amount to scale the shape's image dimensions.
-             * @type {Number}
-             * @default 1.0
-             * @memberof ShapeAttributes.prototype
-             */
-            imageScale: {
-                get: function () {
-                    return this._imageScale;
-                },
-                set: function (value) {
-                    this._imageScale = value;
-                    this.stateKeyInvalid = true;
-                }
-            },
-
-            /**
-             * Indicates the reference point within the associated shape's image at which to locate the image on the
-             * shape. That reference point is placed at the reference point of the shape. See the
-             * specific shape for a description of the shape's reference point. May be null to indicate that the
-             * image's bottom left corner is placed at the shape's reference point.
-             * @type {Offset}
-             * @default null
-             * @memberof ShapeAttributes.prototype
-             */
-            imageOffset: {
-                get: function () {
-                    return this._imageOffset;
-                },
-                set: function (value) {
-                    this._imageOffset = value;
                     this.stateKeyInvalid = true;
                 }
             },
