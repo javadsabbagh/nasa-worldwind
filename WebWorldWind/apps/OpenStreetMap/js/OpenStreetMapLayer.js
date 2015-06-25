@@ -1,6 +1,8 @@
 define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         'OpenStreetMapConfig',
-        'rbush', 'OSMDataRetriever', 'Set'],
+        'rbush',
+        'OSMDataRetriever',
+        'Set'],
     function(ww,
              OpenStreetMapConfig,
              rbush,
@@ -204,6 +206,18 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
 
         /*
+            Transform a bounding rectangle into a string to be used to examine if
+            the bounding rectangle has been examined already
+            @param boundingRect: the bounding rectangle to be considered
+            @return a string representation of the bounding rectangle
+         */
+        OpenStreetMapLayer.prototype.createBoundingRectKey = function(boundingRect) {
+            return boundingRect.join(' ');
+        }
+
+
+
+        /*
             Abstracts over the render functions of both the open street map layer
             and the renderable layer
             @param dc :  the DrawContext object to be passed to the two
@@ -219,12 +233,20 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                     var boundingRect = this.getBoundingRectLocs(center);
                     console.log('center ' ,center);
                     console.log('going to box ', boundingRect);
-                    this._dataRetriever.requestOSMData(boundingRect, function(data){
-                        console.log(data, ' is ');
+                    var key = this.createBoundingRectKey(boundingRect);
+                    if(this._set.contains(key)) {
                         self.resetVisibleNodes();
                         self._visibleNodes.push(self.enableNodesToBeDrawn(center));
                         self._drawLayer.render(dc);
-                    }) ;
+                    } else {
+                        this._dataRetriever.requestOSMData(boundingRect, function(data){
+                            this._set.add(key);
+                            console.log(data, ' is ');
+                            self.resetVisibleNodes();
+                            self._visibleNodes.push(self.enableNodesToBeDrawn(center));
+                            self._drawLayer.render(dc);
+                        });
+                    }
                 } else {
                     this.resetVisibleNodes();
                     this._visibleNodes = [];
