@@ -56,11 +56,10 @@ requirejs(['../src/WorldWind',
         // Create the mesh.
         var mesh = new WorldWind.GeographicMesh(meshPositions, null);
 
-        // Create and assign the mesh's attributes.
+        // Create and assign the mesh's attributes. Light this mesh.
         var meshAttributes = new WorldWind.ShapeAttributes(null);
         meshAttributes.outlineColor = WorldWind.Color.BLUE;
         meshAttributes.interiorColor = new WorldWind.Color(0, 1, 1, 1);
-        //meshAttributes.imageSource = "../images/400x230-splash-nww.png";
         meshAttributes.applyLighting = true;
         mesh.attributes = meshAttributes;
 
@@ -68,6 +67,8 @@ requirejs(['../src/WorldWind',
         var highlightAttributes = new WorldWind.ShapeAttributes(meshAttributes);
         highlightAttributes.outlineColor = WorldWind.Color.RED;
         highlightAttributes.interiorColor = new WorldWind.Color(1, 1, 1, 0.7);
+        highlightAttributes.imageSource = "../images/400x230-splash-nww.png";
+        highlightAttributes.applyLighting = false;
         mesh.highlightAttributes = highlightAttributes;
 
         // Add the mesh to a layer and the layer to the World Window's layer list.
@@ -113,7 +114,7 @@ requirejs(['../src/WorldWind',
         meshAttributes.outlineColor = WorldWind.Color.BLUE;
         meshAttributes.interiorColor = new WorldWind.Color(1, 1, 1, 0.7);
         meshAttributes.imageSource = new WorldWind.ImageSource(canvas);
-        meshAttributes.applyLighting = true;
+        meshAttributes.applyLighting = false;
         mesh.attributes = meshAttributes;
 
         // Create and assign the mesh's highlight attributes.

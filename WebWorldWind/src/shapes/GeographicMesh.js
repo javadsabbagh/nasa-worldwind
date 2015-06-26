@@ -227,6 +227,10 @@ define([
                 return true;
             }
 
+            if (this.activeAttributes.imageSource && !this.texCoords) {
+                return true;
+            }
+
             if (this.altitudeMode === WorldWind.ABSOLUTE) {
                 return false;
             }
