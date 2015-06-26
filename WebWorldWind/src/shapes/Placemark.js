@@ -496,7 +496,7 @@ define([
 
             try {
                 this.doDrawOrderedPlacemark(dc);
-                if (!dc.pickingMode && this.enableBulkRendering) {
+                if (!dc.pickingMode) {
                     this.drawBatchOrderedPlacemarks(dc);
                 }
             } finally {
