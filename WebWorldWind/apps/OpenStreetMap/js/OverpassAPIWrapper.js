@@ -1,4 +1,4 @@
-define(['jquery','OpenStreetMapConfig'],function($, OpenStreetMapConfig) {
+define(['jquery','OpenStreetMapConfig', 'osmtogeojson'],function($, OpenStreetMapConfig, osmtogeojson) {
 
 
     'use strict';
@@ -50,9 +50,12 @@ define(['jquery','OpenStreetMapConfig'],function($, OpenStreetMapConfig) {
     OverpassAPIWrapper.prototype.getAllAmenitiesInBox = function(boundingBox, callback) {
         var url = this.assembleAPICall(boundingBox);
         $.get(url, function(data) {
-            callback(data);
+            var toSend = osmtogeojson(data);
+            callback(toSend);
         });
     }
+
+    return OverpassAPIWrapper;
 
 
 });

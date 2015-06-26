@@ -2,12 +2,14 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         'OpenStreetMapConfig',
         'rbush',
         'OSMDataRetriever',
-        'Set'],
+        'Set',
+        'OverpassAPIWrapper'],
     function(ww,
              OpenStreetMapConfig,
              rbush,
              OSMDataRetriever,
-             Set) {
+             Set,
+             OverpassAPIWrapper) {
 
         'use strict';
 
@@ -36,6 +38,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             this._visibleNodes = [];
             this._dataRetriever = new OSMDataRetriever();
             this._set = new Set();
+            this._overpassWrapper = new OverpassAPIWrapper();
 
         }
 
@@ -240,13 +243,16 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                         self._visibleNodes = self._visibleNodes.concat(self.enableNodesToBeDrawn(center));
                         self._drawLayer.render(dc);
                     } else {
-                        this._dataRetriever.requestOSMData(boundingRect, function(data){
-                            self._set.add(key);
-                            console.log(data, ' is ');
-                            self.resetVisibleNodes();
-                            self._visibleNodes = self._visibleNodes.concat(self.enableNodesToBeDrawn(center));
-                            self._drawLayer.render(dc);
-                        });
+                        this._overpassWrapper.getAllAmenitiesInBox(boundingRect, function(data) {
+                            console.log('data from overpass ', data);
+                        })
+                        //this._dataRetriever.requestOSMData(boundingRect, function(data){
+                        //    self._set.add(key);
+                        //    console.log(data, ' is ');
+                        //    self.resetVisibleNodes();
+                        //    self._visibleNodes = self._visibleNodes.concat(self.enableNodesToBeDrawn(center));
+                        //    self._drawLayer.render(dc);
+                        //});
                     }
                 } else {
                     this.resetVisibleNodes();
