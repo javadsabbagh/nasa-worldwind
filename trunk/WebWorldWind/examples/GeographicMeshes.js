@@ -59,8 +59,9 @@ requirejs(['../src/WorldWind',
         // Create and assign the mesh's attributes.
         var meshAttributes = new WorldWind.ShapeAttributes(null);
         meshAttributes.outlineColor = WorldWind.Color.BLUE;
-        meshAttributes.interiorColor = new WorldWind.Color(0, 1, 1, 0.7);
-        meshAttributes.imageSource = "../images/400x230-splash-nww.png";
+        meshAttributes.interiorColor = new WorldWind.Color(0, 1, 1, 1);
+        //meshAttributes.imageSource = "../images/400x230-splash-nww.png";
+        meshAttributes.applyLighting = true;
         mesh.attributes = meshAttributes;
 
         // Create and assign the mesh's highlight attributes.
@@ -112,6 +113,7 @@ requirejs(['../src/WorldWind',
         meshAttributes.outlineColor = WorldWind.Color.BLUE;
         meshAttributes.interiorColor = new WorldWind.Color(1, 1, 1, 0.7);
         meshAttributes.imageSource = new WorldWind.ImageSource(canvas);
+        meshAttributes.applyLighting = true;
         mesh.attributes = meshAttributes;
 
         // Create and assign the mesh's highlight attributes.

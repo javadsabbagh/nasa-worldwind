@@ -1815,6 +1815,29 @@ define([
             result3.multiply(m33);
         };
 
+        /**
+         * Extracts and returns a new matrix whose upper 3x3 entries are identical to those of this matrix,
+         * and whose fourth row and column are 0 except for a 1 in the diagonal position.
+         * @returns {Matrix} The upper 3x3 matrix of this matrix.
+         */
+        Matrix.prototype.upper3By3 = function () {
+            var result = Matrix.fromIdentity();
+
+            result[0] = this[0];
+            result[1] = this[1];
+            result[2] = this[2];
+
+            result[4] = this[4];
+            result[5] = this[5];
+            result[6] = this[6];
+
+            result[8] = this[8];
+            result[9] = this[9];
+            result[10] = this[10];
+
+            return result;
+        };
+
         return Matrix;
     });
 
