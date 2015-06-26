@@ -50,6 +50,7 @@ define([
              * The navigator's model-view matrix. The model-view matrix transforms points from model coordinates to eye
              * coordinates.
              * @type {Matrix}
+             * @readonly
              */
             this.modelview = modelViewMatrix;
 
@@ -57,6 +58,7 @@ define([
              * The navigator's projection matrix. The projection matrix transforms points from eye coordinates to clip
              * coordinates.
              * @type {Matrix}
+             * @readonly
              */
             this.projection = projectionMatrix;
 
@@ -64,6 +66,7 @@ define([
              * The concatenation of the navigator's model-view and projection matrices. This matrix transforms points
              * from model coordinates to clip coordinates.
              * @type {Matrix}
+             * @readonly
              */
             this.modelviewProjection = Matrix.fromIdentity();
             this.modelviewProjection.setToMultiply(projectionMatrix, modelViewMatrix);
@@ -72,12 +75,14 @@ define([
              * The navigator's viewport, in WebGL screen coordinates. The viewport places the origin in the bottom-left
              * corner and has axes that extend up and to the right from the origin.
              * @type {Rectangle}
+             * @readonly
              */
             this.viewport = viewport;
 
             /**
              * Indicates the number of degrees clockwise from north to which the view is directed.
              * @type {Number}
+             * @readonly
              */
             this.heading = heading;
 
@@ -85,12 +90,14 @@ define([
              * The number of degrees the globe is tilted relative to its surface being parallel to the screen. Values are
              * typically in the range 0 to 90 but may vary from that depending on the navigator in use.
              * @type {Number}
+             * @readonly
              */
             this.tilt = tilt;
 
             /**
              * The navigator's eye point in model coordinates, relative to the globe's center.
              * @type {Vec3}
+             * @readonly
              */
             this.eyePoint = this.modelview.extractEyePoint(new Vec3(0, 0, 0));
 
@@ -99,6 +106,7 @@ define([
              * outward along the forward vector. The navigator's near distance and far distance identify the minimum and
              * maximum distance, respectively, at which an object in the scene is visible.
              * @type {Frustum}
+             * @readonly
              */
             this.frustumInModelCoordinates = null;
             // Compute the frustum in model coordinates. Start by computing the frustum in eye coordinates from the
@@ -120,6 +128,14 @@ define([
             this.projectionInv.invertMatrix(this.projection);
             this.modelviewProjectionInv = Matrix.fromIdentity();
             this.modelviewProjectionInv.invertMatrix(this.modelviewProjection);
+
+            /**
+             * The matrix that transforms normal vectors in model coordinates to normal vectors in eye coordinates.
+             * Typically used to transform a shape's normal vectors during lighting calculations.
+             * @type {Matrix}
+             * @readonly
+             */
+            this.modelviewNormalTransform = Matrix.fromIdentity().setToTransposeOfMatrix(this.modelviewInv.upper3By3());
 
             // Compute the eye coordinate rectangles carved out of the frustum by the near and far clipping planes, and
             // the distance between those planes and the eye point along the -Z axis. The rectangles are determined by

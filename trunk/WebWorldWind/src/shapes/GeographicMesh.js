@@ -708,9 +708,7 @@ define([
 
                 var applyLighting = !dc.pickMode && this.currentData.normals && this.activeAttributes.applyLighting;
                 if (applyLighting) {
-                    var invT = new Matrix.fromIdentity().setToTransposeOfMatrix(
-                        dc.navigatorState.modelviewInv.upper3By3());
-                    dc.currentProgram.loadModelviewInverse(gl, invT);
+                    dc.currentProgram.loadModelviewInverse(gl, dc.navigatorState.modelviewNormalTransform);
                 }
             }
 
