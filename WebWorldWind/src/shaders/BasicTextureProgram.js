@@ -44,13 +44,13 @@ define([
                     'uniform mat4 texCoordMatrix;\n' +
                     'uniform bool applyLighting;\n' +
                     'varying vec2 texCoord;\n' +
-                    'varying float nDotL;\n' +
+                    'varying float attenuation;\n' +
                     'const float ambient = 0.15;\n' +
                     'const vec4 lightDirection = vec4(0, 0, 1, 0);\n' +
                     'void main() {gl_Position = mvpMatrix * vertexPoint;\n' +
                     'texCoord = (texCoordMatrix * vertexTexCoord).st;\n' +
                     'if (applyLighting) {\n' +
-                    'nDotL = clamp(ambient + dot(lightDirection, mvInverseMatrix * normalVector), 0.0, 1.0);\n' +
+                    'attenuation = clamp(ambient + dot(lightDirection, mvInverseMatrix * normalVector), 0.0, 1.0);\n' +
                     '}' +
                     '}',
                 fragmentShaderSource =
@@ -62,7 +62,7 @@ define([
                     'uniform sampler2D textureSampler;\n' +
                     'uniform bool applyLighting;\n' +
                     'varying vec2 texCoord;\n' +
-                    'varying float nDotL;\n' +
+                    'varying float attenuation;\n' +
                     'void main() {\n' +
                     'vec4 textureColor = texture2D(textureSampler, texCoord);\n' +
                     'if (enableTexture && !modulateColor)\n' +
@@ -72,7 +72,7 @@ define([
                     'else\n' +
                     '    gl_FragColor = color * opacity;\n' +
                     'if (gl_FragColor.a == 0.0) {discard; return;}\n' +
-                    'if (applyLighting) gl_FragColor.rgb *= nDotL;\n' +
+                    'if (applyLighting) gl_FragColor.rgb *= attenuation;\n' +
                     '}';
 
             // Specify bindings to avoid the WebGL performance warning that's generated when normalVector gets
