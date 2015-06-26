@@ -223,6 +223,10 @@ define([
                 return true;
             }
 
+            if (this.activeAttributes.applyLighting && !this.currentData.normals) {
+                return true;
+            }
+
             if (this.altitudeMode === WorldWind.ABSOLUTE) {
                 return false;
             }
@@ -243,7 +247,7 @@ define([
             }
 
             for (c = this.numColumns - 2; c >= 0; c--) {
-                boundaries.push(this._positions[this.numRows -1][c]);
+                boundaries.push(this._positions[this.numRows - 1][c]);
             }
 
             for (r = this.numRows - 2; r > 0; r--) {
@@ -293,6 +297,10 @@ define([
             if (!this.outlineIndices) {
                 this.computeMeshIndices(currentData);
                 this.computeOutlineIndices(currentData);
+            }
+
+            if (this.activeAttributes.applyLighting) {
+                this.computeNormals(currentData);
             }
 
             currentData.drawInterior = this.activeAttributes.drawInterior; // remember for validation
@@ -391,7 +399,7 @@ define([
             // Compute indices for individual triangles.
             // TODO: Compute them for a single tri-strip.
 
-            var meshIndices = new Int16Array((this.numRows -1) * (this.numColumns -1) * 6),
+            var meshIndices = new Int16Array((this.numRows - 1) * (this.numColumns - 1) * 6),
                 i = 0;
 
             for (var r = 0; r < this.numRows - 1; r++) {
@@ -437,6 +445,53 @@ define([
             currentData.refreshOutlineIndices = true;
         };
 
+        GeographicMesh.prototype.computeNormals = function (currentData) {
+            var normalsBuffer = new Float32Array(currentData.meshPoints.length),
+                indices = this.meshIndices,
+                vertices = currentData.meshPoints,
+                normals = [],
+                triPoints = [new Vec3(0, 0, 0), new Vec3(0, 0, 0), new Vec3(0, 0, 0)],
+                k;
+
+            // For each triangle, compute its normal assign it to each participating index.
+            for (var i = 0; i < indices.length; i += 3) {
+                for (var j = 0; j < 3; j++) {
+                    k = indices[i + j];
+                    triPoints[j].set(vertices[3 * k], vertices[3 * k + 1], vertices[3 * k + 2]);
+                }
+
+                var n = Vec3.computeTriangleNormal(triPoints[0], triPoints[1], triPoints[2]);
+
+                for (j = 0; j < 3; j++) {
+                    k = indices[i + j];
+                    if (!normals[k]) {
+                        normals[k] = [];
+                    }
+
+                    normals[k].push(n);
+                }
+            }
+
+            // Average the normals associated with each index and add the result to the normals buffer.
+            n = new Vec3(0, 0, 0);
+            for (i = 0; i < normals.length; i++) {
+                if (normals[i]) {
+                    Vec3.average(normals[i], n);
+                    n.normalize();
+                    normalsBuffer[i * 3] = n[0];
+                    normalsBuffer[i * 3 + 1] = n[1];
+                    normalsBuffer[i * 3 + 2] = n[2];
+                } else {
+                    normalsBuffer[i * 3] = 0;
+                    normalsBuffer[i * 3 + 1] = 0;
+                    normalsBuffer[i * 3 + 2] = 0;
+                }
+            }
+
+            currentData.normals = normalsBuffer;
+            currentData.refreshNormalsBuffer = true;
+        };
+
         // Overridden from AbstractShape base class.
         GeographicMesh.prototype.doRenderOrdered = function (dc) {
             var gl = dc.currentGlContext,
@@ -477,6 +532,8 @@ define([
 
             // Draw the mesh if the interior requested.
             if (this.activeAttributes.drawInterior) {
+                var applyLighting = !dc.pickingMode && currentData.normals && this.activeAttributes.applyLighting;
+
                 this.applyMvpMatrix(dc);
 
                 if (!currentData.meshIndicesVboCacheKey) {
@@ -545,12 +602,44 @@ define([
                     }
                 }
 
+                // Apply lighting.
+                if (applyLighting) {
+                    program.loadApplyLighting(gl, true);
+
+                    if (!currentData.normalsVboCacheKey) {
+                        currentData.normalsVboCacheKey = dc.gpuResourceCache.generateCacheKey();
+                    }
+
+                    vboId = dc.gpuResourceCache.resourceForKey(currentData.normalsVboCacheKey);
+                    if (!vboId) {
+                        vboId = gl.createBuffer();
+                        dc.gpuResourceCache.putResource(currentData.normalsVboCacheKey, vboId,
+                            currentData.normals.length * 4);
+                        currentData.refreshNormalsBuffer = true;
+                    }
+
+                    gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, vboId);
+                    if (currentData.refreshNormalsBuffer) {
+                        gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, currentData.normals,
+                            WebGLRenderingContext.STATIC_DRAW);
+                        dc.frameStatistics.incrementVboLoadCount(1);
+                        currentData.refreshNormalsBuffer = false;
+                    }
+
+                    gl.enableVertexAttribArray(program.normalVectorLocation);
+                    gl.vertexAttribPointer(program.normalVectorLocation, 3, WebGLRenderingContext.FLOAT, false, 0, 0);
+                }
+
                 gl.drawElements(WebGLRenderingContext.TRIANGLES, this.meshIndices.length,
                     WebGLRenderingContext.UNSIGNED_SHORT, 0);
 
                 if (hasTexture) {
                     gl.disableVertexAttribArray(program.vertexTexCoordLocation);
+                }
 
+                if (applyLighting) {
+                    program.loadApplyLighting(gl, false);
+                    gl.disableVertexAttribArray(program.normalVectorLocation);
                 }
             }
 
@@ -610,9 +699,17 @@ define([
 
             if (this.activeAttributes.drawInterior) {
                 gl.disable(WebGLRenderingContext.CULL_FACE);
+
+                dc.findAndBindProgram(BasicTextureProgram);
+
+                var applyLighting = !dc.pickMode && this.currentData.normals && this.activeAttributes.applyLighting;
+                if (applyLighting) {
+                    var invT = new Matrix.fromIdentity().setToTransposeOfMatrix(
+                        dc.navigatorState.modelviewInv.upper3By3());
+                    dc.currentProgram.loadModelviewInverse(gl, invT);
+                }
             }
 
-            dc.findAndBindProgram(BasicTextureProgram);
             gl.enableVertexAttribArray(dc.currentProgram.vertexPointLocation);
         };
 

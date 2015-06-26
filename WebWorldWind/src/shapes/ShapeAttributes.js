@@ -39,6 +39,7 @@ define([
             this._imageSource = attributes ? attributes._imageSource : null;
             this._depthTest = attributes ? attributes._depthTest : true;
             this._drawVerticals = attributes ? attributes._drawVerticals : false;
+            this._applyLighting = attributes ? attributes._applyLighting : false;
 
             /**
              * Indicates whether this object's state key is invalid. Subclasses must set this value to true when their
@@ -69,7 +70,8 @@ define([
                   " is " + (this._imageSource ?
                         (this.imageSource instanceof ImageSource ? this.imageSource.key : this.imageSource) : "null") +
                   " dt " + this._depthTest +
-                  " dv " + this._drawVerticals;
+                  " dv " + this._drawVerticals +
+                  " li " + this._applyLighting;
         };
 
         Object.defineProperties(ShapeAttributes.prototype, {
@@ -277,6 +279,22 @@ define([
                 },
                 set: function (value) {
                     this._drawVerticals = value;
+                    this.stateKeyInvalid = true;
+                }
+            },
+
+            /**
+             * Indicates whether lighting is applied to the shape.
+             * @type {Boolean}
+             * @default false
+             * @memberof ShapeAttributes.prototype
+             */
+            applyLighting: {
+                get: function () {
+                    return this._applyLighting;
+                },
+                set: function (value) {
+                    this._applyLighting = value;
                     this.stateKeyInvalid = true;
                 }
             }

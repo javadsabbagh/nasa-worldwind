@@ -38,10 +38,13 @@ define([
          * @param {WebGLRenderingContext} gl The current WebGL context.
          * @param {String} vertexShaderSource The source code for the vertex shader.
          * @param {String} fragmentShaderSource The source code for the fragment shader.
+         * @param {String[]} bindings An array of attribute variable names whose bindings are to be explicitly
+         * specified. Each name is bound to its corresponding index in the array. May be null, in which case the
+         * linker determines all the bindings.
          * @throws {ArgumentError} If either source is null or undefined, the shaders cannot be compiled, or linking of
          * the compiled shaders into a program fails.
          */
-        var GpuProgram = function (gl, vertexShaderSource, fragmentShaderSource) {
+        var GpuProgram = function (gl, vertexShaderSource, fragmentShaderSource, bindings) {
             if (!vertexShaderSource || !fragmentShaderSource) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "GpuProgram", "constructor",
                     "The specified shader source is null or undefined."));
@@ -69,6 +72,12 @@ define([
 
             gl.attachShader(program, vShader.shaderId);
             gl.attachShader(program, fShader.shaderId);
+
+            if (bindings) {
+                for (var i = 0; i < bindings.length; i++) {
+                    gl.bindAttribLocation(program, i, bindings[i]);
+                }
+            }
 
             if (!this.link(gl, program)) {
                 // Get the info log before deleting the program.
@@ -281,6 +290,17 @@ define([
          * @param {WebGLUniformLocation} location The uniform location to store the value to.
          */
         GpuProgram.loadUniformInteger = function (gl, value, location) {
+            gl.uniform1i(location, value);
+        };
+
+        /**
+         * Loads a specified boolean value to a specified uniform location.
+         *
+         * @param {WebGLRenderingContext} gl The current WebGL context.
+         * @param {Boolean} value The value to load.
+         * @param {WebGLUniformLocation} location The uniform location to store the value to.
+         */
+        GpuProgram.loadUniformBoolean = function (gl, value, location) {
             gl.uniform1i(location, value);
         };
 
