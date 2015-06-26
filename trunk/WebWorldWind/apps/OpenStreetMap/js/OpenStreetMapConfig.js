@@ -11,15 +11,19 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
         this._canvasName = 'globe';
 
-        this._drawHeightInM = 5000;
+        this._drawHeightInM = 10000;
 
         this._drawHeightInKm = this._drawHeightInM * 1000;
 
-        this._drawRadiusInM = 100000;
+        this._drawRadiusInMiles = 10.0;
 
-        this._boundBoxHeight = 10000;
+        this._kmPerMile = 1.60934;
 
-        this._boundBoxWidth = 10000;
+        this._drawRadiusInKm = this._kmPerMile * this._drawRadiusInMiles;
+
+        this._boundBoxHeight = 1.6;
+
+        this._boundBoxWidth = 1.6;
 
         this._rTreeSize = 100000;
 
@@ -30,6 +34,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         this._canvasWidth = $(document).width() * this._canvasWidthFactor;
 
         this._canvasHeight = $(document).height() * this._canvasHeightFactor;
+
+        this._overPassAPIBody = 'http://overpass-api.de/api/';
 
     }
 
@@ -55,7 +61,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
         drawRadius : {
             get: function() {
-                return this._drawRadiusInM;
+                return this._drawRadiusInKm;
             }
         },
 
@@ -98,6 +104,12 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         canvasWidth: {
             get: function() {
                 return this._canvasWidth;
+            }
+        },
+
+        overPassAPIBody : {
+            get: function() {
+                return this._overPassAPIBody;
             }
         }
     });

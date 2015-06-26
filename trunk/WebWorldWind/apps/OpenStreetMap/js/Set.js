@@ -3,7 +3,7 @@
  */
 
 
-define(function() {
+define(['http://worldwindserver.net/webworldwind/worldwindlib.js'], function(ww) {
 
     function Set() {
         this._container = {};
