@@ -62,9 +62,6 @@ define([
          *     applied to the mesh. Texture coordinates for the image may be specified, but if not specified the full
          *     image is stretched over the full mesh. If texture coordinates are specified, there must be one texture
          *     coordinate for each vertex in the mesh.
-         * <p>
-         *     When displayed on a 2D globe, this mesh displays as a {@link SurfacePolygon} if its
-         *     [useSurfaceShapeFor2D]{@link AbstractShape#useSurfaceShapeFor2D} property is true.
          *
          * @param {Position[][]} positions A two-dimensional array containing the mesh vertices.
          * Each entry of the array specifies the vertices of one row of the mesh. The arrays for all rows must
