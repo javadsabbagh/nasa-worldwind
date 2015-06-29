@@ -93,7 +93,7 @@ define(['xmlToJSON', 'osmtogeojson','OverpassAPIWrapper'],
             var self = this;
             //var url = this.buildAPICall(boundingBoxCoords);
             var APICaller = new OAW();
-            APICaller.getAllAmenitiesInBox(boundingBoxCoords,callback);
+            APICaller.getAllAmenitiesInBox(boundingBoxCoords,callback)
             /*
             $.get(url, function(data) {
                 console.log('OSM Data Fetched!');

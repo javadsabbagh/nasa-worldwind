@@ -1,4 +1,4 @@
-define(['http://worldwindserver.net/webworldwind/worldwindlib.js', 'Route'], function(ww, Route) {
+define(['http://worldwindserver.net/webworldwind/worldwindlib.js', 'Route','polyline'], function(ww, Route, polyline) {
 
    'use strict';
 
@@ -17,7 +17,12 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js', 'Route'], fun
         @param geojsonDoc: the json doc that contains the route information
      */
     RouteLayer.prototype.addRoute = function(geojsonDoc) {
-        var arrOfRoutes = geojsonDoc['via_points'];
+        var arrOfRoutes = polyline.decode(geojsonDoc["alternative_geometries"][0]);
+        arrOfRoutes.forEach(function(entry){
+            entry[0] = entry[0]/10
+            entry[1] = entry[1]/10
+        })
+        console.log(arrOfRoutes)
         var route = new Route(arrOfRoutes, geojsonDoc);
         this._renderableLayer.addRenderable(route);
     }
@@ -56,6 +61,6 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js', 'Route'], fun
 
     });
 
-
+return RouteLayer
 
 });

@@ -42,10 +42,6 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js'], function(ww)
 
     });
 
-
-
-
-
-
+    return Route
 
 })
