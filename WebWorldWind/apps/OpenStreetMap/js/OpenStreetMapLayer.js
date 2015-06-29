@@ -3,13 +3,15 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         'rbush',
         'OSMDataRetriever',
         'Set',
-        'OverpassAPIWrapper'],
+        'OverpassAPIWrapper',
+        '../js/polyline'],
     function(ww,
              OpenStreetMapConfig,
              rbush,
              OSMDataRetriever,
              Set,
-             OverpassAPIWrapper) {
+             OverpassAPIWrapper,
+             polyline) {
 
         'use strict';
 
@@ -18,6 +20,13 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
          */
         function getEyeAltitude(drawContext) {
             return drawContext.eyePosition.altitude;
+        }
+
+        /*
+         From the draw context, extracts the current location of the eyePosition
+         */
+        function getEyeLocation(drawContext) {
+            return [drawContext.eyePosition.latitude,drawContext.eyePosition.longitude];
         }
 
         /*
@@ -44,7 +53,6 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
 
         /*
-
             Given a WorldWind Location or WorldWind Position, uses the maximum bounding
             box distances from the config object to define a bounding box for usage in
             the OpenStreetMap API and the RTree.
@@ -55,58 +63,15 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
          */
 
         OpenStreetMapLayer.prototype.getBoundingRectLocs = function(center) {
-
-            function degreeToRadian(degrees) {
-                return degrees * (Math.PI / 180);
-            }
-
-            function radiansToDegree(radians) {
-                return radians * 180 / Math.PI;
-            }
-
-            var earthRadiusInKM = 6317;
-
-
-            var MINIMUM_LATITUDE = degreeToRadian(-90);
-            var MAXIMUM_LATITUDE = degreeToRadian(90);
-            var MINUMUM_LONGITUDE = degreeToRadian(-180);
-            var MAXIMUM_LONGITUDE = degreeToRadian(180);
-
-            var radianDistance = this._config.drawRadius / earthRadiusInKM;
-
-            var radianLatitude = degreeToRadian(center.latitude);
-            var radianLongitude = degreeToRadian(center.longitude);
-
-            var minLatitude = radianLatitude - radianDistance;
-            var maxLatitude = radianLatitude + radianDistance;
-
-            var minLongitude = 0;
-            var maxLongitude = 0;
-
-            if(minLatitude > MINIMUM_LATITUDE && maxLatitude < MAXIMUM_LATITUDE) {
-                var deltaLongitude = Math.asin(Math.sin(radianDistance) / Math.cos(radianLatitude));
-                minLongitude = radianLongitude - deltaLongitude;
-                maxLongitude = radianLongitude + deltaLongitude;
-
-                if(minLongitude < MINUMUM_LONGITUDE) {
-                    minLongitude += 2 * Math.PI;
-                }
-
-                if(maxLongitude > MAXIMUM_LONGITUDE) {
-                    maxLongitude -= 2 * Math.PI;
-                }
-            } else {
-                minLatitude = Math.max(minLatitude, MINIMUM_LATITUDE);
-                maxLatitude = Math.min(maxLatitude, MAXIMUM_LATITUDE);
-                minLongitude = MINUMUM_LONGITUDE;
-                maxLongitude = MAXIMUM_LONGITUDE;
-            }
+            //creates a grid of .125 degrees by rounding the center point to the nearest .125 degrees.
+            center.latitude = Math.round(center.latitude/.125)*.125;
+            center.longitude = Math.round(center.latitude/.125)*.125;
 
             return [
-                radiansToDegree(minLongitude),
-                radiansToDegree(minLatitude),
-                radiansToDegree(maxLongitude),
-                radiansToDegree(maxLatitude)
+                center.longitude - .0625,
+                center.latitude - .0625,
+                center.longitude + .0625,
+                center.latitude + .0625
             ];
 
         }
@@ -232,18 +197,21 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             if(this._enabled) {
                 this._baseLayer.render(dc);
                 var currEyeAltitude = getEyeAltitude(dc);
+                /*
                 if(currEyeAltitude <= this._config.drawHeight) {
                     var center = dc.eyePosition;
                     var boundingRect = this.getBoundingRectLocs(center);
-                    console.log('center ' ,center);
-                    console.log('going to box ', boundingRect);
+                    //console.log('center ' ,center);
+                    //console.log('going to box ', boundingRect);
                     var key = this.createBoundingRectKey(boundingRect);
                     if(this._set.contains(key)) {
+                        console.log('we have this key')
                         self.resetVisibleNodes();
                         self._visibleNodes = self._visibleNodes.concat(self.enableNodesToBeDrawn(center));
                         self._drawLayer.render(dc);
                     } else {
                         this._overpassWrapper.getAllAmenitiesInBox(boundingRect, function(data) {
+
                             console.log('data from overpass ', data);
                         })
                         //this._dataRetriever.requestOSMData(boundingRect, function(data){
@@ -258,6 +226,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                     this.resetVisibleNodes();
                     this._visibleNodes = [];
                 }
+                */
             }
 
         }
@@ -283,6 +252,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 }
             }
         });
+
 
 
         return OpenStreetMapLayer;
