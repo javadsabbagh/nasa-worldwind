@@ -44,14 +44,10 @@ define([
                     'uniform mat4 texCoordMatrix;\n' +
                     'uniform bool applyLighting;\n' +
                     'varying vec2 texCoord;\n' +
-                    'varying float attenuation;\n' +
-                    'const float ambient = 0.15;\n' +
-                    'const vec4 lightDirection = vec4(0, 0, 1, 0);\n' +
+                    'varying vec4 normal;\n' +
                     'void main() {gl_Position = mvpMatrix * vertexPoint;\n' +
                     'texCoord = (texCoordMatrix * vertexTexCoord).st;\n' +
-                    'if (applyLighting) {\n' +
-                    'attenuation = clamp(ambient + dot(lightDirection, mvInverseMatrix * normalVector), 0.0, 1.0);\n' +
-                    '}' +
+                    'if (applyLighting) {normal = mvInverseMatrix * normalVector;}\n' +
                     '}',
                 fragmentShaderSource =
                     'precision mediump float;\n' +
@@ -62,9 +58,10 @@ define([
                     'uniform sampler2D textureSampler;\n' +
                     'uniform bool applyLighting;\n' +
                     'varying vec2 texCoord;\n' +
-                    'varying float attenuation;\n' +
+                    'varying vec4 normal;\n' +
                     'void main() {\n' +
                     'vec4 textureColor = texture2D(textureSampler, texCoord);\n' +
+                    'float ambient = 0.15; vec4 lightDirection = vec4(0, 0, 1, 0);\n' +
                     'if (enableTexture && !modulateColor)\n' +
                     '    gl_FragColor = textureColor * color * opacity;\n' +
                     'else if (enableTexture && modulateColor)\n' +
@@ -72,7 +69,10 @@ define([
                     'else\n' +
                     '    gl_FragColor = color * opacity;\n' +
                     'if (gl_FragColor.a == 0.0) {discard; return;}\n' +
-                    'if (applyLighting) gl_FragColor.rgb *= attenuation;\n' +
+                    'if (applyLighting) {\n' +
+                    '    vec4 n = normal * (gl_FrontFacing ? 1.0 : -1.0);\n' +
+                    '    gl_FragColor.rgb *= clamp(ambient + dot(lightDirection, n), 0.0, 1.0);\n' +
+                    '}\n' +
                     '}';
 
             // Specify bindings to avoid the WebGL performance warning that's generated when normalVector gets
