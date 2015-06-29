@@ -1,5 +1,5 @@
-define(['xmlToJSON', 'osmtogeojson'],
-    function (XTJ, osmtogeojson){
+define(['xmlToJSON', 'osmtogeojson','OverpassAPIWrapper'],
+    function (XTJ, osmtogeojson,OAW){
         'use strict';
         function OSMDataRetriever () {
 
@@ -15,8 +15,8 @@ define(['xmlToJSON', 'osmtogeojson'],
 
         OSMDataRetriever.prototype.buildAPICall = function(boundingBoxCoords){
             //console.log('Retrieving data location...');
-            var param = boundingBoxCoords.join(',');
-            return 'http://api06.dev.openstreetmap.org/api/0.6/map?bbox=' + param;
+            //var param = boundingBoxCoords.join(',');
+            //return 'http://api06.dev.openstreetmap.org/api/0.6/map?bbox=' + param;
         };
 
         /*
@@ -85,13 +85,16 @@ define(['xmlToJSON', 'osmtogeojson'],
         Requests OSM data and executes a callback function when data is retrieved.
 
         @param boundingBoxCoords: Contains an array of points that determine the bounding box.
-                                  [LEFT , BOTTOM , RIGHT , TOP]
         @param callback: Function to be executed when data is retrieved.
          */
+
         OSMDataRetriever.prototype.requestOSMData = function(boundingBoxCoords, callback){
             console.log('Fetching OSM Data...');
             var self = this;
-            var url = this.buildAPICall(boundingBoxCoords);
+            //var url = this.buildAPICall(boundingBoxCoords);
+            var APICaller = new OAW();
+            APICaller.getAllAmenitiesInBox(boundingBoxCoords,callback);
+            /*
             $.get(url, function(data) {
                 console.log('OSM Data Fetched!');
                 console.log(self.translateOSMData(data));
@@ -100,6 +103,7 @@ define(['xmlToJSON', 'osmtogeojson'],
                 console.log(rData);
                 callback(rData);
             });
+            */
         };
 
         return OSMDataRetriever;
