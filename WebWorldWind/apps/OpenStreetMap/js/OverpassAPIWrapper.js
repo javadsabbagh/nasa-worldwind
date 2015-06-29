@@ -16,16 +16,17 @@ define(['jquery','OpenStreetMapConfig', 'osmtogeojson'],function($, OpenStreetMa
         @param amenities: the amenities to consider
         @return a Overpass query to to access nodes with amenities in a specified bounding box
      */
+
     OverpassAPIWrapper.prototype.assembleQuery = function(boundingBox, amenities) {
         var amenityString = '';
         if(!amenities) {
-            amenityString = '["amentities"~"."]';
+            amenityString = '["amenity"~"."]';
         }
         var queryString = "node" + amenityString;
         queryString += "(" + boundingBox.join(' , ') + ");";
-        queryString += "out body;"
+        queryString += "out body;";
         return queryString;
-    }
+    };
 
 
     /*
@@ -49,7 +50,9 @@ define(['jquery','OpenStreetMapConfig', 'osmtogeojson'],function($, OpenStreetMa
      */
     OverpassAPIWrapper.prototype.getAllAmenitiesInBox = function(boundingBox, callback) {
         var url = this.assembleAPICall(boundingBox);
+        console.log(url)
         $.get(url, function(data) {
+            console.log(data)
             var toSend = osmtogeojson(data);
             callback(toSend);
         });
