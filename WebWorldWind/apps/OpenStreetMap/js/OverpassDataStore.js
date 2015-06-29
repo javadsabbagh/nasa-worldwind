@@ -42,6 +42,19 @@ define(['Set', 'rbush', 'OpenSteetMapConfig', 'jquery'], function(Set, rbush, Op
         return this._set.contains(key);
     }
 
+
+    /*
+        Lists a specified bounding box as being retrieved by the
+        the api
+        @param boundingBox : the bounding box to list as being retrieved by the api
+     */
+
+    OverpassDataStore.prototype.addBoundingBoxToCache = function(boundingBox) {
+        var keyPair = this.keyGen(boundingBox);
+        var key = keyPair['key'];
+        this._set.add(key);
+    }
+
     /*
         Adds a renderable to the data store, associating it to a
         bounding box
