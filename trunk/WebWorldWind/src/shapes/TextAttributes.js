@@ -31,7 +31,7 @@ define([
             this._offset = attributes ? attributes._offset
                 : new Offset(WorldWind.OFFSET_FRACTION, 0.5, WorldWind.OFFSET_FRACTION, 0.0);
             this._scale = attributes ? attributes._scale : 1;
-            this._depthTest = attributes ? attributes._depthTest : true;
+            this._depthTest = attributes ? attributes._depthTest : false;
 
             /**
              * Indicates whether this object's state key is invalid. Subclasses must set this value to true when their
@@ -148,7 +148,7 @@ define([
              * the text may be occluded by terrain and other objects in certain viewing situations. If false,
              * the text will not be occluded by terrain and other objects.
              * @type {Boolean}
-             * @default true
+             * @default false
              * @memberof TextAttributes.prototype
              */
             depthTest: {
