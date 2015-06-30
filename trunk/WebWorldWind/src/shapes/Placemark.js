@@ -230,6 +230,7 @@ define([
              * changes. If WorldWind.RELATIVE_TO_GLOBE, this placemark's image is tilted towards the globe's surface,
              * and retains its orientation relative to the surface.
              * @type {string}
+             * @default WorldWind.RELATIVE_TO_SCREEN
              */
             this.imageTiltReference = WorldWind.RELATIVE_TO_SCREEN;
 
