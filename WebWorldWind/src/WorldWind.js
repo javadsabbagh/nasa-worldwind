@@ -419,10 +419,22 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
             REDRAW_EVENT_TYPE: "WorldWindRedraw",
 
             /**
+             * Indicates that the related value is specified relative to the globe.
+             * @constant
+             */
+            RELATIVE_TO_GLOBE: "relativeToGlobe",
+
+            /**
              * Indicates an altitude mode relative to the terrain.
              * @constant
              */
             RELATIVE_TO_GROUND: "relativeToGround",
+
+            /**
+             * Indicates that the related value is specified relative to the plane of the screen.
+             * @constant
+             */
+            RELATIVE_TO_SCREEN: "relativeToScreen",
 
             /**
              * Indicates a rhumb path -- a path of constant bearing.
