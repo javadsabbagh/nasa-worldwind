@@ -168,7 +168,7 @@ define(function () {
                     layer = node.data.layer;
 
                 if (layer) {
-                    node.setSelected(!layer.enabled);
+                    node.setSelected(false); // only an argument of false causes the select method to be called?
                     return false;
                 }
             },
