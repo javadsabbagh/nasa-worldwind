@@ -46,7 +46,7 @@ define([
          * @param {String|ImageSource} imageSource The source of the image to display.
          * May be either a string identifying the URL of the image, or an {@link ImageSource} object identifying a
          * dynamically created image.
-         * @throws {ArgumentError} If the specified screen point or image source is null or undefined.
+         * @throws {ArgumentError} If the specified screen offset or image source is null or undefined.
          */
         var ScreenImage = function (screenOffset, imageSource) {
             if (!screenOffset) {
