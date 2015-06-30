@@ -66,7 +66,7 @@ define(function () {
             if (layer.hide) {
                 continue;
             }
-            var layerItem = $('<button class="list-group-item btn btn-block">' + layer.displayName + '</button>');
+            var layerItem = $('<button class="list-group-item btn btn-block wrap-panel-heading">' + layer.displayName + '</button>');
             layerListItem.append(layerItem);
             //
             //layerItem.draggable({cancel:false});
