@@ -119,8 +119,13 @@ define([
             if (this.isWms130OrGreater) {
                 sb = sb + "&crs=" + this.crs;
                 sb = sb + "&bbox=";
-                sb = sb + sector.minLatitude + "," + sector.minLongitude + ",";
-                sb = sb + sector.maxLatitude+ "," + sector.maxLongitude;
+                if (this.crs === "CRS:84") {
+                    sb = sb + sector.minLongitude + "," + sector.minLatitude + ",";
+                    sb = sb + sector.maxLongitude+ "," + sector.maxLatitude;
+                } else {
+                    sb = sb + sector.minLatitude + "," + sector.minLongitude + ",";
+                    sb = sb + sector.maxLatitude+ "," + sector.maxLongitude;
+                }
             } else {
                 sb = sb + "&srs=" + this.crs;
                 sb = sb + "&bbox=";
