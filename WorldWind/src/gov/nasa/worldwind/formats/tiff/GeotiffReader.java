@@ -228,8 +228,8 @@ public class GeotiffReader implements Disposable
         {
             String msg = Logging.getMessage("GeotiffReader.InvalidIFDEntryValue", tiff.rowsPerStrip,
                 "RowsPerStrip", Tiff.Tag.ROWS_PER_STRIP);
-            Logging.logger().severe(msg);
-            throw new IOException(msg);
+            Logging.logger().fine(msg);
+            tiff.rowsPerStrip = Integer.MAX_VALUE;
         }
 
         if (tiff.planarConfig != Tiff.PlanarConfiguration.PLANAR
