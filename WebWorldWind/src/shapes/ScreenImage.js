@@ -264,7 +264,7 @@ define([
             return this;
         };
 
-        ScreenImage.prototype.getActiveTexture = function(dc) {
+        ScreenImage.prototype.getActiveTexture = function (dc) {
             return dc.gpuResourceCache.resourceForKey(this._imageSource);
         };
 
@@ -343,12 +343,10 @@ define([
             ScreenImage.matrix.copy(dc.screenProjection);
             ScreenImage.matrix.multiplyMatrix(this.imageTransform);
 
-            if (this.imageRotation !== 0 || this.imageTilt !== 0) {
-                ScreenImage.matrix.multiplyByTranslation(0.5, 0.5, 0.5);
-                ScreenImage.matrix.multiplyByRotation(1, 0, 0, this.imageTilt);
-                ScreenImage.matrix.multiplyByRotation(0, 0, 1, this.imageRotation);
-                ScreenImage.matrix.multiplyByTranslation(-0.5, -0.5, 0);
-            }
+            ScreenImage.matrix.multiplyByTranslation(0.5, 0.5, 0.5); // shift Z to prevent image clipping
+            ScreenImage.matrix.multiplyByRotation(1, 0, 0, this.imageTilt);
+            ScreenImage.matrix.multiplyByRotation(0, 0, 1, this.imageRotation);
+            ScreenImage.matrix.multiplyByTranslation(-0.5, -0.5, 0);
 
             program.loadModelviewProjection(gl, ScreenImage.matrix);
 
