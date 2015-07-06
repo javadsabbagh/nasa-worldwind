@@ -17,12 +17,11 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js', 'Route','poly
         @param geojsonDoc: the json doc that contains the route information
      */
     RouteLayer.prototype.addRoute = function(geojsonDoc) {
-        var arrOfRoutes = polyline.decode(geojsonDoc["alternative_geometries"][0]);
+        var arrOfRoutes = polyline.decode(geojsonDoc["route_geometry"]);
         arrOfRoutes.forEach(function(entry){
             entry[0] = entry[0]/10
             entry[1] = entry[1]/10
         })
-        console.log(arrOfRoutes)
         var route = new Route(arrOfRoutes, geojsonDoc);
         this._renderableLayer.addRenderable(route);
     }

@@ -17,10 +17,18 @@ define(['jquery','OpenStreetMapConfig', 'osmtogeojson'],function($, OpenStreetMa
         @return a Overpass query to to access nodes with amenities in a specified bounding box
      */
 
-    OverpassAPIWrapper.prototype.assembleQuery = function(boundingBox, amenities) {
+    OverpassAPIWrapper.prototype.assembleXQuery = function(boundingBox, query, val) {
         var amenityString = '';
-        if(!amenities) {
+        if(!query) {
             amenityString = '["amenity"~"."]';
+        } else {
+            if (!val){
+                console.log('wtf')
+                amenityString = '[' + query + '~"."]';
+            } else {
+                amenityString = '[' + query + '=' + val +']';
+            }
+
         }
         var queryString = "node" + amenityString;
         queryString += "(" + boundingBox.join(' , ') + ");";
@@ -37,9 +45,10 @@ define(['jquery','OpenStreetMapConfig', 'osmtogeojson'],function($, OpenStreetMa
         @return : a url that can be used to retrieve amenities in a specified bounding box using
                   the Overpass Open Street Map API
      */
-    OverpassAPIWrapper.prototype.assembleAPICall = function(boundingBox, amenities) {
-        var query = this.assembleQuery(boundingBox, amenities);
-        return this._config.overPassAPIBody + query;
+    OverpassAPIWrapper.prototype.assembleXAPICall = function(boundingBox, query,val) {
+        console.log('Building API call.')
+        var queryA = this.assembleXQuery(boundingBox, query,val);
+        return this._config.overPassAPIBody + queryA;
     }
 
     /*
@@ -48,13 +57,18 @@ define(['jquery','OpenStreetMapConfig', 'osmtogeojson'],function($, OpenStreetMa
         @param boundingBox: the bounding box to consider [lower latitude, lower longitude, upper latitude, upper longitude]
         @param callback : the callback to use to handle the data retrived from the GET request
      */
-    OverpassAPIWrapper.prototype.getAllAmenitiesInBox = function(boundingBox, callback) {
-        var url = this.assembleAPICall(boundingBox);
+
+    OverpassAPIWrapper.prototype.getAllXInBox = function(boundingBox, query, callback,val ) {
+        console.log('Searching Bounding Box.')
+        var url = this.assembleXAPICall(boundingBox, query, val);
+        console.log(url)
         $.get(url, function(data) {
             var toSend = osmtogeojson(data);
             callback(toSend);
         });
     }
+
+
 
     return OverpassAPIWrapper;
 

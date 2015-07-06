@@ -87,13 +87,17 @@ define(['xmlToJSON', 'osmtogeojson','OverpassAPIWrapper'],
         @param boundingBoxCoords: Contains an array of points that determine the bounding box.
         @param callback: Function to be executed when data is retrieved.
          */
-
-        OSMDataRetriever.prototype.requestOSMData = function(boundingBoxCoords, callback){
-            console.log('Fetching OSM Data...');
-            var self = this;
-            //var url = this.buildAPICall(boundingBoxCoords);
+        OSMDataRetriever.prototype.OSMDataRetrieverQuery = function(query,callback){
             var APICaller = new OAW();
             APICaller.getAllAmenitiesInBox(boundingBoxCoords,callback)
+        }
+
+        OSMDataRetriever.prototype.requestOSMData = function(boundingBoxCoords, query, callback, val){
+            console.log('Fetching OSM Data...');
+            var self = this;
+            //var url = this.buildAPICall(boundingBoxCoords)
+            var APICaller = new OAW();
+            APICaller.getAllXInBox(boundingBoxCoords, query,callback, val);
             /*
             $.get(url, function(data) {
                 console.log('OSM Data Fetched!');
