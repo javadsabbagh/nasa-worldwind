@@ -11,6 +11,25 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js', 'Route','poly
 
     }
 
+
+    RouteLayer.prototype.addViaRoutes = function(start, stop) {
+        var longitudeStart = start.longitude;
+        var latitudeStart = start.latitude;
+        var longitudeStop = stop.longitude;
+        var latitudeStop = stop.latitude;
+
+    }
+
+
+    /*
+        Adds a route that is described by the polyline contained in the array
+        @param arr : the polyline contained in 1D array
+     */
+    RouteLayer.prototype.addRoutesByPolyline = function(arr) {
+        var route = new Route(arr, {});
+        this._renderableLayer.addRenderable(route);
+    }
+
     /*
         Given a json object (as described on https://github.com/Project-OSRM/osrm-backend/wiki/Server-api),
         creates a new Route object and adds it to the renderable layer
