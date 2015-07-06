@@ -38,6 +38,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         this._overPassAPIBody =
             'http://overpass-api.de/api/interpreter?data=';
 
+        this._OSRMAPIBody = 'http://router.project-osrm.org/'
+
         this._temp = 'http://overpass-api.de/api/interpreter?data=node%5B%22amenity%22%7E%22%2E%22%5D%2852%2E5167%2C13%2E3833%2C53%2C14%29%3Bout%20body%3B%0A'
     }
 
@@ -112,6 +114,11 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         overPassAPIBody : {
             get: function() {
                 return this._overPassAPIBody;
+            }
+        },
+        OSRMAPIBody : {
+            get: function() {
+                return this._OSRMAPIBody;
             }
         }
     });
