@@ -188,6 +188,9 @@ define([
                 }
             ];
 
+            // Intentionally not documented.
+            this.pixelScale = 1;
+
             // Set up to handle WebGL context lost events.
             var thisWindow = this;
 
@@ -554,8 +557,8 @@ define([
         // Internal function. Intentionally not documented.
         WorldWindow.prototype.resize = function () {
             var gl = this.drawContext.currentGlContext,
-                width = gl.canvas.clientWidth * window.devicePixelRatio,
-                height = gl.canvas.clientHeight * window.devicePixelRatio;
+                width = gl.canvas.clientWidth * this.pixelScale,
+                height = gl.canvas.clientHeight * this.pixelScale;
 
             if (gl.canvas.width != width ||
                 gl.canvas.height != height) {
@@ -586,6 +589,7 @@ define([
             dc.surfaceOpacity = this.surfaceOpacity;
             dc.deepPicking = this.deepPicking;
             dc.frameStatistics = this.frameStatistics;
+            dc.pixelScale = this.pixelScale;
             dc.update();
         };
 
