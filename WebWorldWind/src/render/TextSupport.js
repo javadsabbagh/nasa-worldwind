@@ -95,11 +95,13 @@ define([
                 textSize = this.textSize(text, font, outline),
                 lines = text.split("\n"),
                 strokeOffset = outline ? this.strokeWidth / 2 : 0,
+                devicePixelRatio = window.devicePixelRatio,
                 x, y;
 
-            canvas2D.width = Math.ceil(textSize[0]);
-            canvas2D.height = Math.ceil(textSize[1]);
+            canvas2D.width = Math.ceil(textSize[0]) * devicePixelRatio;
+            canvas2D.height = Math.ceil(textSize[1]) * devicePixelRatio;
 
+            ctx2D.scale(devicePixelRatio, devicePixelRatio);
             ctx2D.font = font.fontString;
             ctx2D.textBaseline = "top";
             ctx2D.textAlign = font.horizontalAlignment;

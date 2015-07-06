@@ -554,8 +554,8 @@ define([
         // Internal function. Intentionally not documented.
         WorldWindow.prototype.resize = function () {
             var gl = this.drawContext.currentGlContext,
-                width = gl.canvas.clientWidth,
-                height = gl.canvas.clientHeight;
+                width = gl.canvas.clientWidth * window.devicePixelRatio,
+                height = gl.canvas.clientHeight * window.devicePixelRatio;
 
             if (gl.canvas.width != width ||
                 gl.canvas.height != height) {
