@@ -183,11 +183,11 @@ define([
                 // Convert the translation from screen coordinates to arc degrees. Use this navigator's range as a
                 // metric for converting screen pixels to meters, and use the globe's radius for converting from meters
                 // to arc degrees.
-                var viewport = this.worldWindow.viewport,
+                var canvas = this.worldWindow.canvas,
                     globe = this.worldWindow.globe,
                     globeRadius = WWMath.max(globe.equatorialRadius, globe.polarRadius),
                     distance = WWMath.max(1, this.range),
-                    metersPerPixel = WWMath.perspectivePixelSize(viewport, distance),
+                    metersPerPixel = WWMath.perspectivePixelSize(canvas.clientWidth, canvas.clientHeight, distance),
                     forwardMeters = (ty - this.lastPoint[1]) * metersPerPixel,
                     sideMeters = -(tx - this.lastPoint[0]) * metersPerPixel,
                     forwardDegrees = (forwardMeters / globeRadius) * Angle.RADIANS_TO_DEGREES,
@@ -342,35 +342,12 @@ define([
 
         // Intentionally not documented.
         LookAtNavigator.prototype.handleWheelEvent = function (event) {
-            if (event.type == "wheel") {
-                // Convert the wheel delta value from its current units to screen coordinates. The default wheel unit
-                // is DOM_DELTA_PIXEL.
-                var wheelDelta = event.deltaY;
-                if (event.deltaMode == WheelEvent.DOM_DELTA_LINE) {
-                    wheelDelta *= 10;
-                } else if (event.deltaMode == WheelEvent.DOM_DELTA_PAGE) {
-                    wheelDelta *= 100;
-                }
+            // Convert the wheel veritcal delta to a scale appropriate either for zooming in or zooming out.
+            var scaleFactor = 0.75,
+                scale = event.deltaY < 0 ? scaleFactor : 1 / scaleFactor;
 
-                this.handleWheelZoom(wheelDelta);
-            } else {
-                Logger.logMessage(Logger.LEVEL_WARNING, "LookAtNavigator", "handleWheelEvent",
-                    "Unrecognized event type: " + event.type);
-            }
-        };
-
-        // Intentionally not documented.
-        LookAtNavigator.prototype.handleWheelZoom = function (wheelDelta) {
-            // Convert the translation from screen coordinates to meters. Use this navigator's range as a distance
-            // metric for converting screen pixels to meters. This assumes that the gesture is intended to translate
-            // a surface that is 'range' meters away form the eye point.
-            var viewport = this.worldWindow.viewport,
-                distance = WWMath.max(1, this.range),
-                metersPerPixel = WWMath.perspectivePixelSize(viewport, distance),
-                meters = 0.5 * wheelDelta * metersPerPixel;
-
-            // Apply the change in range to this navigator's properties.
-            this.range += meters;
+            // Apply the scale to this navigator's properties.
+            this.range *= scale;
             this.applyLimits();
             this.worldWindow.redraw();
         };
@@ -396,10 +373,9 @@ define([
 
             // Apply 2D limits when the globe is 2D.
             if (this.worldWindow.globe.is2D() && this.enable2DLimits) {
-                // Clamp range to prevent more than 360 degrees of visible longitude.
-                var nearDist = this.nearDistance,
-                    nearWidth = WWMath.perspectiveFrustumRectangle(this.worldWindow.viewport, nearDist).width,
-                    maxRange = 2 * Math.PI * this.worldWindow.globe.equatorialRadius * (nearDist / nearWidth);
+                // Clamp range to prevent more than 360 degrees of visible longitude. Assumes a 45 degree horizontal
+                // field of view.
+                var maxRange = 2 * Math.PI * this.worldWindow.globe.equatorialRadius;
                 this.range = WWMath.clamp(this.range, 1, maxRange);
 
                 // Force tilt to 0 when in 2D mode to keep the viewer looking straight down.

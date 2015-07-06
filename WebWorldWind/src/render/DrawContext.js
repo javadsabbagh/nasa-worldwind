@@ -383,11 +383,12 @@ define([
          * frame has been set.
          */
         DrawContext.prototype.update = function () {
-            var eyePoint = this.navigatorState.eyePoint;
+            var gl = this.currentGlContext,
+                eyePoint = this.navigatorState.eyePoint;
 
             this.globeStateKey = this.globe.stateKey;
             this.globe.computePositionFromPoint(eyePoint[0], eyePoint[1], eyePoint[2], this.eyePosition);
-            this.screenProjection.setToScreenProjection(this.navigatorState.viewport);
+            this.screenProjection.setToScreenProjection(gl.drawingBufferWidth, gl.drawingBufferHeight);
         };
 
         /**
