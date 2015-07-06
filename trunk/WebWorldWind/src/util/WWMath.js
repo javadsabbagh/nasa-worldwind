@@ -519,33 +519,30 @@ define([
             },
 
             /**
-             * Computes the maximum near clip distance for a perspective projection that avoids clipping an object at a given
-             * distance from the eye point.
+             * Computes the maximum near clip distance for a perspective projection that avoids clipping an object at a
+             * given distance from the eye point.
+             * <p/>
+             * This computes a near clip distance appropriate for use in perspectiveFrustumRect and
+             * Matrix.setToPerspectiveProjection. The given distance should specify the smallest distance between the
+             * eye and the object being viewed, but may be an approximation if an exact distance is not required.
              *
-             * This computes a near clip distance appropriate for use in [perspectiveFrustumRect]{@link WWMath#perspectiveFrustumRectangle}
-             * and [setToPerspectiveProjection]{@link Matrix#setToPerspectiveProjection}. The given distance should specify the
-             * smallest distance between the eye and the object being viewed, but may be an approximation if an exact distance is not
-             * required.
-             *
-             * The viewport is in the WebGL screen coordinate system, with its origin in the bottom-left corner and axes that extend
-             * up and to the right from the origin point.
-             *
-             * @param {Rectangle} viewport The viewport rectangle, in WebGL screen coordinates.
+             * @param {Number} viewportWidth The viewport width, in screen coordinates.
+             * @param {Number} viewportHeight The viewport height, in screen coordinates.
              * @param {Number} distanceToSurface The distance from the perspective eye point to the nearest object, in
              * meters.
              * @returns {Number} The maximum near clip distance, in meters.
-             * @throws {ArgumentError} If the specified viewport is null or undefined or either its width or height is
-             * less than or equal to zero, or if the specified distance is negative.
+             * @throws {ArgumentError} If the specified width or height is less than or equal to zero, or if the
+             * specified distance is negative.
              */
-            perspectiveNearDistance: function (viewport, distanceToSurface) {
-                if (!viewport) {
+            perspectiveNearDistance: function (viewportWidth, viewportHeight, distanceToSurface) {
+                if (viewportWidth <= 0) {
                     throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "WWMath", "perspectiveNearDistance",
-                        "missingViewport"));
+                        "invalidWidth"));
                 }
 
-                if (viewport.width <= 0 || viewport.height <= 0) {
+                if (viewportHeight <= 0) {
                     throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "WWMath", "perspectiveNearDistance",
-                        "invalidViewport"));
+                        "invalidHeight"));
                 }
 
                 if (distanceToSurface < 0) {
@@ -553,10 +550,11 @@ define([
                         "The specified distance is negative."));
                 }
 
-                // Compute the maximum near clip distance that avoids clipping an object at the specified distance from the eye.
-                // Since the furthest points on the near clip rectangle are the four corners, we compute a near distance that puts
-                // any one of these corners exactly at the given distance. The distance to one of the four corners can be expressed
-                // in terms of the near clip distance, given distance to a corner 'd', near distance 'n', and aspect ratio 'a':
+                // Compute the maximum near clip distance that avoids clipping an object at the specified distance from
+                // the eye. Since the furthest points on the near clip rectangle are the four corners, we compute a near
+                // distance that puts any one of these corners exactly at the given distance. The distance to one of the
+                // four corners can be expressed in terms of the near clip distance, given distance to a corner 'd',
+                // near distance 'n', and aspect ratio 'a':
                 //
                 // d*d = x*x + y*y + z*z
                 // d*d = (n*n/4 * a*a) + (n*n/4) + (n*n)
@@ -571,116 +569,83 @@ define([
                 // n*n = 4 * d*d / (a*a + 5)
                 // n = 2 * d / sqrt(a*a + 5)
 
-                var aspect = (viewport.width < viewport.height) ?
-                    (viewport.height / viewport.width) : (viewport.width / viewport.height);
+                // Assumes a 45 degree horizontal field of view.
+                var aspectRatio = viewportWidth / viewportHeight;
 
-                return 2 * distanceToSurface / Math.sqrt(aspect * aspect + 5);
+                return 2 * distanceToSurface / Math.sqrt(aspectRatio * aspectRatio + 5);
             },
 
             /**
-             * Computes the coordinates of a rectangle carved out of a perspective projection's frustum at a given distance in model
-             * coordinates.
+             * Computes the coordinates of a rectangle carved out of a perspective projection's frustum at a given
+             * distance in model coordinates. This returns an empty rectangle if the specified distance is zero.
              *
-             * This computes a frustum rectangle that preserves the scene's size relative to the viewport when the viewport width and
-             * height are swapped. This has the effect of maintaining the scene's size on screen when the device is rotated.
-             *
-             * The viewport is in the WebGL screen coordinate system, with its origin in the bottom-left corner and axes that extend
-             * up and to the right from the origin point.
-             *
-             * @param {Rectangle} viewport The viewport rectangle, in WebGL screen coordinates.
-             * @param {Number} distanceToSurface The distance along the negative Z axis, in model coordinates.
+             * @param {Number} viewportWidth The viewport width, in screen coordinates.
+             * @param {Number} viewportHeight The viewport height, in screen coordinates.
+             * @param {Number} distance The distance along the negative Z axis, in model coordinates.
              * @returns {Rectangle} The frustum rectangle, in model coordinates.
-             * @throws {ArgumentError} If the specified viewport is null or undefined or either its width or height is
-             * less than or equal to zero, or if the specified distance is negative.
+             * @throws {ArgumentError} If the specified width or height is less than or equal to zero, or if the
+             * specified distance is negative.
              */
-            perspectiveFrustumRectangle: function (viewport, distanceToSurface) {
-                if (!viewport) {
+            perspectiveFrustumRectangle: function (viewportWidth, viewportHeight, distance) {
+                if (viewportWidth <= 0) {
                     throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "WWMath", "perspectiveFrustumRectangle",
-                        "missingViewport"));
+                        "invalidWidth"));
                 }
 
-                if (viewport.width <= 0 || viewport.height <= 0) {
+                if (viewportHeight <= 0) {
                     throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "WWMath", "perspectiveFrustumRectangle",
-                        "invalidViewport"));
+                        "invalidHeight"));
                 }
 
-                if (distanceToSurface < 0) {
+                if (distance < 0) {
                     throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "WWMath", "perspectiveFrustumRectangle",
                         "The specified distance is negative."));
                 }
 
-                var viewportWidth = viewport.width,
-                    viewportHeight = viewport.height,
-                    x, y, width, height;
+                // Assumes a 45 degree horizontal field of view.
+                var aspectRatio = viewportWidth / viewportHeight,
+                    width = distance,
+                    height = distance * aspectRatio;
 
-                // Compute a frustum rectangle that preserves the scene's size relative to the viewport when the viewport width and
-                // height are swapped. This has the effect of maintaining the scene's size on screen when the device is rotated.
-
-                if (viewportWidth < viewportHeight) {
-                    width = distanceToSurface;
-                    height = distanceToSurface * viewportHeight / viewportWidth;
-                    x = -width / 2;
-                    y = -height / 2;
-                } else {
-                    width = distanceToSurface * viewportWidth / viewportHeight;
-                    height = distanceToSurface;
-                    x = -width / 2;
-                    y = -height / 2;
-                }
-
-                return new Rectangle(x, y, width, height);
+                return new Rectangle(-width / 2, -height / 2, width, height);
             },
 
             /**
-             * Computes the approximate size of a pixel in model coordinates at a given distance from the eye point in a perspective
-             * projection.
+             * Computes the vertical size of a pixel in model coordinates at a given distance from the eye point in a
+             * perspective projection. This returns zero if the specified distance is zero. The returned size is
+             * undefined if the distance is less than zero.
+             * <p/>
+             * This method assumes the model of a screen composed of rectangular pixels, where pixel coordinates denote
+             * infinitely thin space between pixels. The units of the returned size are in model coordinates per pixel
+             * (usually meters per pixel).
              *
-             * This method assumes the model of a screen composed of rectangular pixels, where pixel coordinates denote infinitely
-             * thin space between pixels. The units of the returned size are in model coordinates per pixel (usually meters per
-             * pixel). This returns 0 if the specified distance is zero. The returned size is undefined if the distance is less than
-             * zero.
-             *
-             * The viewport is in the WebGL screen coordinate system, with its origin in the bottom-left corner and axes that extend
-             * up and to the right from the origin point.
-             *
-             * @param {Rectangle} viewport The viewport rectangle, in WebGL screen coordinates.
-             * @param {Number} distanceToSurface The distance from the perspective eye point at which to determine pixel size, in model coordinates.
-             * @returns {Number} The approximate pixel size at the specified distance from the eye point, in model coordinates per pixel.
-             * @throws {ArgumentError} If the specified viewport is null or undefined or either its width or height is
-             * less than or equal to zero, or if the specified distance is negative.
+             * @param {Number} viewportWidth The viewport width, in screen coordinates.
+             * @param {Number} viewportHeight The viewport height, in screen coordinates.
+             * @param {Number} distance The distance from the perspective eye point at which to determine pixel size, in
+             * model coordinates.
+             * @returns {Number} The pixel size at the specified distance from the eye point, in model coordinates per
+             * pixel.
+             * @throws {ArgumentError} If the specified width or height is less than or equal to zero, or if the
+             * specified distance is negative.
              */
-            perspectivePixelSize: function (viewport, distanceToSurface) {
-                if (!viewport) {
-                    throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "WWMath", "perspectiveFrustumRectangle",
-                        "missingViewport"));
+            perspectivePixelSize: function (viewportWidth, viewportHeight, distance) {
+                if (viewportWidth <= 0) {
+                    throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "WWMath", "perspectivePixelSize",
+                        "invalidWidth"));
                 }
 
-                if (viewport.width <= 0 || viewport.height <= 0) {
-                    throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "WWMath", "perspectiveFrustumRectangle",
-                        "invalidViewport"));
+                if (viewportHeight <= 0) {
+                    throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "WWMath", "perspectivePixelSize",
+                        "invalidHeight"));
                 }
 
-                if (distanceToSurface < 0) {
-                    throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "WWMath", "perspectiveFrustumRectangle",
+                if (distance < 0) {
+                    throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "WWMath", "perspectivePixelSize",
                         "The specified distance is negative."));
                 }
 
-                var frustumRect,
-                    xPixelSize,
-                    yPixelSize;
-
-                // Compute the dimensions of a rectangle in model coordinates carved out of the frustum at the given distance along
-                // the negative z axis, also in model coordinates.
-                frustumRect = WWMath.perspectiveFrustumRectangle(viewport, distanceToSurface);
-
-                // Compute the pixel size in model coordinates as a ratio of the rectangle dimensions to the viewport dimensions.
-                // The resultant units are model coordinates per pixel (usually meters per pixel).
-                xPixelSize = frustumRect.width / viewport.width;
-                yPixelSize = frustumRect.height / viewport.height;
-
-                // Return the maximum of the x and y pixel sizes. These two sizes are usually equivalent but we select the maximum
-                // in order to correctly handle the case where the x and y pixel sizes differ.
-                return WWMath.max(xPixelSize, yPixelSize);
+                var frustumHeight = WWMath.perspectiveFrustumRectangle(viewportWidth, viewportHeight, distance).height;
+                return frustumHeight / viewportHeight;
             },
 
             /**

@@ -95,7 +95,7 @@ define(function () {
         // on a touch device and pick at the center of the World Window's canvas.
         var wwd = this.worldWindow,
             mousePoint = this.mousePoint,
-            centerPoint = new WorldWind.Vec2(wwd.canvas.width / 2, wwd.canvas.height / 2),
+            centerPoint = new WorldWind.Vec2(wwd.canvas.clientWidth / 2, wwd.canvas.clientHeight / 2),
             terrainObject;
 
         if (!mousePoint) {

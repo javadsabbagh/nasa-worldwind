@@ -59,7 +59,7 @@ define([
              * @readonly
              */
             this.modelviewProjection = Matrix.fromIdentity();
-            this.modelviewProjection.setToScreenProjection(new Rectangle(0, 0, level.tileWidth, level.tileHeight));
+            this.modelviewProjection.setToScreenProjection(level.tileWidth, level.tileHeight);
             this.modelviewProjection.multiplyByScale(level.tileWidth / sector.deltaLongitude(),
                 level.tileHeight / sector.deltaLatitude(), 1);
             this.modelviewProjection.multiplyByTranslation(-sector.minLongitude, -sector.minLatitude, 0);
