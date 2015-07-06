@@ -330,6 +330,9 @@ define([
              * @readonly
              */
             this.objectsAtPickPoint = new PickedObjectList();
+
+            // Intentionally not documented.
+            this.pixelScale = 1;
         };
 
         // Internal use. Intentionally not documented.
