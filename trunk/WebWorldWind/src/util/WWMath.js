@@ -570,7 +570,7 @@ define([
                 // n = 2 * d / sqrt(a*a + 5)
 
                 // Assumes a 45 degree horizontal field of view.
-                var aspectRatio = viewportWidth / viewportHeight;
+                var aspectRatio = viewportHeight / viewportWidth;
 
                 return 2 * distanceToSurface / Math.sqrt(aspectRatio * aspectRatio + 5);
             },
@@ -603,9 +603,8 @@ define([
                 }
 
                 // Assumes a 45 degree horizontal field of view.
-                var aspectRatio = viewportWidth / viewportHeight,
-                    width = distance,
-                    height = distance * aspectRatio;
+                var width = distance,
+                    height = distance * viewportHeight / viewportWidth;
 
                 return new Rectangle(-width / 2, -height / 2, width, height);
             },
