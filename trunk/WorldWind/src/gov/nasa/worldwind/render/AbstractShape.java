@@ -949,6 +949,11 @@ public abstract class AbstractShape extends WWObjectImpl
         if (this.isTerrainDependent())
             this.checkViewDistanceExpiration(dc);
 
+        // Invalidate the extent if the vertical exaggeration has changed.
+        if (this.currentData.getVerticalExaggeration() != dc.getVerticalExaggeration()) {
+            this.currentData.setExtent(null);
+        }
+
         if (this.getExtent() != null)
         {
             if (!this.intersectsFrustum(dc))
