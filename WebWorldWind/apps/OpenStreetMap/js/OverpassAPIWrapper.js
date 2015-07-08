@@ -1,6 +1,5 @@
 define(['jquery','OpenStreetMapConfig', 'osmtogeojson'],function($, OpenStreetMapConfig, osmtogeojson) {
 
-
     'use strict';
 
     function OverpassAPIWrapper() {
@@ -23,7 +22,6 @@ define(['jquery','OpenStreetMapConfig', 'osmtogeojson'],function($, OpenStreetMa
             amenityString = '["amenity"~"."]';
         } else {
             if (!val){
-                console.log('wtf')
                 amenityString = '[' + query + '~"."]';
             } else {
                 amenityString = '[' + query + '=' + val +']';
@@ -64,6 +62,7 @@ define(['jquery','OpenStreetMapConfig', 'osmtogeojson'],function($, OpenStreetMa
         console.log(url)
         $.get(url, function(data) {
             var toSend = osmtogeojson(data);
+            toSend.boundingBox = boundingBox
             callback(toSend);
         });
     }
