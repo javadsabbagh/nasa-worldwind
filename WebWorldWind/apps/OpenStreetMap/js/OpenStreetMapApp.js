@@ -7,12 +7,12 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         'OpenStreetMapLayer',
         'OpenStreetMapConfig',
         'jquery',
-        'OSMDataRetriever','RouteLayer','RouteAPIWrapper','NaturalLanguageHandler', 'polyline'],
+        'OSMDataRetriever','RouteLayer', 'Route','RouteAPIWrapper','NaturalLanguageHandler', 'polyline'],
     function(ww,
              OpenStreetMapLayer,
              OpenStreetMapConfig,
              $,
-             OSMDataRetriever, RouteLayer, RAW, NaturalLanguageHandler, polyline) {
+             OSMDataRetriever, RouteLayer, Route, RAW, NaturalLanguageHandler, polyline) {
 
 
         'use strict';
@@ -42,106 +42,77 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             this._layers.forEach(function (layer) {
                 self._wwd.addLayer(layer);
             });
-            /*
-             var RaP = new RAW();
-             var routeData;
-             RaP.getRouteData(function(data){
-             routeData = data;
-             console.log(data)
-             var goToRoute = new WorldWind.GoToAnimator(self._wwd)
-             goToRoute.goTo(new WorldWind.Position(
-             data['via_points'][0][0],
-             data['via_points'][0][1],
-             1e4
-             ))
-             var routeLayer = new RouteLayer();
-             console.log(routeLayer)
-             routeLayer.addRoute(data)
-             self._wwd.addLayer(routeLayer);
-             });
-             */
-            /*
-             //TEST CODE FOR ROUTE
-             $.get('http://router.project-osrm.org/viaroute?loc=42.036241,-88.345090&loc=42.025845,-88.341743&instructions=true',
-             function(data){
-             var rr = polyline.decode(data["route_geometry"])
-             console.log(data)
-             var goToRoute = new WorldWind.GoToAnimator(self._wwd)
-             goToRoute.goTo(new WorldWind.Position(
-             data['via_points'][0][0],
-             data['via_points'][0][1],
-             1e4
-             ))
-             var routeLayer = new RouteLayer();
-             console.log(routeLayer)
-             routeLayer.addRoute(data)
-             self._wwd.addLayer(routeLayer);
-             })
-             */
-            //42.00 -88.35 42.15 -88.2
 
-            /*
-             var TEST = new OSMDataRetriever();
-             TEST.requestOSMData([42.00,-88.35,42.15,-88.2],'name',function(datam){
-             console.log(datam);
-             datam.features.forEach(function(nameX, index){
-             console.log(index ,nameX.properties.tags.name ,nameX.geometry.coordinates[0], nameX.geometry.coordinates[1])
-             })
-             var arr = [
-             datam.features[214].geometry.coordinates[1], datam.features[214].geometry.coordinates[0],
-             datam.features[239].geometry.coordinates[1], datam.features[239].geometry.coordinates[0]
-             ]
-             console.log(arr)
-             var RaP = new RAW();
-             var routeData;
-             RaP.getRouteData(function(data){
-             routeData = data;
-             console.log(data)
-             var goToRoute = new WorldWind.GoToAnimator(self._wwd)
-             goToRoute.goTo(new WorldWind.Position(
-             data['via_points'][0][0],
-             data['via_points'][0][1],
-             1e4
-             ))
-             var routeLayer = new RouteLayer();
-             console.log(routeLayer)
-             routeLayer.addRoute(data)
-             self._wwd.addLayer(routeLayer);
-             },
-             arr
-             );
-
-             })
-
-             */
+            // Declare a new NaturalLanguageHandler so that data can be recieved.
             var naturalLanguageTether = new NaturalLanguageHandler(self._wwd);
+
+            // Declare a new routeFinder so a route can be retrieve between the points returned.
             var routeFinder = new RAW();
-            naturalLanguageTether.receiveInput(['Starbucks','Near Me'],function(data){
+
+            //naturalLanguageTecher([array of input from NHS], callback)
+            naturalLanguageTether.receiveInput(['Near Me', 'name',],function(data){
+
                 // Something to go to and draw directions.
                 // Matt's House
                 var defaultLoc = [42.0362415,-88.3450904];
-                var routeArray = [
-                    defaultLoc[0],
-                    defaultLoc[1],
-                    data.features[0].geometry.coordinates[1],
-                    data.features[0].geometry.coordinates[0]]//defaultLoc.concat(data.features[0].geometry.coordinates)
 
-                var callback = function(data){
-                    var rr = polyline.decode(data["route_geometry"])
-                    var goToRoute = new WorldWind.GoToAnimator(self._wwd)
-                    goToRoute.goTo(new WorldWind.Position(
-                        data['via_points'][0][0],
-                        data['via_points'][0][1],
-                        1e4
-                    ))
-                    var routeLayer = new RouteLayer();
-                    console.log(routeLayer)
-                    routeLayer.addRoute(data)
-                    self._wwd.addLayer(routeLayer);
+                // Create a layer to draw routes on.
+                var routeLayer = new RouteLayer();
+
+                // initData initialized. This is so that the BoundingBox can be added
+                //          as a property of the data for use later.
+                var initData = data;
+
+                // If there is ONE place returned, this draws a route to it.
+                // The NLH should filter this data.features to one entry.
+                // Check if data is returned.
+                if (data.features) {
+
+                    // If data is returned, check if any features in data.features.
+                    if (data.features.length != 0) {
+
+                        // This array contains the start point and end point of the route.
+                        // Currently the array ALWAYS starts at Matt's house.
+                        // The destination changes based on the data returned.
+                        var routeArray = [
+                            defaultLoc[0],
+                            defaultLoc[1],
+                            data.features[0].geometry.coordinates[1],
+                            data.features[0].geometry.coordinates[0]];
+
+                        /* Creates a callback function that goes to the position of the route drawn. This gets
+                        *        called when the route polyline is returned from the routing API.
+                        *
+                        * @param data: Data is the return from the Routing API. See that for structure.
+                        **/
+
+                        var callback = function (data) {
+                            var goToRoute = new WorldWind.GoToAnimator(self._wwd);
+                            goToRoute.goTo(new WorldWind.Position(
+                                data['via_points'][0][0],
+                                data['via_points'][0][1],
+                                1e4
+                            ));
+
+                            routeLayer.addRoute(data);
+                        }
+
+                    }
+
+                    routeFinder.getRouteData(callback, routeArray)
                 }
 
-
-                routeFinder.getRouteData(callback, routeArray)
+                // Polyline for the bounding box to be drawn.
+                var drawBox = [
+                    [initData.boundingBox[0], initData.boundingBox[1]],
+                    [initData.boundingBox[0], initData.boundingBox[3]],
+                    [initData.boundingBox[2], initData.boundingBox[3]],
+                    [initData.boundingBox[2], initData.boundingBox[1]],
+                    [initData.boundingBox[0], initData.boundingBox[1]]
+                ];
+                // Either way, if a feature is returned or not, draw the bounding box.
+                routeLayer.addRoutesByPolyline(drawBox);
+                self._wwd.addLayer(routeLayer);
             })
 
 
