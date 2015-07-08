@@ -42,6 +42,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js', 'Route','poly
             entry[1] = entry[1]/10
         })
         var route = new Route(arrOfRoutes, geojsonDoc);
+        console.log(arrOfRoutes)
         this._renderableLayer.addRenderable(route);
     }
 
