@@ -1728,6 +1728,9 @@ public class LatLon
      * STANDPOINT/FOREPOINT MUST NOT BE THE GEOGRAPHIC POLE
      * <p/>
      * Requires close to 1.4 E-5 seconds wall clock time per call on a 550 MHz Pentium with Linux 7.2.
+     * <p>
+     * The algorithm used is iterative and will iterate only 10 times if it does not converge.
+     * </p>
      *
      * @param p1               first position
      * @param p2               second position
@@ -1795,6 +1798,7 @@ public class LatLon
         double GLON2 = p2.getLongitude().radians;
         double X = GLON2 - GLON1;
         double D, SX, CX, SY, CY, Y, SA, C2A, CZ, E, C;
+        int iterCount = 0;
         do
         {
             SX = Math.sin(X);
@@ -1817,8 +1821,10 @@ public class LatLon
             X = ((E * CY * C + CZ) * SY * C + Y) * SA;
             X = (1. - C) * X * F + GLON2 - GLON1;
             //IF(DABS(D-X).GT.EPS) GO TO 100
+
+            ++iterCount;
         }
-        while (Math.abs(D - X) > EPS);
+        while (Math.abs(D - X) > EPS && iterCount <= 10);
 
         //FAZ = Math.atan2(TU1, TU2);
         //BAZ = Math.atan2(CU1 * SX, BAZ * CX - SU1 * CU2) + Math.PI;
