@@ -735,6 +735,16 @@ public class LatLonTest
                 globe.getPolarRadius());
             assertEquals("Known ellipsoidal distance D", 5296396.967, distance, TOLERANCE);
         }
+
+        public void testAntipodal()
+        {
+            // See http://forum.worldwindcentral.com/showthread.php?45479-Potential-bug-in-ellipsoidalDistance
+            LatLon begin = LatLon.fromDegrees(-12.720360910785889, 57.91244852568739);
+            LatLon end = LatLon.fromDegrees(12.186856600402097, -121.90490684689753);
+            double distance = LatLon.ellipsoidalDistance(begin, end, globe.getEquatorialRadius(),
+                globe.getPolarRadius());
+            assertEquals("Antipodal", 1.9937004080007866E7, distance, TOLERANCE);
+        }
     }
 
     public static class ForwardAzimuthTests extends TestCase
