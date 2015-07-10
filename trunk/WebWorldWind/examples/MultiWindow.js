@@ -35,35 +35,29 @@ requirejs(['../src/WorldWind'], function () {
         return pathLayer;
     };
 
+    // Create the shared shape layer and imagery layer
     var pathLayer = makePathLayer(),
-        imageryLayer = new WorldWind.BingAerialWithLabelsLayer(null), // Create the shared imagery layer
-        compassLayer;
+        imageryLayer = new WorldWind.BingAerialWithLabelsLayer(null);
 
     var wwd1 = new WorldWind.WorldWindow("canvasOne");
     wwd1.addLayer(imageryLayer);
     wwd1.addLayer(pathLayer);
+    // Add a compass layer, view controls layer, and coordinates display layer. Each world window must have its own.
+    wwd1.addLayer(new WorldWind.CompassLayer());
+    wwd1.addLayer(new WorldWind.CoordinatesDisplayLayer(wwd1));
     wwd1.addLayer(new WorldWind.ViewControlsLayer(wwd1));
-    // Create a compass layer. Must have one compass layer per world window.
-    compassLayer = new WorldWind.CompassLayer;
-    compassLayer.compass.imageScale = 0.2;
-    wwd1.addLayer(compassLayer);
-    wwd1.redraw();
 
     var wwd2 = new WorldWind.WorldWindow("canvasTwo");
     wwd2.addLayer(imageryLayer);
     wwd2.addLayer(pathLayer);
+    wwd2.addLayer(new WorldWind.CompassLayer());
+    wwd2.addLayer(new WorldWind.CoordinatesDisplayLayer(wwd2));
     wwd2.addLayer(new WorldWind.ViewControlsLayer(wwd2));
-    compassLayer = new WorldWind.CompassLayer;
-    compassLayer.compass.imageScale = 0.2;
-    wwd2.addLayer(compassLayer);
-    wwd2.redraw();
 
     var wwd3 = new WorldWind.WorldWindow("canvasThree");
     wwd3.addLayer(imageryLayer);
     wwd3.addLayer(pathLayer);
+    wwd3.addLayer(new WorldWind.CompassLayer());
+    wwd3.addLayer(new WorldWind.CoordinatesDisplayLayer(wwd3));
     wwd3.addLayer(new WorldWind.ViewControlsLayer(wwd3));
-    compassLayer = new WorldWind.CompassLayer;
-    compassLayer.compass.imageScale = 0.2;
-    wwd3.addLayer(compassLayer);
-    wwd3.redraw();
 });
