@@ -25,6 +25,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './util/Color',
         './shapes/Compass',
         './layer/CompassLayer',
+        './layer/CoordinatesDisplayLayer',
         './gesture/DragRecognizer',
         './render/DrawContext',
         './globe/EarthElevationModel',
@@ -151,6 +152,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               Color,
               Compass,
               CompassLayer,
+              CoordinatesDisplayLayer,
               DragRecognizer,
               DrawContext,
               EarthElevationModel,
@@ -486,6 +488,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['Color'] = Color;
         WorldWind['Compass'] = Compass;
         WorldWind['CompassLayer'] = CompassLayer;
+        WorldWind['CoordinatesDisplayLayer'] = CoordinatesDisplayLayer;
         WorldWind['DragRecognizer'] = DragRecognizer;
         WorldWind['DrawContext'] = DrawContext;
         WorldWind['EarthElevationModel'] = EarthElevationModel;
