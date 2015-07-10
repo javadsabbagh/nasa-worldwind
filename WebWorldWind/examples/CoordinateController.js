@@ -33,8 +33,10 @@ define(function () {
 
         // Setup to update the coordinate elements each time the World Window is repainted.
         var self = this;
-        worldWindow.redrawCallbacks.push(function () {
-            self.handleRedraw();
+        worldWindow.redrawCallbacks.push(function (wwd, stage) {
+            if (stage == WorldWind.AFTER_REDRAW) {
+                self.handleRedraw();
+            }
         });
 
         // Setup to track the cursor position relative to the World Window's canvas. Listen to touch events in order

@@ -280,6 +280,18 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
             ABSOLUTE: "absolute",
 
             /**
+             * Indicates that a redraw callback has been called immediately after a redraw.
+             * @constant
+             */
+            AFTER_REDRAW: "afterRedraw",
+
+            /**
+             * Indicates that a redraw callback has been called immediately before a redraw.
+             * @constant
+             */
+            BEFORE_REDRAW: "beforeRedraw",
+
+            /**
              * The BEGAN gesture recognizer state. Continuous gesture recognizers transition to this state from the
              * POSSIBLE state when the gesture is first recognized.
              * @constant
