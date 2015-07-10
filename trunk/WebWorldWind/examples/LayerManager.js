@@ -45,8 +45,10 @@ define(function () {
         });
 
         //
-        //this.wwd.redrawCallbacks.push(function (worldWindow) {
-        //    thisExplorer.updateVisibilityState(worldWindow);
+        //this.wwd.redrawCallbacks.push(function (worldWindow, stage) {
+        //    if (stage == WorldWind.AFTER_REDRAW) {
+        //        thisExplorer.updateVisibilityState(worldWindow);
+        //    }
         //});
     };
 

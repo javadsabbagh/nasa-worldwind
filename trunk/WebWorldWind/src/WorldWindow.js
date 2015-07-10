@@ -169,14 +169,14 @@ define([
              */
             this.frameStatistics = new FrameStatistics();
 
-            // Documented with its property accessor below.
-            this._redrawCallbacks = [];
-
             /**
              * The {@link GoToAnimator} used by this world window to respond to its goTo method.
              * @type {GoToAnimator}
              */
             this.goToAnimator = new GoToAnimator(this);
+
+            // Documented with its property accessor below.
+            this._redrawCallbacks = [];
 
             // Documented with its property accessor below.
             this._orderedRenderingFilters = [
@@ -242,9 +242,11 @@ define([
                 }
             },
             /**
-             * The list of callbacks to call immediately after performing a redraw. The callbacks have a single
-             * argument: this world window, e.g., <code>redrawCallback(WorldWindow);</code>. Applications may
-             * add functions to this array or remove them.
+             * The list of callbacks to call immediately before and immediately after performing a redraw. The callbacks
+             * have two arguments: this world window and the redraw stage, e.g., <code>redrawCallback(worldWindow, stage);</code>.
+             * The stage will be either WorldWind.BEFORE_REDRAW or WorldWind.AFTER_REDRAW indicating whether the
+             * callback has been called either immediately before or immediately after a redraw, respectively.
+             * Applications may add functions to this array or remove them.
              * @type {Function[]}
              * @readonly
              * @memberof WorldWindow.prototype
@@ -537,20 +539,18 @@ define([
         // Internal function. Intentionally not documented.
         WorldWindow.prototype.render = function () {
             try {
+                this.callRedrawCallbacks(WorldWind.BEFORE_REDRAW);
                 this.resize();
                 this.resetDrawContext();
                 this.drawFrame();
-
-                for (var i = 0, len = this._redrawCallbacks.length; i < len; i++) {
-                    this._redrawCallbacks[i](this);
-                }
+                this.callRedrawCallbacks(WorldWind.AFTER_REDRAW);
 
                 if (this.drawContext.redrawRequested) {
                     this.redrawRequested = true;
                 }
             } catch (e) {
-                Logger.logMessage(Logger.LEVEL_SEVERE, "WorldWindow", "render",
-                    "Exception occurred during rendering: " + e.toString());
+                Logger.logMessage(Logger.LEVEL_SEVERE, "WorldWindow", "render", "Exception occurred during rendering.\n"
+                    + e.toString());
             }
         };
 
@@ -924,7 +924,7 @@ define([
                         layer.render(dc);
                     } catch (e) {
                         Logger.log(Logger.LEVEL_SEVERE, "Error while rendering layer " + layer.displayName + ".\n"
-                        + e.toString());
+                            + e.toString());
                         // Keep going. Render the rest of the layers.
                     }
                 }
@@ -1099,6 +1099,18 @@ define([
                     // Remove the SurfaceShape that was not visible to the pick rectangle.
                     pickedObjects.objects.splice(i, 1);
                     i -= 1;
+                }
+            }
+        };
+
+        // Internal. Intentionally not documented.
+        WorldWindow.prototype.callRedrawCallbacks = function (stage) {
+            for (var i = 0, len = this._redrawCallbacks.length; i < len; i++) {
+                try {
+                    this._redrawCallbacks[i](this, stage);
+                } catch (e) {
+                    Logger.log(Logger.LEVEL_SEVERE, "Exception calling redraw callback.\n" + e.toString());
+                    // Keep going. Execute the rest of the callbacks.
                 }
             }
         };
