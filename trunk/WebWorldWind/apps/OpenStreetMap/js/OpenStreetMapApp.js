@@ -93,6 +93,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
             var address = 'Piazza Leonardo da Vinci, 32, 20133 Milano, Italy';
 
+            var amenityType = 'cafe';
 
 
 
@@ -120,24 +121,6 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             }
 
             callGeocoder('cafe', address);
-
-            //geocoder.getLatitudeAndLong(address, function(location) {
-            //    console.log('Como, Italy is at');
-            //    var worldWindLoc = new WorldWind.Position(location.latitude, location.longitude, 1e3);
-            //    var animator = new WorldWind.GoToAnimator(self._wwd);
-            //    animator.goTo(worldWindLoc);
-            //
-            //    var specs = {
-            //        longitude : location.longitude,
-            //        latitude : location.latitude,
-            //        useCurrentLocationForNavigation : false,
-            //        overpassKey : 'amenity',
-            //        overpassValue : 'cafe'
-            //    };
-            //
-            //    naturalLanguageHandler.receiveInput(specs, processUserInput);
-            //
-            //});
 
 
         }
