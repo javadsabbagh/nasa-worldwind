@@ -17,26 +17,31 @@ define(['OpenStreetMapConfig'],function(OpenStreetMapConfig){
         var self = this;
         console.log(locArray);
 
-        console.log(locArray.slice(0,2).join(','))
-        return self._config.OSRMAPIBody + "viaroute?" + "loc="
-            + locArray.slice(0,2).join(',') + "&" + "loc="
-            + locArray.slice(2,4).join(',') + '&' + 'instructions=true'
+        var from = [locArray[0], locArray[1]];
+        var to = [locArray[2], locArray[3]];
+        console.log(to);
+
+        var call = self._config.OSRMAPIBody + "viaroute?" + "loc="
+            + from + "&" + "loc="
+            + to + '&' + 'instructions=true';
+
+        return call;
     }
 
     RouteAPIWrapper.prototype.assembleQuery = function() {
     }
 
-    RouteAPIWrapper.prototype.getRouteData = function (callback,locArray) {
-        var Array;
+    RouteAPIWrapper.prototype.getRouteData = function (locArray, callback) {
+        var arr = locArray;
+
         if (!locArray){
-            Array = [42.036241, -88.345090, 42.025845, -88.341743]
-        } else {
-            Array = locArray;
+            arr = [42.036241, -88.345090, 42.025845, -88.341743]
         }
 
-        var url = this.assembleCall(Array);
+        var url = this.assembleCall(arr);
         $.get(url, function(data) {
             var toSend = data;
+            console.log('to send ', toSend);
             callback(toSend);
         });
 
