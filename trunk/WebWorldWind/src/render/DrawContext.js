@@ -168,18 +168,23 @@ define([
             this.orderedRenderablesCounter = 0; // Number
 
             /**
-             * The starting time of the current frame, in milliseconds.
+             * The starting time of the current frame, in milliseconds. The frame timestamp is updated immediately
+             * before the World Window associated with this draw context is rendered, either as a result of redrawing or
+             * as a result of a picking operation.
              * @type {Number}
              * @readonly
              */
             this.timestamp = Date.now();
 
             /**
-             * The [time stamp]{@link DrawContext#timestamp} of the previous frame, in milliseconds.
+             * The [time stamp]{@link DrawContext#timestamp} of the last visible frame, in milliseconds. This indicates
+             * the time stamp that was current during the World Window's last frame, ignoring frames associated with a
+             * picking operation. The difference between the previous redraw time stamp and the current time stamp
+             * indicates the duration between visible frames, e.g. <code style='white-space:nowrap'>timeStamp - previousRedrawTimestamp</code>.
              * @type {Number}
              * @readonly
              */
-            this.previousTimestamp = this.timestamp;
+            this.previousRedrawTimestamp = this.timestamp;
 
             /**
              * Indicates whether a redraw has been requested during the current frame. When true, this causes the World
@@ -352,9 +357,9 @@ define([
             this.orderedRenderablesCounter = 0;
 
             // Advance the per-frame timestamp.
-            this.previousTimestamp = this.timestamp;
+            var previousTimestamp = this.timestamp;
             this.timestamp = Date.now();
-            if (this.timestamp === this.previousTimeStamp)
+            if (this.timestamp === previousTimestamp)
                 ++this.timestamp;
 
             // Reset properties set by the World Window every frame.
