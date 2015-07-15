@@ -622,7 +622,7 @@ define([
             // Compute the effective visibility. Use the current value if picking.
             if (!dc.pickingMode && this.mustDrawLabel()) {
                 if (this.currentVisibility != this.targetVisibility) {
-                    var visibilityDelta = (dc.timestamp - dc.previousTimestamp) / dc.fadeTime;
+                    var visibilityDelta = (dc.timestamp - dc.previousRedrawTimestamp) / dc.fadeTime;
                     if (this.currentVisibility < this.targetVisibility) {
                         this.currentVisibility = Math.min(1, this.currentVisibility + visibilityDelta);
                     } else {

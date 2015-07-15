@@ -243,7 +243,7 @@ define([
             },
             /**
              * The list of callbacks to call immediately before and immediately after performing a redraw. The callbacks
-             * have two arguments: this world window and the redraw stage, e.g., <code>redrawCallback(worldWindow, stage);</code>.
+             * have two arguments: this world window and the redraw stage, e.g., <code style='white-space:nowrap'>redrawCallback(worldWindow, stage);</code>.
              * The stage will be either WorldWind.BEFORE_REDRAW or WorldWind.AFTER_REDRAW indicating whether the
              * callback has been called either immediately before or immediately after a redraw, respectively.
              * Applications may add functions to this array or remove them.
@@ -526,31 +526,32 @@ define([
 
         // Internal function. Intentionally not documented.
         WorldWindow.prototype.redrawIfNeeded = function () {
-            // Resize the canvas to match its screen size. This sets needToRedraw when the size changes.
+            // Check if the drawing buffer needs to resize to match its screen size, which requires a redraw.
             this.resize();
 
-            // Render to the WebGL context only when necessary.
-            if (this.redrawRequested) {
-                this.redrawRequested = false;
-                this.render();
+            // Redraw the WebGL drawing buffer only when necessary.
+            if (!this.redrawRequested) {
+                return;
             }
-        };
 
-        // Internal function. Intentionally not documented.
-        WorldWindow.prototype.render = function () {
             try {
+                // Prepare to redraw and notify the redraw callbacks that a redraw is about to occur.
+                this.redrawRequested = false;
+                this.drawContext.previousRedrawTimestamp = this.drawContext.timestamp;
                 this.callRedrawCallbacks(WorldWind.BEFORE_REDRAW);
-                this.resize();
+                // Redraw the WebGL drawing buffer.
                 this.resetDrawContext();
                 this.drawFrame();
+            } catch (e) {
+                Logger.logMessage(Logger.LEVEL_SEVERE, "WorldWindow", "redrawIfNeeded",
+                    "Exception occurred during redrawing.\n" + e.toString());
+            } finally {
+                // Notify the redraw callbacks that a redraw has completed.
                 this.callRedrawCallbacks(WorldWind.AFTER_REDRAW);
-
+                // Handle rendering code redraw requests.
                 if (this.drawContext.redrawRequested) {
                     this.redrawRequested = true;
                 }
-            } catch (e) {
-                Logger.logMessage(Logger.LEVEL_SEVERE, "WorldWindow", "render", "Exception occurred during rendering.\n"
-                    + e.toString());
             }
         };
 

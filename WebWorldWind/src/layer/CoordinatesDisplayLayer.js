@@ -154,6 +154,7 @@ define([
                 hideEyeAlt = true;
             }
 
+            // TODO can we control terrain position visibility with Text's targetVisibility?
             this.latText.text = terrainPos ? this.formatLatitude(terrainPos.latitude) : null;
             this.latText.screenOffset = new Offset(WorldWind.OFFSET_PIXELS, x, yUnitsScreen, y);
             this.latText.attributes.offset = new Offset(WorldWind.OFFSET_FRACTION, 1, WorldWind.OFFSET_FRACTION, yUnitsText);
@@ -173,6 +174,7 @@ define([
                 this.elevText.render(dc);
             }
 
+            // TODO can we control eye altitude visibility with Text's targetVisibility?
             if (!hideEyeAlt) {
                 x += 40;
                 this.eyeText.text = "Eye  " + this.formatAltitude(eyePos.altitude, eyePos.altitude < 1000 ? "m" : "km");
@@ -181,6 +183,7 @@ define([
                 this.eyeText.render(dc);
             }
 
+            // TODO can we control crosshair visibility by adding targetVisibility to ScreenImage?
             if (this.eventType == "touch") {
                 this.crosshairImage.render(dc);
             }
@@ -205,6 +208,8 @@ define([
                 this.clientX = event.clientX;
                 this.clientY = event.clientY;
             }
+
+            this.wwd.redraw();
         };
 
         // Intentionally not documented.
