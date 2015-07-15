@@ -9,14 +9,12 @@ define(['../../src/WorldWind',
         '../util/GoToBox',
         '../util/LayersPanel',
         '../util/ProjectionMenu',
-        '../util/ServersPanel',
-        '../../examples/CoordinateController'],
+        '../util/ServersPanel'],
     function (ww,
               GoToBox,
               LayersPanel,
               ProjectionMenu,
-              ServersPanel,
-              CoordinateController) {
+              ServersPanel) {
         "use strict";
 
         var Explorer = function () {
@@ -33,6 +31,7 @@ define(['../../src/WorldWind',
                 {layer: new WorldWind.BingAerialWithLabelsLayer(null), enabled: true},
                 {layer: new WorldWind.OpenStreetMapImageLayer(null), enabled: false},
                 {layer: new WorldWind.CompassLayer(), enabled: true, hide: true},
+                {layer: new WorldWind.CoordinatesDisplayLayer(this.wwd), enabled: true, hide: true},
                 {layer: new WorldWind.ViewControlsLayer(this.wwd), enabled: true, hide: true}
             ];
 
@@ -46,12 +45,10 @@ define(['../../src/WorldWind',
             this.wwd.navigator.lookAtLocation.latitude = 30;
             this.wwd.navigator.lookAtLocation.longitude = -(180 / 12) * ((new Date()).getTimezoneOffset() / 60);
 
-            this.wwd.redraw();
             this.goToBox = new GoToBox(this.wwd);
             this.layersPanel = new LayersPanel(this.wwd);
             this.serversPanel = new ServersPanel(this.wwd, this.layersPanel);
             this.projectionMenu = new ProjectionMenu(this.wwd);
-            this.coordinateController = new CoordinateController(this.wwd);
         };
 
         return Explorer;

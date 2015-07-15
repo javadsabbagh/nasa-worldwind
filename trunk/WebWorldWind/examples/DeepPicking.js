@@ -9,11 +9,9 @@
  */
 
 requirejs(['../src/WorldWind',
-        './LayerManager',
-        './CoordinateController'],
+        './LayerManager'],
     function (ww,
-              LayerManager,
-              CoordinateController) {
+              LayerManager) {
         "use strict";
 
         // Tell World Wind to log only warnings.
@@ -31,6 +29,7 @@ requirejs(['../src/WorldWind',
             {layer: new WorldWind.BingAerialWithLabelsLayer(null), enabled: true},
             {layer: new WorldWind.OpenStreetMapImageLayer(null), enabled: false},
             {layer: new WorldWind.CompassLayer(), enabled: true},
+            {layer: new WorldWind.CoordinatesDisplayLayer(wwd), enabled: true},
             {layer: new WorldWind.ViewControlsLayer(wwd), enabled: true}
         ];
 
@@ -117,14 +116,8 @@ requirejs(['../src/WorldWind',
         // Tell the World Window that we want deep picking.
         wwd.deepPicking = true;
 
-        // Draw the World Window for the first time.
-        wwd.redraw();
-
         // Create a layer manager for controlling layer visibility.
         var layerManger = new LayerManager(wwd);
-
-        // Create a coordinate controller to update the coordinate overlay elements.
-        var coordinateController = new CoordinateController(wwd);
 
         // Now set up to handle picking.
 

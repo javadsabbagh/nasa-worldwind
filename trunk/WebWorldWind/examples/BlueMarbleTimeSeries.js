@@ -9,11 +9,9 @@
  */
 
 requirejs(['../src/WorldWind',
-        './LayerManager',
-        './CoordinateController'],
+        './LayerManager'],
     function (ww,
-              LayerManager,
-              CoordinateController) {
+              LayerManager) {
         "use strict";
 
         WorldWind.Logger.setLoggingLevel(WorldWind.Logger.LEVEL_WARNING);
@@ -26,15 +24,11 @@ requirejs(['../src/WorldWind',
 
         // Create a compass and view controls.
         wwd.addLayer(new WorldWind.CompassLayer());
+        wwd.addLayer(new WorldWind.CoordinatesDisplayLayer(wwd));
         wwd.addLayer(new WorldWind.ViewControlsLayer(wwd));
-
-        wwd.redraw();
 
         // Create a layer manager for controlling layer visibility.
         var layerManger = new LayerManager(wwd);
-
-        // Create a coordinate controller to update the coordinate overlay elements.
-        var coordinateController = new CoordinateController(wwd);
 
         // Increment the Blue Marble layer's time at a specified frequency.
         var currentIndex = 0;

@@ -10,11 +10,9 @@
  */
 
 requirejs(['../src/WorldWind',
-        './LayerManager',
-        './CoordinateController'],
+        './LayerManager'],
     function (ww,
-              LayerManager,
-              CoordinateController) {
+              LayerManager) {
         "use strict";
 
         // Configure the logging level.
@@ -33,6 +31,7 @@ requirejs(['../src/WorldWind',
             {layer: new WorldWind.BingRoadsLayer(null), enabled: false},
             {layer: new WorldWind.OpenStreetMapImageLayer(null), enabled: false},
             {layer: new WorldWind.CompassLayer(), enabled: true},
+            {layer: new WorldWind.CoordinatesDisplayLayer(wwd), enabled: true},
             {layer: new WorldWind.ViewControlsLayer(wwd), enabled: true}
         ];
 
@@ -41,11 +40,6 @@ requirejs(['../src/WorldWind',
             wwd.addLayer(layers[l].layer);
         }
 
-        wwd.redraw();
-
         // Create a layer manager for controlling layer visibility.
         var layerManger = new LayerManager(wwd);
-
-        // Create a coordinate controller to update the coordinate overlay elements.
-        var coordinateController = new CoordinateController(wwd);
     });

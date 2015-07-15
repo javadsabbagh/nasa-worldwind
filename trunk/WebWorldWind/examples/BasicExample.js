@@ -33,8 +33,6 @@ requirejs(['../src/WorldWind',
             wwd.addLayer(layers[l].layer);
         }
 
-        wwd.redraw();
-
         // Create a layer manager for controlling layer visibility.
         var layerManger = new LayerManager(wwd);
     });

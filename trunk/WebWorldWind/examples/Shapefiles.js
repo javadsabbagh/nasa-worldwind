@@ -7,11 +7,9 @@
  */
 
 requirejs(['../src/WorldWind',
-        './LayerManager',
-        './CoordinateController'],
+        './LayerManager'],
     function (ww,
-              LayerManager,
-              CoordinateController) {
+              LayerManager) {
         "use strict";
 
         WorldWind.Logger.setLoggingLevel(WorldWind.Logger.LEVEL_WARNING);
@@ -20,8 +18,9 @@ requirejs(['../src/WorldWind',
 
         var layers = [
             {layer: new WorldWind.BMNGLayer(), enabled: true},
-            {layer: new WorldWind.ViewControlsLayer(wwd), enabled: true},
-            {layer: new WorldWind.CompassLayer(), enabled: true}
+            {layer: new WorldWind.CompassLayer(), enabled: true},
+            {layer: new WorldWind.CoordinatesDisplayLayer(wwd), enabled: true},
+            {layer: new WorldWind.ViewControlsLayer(wwd), enabled: true}
         ];
 
         for (var l = 0; l < layers.length; l++) {
@@ -86,11 +85,6 @@ requirejs(['../src/WorldWind',
         cityShapefile.load(null, shapeConfigurationCallback, cityLayer);
         wwd.addLayer(cityLayer);
 
-        wwd.redraw();
-
         // Create a layer manager for controlling layer visibility.
         var layerManger = new LayerManager(wwd);
-
-        // Create a coordinate controller to update the coordinate overlay elements.
-        var coordinateController = new CoordinateController(wwd);
     });
