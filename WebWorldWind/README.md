@@ -45,12 +45,10 @@ example collection. It displays an interactive virtual globe in an HTML canvas.
             wwd.addLayer(new WorldWind.BMNGOneImageLayer());
             wwd.addLayer(new WorldWind.BingAerialWithLabelsLayer());
 
-            // Add a compass and some view controls to the World Window.
+            // Add a compass, a coordinates display and some view controls to the World Window.
             wwd.addLayer(new WorldWind.CompassLayer());
+            wwd.addLayer(new WorldWind.CoordinatesDisplayLayer(wwd));
             wwd.addLayer(new WorldWind.ViewControlsLayer(wwd));
-
-            // Tell the World Window to redraw.
-            wwd.redraw();
         }
     </script>
     </body>

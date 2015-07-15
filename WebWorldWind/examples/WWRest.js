@@ -7,11 +7,9 @@
  */
 
 requirejs(['../src/WorldWind',
-        './LayerManager',
-        './CoordinateController'],
+        './LayerManager'],
     function (ww,
-              LayerManager,
-              CoordinateController) {
+              LayerManager) {
         "use strict";
 
         WorldWind.Logger.setLoggingLevel(WorldWind.Logger.LEVEL_WARNING);
@@ -20,12 +18,11 @@ requirejs(['../src/WorldWind',
         wwd.addLayer(new WorldWind.BMNGRestLayer(null, "../data/Earth/BMNG256-200404", "Blue Marble"));
         wwd.addLayer(new WorldWind.LandsatRestLayer(null, "../data/Earth/LandSat", "LandSat"));
         wwd.addLayer(new WorldWind.BingWMSLayer());
-        wwd.addLayer(new WorldWind.CompassLayer);
+        wwd.addLayer(new WorldWind.CompassLayer());
+        wwd.addLayer(new WorldWind.CoordinatesDisplayLayer(wwd));
 
         wwd.globe.elevationModel = new WorldWind.EarthRestElevationModel(null, "../data/Earth/EarthElevations2",
             "Earth Elevations");
-
-        wwd.redraw();
 
         var surfaceImageLayer = new WorldWind.RenderableLayer();
         surfaceImageLayer.displayName = "Uploaded Image";
@@ -33,9 +30,6 @@ requirejs(['../src/WorldWind',
 
         // Create a layer manager for controlling layer visibility.
         var layerManger = new LayerManager(wwd);
-
-        // Create a coordinate controller to update the coordinate overlay elements.
-        var coordinateController = new CoordinateController(wwd);
 
         wwd.canvas.addEventListener('drop', function (e) {
             e.preventDefault();
