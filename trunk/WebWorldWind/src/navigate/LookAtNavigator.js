@@ -342,9 +342,21 @@ define([
 
         // Intentionally not documented.
         LookAtNavigator.prototype.handleWheelEvent = function (event) {
-            // Convert the wheel veritcal delta to a scale appropriate either for zooming in or zooming out.
-            var scaleFactor = 0.75,
-                scale = event.deltaY < 0 ? scaleFactor : 1 / scaleFactor;
+            // Normalize the wheel delta based on the wheel delta mode. This produces a roughly consistent delta across
+            // browsers and input devices.
+            var normalizedDelta;
+            if (event.deltaMode == WheelEvent.DOM_DELTA_PIXEL) {
+                normalizedDelta = event.deltaY;
+            } else if (event.deltaMode == WheelEvent.DOM_DELTA_LINE) {
+                normalizedDelta = event.deltaY * 40;
+            } else if (event.deltaMode == WheelEvent.DOM_DELTA_PAGE) {
+                normalizedDelta = event.deltaY * 400;
+            }
+
+            // Compute a zoom scale factor by adding a fraction of the normalized delta to 1. When multiplied by the
+            // navigator's range, this has the effect of zooming out or zooming in depending on whether the delta is
+            // positive or negative, respectfully.
+            var scale = 1 + (normalizedDelta / 1000);
 
             // Apply the scale to this navigator's properties.
             this.range *= scale;
