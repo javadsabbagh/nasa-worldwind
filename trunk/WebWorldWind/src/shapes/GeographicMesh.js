@@ -67,10 +67,11 @@ define([
          * Each entry of the array specifies the vertices of one row of the mesh. The arrays for all rows must
          * have the same length. There must be at least two rows, and each row must have at least two vertices.
          * @param {ShapeAttributes} attributes The attributes to associate with this mesh. May be null, in which case
-         * default attributes are associated.
+         * default attributes are associated. There must be no more than 65536 positions.
          *
          * @throws {ArgumentError} If the specified positions array is null or undefined, the number of rows or the
-         * number of vertices per row is less than 2, or the array lengths are inconsistent.
+         * number of vertices per row is less than 2, the array lengths are inconsistent, or too many positions are
+         * specified (limit is 65536).
          */
         var GeographicMesh = function (positions, attributes) {
             if (!positions) {
@@ -82,6 +83,13 @@ define([
                 throw new ArgumentError(
                     Logger.logMessage(Logger.LEVEL_SEVERE, "GeographicMesh", "constructor",
                         "Number of positions is insufficient."));
+            }
+
+            // Check for size limit, which is the max number of available indices for a 16-bit unsigned int.
+            if (positions.length * positions[0].length > 65536) {
+                throw new ArgumentError(
+                    Logger.logMessage(Logger.LEVEL_SEVERE, "GeographicMesh", "constructor",
+                        "Too many positions. Must be fewer than 65537. Try using multiple meshes."));
             }
 
             var length = positions[0].length;
@@ -107,6 +115,9 @@ define([
 
             // Private. Documentation is with the defined property below and the constructor description above.
             this._positions = positions;
+
+            // Private. Documentation is with the defined property below.
+            this._altitudeScale = 1;
 
             // Internal. Intentionally not documented.
             this.numRows = positions.length;
@@ -200,6 +211,22 @@ define([
                     this._textureCoordinates = coords;
                     this.reset();
                     this.texCoords = null;
+                }
+            },
+
+            /**
+             * Scales the altitudes of this mesh.
+             * @type {Number}
+             * @default 1
+             * @memberof GeographicMesh.prototype
+             */
+            altitudeScale: {
+                get: function () {
+                    return this._altitudeScale;
+                },
+                set: function (value) {
+                    this._altitudeScale = value;
+                    this.reset();
                 }
             }
         });
@@ -334,7 +361,8 @@ define([
                 for (var c = 0, len = this._positions[r].length; c < len; c++) {
                     pos = this._positions[r][c];
 
-                    dc.surfacePointForMode(pos.latitude, pos.longitude, pos.altitude, this.altitudeMode, pt);
+                    dc.surfacePointForMode(pos.latitude, pos.longitude, pos.altitude * this._altitudeScale,
+                        this.altitudeMode, pt);
 
                     dSquared = pt.distanceToSquared(eyePoint);
                     if (dSquared < eyeDistSquared) {
