@@ -54,12 +54,14 @@ define(['../../src/WorldWind',
 
             this.layersPanel.synchronizeLayerList();
 
-            this.loadSlabData();
+            this.loadSlabData("SOL", "sol_slab1.0_clip.xyz", 1001, WorldWind.Color.YELLOW);
+            this.loadSlabData("MEX", "mex_slab1.0_clip.xyz", 1251, WorldWind.Color.CYAN);
+            //this.loadSlabData("ALU", "alu_slab1.0_clip.xyz", 2451, WorldWind.Color.WHITE);
         };
 
-        USGSSlabs.prototype.loadSlabData = function () {
+        USGSSlabs.prototype.loadSlabData = function (name, dataFile, width, color) {
             var dataLocation = "http://worldwindserver.net/webworldwind/data/usgs/",
-                url = dataLocation + "sol_slab1.0_clip.xyz";
+                url = dataLocation + dataFile;
 
             var xhr = new XMLHttpRequest();
 
@@ -67,7 +69,7 @@ define(['../../src/WorldWind',
             xhr.onreadystatechange = (function () {
                 if (xhr.readyState === 4) {
                     if (xhr.status === 200) {
-                        this.parse(xhr.responseText);
+                        this.parse(name, width, color, xhr.responseText);
                     }
                     else {
                         Logger.log(Logger.LEVEL_WARNING,
@@ -87,45 +89,57 @@ define(['../../src/WorldWind',
             xhr.send(null);
         };
 
-        USGSSlabs.prototype.parse = function (responseText) {
+        USGSSlabs.prototype.parse = function (name, width, color, responseText) {
             var lines = responseText.split("\n"),
                 positions = [];
+
+            var meshLayer = new WorldWind.RenderableLayer();
+            meshLayer.displayName = name;
+            this.wwd.addLayer(meshLayer);
+
+            var meshAttributes = new WorldWind.ShapeAttributes(null);
+            meshAttributes.drawOutline = false;
+            meshAttributes.outlineColor = WorldWind.Color.BLUE;
+            meshAttributes.interiorColor = color;
+            meshAttributes.applyLighting = true;
+
+            var highlightAttributes = new WorldWind.ShapeAttributes(meshAttributes);
+            highlightAttributes.outlineColor = WorldWind.Color.WHITE;
 
             for (var i = 0; i < lines.length; i++) {
                 if (lines[i].trim().length === 0) {
                     continue;
                 }
 
-                if (i % 1001 === 0) {
-                    if (positions.length === 33)
-                        break;
+                if (i % width === 0) {
+                    if (i != 0 && positions.length === 10) {
+                        var mesh = new WorldWind.GeographicMesh(positions, meshAttributes);
+                        mesh.highlightAttributes = highlightAttributes;
+                        meshLayer.addRenderable(mesh);
+                        positions = [positions[positions.length - 1]];
+                    }
+
                     positions[positions.length] = [];
                 }
 
                 var rawPosition = lines[i].split("\t"),
                     longitude = parseFloat(rawPosition[0]),
                     latitude = parseFloat(rawPosition[1]),
-                    altitude = rawPosition[2] === "NaN" ? 0 : parseFloat(rawPosition[2]) * 1e2,
-                    position = new WorldWind.Position(latitude, longitude, altitude);
+                    altitude = rawPosition[2] === "NaN" ? 0 : parseFloat(rawPosition[2]) * 1e2;
+
+                if (longitude > 180) {
+                    longitude -= 360;
+                }
+
+                var position = new WorldWind.Position(latitude, longitude, altitude);
 
                 positions[positions.length - 1].push(position);
             }
 
-            var meshAttributes = new WorldWind.ShapeAttributes(null);
-            meshAttributes.outlineColor = WorldWind.Color.BLUE;
-            meshAttributes.interiorColor = new WorldWind.Color(1, 1, 0, 0.7);
-            meshAttributes.applyLighting = true;
-
-            var highlightAttributes = new WorldWind.ShapeAttributes(meshAttributes);
-            highlightAttributes.outlineColor = WorldWind.Color.WHITE;
-
-            var mesh = new WorldWind.GeographicMesh(positions, meshAttributes);
+            mesh = new WorldWind.GeographicMesh(positions, meshAttributes);
             mesh.highlightAttributes = highlightAttributes;
-
-            var meshLayer = new WorldWind.RenderableLayer();
-            meshLayer.displayName = "Slab";
             meshLayer.addRenderable(mesh);
-            this.wwd.addLayer(meshLayer);
+
             this.layersPanel.synchronizeLayerList();
             this.wwd.redraw();
         };
