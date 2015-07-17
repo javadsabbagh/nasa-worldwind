@@ -112,10 +112,16 @@ define(['../../src/WorldWind',
                 }
 
                 if (i % width === 0) {
+                    // Limit the number of rows per mesh to avoid exceeding the max mesh size of 65536 positions.
                     if (i != 0 && positions.length === 10) {
+                        // Create a new mesh for the positions we have.
                         var mesh = new WorldWind.GeographicMesh(positions, meshAttributes);
+                        mesh.altitudeScale = 100;
                         mesh.highlightAttributes = highlightAttributes;
                         meshLayer.addRenderable(mesh);
+
+                        // Start a new positions array for the next mesh. Copy the last row of the just-created
+                        // mesh to the first row of the next mesh.
                         positions = [positions[positions.length - 1]];
                     }
 
@@ -125,7 +131,7 @@ define(['../../src/WorldWind',
                 var rawPosition = lines[i].split("\t"),
                     longitude = parseFloat(rawPosition[0]),
                     latitude = parseFloat(rawPosition[1]),
-                    altitude = rawPosition[2] === "NaN" ? 0 : parseFloat(rawPosition[2]) * 1e2;
+                    altitude = rawPosition[2] === "NaN" ? 0 : parseFloat(rawPosition[2]);
 
                 if (longitude > 180) {
                     longitude -= 360;
@@ -137,6 +143,7 @@ define(['../../src/WorldWind',
             }
 
             mesh = new WorldWind.GeographicMesh(positions, meshAttributes);
+            mesh.altitudeScale = 100;
             mesh.highlightAttributes = highlightAttributes;
             meshLayer.addRenderable(mesh);
 
