@@ -33,6 +33,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './globe/ElevationModel',
         './util/Font',
         './util/FrameStatistics',
+        './layer/FrameStatisticsLayer',
         './render/FramebufferTexture',
         './render/FramebufferTile',
         './render/FramebufferTileController',
@@ -160,6 +161,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               ElevationModel,
               Font,
               FrameStatistics,
+              FrameStatisticsLayer,
               FramebufferTexture,
               FramebufferTile,
               FramebufferTileController,
@@ -496,6 +498,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['ElevationModel'] = ElevationModel;
         WorldWind['Font'] = Font;
         WorldWind['FrameStatistics'] = FrameStatistics;
+        WorldWind['FrameStatisticsLayer'] = FrameStatisticsLayer;
         WorldWind['FramebufferTexture'] = FramebufferTexture;
         WorldWind['FramebufferTile'] = FramebufferTile;
         WorldWind['FramebufferTileController'] = FramebufferTileController;
