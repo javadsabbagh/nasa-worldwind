@@ -158,7 +158,7 @@ define([
                         "missingMatrix"));
             }
 
-            GpuProgram.loadUniformMatrix(gl, matrix, this.mvpMatrixLocation);
+            this.loadUniformMatrix(gl, matrix, this.mvpMatrixLocation);
         };
 
         /**
@@ -175,7 +175,7 @@ define([
                         "missingMatrix"));
             }
 
-            GpuProgram.loadUniformMatrix(gl, matrix, this.texSamplerMatrixLocation);
+            this.loadUniformMatrix(gl, matrix, this.texSamplerMatrixLocation);
         };
 
         /**
@@ -192,7 +192,7 @@ define([
                         "missingMatrix"));
             }
 
-            GpuProgram.loadUniformMatrix(gl, matrix, this.texMaskMatrixLocation);
+            this.loadUniformMatrix(gl, matrix, this.texMaskMatrixLocation);
         };
 
         /**
@@ -230,7 +230,7 @@ define([
                     Logger.logMessage(Logger.LEVEL_SEVERE, "SurfaceTileRendererProgram", "loadColor", "missingColor"));
             }
 
-            GpuProgram.loadUniformColor(gl, color, this.colorLocation);
+            this.loadUniformColor(gl, color, this.colorLocation);
         };
 
         /**
@@ -244,7 +244,7 @@ define([
          * @param {Boolean} enable <code>true</code> to enable modulation, <code>false</code> to disable modulation.
          */
         SurfaceTileRendererProgram.prototype.loadModulateColor = function (gl, enable) {
-            GpuProgram.loadUniformInteger(gl, enable ? 1 : 0, this.modulateColorLocation);
+            gl.uniform1i(this.modulateColorLocation, enable ? 1 : 0);
         };
 
         return SurfaceTileRendererProgram;

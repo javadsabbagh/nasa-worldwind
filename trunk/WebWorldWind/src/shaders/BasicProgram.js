@@ -92,7 +92,7 @@ define([
                     Logger.logMessage(Logger.LEVEL_SEVERE, "BasicProgram", "loadModelviewProjection", "missingMatrix"));
             }
 
-            GpuProgram.loadUniformMatrix(gl, matrix, this.mvpMatrixLocation);
+            this.loadUniformMatrix(gl, matrix, this.mvpMatrixLocation);
         };
 
         /**
@@ -108,7 +108,7 @@ define([
                     Logger.logMessage(Logger.LEVEL_SEVERE, "BasicProgram", "loadColor", "missingColor"));
             }
 
-            GpuProgram.loadUniformColor(gl, color, this.colorLocation);
+            this.loadUniformColor(gl, color, this.colorLocation);
         };
 
         /**
@@ -121,7 +121,7 @@ define([
          * @param {Number} alpha The alpha component, a number between 0 and 1.
          */
         BasicProgram.prototype.loadColorComponents = function (gl, red, green, blue, alpha) {
-            GpuProgram.loadUniformColorComponents(gl, red, green, blue, alpha, this.colorLocation);
+            this.loadUniformColorComponents(gl, red, green, blue, alpha, this.colorLocation);
         };
 
         return BasicProgram;
