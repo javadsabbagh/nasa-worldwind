@@ -100,7 +100,6 @@ define([
 
             this.vertexPointLocation = -1;
             this.vertexTexCoordLocation = -1;
-            this.modelViewProjectionMatrixLocation = -1;
 
             this.texCoords = null;
             this.texCoordVboCacheKey = 'global_tex_coords';
@@ -254,7 +253,6 @@ define([
             // bound, and therefore must look up the location of attributes by name.
             this.vertexPointLocation = program.attributeLocation(gl, "vertexPoint");
             this.vertexTexCoordLocation = program.attributeLocation(gl, "vertexTexCoord");
-            this.modelViewProjectionMatrixLocation = program.uniformLocation(gl, "mvpMatrix");
             gl.enableVertexAttribArray(this.vertexPointLocation);
 
             if (this.vertexTexCoordLocation >= 0) { // location of vertexTexCoord attribute is -1 when the basic program is bound
@@ -301,7 +299,7 @@ define([
                 gpuResourceCache = dc.gpuResourceCache;
 
             this.scratchMatrix.setToMultiply(dc.navigatorState.modelviewProjection, terrainTile.transformationMatrix);
-            GpuProgram.loadUniformMatrix(gl, this.scratchMatrix, this.modelViewProjectionMatrixLocation);
+            dc.currentProgram.loadModelviewProjection(gl, this.scratchMatrix);
 
             var vboCacheKey = dc.globeStateKey + terrainTile.tileKey,
                 vbo = gpuResourceCache.resourceForKey(vboCacheKey);

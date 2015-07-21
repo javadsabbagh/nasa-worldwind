@@ -102,6 +102,8 @@ define([
             this.fragmentShader = fShader;
 
             this.size = vertexShaderSource.length + fragmentShaderSource.length;
+
+            this.scratchArray = new Float32Array(16);
         };
 
         /**
@@ -215,19 +217,19 @@ define([
          * This functions converts the matrix into column-major order prior to loading its components into the GLSL
          * uniform variable, but does not modify the specified matrix.
          *
-         *
          * @param {WebGLRenderingContext} gl The current WebGL context.
          * @param {Matrix} matrix The matrix to load.
          * @param {WebGLUniformLocation} location The location of the uniform variable in the currently bound GLSL program.
          * @throws {ArgumentError} If the specified matrix is null or undefined.
          */
-        GpuProgram.loadUniformMatrix = function (gl, matrix, location) {
+        GpuProgram.prototype.loadUniformMatrix = function (gl, matrix, location) {
             if (!matrix) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "GpuProgram", "loadUniformMatrix",
                     "missingMatrix"));
             }
 
-            gl.uniformMatrix4fv(location, false, matrix.columnMajorComponents(new Float32Array(16)));
+            var columnMajorArray = matrix.columnMajorComponents(this.scratchArray);
+            gl.uniformMatrix4fv(location, false, columnMajorArray);
         };
 
         /**
@@ -241,15 +243,13 @@ define([
          * @param {WebGLUniformLocation} location The location of the uniform variable in the currently bound GLSL program.
          * @throws {ArgumentError} If the specified color is null or undefined.
          */
-        GpuProgram.loadUniformColor = function (gl, color, location) {
+        GpuProgram.prototype.loadUniformColor = function (gl, color, location) {
             if (!color) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "GpuProgram", "loadUniformColor",
                     "missingColor"));
             }
 
-            // TODO: investigate - WebGL throws an exception when using uniform4fv
-            var premul = color.premultipliedComponents(new Float32Array(4));
-            //gl.uniform4fv(location, 1, color.premultipliedComponents(new Float32Array(4)));
+            var premul = color.premultipliedComponents(this.scratchArray);
             gl.uniform4f(location, premul[0], premul[1], premul[2], premul[3]);
         };
 
@@ -267,41 +267,8 @@ define([
          * @param {Number} alpha The alpha component, a number between 0 and 1.
          * @param {WebGLUniformLocation} location The location of the uniform variable in the currently bound GLSL program.
          */
-        GpuProgram.loadUniformColorComponents = function (gl, red, green, blue, alpha, location) {
+        GpuProgram.prototype.loadUniformColorComponents = function (gl, red, green, blue, alpha, location) {
             gl.uniform4f(location, red * alpha, green * alpha, blue * alpha, alpha);
-        };
-
-        /**
-         * Loads a specified floating-point value to a specified uniform location.
-         *
-         * @param {WebGLRenderingContext} gl The current WebGL context.
-         * @param {Number} value The value to load.
-         * @param {WebGLUniformLocation} location The uniform location to store the value to.
-         */
-        GpuProgram.loadUniformFloat = function (gl, value, location) {
-            gl.uniform1f(location, value);
-        };
-
-        /**
-         * Loads a specified integer value to a specified uniform location.
-         *
-         * @param {WebGLRenderingContext} gl The current WebGL context.
-         * @param {Number} value The value to load.
-         * @param {WebGLUniformLocation} location The uniform location to store the value to.
-         */
-        GpuProgram.loadUniformInteger = function (gl, value, location) {
-            gl.uniform1i(location, value);
-        };
-
-        /**
-         * Loads a specified boolean value to a specified uniform location.
-         *
-         * @param {WebGLRenderingContext} gl The current WebGL context.
-         * @param {Boolean} value The value to load.
-         * @param {WebGLUniformLocation} location The uniform location to store the value to.
-         */
-        GpuProgram.loadUniformBoolean = function (gl, value, location) {
-            gl.uniform1i(location, value);
         };
 
         return GpuProgram;
