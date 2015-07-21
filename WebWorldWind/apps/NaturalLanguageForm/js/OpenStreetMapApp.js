@@ -64,30 +64,146 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
             this._wwd.addLayer(renderableLayer);
 
+            //This also handles Highlighting
+            function listenForHighlight(o){
+                var worldWindow = self._wwd,
+                    highlightedItems = [];
+                // The input argument is either an Event or a TapRecognizer. Both have the same properties for determining
+                // the mouse or tap location.
+                var x = o.clientX,
+                    y = o.clientY;
+                var redrawRequired = renderableLayer.renderables.length > 0; // must redraw if we de-highlight previous shapes
+                // De-highlight any previously highlighted shapes.
+                renderableLayer.renderables.forEach(function(renderable){
+                   renderable.highlighted = false
+                });
+                // Perform the pick. Must first convert from window coordinates to canvas coordinates, which are
+                // relative to the upper left corner of the canvas rather than the upper left corner of the page.
+                var pickList = worldWindow.pick(worldWindow.canvasCoordinates(x, y));
+                if (pickList.objects.length > 0) {
+                    redrawRequired = true;
+                }
+                // Highlight the items picked by simply setting their highlight flag to true.
+                if (pickList.objects.length > 0) {
+                    for (var p = 0; p < pickList.objects.length; p++) {
+                        if (!pickList.objects[p].isTerrain) {
+                            pickList.objects[p].userObject.highlighted = true;
+                            // Keep track of highlighted items in order to de-highlight them later.
+                            highlightedItems.push(pickList.objects[p].userObject);
+                        }
+                    }
+                }
+                // Update the window if we changed anything.
+                if (redrawRequired) {
+                    worldWindow.redraw(); // redraw to make the highlighting changes take effect on the screen
+                }
+            }
 
+            function waitForSelect(callback) {
+                var scopedCallback = callback;
+                //Create a highlightcontroller
+                self._wwd.addEventListener('mousemove', listenForHighlight);
+                //Create the route selection
+                self._wwd.addEventListener('mousedown', function(o){
+                    console.log(o)
+                    console.log('Click Detected')
+                    var res;
+                    renderableLayer.renderables.forEach(function(renderable){
+                        if (renderable.highlighted){
+                            console.log(renderable);
+                            res =  renderable.amenity
+                            return
+                        }
+                    });
+                    console.log(res)
+                    scopedCallback(res)
+                });
+            }
+
+            function buildPlacemarkLayer(arrayofamenities) {
+                var pinImgLocation = '../NaturalLanguageForm/img/pin.png' , // location of the image files
+                    placemark,
+                    placemarkAttributes = new WorldWind.PlacemarkAttributes(null),
+                    highlightAttributes,
+                    placemarkLayer = renderableLayer,
+                    latitude,
+                    longitude;
+
+                // Set up the common placemark attributes.
+                placemarkAttributes.imageScale = 1;
+                placemarkAttributes.imageOffset = new WorldWind.Offset(
+                    WorldWind.OFFSET_FRACTION, 0.3,
+                    WorldWind.OFFSET_FRACTION, 0.0);
+                placemarkAttributes.imageColor = WorldWind.Color.WHITE;
+                placemarkAttributes.labelAttributes.offset = new WorldWind.Offset(
+                    WorldWind.OFFSET_FRACTION, 0.5,
+                    WorldWind.OFFSET_FRACTION, 1.0);
+                placemarkAttributes.labelAttributes.color = WorldWind.Color.YELLOW;
+                placemarkAttributes.drawLeaderLine = true;
+                placemarkAttributes.leaderLineAttributes.outlineColor = WorldWind.Color.RED;
+                // Create the custom image for the placemark for each earthquake.
+                var canvas = document.createElement("canvas"),
+                    ctx2d = canvas.getContext("2d"),
+                    size = 10 , c = size / 2  - 0.5, innerRadius = 0, outerRadius = 45;
+                canvas.width = size;
+                canvas.height = size;
+
+                ctx2d.fillStyle = 'Blue';
+                ctx2d.arc(c, c, outerRadius, 0, 2 * Math.PI, false);
+                ctx2d.fill();
+
+                arrayofamenities.forEach(function(amenity){
+                    latitude = amenity['_location']['latitude'];
+                    longitude = amenity['_location']['longitude'];
+                    // Create the placemark and its label.
+                    placemark = new WorldWind.Placemark(new WorldWind.Position(latitude, longitude, 1e2), true, null);
+                    placemark.label = amenity['_amenity'];
+                    placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
+
+                    // Create the placemark attributes for this placemark. Note that the attributes differ only by their
+                    // image URL.
+                    placemarkAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
+                    placemarkAttributes.imageSource = new WorldWind.ImageSource(canvas)//pinImgLocation;
+                    placemark.attributes = placemarkAttributes;
+
+                    // Create the highlight attributes for this placemark. Note that the normal attributes are specified as
+                    // the default highlight attributes so that all properties are identical except the image scale. You could
+                    // instead vary the color, image, or other property to control the highlight representation.
+                    highlightAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
+                    highlightAttributes.imageScale = 1.2;
+                    placemark.highlightAttributes = highlightAttributes;
+
+                    //So we can refer to this loc later
+                    placemark.amenity = amenity;
+
+                    // Add the placemark to the layer.
+                    placemarkLayer.addRenderable(placemark);
+                });
+            }
 
             function processUserInput(specs, data) {
                 console.log(specs);
                 console.log(data);
-
                 var fromLatitude = specs.startPosition[0];
                 var fromLongitude = specs.startPosition[1];
-
-
-
-
-                var toPoint = data[0];
-
-                var toLocation = toPoint.location;
-                var toLatitude = toLocation.latitude;
-                var toLongitude = toLocation.longitude;
-
-
-                var locationArray = [fromLatitude, fromLongitude, toLatitude, toLongitude];
-                routeFinder.getRouteData(locationArray, function(routeData) {
-                    console.log('routeInformation : ', routeData);
-                    routeLayer.addRoute(routeData);
-                });
+                var fromLatitude = specs.startPosition[0];
+                var fromLongitude = specs.startPosition[1];
+                buildPlacemarkLayer(data);
+                waitForSelect(function(returnedData){
+                    console.log('Selection Occured')
+                    if (returnedData){
+                        routeLayer.removeAllRenderables();
+                        var toPoint = returnedData;
+                        var toLocation = toPoint.location;
+                        var toLatitude = toLocation.latitude;
+                        var toLongitude = toLocation.longitude;
+                        var locationArray = [fromLatitude, fromLongitude, toLatitude, toLongitude];
+                        routeFinder.getRouteData(locationArray, function(routeData) {
+                            console.log('routeInformation : ', routeData);
+                            routeLayer.addRoute(routeData);
+                        });
+                    }
+                })
             }
 
 

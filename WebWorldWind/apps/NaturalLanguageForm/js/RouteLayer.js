@@ -54,6 +54,10 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js', 'Route','poly
         this._renderableLayer.render(dc);
     }
 
+    RouteLayer.prototype.removeAllRenderables = function() {
+        this._renderableLayer.removeAllRenderables();
+    }
+
 
     Object.defineProperties(RouteLayer.prototype, {
 
