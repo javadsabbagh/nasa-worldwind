@@ -49,6 +49,17 @@ define(function () {
                 } else {
                     layerButton.removeClass("active");
                 }
+
+                if (layer.companionLayer) {
+                    if (layer.enabled) {
+                        ++layer.companionLayer.refCount;
+                    } else {
+                        --layer.companionLayer.refCount;
+                    }
+
+                    layer.companionLayer.enabled = layer.companionLayer.refCount > 0;
+                }
+
                 this.wwd.redraw();
             }
         }
