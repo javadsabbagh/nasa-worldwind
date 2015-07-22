@@ -182,6 +182,12 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             get: function() {
                 return this._mapQuestAPIKey;
             }
+        },
+
+        baseNominatimAPIAddress: {
+            get: function() {
+                return 'http://nominatim.openstreetmap.org/search/';
+            }
         }
     });
 
