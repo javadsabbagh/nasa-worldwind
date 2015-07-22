@@ -1,4 +1,6 @@
-
+/*
+ * Author: Matt Evers
+ */
 //Needs a form with id='nl-form' in html
 define(
     function(){

@@ -1,4 +1,6 @@
-
+/*
+ * Author: Inzamam Rahaman, Matt Evers
+ */
 
 requirejs.config({
     paths: {

@@ -8,6 +8,11 @@
  * Copyright 2013, Codrops
  * http://www.codrops.com
  */
+/*
+* Modified for our purposes by Ritesh Mishra, Matt Evers.
+*
+*/
+
 define(['OpenStreetMapApp'],
 	function (OpenStreetMapApp){
 		'use strict';
@@ -21,6 +26,7 @@ define(['OpenStreetMapApp'],
 
 			function NLForm( el ) {
 				var self = this;
+				this.document = $(document);
 				this.el = el;
 				this.backDrop = document.querySelector( '.nl-blurred' );
 				this.fields = [];
@@ -46,14 +52,51 @@ define(['OpenStreetMapApp'],
 					//this.backDrop.addEventListener( 'touchstart', function(ev) { ev.preventDefault(); ev.stopPropagation(); self.closeAllFields(); } );
 				},
 				_loadPage : function() {
-					var amenity = $('#amenityField').val().trim();
-					var address = $('#addressField').val().trim();
-					$('#landingScreen').remove();
-					$('body').removeClass('nl-blurred');
-					$('body').append('<canvas id="globe"></canvas>');
-					console.log('amenity ', amenity);
-					console.log('address ', address );
-					new OpenStreetMapApp(amenity, address);
+
+					var self = this;
+					/*
+					* Start the World Wind window in the background so that it can load the tiles.
+					*/
+					var loadInBackground = function(){
+						var amenity = $('#amenityField').val().trim();
+						var address = $('#addressField').val().trim();
+						$('body').append('<canvas id="globe"></canvas>');
+						console.log('amenity ', amenity);
+						console.log('address ', address );
+						new OpenStreetMapApp(amenity, address);
+					}();
+
+					//Remove the natural language line because the user is done with it.
+					this.el.remove();
+
+					/*
+					* Initialize the loading sequence of events.
+					* The pin icon follows the path of a x^6 function. To make it steeper or less so,
+					* raise/lower the power.
+					*/
+					var loadingScreen = function(){
+						var x = 0, y = 0, m = (self.document.height()/2 - 75)/Math.pow((self.document.width()/2 - 90),6);
+						var INDEX = 0,
+							steps = 100,
+							loadIcon = $('#apDiv2'),
+							loadSymbol = $('#apDiv3');
+						var loadTimeAnimator = window.setInterval(function () {
+							loadIcon.remove();
+							if (INDEX < steps){
+								INDEX += 1;
+							} else {
+								loadSymbol.fadeOut(4000, function(){
+									$('#landingScreen').remove();
+									$('body').removeClass('nl-blurred');
+								})
+							}
+							x = ((self.document.width()/2 - 78)/steps)*INDEX;
+							y = m*Math.pow(x,6);
+							loadSymbol.css('right', x + 78);
+							loadSymbol.css('bottom',  y + 22);
+						},20);
+					}();
+
 				},
 				_areAllFieldsFilled : function() {
 					var self = this;
@@ -122,6 +165,45 @@ define(['OpenStreetMapApp'],
 				_createInput : function() {
 					var self = this;
 					this.hasUserEntry = false;
+					////////////////////////////////////
+					// JQUERY isn't worth it here.
+					//this.toggle = $( '<a>' );
+					//this.toggle.append( this.elOriginal.getAttribute( 'placeholder' ) );
+					//this.toggle.attr('class', 'nl-field-toggle');
+                    //
+					//this.getinput = $('<input>');
+					//this.getinput.attr('type', 'text');
+					//this.getinput.attr('placeholder', this.elOriginal.getAttribute( 'placeholder' ));
+                    //
+					//this.getinputWrapper = $('<li>');
+					//this.getinputWrapper.attr('class', 'nl-ti-input');
+                    //
+					//this.inputsubmit = $('<button>'); //document.createElement( 'button' );
+					//this.inputsubmit.attr('class', 'nl-field-go');
+					//this.inputsubmit.append('Go');
+                    //
+					//this.getinputWrapper.append(this.getinput);
+					//this.getinputWrapper.append(this.inputsubmit);
+                    //
+					//this.example = $('<li>');
+					//this.example.attr('class', 'nl-ti-example');
+					//this.example.append( this.elOriginal.getAttribute( 'data-subline' ) );
+                    //
+					//this.optionsList = $('<ul>');
+					//this.optionsList.append( this.getinputWrapper );
+					//this.optionsList.append( this.example );
+                    //
+					//this.fld = $('<div>');
+					//this.fld.attr('class', 'nl-field nl-ti-text');
+					//this.fld.append( this.toggle );
+					//this.fld.append( this.optionsList);
+                    //
+					//this.elOriginal.attr('style', 'display: none;')
+					//this.elOriginal.parent().insertBefore( this.fld, this.elOriginal );
+					//console.log(this.elOriginal)
+					//this.elOriginal.parentNode.insertBefore( this.fld, this.elOriginal );
+					//this.elOriginal.style.display = 'none';
+					////////////////////////////////////////////////////////////////////////////
 					this.fld = document.createElement( 'div' );
 					this.fld.className = 'nl-field nl-ti-text';
 					this.toggle = document.createElement( 'a' );
@@ -141,13 +223,20 @@ define(['OpenStreetMapApp'],
 					this.example = document.createElement( 'li' );
 					this.example.className = 'nl-ti-example';
 					this.example.innerHTML = this.elOriginal.getAttribute( 'data-subline' );
+
 					this.optionsList.appendChild( this.getinputWrapper );
 					this.optionsList.appendChild( this.example );
 					this.fld.appendChild( this.toggle );
 					this.fld.appendChild( this.optionsList );
+					console.log(this.elOriginal);
+					console.log(this.elOriginal.parentNode);
 					this.elOriginal.parentNode.insertBefore( this.fld, this.elOriginal );
 					this.elOriginal.style.display = 'none';
-
+					//Values used later...
+					//this.toggle
+					//this.getinput
+					//this.inputsubmit
+					//this.fld
 				},
 				_initEvents : function() {
 					var self = this;
