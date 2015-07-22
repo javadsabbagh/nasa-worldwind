@@ -27,7 +27,11 @@ define([
         var RenderableLayer = function (displayName) {
             Layer.call(this, displayName);
 
-            // Intentionally not documented.
+            /**
+             * The array of renderables;
+             * @type {Array}
+             * @readonly
+             */
             this.renderables = [];
         };
 
