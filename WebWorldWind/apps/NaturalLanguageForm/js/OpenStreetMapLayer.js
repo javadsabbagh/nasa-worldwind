@@ -1,3 +1,6 @@
+/*
+ * Author: Inzamam Rahaman
+ */
 define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         'OpenStreetMapConfig',
         'rbush',

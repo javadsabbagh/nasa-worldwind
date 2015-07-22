@@ -1,5 +1,9 @@
 
 /*
+* Author: Inzamam Rahaman
+* Extended by Matt Evers
+*/
+/*
     This module acts as the application entry point
  */
 
@@ -24,9 +28,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             var self = this;
 
             this._config = new OpenStreetMapConfig();
-
-
-
+            
             /*
              Changes the size of the canvas that renders the world wind globe
              */

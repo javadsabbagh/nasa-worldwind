@@ -1,3 +1,8 @@
+
+/*
+ * Author: Inzamam Rahaman
+ * Modified by Matt Evers
+ */
 define(['jquery','OpenStreetMapConfig', 'osmtogeojson'],function($, OpenStreetMapConfig, osmtogeojson) {
 
     'use strict';
