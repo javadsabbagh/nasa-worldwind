@@ -64,7 +64,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
             this._wwd.addLayer(renderableLayer);
 
-            //This also handles Highlighting
+            //This also handles Highlighting for the renderable layer.
             function listenForHighlight(o){
                 var worldWindow = self._wwd,
                     highlightedItems = [];
@@ -99,27 +99,36 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 }
             }
 
+            /*
+             Calls the callback with the amenity associated with the highlighted placemark as a parameter.
+             */
             function waitForSelect(callback) {
                 var scopedCallback = callback;
                 //Create a highlightcontroller
                 self._wwd.addEventListener('mousemove', listenForHighlight);
                 //Create the route selection
                 self._wwd.addEventListener('mousedown', function(o){
-                    console.log(o)
-                    console.log('Click Detected')
+                    console.log(o);
+                    console.log('Click Detected');
                     var res;
                     renderableLayer.renderables.forEach(function(renderable){
                         if (renderable.highlighted){
                             console.log(renderable);
-                            res =  renderable.amenity
+                            res =  renderable.amenity;
                             return
                         }
                     });
-                    console.log(res)
+                    console.log(res);
                     scopedCallback(res)
                 });
             }
 
+            /*
+            Puts placemarks on the map for each amenity with the name of the amenity as a name. This binds each
+                amenity to the corrosponding renderable in <renderable>.amenity
+
+            @param arrayofamenities: the array of amenities returned from the OSM call.
+             */
             function buildPlacemarkLayer(arrayofamenities) {
                 var pinImgLocation = '../NaturalLanguageForm/img/pin.png' , // location of the image files
                     placemark,
@@ -141,6 +150,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 placemarkAttributes.labelAttributes.color = WorldWind.Color.YELLOW;
                 placemarkAttributes.drawLeaderLine = true;
                 placemarkAttributes.leaderLineAttributes.outlineColor = WorldWind.Color.RED;
+
+                //TEMP UNTIL PIN IS FIXED
                 // Create the custom image for the placemark for each earthquake.
                 var canvas = document.createElement("canvas"),
                     ctx2d = canvas.getContext("2d"),
@@ -151,6 +162,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 ctx2d.fillStyle = 'Blue';
                 ctx2d.arc(c, c, outerRadius, 0, 2 * Math.PI, false);
                 ctx2d.fill();
+                //END TEMP
 
                 arrayofamenities.forEach(function(amenity){
                     latitude = amenity['_location']['latitude'];
@@ -163,7 +175,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                     // Create the placemark attributes for this placemark. Note that the attributes differ only by their
                     // image URL.
                     placemarkAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
-                    placemarkAttributes.imageSource = new WorldWind.ImageSource(canvas)//pinImgLocation;
+                    placemarkAttributes.imageSource = new WorldWind.ImageSource(canvas) //pinImgLocation;
                     placemark.attributes = placemarkAttributes;
 
                     // Create the highlight attributes for this placemark. Note that the normal attributes are specified as
@@ -186,15 +198,18 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 console.log(data);
                 var fromLatitude = specs.startPosition[0];
                 var fromLongitude = specs.startPosition[1];
-                var fromLatitude = specs.startPosition[0];
-                var fromLongitude = specs.startPosition[1];
+
                 buildPlacemarkLayer(data);
+
+                /*
+                Calls the function once the user clicks on a placemark. It then calls the OSRM to find the route to
+                    that placemark from the start location and displays it once it is returned.
+                 */
                 waitForSelect(function(returnedData){
-                    console.log('Selection Occured')
+                    console.log('Selection Occured');
                     if (returnedData){
                         routeLayer.removeAllRenderables();
-                        var toPoint = returnedData;
-                        var toLocation = toPoint.location;
+                        var toLocation = returnedData.location;
                         var toLatitude = toLocation.latitude;
                         var toLongitude = toLocation.longitude;
                         var locationArray = [fromLatitude, fromLongitude, toLatitude, toLongitude];
@@ -206,12 +221,9 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 })
             }
 
-
             //var address = 'Piazza Leonardo da Vinci, 32, 20133 Milano, Italy';
             //
             //var amenityType = 'cafe';
-
-
 
             function callGeocoder(amenityType, address) {
 
@@ -239,7 +251,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             callGeocoder('cafe', address);
 
 
-        }
+        };
 
         return OpenStreetMapApp;
 
