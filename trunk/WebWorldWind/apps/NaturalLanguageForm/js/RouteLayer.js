@@ -1,3 +1,8 @@
+/*
+    Authors: Inzamam Rahaman, Matt Evers
+ */
+
+
 define(['http://worldwindserver.net/webworldwind/worldwindlib.js', 'Route','polyline'], function(ww, Route, polyline) {
 
    'use strict';

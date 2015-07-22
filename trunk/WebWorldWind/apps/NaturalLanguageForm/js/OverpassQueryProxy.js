@@ -1,3 +1,7 @@
+/*
+    Author: Inzamam Rahaman
+ */
+
 define(['jquery','OpenStreetMapConfig', 'OSMDataHelper'], function($, OpenStreetMapConfig, OSMDataHelper) {
     'use strict';
 

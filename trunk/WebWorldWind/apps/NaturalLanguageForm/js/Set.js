@@ -1,4 +1,5 @@
 /*
+    Author : Inzamam Rahaman
     A set implementation
     NB: keys must be either non-negative integers or strings
  */

@@ -1,3 +1,10 @@
+/*
+    Written by Inzamam Rahaman
+    Encapsulates the amenity information to provide a consistent interface
+    for working on amenity information
+ */
+
+
 define(function() {
 
     'use strict';
