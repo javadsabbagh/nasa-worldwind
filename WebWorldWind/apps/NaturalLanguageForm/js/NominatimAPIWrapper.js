@@ -1,3 +1,7 @@
+/*
+    Author: Inzamam Rahaman
+ */
+
 define(['jquery','OpenStreetMapConfig'], function($, OpenStreetMapConfig) {
 
     'use strict';

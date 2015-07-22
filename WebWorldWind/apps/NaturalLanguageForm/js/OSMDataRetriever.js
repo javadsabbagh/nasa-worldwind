@@ -1,3 +1,8 @@
+/*
+    Authors: Inzamam Rahaman, Matt Evers
+ */
+
+
 define(['xmlToJSON', 'osmtogeojson','OverpassAPIWrapper'],
     function (XTJ, osmtogeojson,OAW){
         'use strict';

@@ -1,3 +1,8 @@
+
+/*
+    Authors: Inzamam Rahaman, Matt Evers
+ */
+
 define(['http://worldwindserver.net/webworldwind/worldwindlib.js'], function(ww) {
 
     'use strict';

@@ -1,3 +1,7 @@
+/*
+    Authors: Matt Evers, Inzamam Rahaman
+ */
+
 define(function() {
 
     var baseURL = 'http://data.osmbuildings.org/0.2/';

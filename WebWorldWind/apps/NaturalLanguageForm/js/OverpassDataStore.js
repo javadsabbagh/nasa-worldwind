@@ -1,3 +1,7 @@
+/*
+    Author: Inzamam Rahaman
+ */
+
 define(['Set', 'rbush', 'OpenSteetMapConfig', 'jquery'], function(Set, rbush, OpenStreetMapConfig, $) {
     'use strict';
 

@@ -1,3 +1,7 @@
+/*
+    Author: Inzamam Rahaman
+ */
+
 define(['osmtogeojson', 'Amenity'], function(osmtogeojson, Amenity) {
 
     'use strict';
