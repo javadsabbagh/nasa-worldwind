@@ -27,6 +27,8 @@ define(function () {
 
         this.idCounter = 1;
 
+        this.legends = {};
+
         $("#addServerBox").find("button").on("click", function (e) {
             thisServersPanel.onAddServerButton(e);
         });
@@ -87,7 +89,7 @@ define(function () {
                     thisExplorer.addServerPanel(serverAddress, wmsCapsDoc);
                 } else {
                     alert(wmsServer +
-                    " WMS capabilities document invalid. The server is probably not a WMS server.");
+                        " WMS capabilities document invalid. The server is probably not a WMS server.");
                 }
             } else if (request.readyState === 4) {
                 if (request.statusText) {
@@ -127,10 +129,10 @@ define(function () {
             heading = $('<div class="panel-heading" role="tab" id="' + headingID + '"></div>'),
             title = $('<h4 class="panel-title wrap-panel-heading"></h4>'),
             anchor = $('<a data-toggle="collapse" href="#' + collapseID + '"' +
-            ' aria-expanded="true" aria-controls="' + collapseID + '">' + panelTitle + '</a>'),
+                ' aria-expanded="true" aria-controls="' + collapseID + '">' + panelTitle + '</a>'),
             remove = $('<a href="#"><small><span class="pull-right glyphicon glyphicon-remove clickable_space"></span></small></a>'),
             bodyParent = $('<div id="' + collapseID + '" class="panel-collapse collapse in" role="tabpanel"' +
-            ' aria-labelledby="' + headingID + '"></div>'),
+                ' aria-labelledby="' + headingID + '"></div>'),
             body = $('<div class="panel-body"></div>'),
             treeDiv = this.makeTree(serverAddress, treeId);
 
@@ -234,6 +236,11 @@ define(function () {
             var config = WorldWind.WmsLayer.formLayerConfiguration(layerCaps, null);
             var layer = new WorldWind.WmsLayer(config);
 
+            if (layerCaps.styles && layerCaps.styles.length > 0
+                && layerCaps.styles[0].legendUrls && layerCaps.styles[0].legendUrls.length > 0) {
+                layer.companionLayer = this.addLegend(layerCaps.styles[0].legendUrls[0]);
+            }
+
             layer.enabled = true;
             this.wwd.addLayer(layer);
             this.wwd.redraw();
@@ -247,9 +254,80 @@ define(function () {
     };
 
     ServersPanel.prototype.removeLayer = function (layer) {
+        this.removeLegend(layer.companionLayer);
+
         this.wwd.removeLayer(layer);
+        //if (layer.companionLayer) {
+        //    this.wwd.removeLayer(layer.companionLayer);
+        //}
         this.wwd.redraw();
         this.layersPanel.synchronizeLayerList();
+    };
+
+    ServersPanel.prototype.addLegend = function (legendCaps) {
+        var legend = this.legends[legendCaps.url];
+
+        if (legend) {
+            ++legend.refCount;
+            legend.layer.enabled = true;
+        } else {
+            legend = {refCount: 1, legendCaps: legendCaps};
+            legend.layer = new WorldWind.RenderableLayer();
+
+            var dummyOffset = new WorldWind.Offset(WorldWind.OFFSET_FRACTION, 0, WorldWind.OFFSET_FRACTION, 0),
+                screenImage = new WorldWind.ScreenImage(dummyOffset, legendCaps.url);
+            screenImage.imageOffset =
+                new WorldWind.Offset(WorldWind.OFFSET_FRACTION, 0, WorldWind.OFFSET_INSET_PIXELS, 0);
+            legend.layer.addRenderable(screenImage);
+            legend.layer.hide = true;
+            legend.layer.refCount = 0;
+            this.wwd.addLayer(legend.layer);
+
+            this.legends[legendCaps.url] = legend;
+
+            this.updateLegendOffsets();
+        }
+
+        ++legend.layer.refCount;
+
+        return legend.layer;
+    };
+
+    ServersPanel.prototype.removeLegend = function (legendLayer) {
+        for (var legendKey in this.legends) {
+            if (this.legends.hasOwnProperty(legendKey)) {
+                var legend = this.legends[legendKey];
+                if (legend.layer === legendLayer) {
+                    --legend.refCount;
+                    --legend.layer.refCount;
+                    if (legend.refCount <= 0) {
+                        this.wwd.removeLayer(legend.layer);
+                        delete this.legends[legend.legendCaps.url];
+                    }
+                    break;
+                }
+            }
+        }
+
+        this.updateLegendOffsets();
+    };
+
+    ServersPanel.prototype.updateLegendOffsets = function () {
+        var yOffset = 0,
+            verticalMargin = 5;
+
+        for (var legendKey in this.legends) {
+            if (this.legends.hasOwnProperty(legendKey)) {
+                var legend = this.legends[legendKey],
+                    screenImage = legend.layer.renderables[0];
+
+                screenImage.screenOffset =
+                    new WorldWind.Offset(WorldWind.OFFSET_FRACTION, 0, WorldWind.OFFSET_INSET_PIXELS, yOffset);
+
+                yOffset += legend.legendCaps.height + verticalMargin;
+
+            }
+        }
     };
 
     return ServersPanel;
