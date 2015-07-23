@@ -98,6 +98,12 @@ define(['OpenStreetMapApp'],
 					}();
 
 				},
+				/*
+				* Loops through all the fields and checks if they have an entry. If at least one does not have
+				* an entry, return false, else true.
+				*
+				* @ return: False if <aboveCondition> else True
+				*/
 				_areAllFieldsFilled : function() {
 					var self = this;
 					self.hasAllFields = true;
@@ -108,11 +114,23 @@ define(['OpenStreetMapApp'],
 					});
 					return self.hasAllFields
 				},
+				_openNextField : function () {
+					var self = this;
+					if (self.fldOpen+1 < self.fields.length) {
+						console.log(self.fldOpen);
+						self.fields[self.fldOpen+1]._open()
+					}
+
+				},
+				/*
+				* Loops through each field and closes them.
+				*/
 				closeAllFields : function () {
 					var self = this;
 					self.fields.forEach(function(field){
 						field.close()
 					});
+					self.fldOpen = -1;
 				},
 				runWorldWindIfAllEntriesFilled : function () {
 					if (this._areAllFieldsFilled()){
@@ -223,7 +241,6 @@ define(['OpenStreetMapApp'],
 					this.example = document.createElement( 'li' );
 					this.example.className = 'nl-ti-example';
 					this.example.innerHTML = this.elOriginal.getAttribute( 'data-subline' );
-
 					this.optionsList.appendChild( this.getinputWrapper );
 					this.optionsList.appendChild( this.example );
 					this.fld.appendChild( this.toggle );
@@ -268,8 +285,12 @@ define(['OpenStreetMapApp'],
 					}
 					this.open = true;
 					this.form.fldOpen = this.pos;
-					var self = this;
+
+					//The addition of this tag causes the box to open. The input elements are created at this time.
 					this.fld.className += ' nl-field-open';
+
+					//Automaticall focuses on the input box once it is created.
+					this.getinput.focus()
 				},
 				close : function( opt, idx ) {
 					var self = this;
@@ -277,7 +298,6 @@ define(['OpenStreetMapApp'],
 						return false;
 					}
 					this.open = false;
-					this.form.fldOpen = -1;
 					this.fld.className = this.fld.className.replace(/\b nl-field-open\b/,'');
 
 					if( this.type === 'dropdown' ) {
@@ -304,6 +324,8 @@ define(['OpenStreetMapApp'],
 						}
 						this.elOriginal.value = this.getinput.value;
 					}
+					//Opens the next Field.
+					this.form._openNextField();
 
 					//Runs world wind if all fields are filled.
 					this.form.runWorldWindIfAllEntriesFilled();
