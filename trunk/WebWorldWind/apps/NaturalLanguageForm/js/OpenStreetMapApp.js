@@ -150,21 +150,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                     WorldWind.OFFSET_FRACTION, 0.5,
                     WorldWind.OFFSET_FRACTION, 1.0);
                 placemarkAttributes.labelAttributes.color = WorldWind.Color.YELLOW;
-                placemarkAttributes.drawLeaderLine = true;
+                //placemarkAttributes.drawLeaderLine = true;
                 placemarkAttributes.leaderLineAttributes.outlineColor = WorldWind.Color.RED;
-
-                //TEMP UNTIL PIN IS FIXED
-                // Create the custom image for the placemark for each earthquake.
-                var canvas = document.createElement("canvas"),
-                    ctx2d = canvas.getContext("2d"),
-                    size = 10 , c = size / 2  - 0.5, innerRadius = 0, outerRadius = 45;
-                canvas.width = size;
-                canvas.height = size;
-
-                ctx2d.fillStyle = 'Blue';
-                ctx2d.arc(c, c, outerRadius, 0, 2 * Math.PI, false);
-                ctx2d.fill();
-                //END TEMP
 
                 arrayofamenities.forEach(function(amenity){
                     latitude = amenity['_location']['latitude'];
@@ -177,14 +164,15 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                     // Create the placemark attributes for this placemark. Note that the attributes differ only by their
                     // image URL.
                     placemarkAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
-                    placemarkAttributes.imageSource = new WorldWind.ImageSource(canvas) //pinImgLocation;
+                    placemarkAttributes.imageScale = .1;
+                    placemarkAttributes.imageSource = pinImgLocation;
                     placemark.attributes = placemarkAttributes;
 
                     // Create the highlight attributes for this placemark. Note that the normal attributes are specified as
                     // the default highlight attributes so that all properties are identical except the image scale. You could
                     // instead vary the color, image, or other property to control the highlight representation.
                     highlightAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
-                    highlightAttributes.imageScale = 1.2;
+                    highlightAttributes.imageScale = .12;
                     placemark.highlightAttributes = highlightAttributes;
 
                     //So we can refer to this loc later
