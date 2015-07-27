@@ -61,9 +61,9 @@ define(['jquery','OpenStreetMapConfig'], function($, OpenStreetMapConfig) {
     MapQuestGeocoder.prototype.getLatitudeAndLong = function(address, callback) {
         var self = this;
         var url = this.assembleAPICall(address);
-        console.log('Searching for address ', this.processAddress(address));
+        //console.log('Searching for address ', this.processAddress(address));
         $.get(url, function(resp) {
-            console.log(resp);
+            //console.log(resp);
             var processedResponse = self.processResponseForLatLong(resp);
             callback(processedResponse);
         });
