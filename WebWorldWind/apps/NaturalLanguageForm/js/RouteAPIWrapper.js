@@ -15,11 +15,11 @@ define(['OpenStreetMapConfig'],function(OpenStreetMapConfig){
      */
     RouteAPIWrapper.prototype.assembleCall = function (locArray) {
         var self = this;
-        console.log(locArray);
+        //console.log(locArray);
 
         var from = [locArray[0], locArray[1]];
         var to = [locArray[2], locArray[3]];
-        console.log(to);
+        //console.log(to);
 
         var call = self._config.OSRMAPIBody + "viaroute?" + "loc="
             + from + "&" + "loc="
@@ -41,7 +41,7 @@ define(['OpenStreetMapConfig'],function(OpenStreetMapConfig){
         var url = this.assembleCall(arr);
         $.get(url, function(data) {
             var toSend = data;
-            console.log('to send ', toSend);
+            //console.log('to send ', toSend);
             callback(toSend);
         });
 

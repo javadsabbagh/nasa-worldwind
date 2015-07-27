@@ -21,17 +21,17 @@ define(['jquery','OpenStreetMapConfig', 'OSMDataHelper'], function($, OpenStreet
     OverpassQueryProxy.prototype.constuctAPICall = function(boundingBox, callbackSpecifications) {
         var baseURI = this._config.overPassAPIBody;
         var node = 'node';
-        console.log(callbackSpecifications);
+        //console.log(callbackSpecifications);
         var keyPart = '"' + callbackSpecifications. overpassAPIKey + '"';
         var valPart = '"' + callbackSpecifications.overpassAPIValue + '"'
         var specs = '[' + keyPart + '~' + valPart + ']';
-        console.log('specs ', specs);
+        //console.log('specs ', specs);
         var boundingBoxPorition = this.getBoundingBoxString(boundingBox);
         var endString = 'out ' + this._config.nodeLimit + ' body;'
         var query = [node, specs, boundingBoxPorition, endString].join(' ');
         query = baseURI + query;
         var encodedQuery = encodeURI(query);
-        console.log(encodedQuery);
+        //console.log(encodedQuery);
         return encodedQuery;
     }
 
@@ -40,9 +40,9 @@ define(['jquery','OpenStreetMapConfig', 'OSMDataHelper'], function($, OpenStreet
     OverpassQueryProxy.prototype.retrieveOSMData = function(boundingBox, callbackSpecifications, callback) {
         var self = this;
         var queryURI = this.constuctAPICall(boundingBox, callbackSpecifications);
-        console.log('query uri ', queryURI);
+        //console.log('query uri ', queryURI);
         $.get(queryURI, function(data) {
-            console.log(data);
+            //console.log(data);
             var dataAsGeoJSON = self._helper.processOSMData(data);
             callback(callbackSpecifications, dataAsGeoJSON);
         });

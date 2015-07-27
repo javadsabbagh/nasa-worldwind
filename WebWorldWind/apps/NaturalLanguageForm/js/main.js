@@ -13,7 +13,7 @@ requirejs.config({
 requirejs(['jquery', "OpenStreetMapApp", 'nlform', 'nlbuilder'], function($, OpenStreetMapApp, NaturalLanguageCanvas, NLBuilder) {
     console.log('setting up');
     console.log($('#amenityField'));
-
+    console.log(OpenStreetMapApp);
     var nLBuilder = new NLBuilder($(' #nl-form' ));
     nLBuilder.addBasicText('I\'m looking for ');
     nLBuilder.addField('amenityField', 'amenity', "For example: <em>cafe</em>");

@@ -12,12 +12,15 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         'OpenStreetMapConfig',
         'jquery',
         'OSMDataRetriever','RouteLayer', 'Route','RouteAPIWrapper','NaturalLanguageHandler', 'polyline',
-        'MapQuestGeocoder'],
+        'MapQuestGeocoder',
+        'nlform',
+        'nlbuilder'],
     function(ww,
              OpenStreetMapLayer,
              OpenStreetMapConfig,
              $,
-             OSMDataRetriever, RouteLayer, Route, RouteAPIWrapper, NaturalLanguageHandler, polyline, MapQuestGeocoder) {
+             OSMDataRetriever, RouteLayer, Route, RouteAPIWrapper, NaturalLanguageHandler, polyline, MapQuestGeocoder,
+             NLForm, NLBuilder) {
 
 
         'use strict';
@@ -60,14 +63,104 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
             this._wwd.addLayer(routeLayer);
 
-            var routeFinder = new RouteAPIWrapper();
-
             var renderableLayer = new WorldWind.RenderableLayer('Pins');
 
             this._wwd.addLayer(renderableLayer);
 
-            //This also handles Highlighting for the renderable layer.
-            function listenForHighlight(o){
+            amenity = 'cafe';
+            address = 'mountain view';
+
+            var routeLayerRouteBuilder = new (this.RouteBuilder(routeLayer));
+
+            //First, geocode the address
+            //console.log('111111111111111');
+            this.callGeocoder(address, amenity, function(returnedSpecs) {
+                // Second, call the natural language handler with the specs.
+                // This calls the callback with data corrosponding to all the amenities of the given
+                //      amenity type inside a bounding box around the address provided.
+                //console.log('222222222222222222');
+                naturalLanguageHandler.receiveInput(returnedSpecs, function(newSpecs, returnedData){
+                    // Third, build the layer.
+                    //console.log('3333333333333333333');
+                    self.buildPlacemarkLayer(renderableLayer, returnedData);
+                    // Fourth, add the selection controller to the layer.
+                    //console.log('444444444444444444444');
+                    self.HighlightAndSelectController(renderableLayer, function (returnedRenderable){
+                        var pointOfRenderable = self.getPointFromRenderableSelection(returnedRenderable);
+                        //Fifth, add this point to the route layer and see if it is enough to build a route.
+                        //console.log('55555555555555555555');
+                        routeLayerRouteBuilder.processPoint(pointOfRenderable);
+                    })
+
+                })
+            });
+
+        };
+
+        /*
+        * Constructs a routeBuilder and returns it. This module waits for the selection of two points and then
+        * draws a route between those two points.
+        *
+        * @param routeLayer: The desired layer for this routebuilder to be bound.
+         */
+        OpenStreetMapApp.prototype.RouteBuilder = function (routeLayer) {
+            var self = this;
+            var RouteBuilderMod = function  (){
+                var routeBuilder = this;
+                //This should eventually look like [fromLatitude, fromLongitude, toLatitude, toLongitude]
+                // This refers to RouteBuilder
+                routeBuilder.routeArray = [];
+                routeBuilder.routeLayer = routeLayer;
+
+                // A singleton routefinder.
+                if (!self.routeFinder) {
+                    self.routeFinder = new RouteAPIWrapper();
+                }
+            };
+
+            /*
+            * Concatenates a pointArray of the form [lat, lon] to the attribute routeBuilder.routeArray. Then if
+            * the routeArray has 2 points (i.e. a start and stop) then it calls the function to draw the route on the
+            * layer.
+            *
+            * @param pointArray: a pointArray of the form [lat, lon]
+             */
+            RouteBuilderMod.prototype.processPoint = function (pointArray) {
+                var routeBuilder = this;
+
+                routeBuilder.routeArray = routeBuilder.routeArray.concat(pointArray);
+
+                if (routeBuilder.routeArray.length === 4) {
+                    routeBuilder.drawRoute(routeBuilder.routeArray);
+                    routeBuilder.routeArray = [];
+                }
+            };
+
+            /*
+            * Draws the desired route onto the layer this routebuilder is bound to.
+            *
+            * @param routeArray: an array of the form [fromLatitude, fromLongitude, toLatitude, toLongitude]
+             */
+            RouteBuilderMod.prototype.drawRoute = function (routeArray) {
+                var routeBuilder = this;
+                self.routeFinder.getRouteData(routeArray, function(routeData) {
+                    //console.log('routeInformation : ', routeData);
+                    routeBuilder.routeLayer.addRoute(routeData);
+                });
+            };
+            return RouteBuilderMod
+
+        };
+
+        /*
+        * Creates a mouse listener that highlights placemarks on a layer if the mouse is over that placemark.
+        *
+        * @param renderableLayer: Layer to add the listener to. The highlight controller will only highlight placemarks
+        *                           on this layer.
+        */
+        OpenStreetMapApp.prototype.HighlightController = function (renderableLayer) {
+            var self = this;
+            var ListenerForHighlightOnLayer = function(o) {
                 var worldWindow = self._wwd,
                     highlightedItems = [];
                 // The input argument is either an Event or a TapRecognizer. Both have the same properties for determining
@@ -76,8 +169,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                     y = o.clientY;
                 var redrawRequired = renderableLayer.renderables.length > 0; // must redraw if we de-highlight previous shapes
                 // De-highlight any previously highlighted shapes.
-                renderableLayer.renderables.forEach(function(renderable){
-                   renderable.highlighted = false
+                renderableLayer.renderables.forEach(function (renderable) {
+                    renderable.highlighted = false
                 });
                 // Perform the pick. Must first convert from window coordinates to canvas coordinates, which are
                 // relative to the upper left corner of the canvas rather than the upper left corner of the page.
@@ -99,221 +192,145 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 if (redrawRequired) {
                     worldWindow.redraw(); // redraw to make the highlighting changes take effect on the screen
                 }
-            }
+            };
+            self._wwd.addEventListener('mousemove', ListenerForHighlightOnLayer);
+        };
 
-            /*
-             Calls the callback with the amenity associated with the highlighted placemark as a parameter.
-             */
-            function waitForSelect(callback) {
-                var scopedCallback = callback;
-                //Create a highlightcontroller
-                self._wwd.addEventListener('mousemove', listenForHighlight);
-                //Create the route selection
-                self._wwd.addEventListener('mousedown', function(o){
-                    console.log(o);
-                    console.log('Click Detected');
-                    var res;
-                    renderableLayer.renderables.forEach(function(renderable){
-                        if (renderable.highlighted){
-                            console.log(renderable);
-                            res =  renderable.amenity;
-                            return
-                        }
-                    });
-                    console.log(res);
-                    scopedCallback(res)
-                });
-            }
+        /*
+         * Creates a mouse listener that highlights placemarks on a layer if the mouse is over that placemark.
+         *
+         * @param callback: What function to call when a placemark is clicked on. The callback is called with the
+         *                      the renderable as a param (with the amenity info in renderable.amenity).
+         * @param renderableLayer: Layer to add the listener to. The highlight controller will only highlight placemarks
+         *                           on this layer.
+         */
+        OpenStreetMapApp.prototype.HighlightAndSelectController = function (renderableLayer, callback) {
+            var self = this;
 
-            /*
-            Puts placemarks on the map for each amenity with the name of the amenity as a name. This binds each
-                amenity to the corrosponding renderable in <renderable>.amenity
+            //Create a highlight controller for the layer.
+            self.HighlightController(renderableLayer);
 
-            @param arrayofamenities: the array of amenities returned from the OSM call.
-             */
-            function buildPlacemarkLayer(arrayofamenities) {
-                var pinImgLocation = '../NaturalLanguageForm/img/pin.png' , // location of the image files
-                    placemark,
-                    placemarkAttributes = new WorldWind.PlacemarkAttributes(null),
-                    highlightAttributes,
-                    placemarkLayer = renderableLayer,
-                    latitude,
-                    longitude;
-
-                // Set up the common placemark attributes.
-                placemarkAttributes.imageScale = 1;
-                placemarkAttributes.imageOffset = new WorldWind.Offset(
-                    WorldWind.OFFSET_FRACTION, 0.3,
-                    WorldWind.OFFSET_FRACTION, 0.0);
-                placemarkAttributes.imageColor = WorldWind.Color.WHITE;
-                placemarkAttributes.labelAttributes.offset = new WorldWind.Offset(
-                    WorldWind.OFFSET_FRACTION, 0.5,
-                    WorldWind.OFFSET_FRACTION, 1.0);
-                placemarkAttributes.labelAttributes.color = WorldWind.Color.YELLOW;
-                //placemarkAttributes.drawLeaderLine = true;
-                placemarkAttributes.leaderLineAttributes.outlineColor = WorldWind.Color.RED;
-
-                arrayofamenities.forEach(function(amenity){
-                    latitude = amenity['_location']['latitude'];
-                    longitude = amenity['_location']['longitude'];
-                    // Create the placemark and its label.
-                    placemark = new WorldWind.Placemark(new WorldWind.Position(latitude, longitude, 1e2), true, null);
-                    placemark.label = amenity['_amenity'];
-                    placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
-
-                    // Create the placemark attributes for this placemark. Note that the attributes differ only by their
-                    // image URL.
-                    placemarkAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
-                    placemarkAttributes.imageScale = .1;
-                    placemarkAttributes.imageSource = pinImgLocation;
-                    placemark.attributes = placemarkAttributes;
-
-                    // Create the highlight attributes for this placemark. Note that the normal attributes are specified as
-                    // the default highlight attributes so that all properties are identical except the image scale. You could
-                    // instead vary the color, image, or other property to control the highlight representation.
-                    highlightAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
-                    highlightAttributes.imageScale = .12;
-                    placemark.highlightAttributes = highlightAttributes;
-
-                    //So we can refer to this loc later
-                    placemark.amenity = amenity;
-
-                    // Add the placemark to the layer.
-                    placemarkLayer.addRenderable(placemark);
-                });
-            }
-
-            function processUserInput(specs, data) {
-                console.log(specs);
-                console.log(data);
-                var fromLatitude = specs.startPosition[0];
-                var fromLongitude = specs.startPosition[1];
-
-                buildPlacemarkLayer(data);
-
-                /*
-                Calls the function once the user clicks on a placemark. It then calls the OSRM to find the route to
-                    that placemark from the start location and displays it once it is returned.
-                 */
-                waitForSelect(function(returnedData){
-                    console.log('Selection Occured');
-                    if (returnedData){
-                        routeLayer.removeAllRenderables();
-                        var toLocation = returnedData.location;
-                        var toLatitude = toLocation.latitude;
-                        var toLongitude = toLocation.longitude;
-                        var locationArray = [fromLatitude, fromLongitude, toLatitude, toLongitude];
-                        routeFinder.getRouteData(locationArray, function(routeData) {
-                            console.log('routeInformation : ', routeData);
-                            routeLayer.addRoute(routeData);
-                        });
+            var ListenerForClickOnPlacemark = function (o) {
+                // Calls the callback for each highlighted placemark. There should only be one so this shouldn't be
+                //  an issue.
+                renderableLayer.renderables.forEach(function(renderable){
+                    if (renderable.highlighted){
+                        callback(renderable.amenity);
                     }
-                })
-            }
-
-            //var address = 'Piazza Leonardo da Vinci, 32, 20133 Milano, Italy';
-            //
-            //var amenityType = 'cafe';
-
-            function callGeocoder(amenityType, address) {
-
-                var geocoder = new MapQuestGeocoder();
-                geocoder.getLatitudeAndLong(address, function(location) {
-                    console.log('Como, Italy is at');
-                    var worldWindLoc = new WorldWind.Position(location.latitude, location.longitude, 1e3);
-                    var animator = new WorldWind.GoToAnimator(self._wwd);
-                    animator.goTo(worldWindLoc);
-
-                    var specs = {
-                        longitude : location.longitude,
-                        latitude : location.latitude,
-                        useCurrentLocationForNavigation : false,
-                        overpassKey : 'amenity',
-                        overpassValue : amenityType
-                    };
-
-                    naturalLanguageHandler.receiveInput(specs, processUserInput);
-
                 });
 
+            };
+            self._wwd.addEventListener('mousedown', ListenerForClickOnPlacemark);
+        };
+
+        /*
+        *   Populates a layer with placemarks given in an array of ammenities.
+        *
+        * @param arrayofamenities: An array containing elements geographical location and a name.
+        * @param renderableLayer: A worldwind layer to populate.
+        */
+        OpenStreetMapApp.prototype.buildPlacemarkLayer = function (renderableLayer, arrayofamenities) {
+            var pinImgLocation = '../NaturalLanguageForm/img/pin.png' , // location of the image files
+                placemark,
+                placemarkAttributes = new WorldWind.PlacemarkAttributes(null),
+                highlightAttributes,
+                placemarkLayer = renderableLayer,
+                latitude,
+                longitude;
+
+            // Set up the common placemark attributes.
+            placemarkAttributes.imageScale = 1;
+            placemarkAttributes.imageOffset = new WorldWind.Offset(
+                WorldWind.OFFSET_FRACTION, 0.3,
+                WorldWind.OFFSET_FRACTION, 0.0);
+            placemarkAttributes.imageColor = WorldWind.Color.WHITE;
+            placemarkAttributes.labelAttributes.offset = new WorldWind.Offset(
+                WorldWind.OFFSET_FRACTION, 0.5,
+                WorldWind.OFFSET_FRACTION, 1.0);
+            placemarkAttributes.labelAttributes.color = WorldWind.Color.YELLOW;
+            //placemarkAttributes.drawLeaderLine = true;
+            placemarkAttributes.leaderLineAttributes.outlineColor = WorldWind.Color.RED;
+
+            arrayofamenities.forEach(function(amenity){
+                latitude = amenity['_location']['latitude'];
+                longitude = amenity['_location']['longitude'];
+                // Create the placemark and its label.
+                placemark = new WorldWind.Placemark(new WorldWind.Position(latitude, longitude, 1e2, true, null));
+                placemark.label = amenity['_amenity'];
+                placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
+
+                // Create the placemark attributes for this placemark. Note that the attributes differ only by their
+                // image URL.
+                placemarkAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
+                placemarkAttributes.imageScale = .1;
+                placemarkAttributes.imageSource = pinImgLocation;
+                placemark.attributes = placemarkAttributes;
+
+                // Create the highlight attributes for this placemark. Note that the normal attributes are specified as
+                // the default highlight attributes so that all properties are identical except the image scale. You could
+                // instead vary the color, image, or other property to control the highlight representation.
+                highlightAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
+                highlightAttributes.imageScale = .12;
+                placemark.highlightAttributes = highlightAttributes;
+
+                //So we can refer to this loc later
+                placemark.amenity = amenity;
+
+                // Add the placemark to the layer.
+                placemarkLayer.addRenderable(placemark);
+            });
+        };
+
+        /*
+        * Extracts the lat and long information from a given renderable.
+        *
+        * @param selectedRenderable: A renderable with lat, long information.
+        *
+        * @return: an array of the form [latitude, longitude] corrosponding to the renderable.
+         */
+        OpenStreetMapApp.prototype.getPointFromRenderableSelection = function (selectedRenderable) {
+            if (selectedRenderable) {
+                var toLocation = selectedRenderable.location;
+                var toLatitude = toLocation.latitude;
+                var toLongitude = toLocation.longitude;
+                return [toLatitude, toLongitude]
+            }
+        };
+
+        /*
+        *   Calls the callback function with the geocoded address as a parameter. This also creates a singleton
+        *   of the mapquest geocoder.
+        *
+        *   @param callback: Callback function. This is called with geocoded 'specs' as the parameter.
+        *   @param address: Name of location such as 'Mountain View'
+        */
+        OpenStreetMapApp.prototype.callGeocoder = function (address, amenityType, callback) {
+            var self = this;
+
+            // A singleton
+            if (!self.Geocoder) {
+                self.Geocoder = new MapQuestGeocoder();
             }
 
-            callGeocoder('cafe', address);
+            self.Geocoder.getLatitudeAndLong(address, function(location) {
+                var worldWindLoc = new WorldWind.Position(location.latitude, location.longitude, 1e3);
+                var animator = new WorldWind.GoToAnimator(self._wwd);
+                animator.goTo(worldWindLoc);
 
+                var specs = {
+                    longitude : location.longitude,
+                    latitude : location.latitude,
+                    useCurrentLocationForNavigation : false,
+                    overpassKey : 'amenity',
+                    overpassValue : amenityType
+                };
+
+                callback(specs)
+
+            });
 
         };
 
         return OpenStreetMapApp;
 
-
 });
-
-
-///*
-//
-// naturalLanguageHandler.receiveInput(['Near Me', 'name', 'Wallmart'], function(data) {
-//
-// // Something to go to and draw directions.
-// // Matt's House
-// var defaultLoc = [42.0362415,-88.3450904];
-//
-// // Create a layer to draw routes on.
-// var routeLayer = new RouteLayer();
-//
-// // initData initialized. This is so that the BoundingBox can be added
-// //          as a property of the data for use later.
-// var initData = data;
-//
-// // If there is ONE place returned, this draws a route to it.
-// // The NLH should filter this data.features to one entry.
-// // Check if data is returned.
-// if (data.features) {
-//
-// // If data is returned, check if any features in data.features.
-// if (data.features.length != 0) {
-//
-// // This array contains the start point and end point of the route.
-// // Currently the array ALWAYS starts at Matt's house.
-// // The destination changes based on the data returned.
-// var routeArray = [
-// defaultLoc[0],
-// defaultLoc[1],
-// data.features[0].geometry.coordinates[1],
-// data.features[0].geometry.coordinates[0]];
-//
-// /* Creates a callback function that goes to the position of the route drawn. This gets
-// *        called when the route polyline is returned from the routing API.
-// *
-// * @param data: Data is the return from the Routing API. See that for structure.
-// **/
-//
-//var callback = function (data) {
-//    var goToRoute = new WorldWind.GoToAnimator(self._wwd);
-//    goToRoute.goTo(new WorldWind.Position(
-//        data['via_points'][0][0],
-//        data['via_points'][0][1],
-//        1e4
-//    ));
-//
-//    routeLayer.addRoute(data);
-//}
-//
-//}
-//
-//routeFinder.getRouteData(callback, routeArray)
-//}
-//
-//// Polyline for the bounding box to be drawn.
-//var drawBox = [
-//    [initData.boundingBox[0], initData.boundingBox[1]],
-//    [initData.boundingBox[0], initData.boundingBox[3]],
-//    [initData.boundingBox[2], initData.boundingBox[3]],
-//    [initData.boundingBox[2], initData.boundingBox[1]],
-//    [initData.boundingBox[0], initData.boundingBox[1]]
-//];
-//// Either way, if a feature is returned or not, draw the bounding box.
-//routeLayer.addRoutesByPolyline(drawBox);
-//self._wwd.addLayer(routeLayer);
-//})
-//
-// */

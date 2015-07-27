@@ -1,5 +1,6 @@
 <!--
     Author: Ritesh Mishra, ritesh.mishra@nasa.gov
+    Modified by Matt Evers, mre8338@truman.edu
     Editor: Jenipher D. González Aponte, jenipher.gonzalez-aponte@nasa.gov
     NASA Ames Research Center, Moffett Field, California
 -->
@@ -13,7 +14,6 @@
 	<title>NASA World Wind</title>
 
 	<meta name="author" content="Codrops" />
-	<link rel="shortcut icon" href="../favicon.ico">
 	<link rel="stylesheet" type="text/css" href="css/default.css" />
 	<link rel="stylesheet" href="css/normalize.css">
 	<link rel="stylesheet" type="text/css" href="css/component.css" />
@@ -64,6 +64,16 @@
 			position:fixed;
 			right: 0px;
 			top: 0px;
+		}
+		/* information pop-up */
+		#layDiv1
+		{
+			position: fixed;
+			width: 100px;
+			height: 140px;
+			z-index: 1;
+			right: 78px;
+			bottom: 22px;
 		}
 	</style>
 	<script src="js/modernizr.custom.js"></script>
@@ -137,7 +147,7 @@
 					<div class="animate-path">
 						<div class="path-rotation"></div>
 						<script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
-						<script src="dataPoint/js/index.js"></script>
+						<!--<script src="dataPoint/js/index.js"></script>-->
 						<!-- /dataPoint -->
 					</div>
 				</div>

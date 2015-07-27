@@ -84,7 +84,7 @@ define(['OverpassAPIWrapper','RouteAPIWrapper','OSMDataRetriever','OpenStreetMap
         NaturalLanguageHandler.prototype.processSpecifications = function(callback, dataRetriever) {
             var self = this;
             var helper = function(callbackSpecs) {
-                console.log('using helper wrapper callback');
+                //console.log('using helper wrapper callback');
                 var boundingBox = self.buildBoundingBox(callbackSpecs.startPosition);
                 dataRetriever.retrieveOSMData(boundingBox, callbackSpecs, callback);
             };
@@ -98,7 +98,7 @@ define(['OverpassAPIWrapper','RouteAPIWrapper','OSMDataRetriever','OpenStreetMap
                 modifiedSpecifications = this._config.defaultInputSpecification;
             }
 
-            console.log(modifiedSpecifications);
+            //console.log(modifiedSpecifications);
             var alteredCallback = this.processSpecifications(callback, this._osmDataRetriever);
             var successNavigatorCallback = grabNavigatorData(modifiedSpecifications, alteredCallback);
             var failureNavigatorCallback = getSomeDefaultLocationInfo(modifiedSpecifications, alteredCallback);

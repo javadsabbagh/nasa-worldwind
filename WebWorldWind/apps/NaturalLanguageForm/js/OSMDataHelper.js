@@ -49,7 +49,7 @@ define(['osmtogeojson', 'Amenity'], function(osmtogeojson, Amenity) {
         var amenity = tags['amenity'];
         var name = tags['name'];
         var amenityRepr = new Amenity(id, name, amenity, location);
-        console.log('Aneminity :', amenityRepr );
+        //console.log('Aneminity :', amenityRepr );
         return amenityRepr;
     }
 

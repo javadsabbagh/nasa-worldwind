@@ -16,7 +16,6 @@
 define(['OpenStreetMapApp'],
 	function (OpenStreetMapApp){
 		'use strict';
-
 		function NaturalLanguageCanvas ( window ) {
 			var document = window.document;
 
@@ -39,17 +38,14 @@ define(['OpenStreetMapApp'],
 				_init : function() {
 					var self = this;
 					Array.prototype.slice.call( this.el.querySelectorAll( 'select' ) ).forEach( function( el, i ) {
-						self.fldOpen++;
-						self.fields.push( new NLField( self, el, 'dropdown', self.fldOpen ) );
+						self.fields.push( new NLField( self, el, 'dropdown', i ) );
 					} );
 					Array.prototype.slice.call( this.el.querySelectorAll( 'input' ) ).forEach( function( el, i ) {
-						self.fldOpen++;
-						self.fields.push( new NLField( self, el, 'input', self.fldOpen ) );
+						self.fields.push( new NLField( self, el, 'input', i ) );
 					} );
-					//These are commented out because currently the input box gets clicked through causing the input
-					// box to close.
-					//this.backDrop.addEventListener( 'click', function(ev) { ev.preventDefault(); ev.stopPropagation(); self.closeAllFields(); } );
-					//this.backDrop.addEventListener( 'touchstart', function(ev) { ev.preventDefault(); ev.stopPropagation(); self.closeAllFields(); } );
+					//Close the boxes if the user clicks elsewhere
+					this.backDrop.addEventListener( 'click', function(ev) { ev.preventDefault(); ev.stopPropagation(); self.closeAllFields(); } );
+					this.backDrop.addEventListener( 'touchstart', function(ev) { ev.preventDefault(); ev.stopPropagation(); self.closeAllFields(); } );
 				},
 				_loadPage : function() {
 
@@ -57,10 +53,13 @@ define(['OpenStreetMapApp'],
 					/*
 					* Start the World Wind window in the background so that it can load the tiles.
 					*/
+					console.log(OpenStreetMapApp)
 					var loadInBackground = function(){
 						var amenity = $('#amenityField').val().trim();
 						var address = $('#addressField').val().trim();
-						$('body').append('<canvas id="globe"></canvas>');
+						var newBody = $('<canvas>');
+						newBody.attr('id', 'globe');
+						$('body').append(newBody);
 						console.log('amenity ', amenity);
 						console.log('address ', address );
 						new OpenStreetMapApp(amenity, address);
@@ -88,6 +87,9 @@ define(['OpenStreetMapApp'],
 								loadSymbol.fadeOut(4000, function(){
 									$('#landingScreen').remove();
 									$('body').removeClass('nl-blurred');
+									if (window.NLForm){
+										delete window.NLForm
+									}
 								})
 							}
 							x = ((self.document.width()/2 - 78)/steps)*INDEX;
@@ -117,7 +119,6 @@ define(['OpenStreetMapApp'],
 				_openNextField : function () {
 					var self = this;
 					if (self.fldOpen+1 < self.fields.length) {
-						console.log(self.fldOpen);
 						self.fields[self.fldOpen+1]._open()
 					}
 
@@ -140,6 +141,7 @@ define(['OpenStreetMapApp'],
 			};
 
 			function NLField( form, el, type, idx ) {
+				var self = this;
 				this.form = form;
 				this.elOriginal = el;
 				this.pos = idx;
@@ -245,8 +247,8 @@ define(['OpenStreetMapApp'],
 					this.optionsList.appendChild( this.example );
 					this.fld.appendChild( this.toggle );
 					this.fld.appendChild( this.optionsList );
-					console.log(this.elOriginal);
-					console.log(this.elOriginal.parentNode);
+					//console.log(this.elOriginal);
+					//console.log(this.elOriginal.parentNode);
 					this.elOriginal.parentNode.insertBefore( this.fld, this.elOriginal );
 					this.elOriginal.style.display = 'none';
 					//Values used later...
@@ -263,8 +265,8 @@ define(['OpenStreetMapApp'],
 					if( this.type === 'dropdown' ) {
 						var opts = Array.prototype.slice.call( this.optionsList.querySelectorAll( 'li' ) );
 						opts.forEach( function( el, i ) {
-							el.addEventListener( 'click', function( ev ) { ev.preventDefault(); self.close( el, opts.indexOf( el ) ); } );
-							el.addEventListener( 'touchstart', function( ev ) { ev.preventDefault(); self.close( el, opts.indexOf( el ) ); } );
+							el.addEventListener( 'click', function( ev ) { ev.preventDefault(); ev.stopPropagation(); self.close( el, opts.indexOf( el ) ); } );
+							el.addEventListener( 'touchstart', function( ev ) { ev.preventDefault(); ev.stopPropagation(); self.close( el, opts.indexOf( el ) ); } );
 						} );
 					}
 					else if( this.type === 'input' ) {
@@ -273,8 +275,8 @@ define(['OpenStreetMapApp'],
 								self.close();
 							}
 						} );
-						this.inputsubmit.addEventListener( 'click', function( ev ) { ev.preventDefault(); self.close();} );
-						this.inputsubmit.addEventListener( 'touchstart', function( ev ) { ev.preventDefault(); self.close(); } );
+						this.inputsubmit.addEventListener( 'click', function( ev ) { ev.preventDefault(); ev.stopPropagation(); self.close();} );
+						this.inputsubmit.addEventListener( 'touchstart', function( ev ) { ev.preventDefault(); ev.stopPropagation(); self.close(); } );
 					}
 
 				},
@@ -325,7 +327,9 @@ define(['OpenStreetMapApp'],
 						this.elOriginal.value = this.getinput.value;
 					}
 					//Opens the next Field.
-					this.form._openNextField();
+					if (this.hasUserEntry){
+						this.form._openNextField();
+					}
 
 					//Runs world wind if all fields are filled.
 					this.form.runWorldWindIfAllEntriesFilled();
