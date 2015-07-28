@@ -429,7 +429,7 @@ define([
          * default WebGL framebuffer is made active.
          */
         DrawContext.prototype.bindFramebuffer = function (framebuffer) {
-            if (this.currentFramebuffer === framebuffer) {
+            if (this.currentFramebuffer != framebuffer) {
                 this.currentGlContext.bindFramebuffer(WebGLRenderingContext.FRAMEBUFFER,
                     framebuffer ? framebuffer.framebufferId : null);
                 this.currentFramebuffer = framebuffer;
