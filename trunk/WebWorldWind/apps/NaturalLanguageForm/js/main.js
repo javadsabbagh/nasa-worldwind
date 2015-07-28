@@ -5,15 +5,13 @@
 requirejs.config({
     paths: {
         "worldwind" : "http://worldwindserver.net/webworldwind/worldwindlib.js",
-        "jquery" : "http://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min",
-        "OpenStreetMapApp" : "OpenStreetMapApp"
+        "jquery" : "http://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min"
     }
 });
 
-requirejs(['jquery', "OpenStreetMapApp", 'nlform', 'nlbuilder'], function($, OpenStreetMapApp, NaturalLanguageCanvas, NLBuilder) {
+requirejs(['jquery', 'nlform', 'nlbuilder'], function($, NaturalLanguageCanvas, NLBuilder) {
     console.log('setting up');
     console.log($('#amenityField'));
-    console.log(OpenStreetMapApp);
     var nLBuilder = new NLBuilder($(' #nl-form' ));
     nLBuilder.addBasicText('I\'m looking for ');
     nLBuilder.addField('amenityField', 'amenity', "For example: <em>cafe</em>");

@@ -79,36 +79,35 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 console.log(data)
             });
 
-            //(function selectionDisplay () {
-            //    $("<style>")
-            //        .prop("type", "text/css")
-            //        .html("\
-            //            #layDiv2 {\
-            //              position: fixed;\
-            //                width: 100px;\
-            //                background-color: black;\
-            //                height: 140px;\
-            //                z-index: 1;\
-            //                right: 78px;\
-            //                bottom: 22px;\
-            //            }")
-            //        .appendTo("head");
-            //    var infoDisplay = $('<div>')
-            //    infoDisplay.attr('id', 'layDiv1');
-            //    infoDisplay.css('background-color','white');
-            //    var IMGOD = $('<img>')
-            //    IMGOD.attr('src','img/pin.png')
-            //    IMGOD.attr('width','44')
-            //    IMGOD.attr('height','46')
-            //
-            //    IMGOD.attr('alt','Pin')
-            //    IMGOD.attr('longdesc','img/pin.png')
-            //    infoDisplay.on('click', function (ev) {
-            //        IMGOD.remove()
-            //    })
-            //    infoDisplay.append(IMGOD)
-            //    $('body').append(infoDisplay)
-            //})();
+            (function selectionDisplay () {
+                $("<style>")
+                    .prop("type", "text/css")
+                    .html("\ #layDiv2 {\
+                          position: fixed;\
+                            width: 100px;\
+                            background-color: black;\
+                            height: 140px;\
+                            z-index: 1;\
+                            right: 78px;\
+                            bottom: 22px;\
+                        }")
+                    .appendTo("head");
+                var infoDisplay = $('<div>')
+                infoDisplay.attr('id', 'layDiv2');
+                infoDisplay.css('background-color','white');
+                var IMGOD = $('<img>')
+                IMGOD.attr('src','img/pin.png')
+                IMGOD.attr('width','44')
+                IMGOD.attr('height','46')
+
+                IMGOD.attr('alt','Pin')
+                IMGOD.attr('longdesc','img/pin.png')
+                infoDisplay.on('click', function (ev) {
+                    IMGOD.remove()
+                })
+                infoDisplay.append(IMGOD)
+                $('body').append(infoDisplay)
+            })();
 
             //First, geocode the address
             //console.log('111111111111111');
