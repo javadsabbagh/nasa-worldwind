@@ -94,7 +94,6 @@ define([
 
             } finally {
                 tessellator.endRendering(dc);
-                dc.bindProgram(null);
             }
         };
 

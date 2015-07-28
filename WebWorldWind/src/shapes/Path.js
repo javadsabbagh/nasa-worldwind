@@ -628,7 +628,6 @@ define([
             var gl = dc.currentGlContext;
 
             gl.disableVertexAttribArray(dc.currentProgram.vertexPointLocation);
-            dc.bindProgram(null);
             gl.depthMask(true);
             gl.lineWidth(1);
             gl.enable(WebGLRenderingContext.CULL_FACE);

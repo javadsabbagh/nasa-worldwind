@@ -52,26 +52,25 @@ define([
 
             TextureTile.call(this, sector, level, row, column); // args are checked in the superclass' constructor
 
-            /**
-             * This tile's model-view projection matrix. This matrix transforms points from geographic coordinates to
-             * clip coordinates appropriate for this tile's WebGL framebuffer.
-             * @type {Matrix}
-             * @readonly
-             */
-            this.modelviewProjection = Matrix.fromIdentity();
-            this.modelviewProjection.setToScreenProjection(level.tileWidth, level.tileHeight);
-            this.modelviewProjection.multiplyByScale(level.tileWidth / sector.deltaLongitude(),
-                level.tileHeight / sector.deltaLatitude(), 1);
-            this.modelviewProjection.multiplyByTranslation(-sector.minLongitude, -sector.minLatitude, 0);
+            // Assign the cacheKey as the gpuCacheKey (inherited from TextureTile).
+            this.gpuCacheKey = cacheKey;
 
             // Internal. Intentionally not documented.
             this.textureTransform = Matrix.fromIdentity().setToUnitYFlip();
 
-            // Assign the cacheKey as the gpuCacheKey (inherited from TextureTile).
-            this.gpuCacheKey = cacheKey;
+            // Internal. Intentionally not documented.
+            this.mustClear = true;
         };
 
         FramebufferTile.prototype = Object.create(TextureTile.prototype);
+
+        /**
+         * Causes this tile to clear any color fragments written to its off-screen framebuffer.
+         * @param dc The current draw context.
+         */
+        FramebufferTile.prototype.clearFramebuffer = function (dc) {
+            this.mustClear = true;
+        };
 
         /**
          * Causes this tile's off-screen framebuffer as the current WebGL framebuffer. WebGL operations that affect the
@@ -89,7 +88,14 @@ define([
                 framebuffer = this.createFramebuffer(dc);
             }
 
-            return framebuffer.bindFramebuffer(dc);
+            dc.bindFramebuffer(framebuffer);
+
+            if (this.mustClear) {
+                this.doClearFramebuffer(dc);
+                this.mustClear = false;
+            }
+
+            return true;
         };
 
         // Internal. Intentionally not documented.
@@ -98,6 +104,13 @@ define([
             dc.gpuResourceCache.putResource(this.gpuCacheKey, framebuffer, framebuffer.size);
 
             return framebuffer;
+        };
+
+        // Internal. Intentionally not documented.
+        FramebufferTile.prototype.doClearFramebuffer = function (dc) {
+            var gl = dc.currentGlContext;
+            gl.clearColor(0, 0, 0, 0);
+            gl.clear(WebGLRenderingContext.COLOR_BUFFER_BIT);
         };
 
         /**

@@ -691,9 +691,8 @@ define([
             gl.depthFunc(WebGLRenderingContext.LESS);
             gl.clearColor(0, 0, 0, 1);
 
-            if (this.drawContext.pickingMode) {
-                this.drawContext.bindFramebuffer(null);
-            }
+            this.drawContext.bindFramebuffer(null);
+            this.drawContext.bindProgram(null);
         };
 
         // Internal function. Intentionally not documented.

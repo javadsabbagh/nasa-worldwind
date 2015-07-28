@@ -192,7 +192,6 @@ define([
             gl.disableVertexAttribArray(program.vertexTexCoordLocation);
 
             // Clear GL bindings.
-            dc.bindProgram(null);
             gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, null);
             gl.bindTexture(WebGLRenderingContext.TEXTURE_2D, null);
 
