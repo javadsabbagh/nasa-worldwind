@@ -28,6 +28,9 @@ define([],
             // Internal: intentionally not documented
             this.frameTimeBase = 0;
 
+            // Internal: intentionally not documented
+            this.frameTimeExtremes = [Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY];
+
             /**
              * The number of milliseconds required to render the most recent frame.
              * @type {Number}
@@ -100,6 +103,18 @@ define([],
              * @type {Number}
              */
             this.frameRateAverage = 0;
+
+            /**
+             * The minimum frame time over the most recent two seconds.
+             * @type {Number}
+             */
+            this.frameTimeMin = 0;
+
+            /**
+             * The maximum frame time over the most recent two seconds.
+             * @type {Number}
+             */
+            this.frameTimeMax = 0;
         };
 
         /**
@@ -127,14 +142,19 @@ define([],
             var now = Date.now();
             this.frameTime = now - this.frameTime;
             this.frameTimeCumulative += this.frameTime;
+            this.frameTimeExtremes[0] = Math.min(this.frameTimeExtremes[0], this.frameTime);
+            this.frameTimeExtremes[1] = Math.max(this.frameTimeExtremes[1], this.frameTime);
 
             // Compute averages every 2 seconds.
             if (now - this.frameTimeBase > 2000) {
                 this.frameTimeAverage = this.frameTimeCumulative / this.frameCount;
                 this.frameRateAverage = 1000 * this.frameCount / (now - this.frameTimeBase);
-                this.frameTimeBase = now;
-                this.frameTimeCumulative = 0;
+                this.frameTimeMin = this.frameTimeExtremes[0];
+                this.frameTimeMax = this.frameTimeExtremes[1];
                 this.frameCount = 0;
+                this.frameTimeCumulative = 0;
+                this.frameTimeBase = now;
+                this.frameTimeExtremes = [Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY];
                 //console.log(this.frameTimeAverage.toString() + ", " + this.frameRateAverage.toString());
             }
         };

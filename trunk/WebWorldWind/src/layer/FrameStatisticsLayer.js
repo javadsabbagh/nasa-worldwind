@@ -9,6 +9,7 @@
 define([
         '../error/ArgumentError',
         '../util/Color',
+        '../util/Font',
         '../layer/Layer',
         '../util/Logger',
         '../util/Offset',
@@ -17,6 +18,7 @@ define([
     ],
     function (ArgumentError,
               Color,
+              Font,
               Layer,
               Logger,
               Offset,
@@ -50,11 +52,16 @@ define([
 
             var textAttributes = new TextAttributes(null);
             textAttributes.color = Color.GREEN;
+            textAttributes.font = new Font(12);
             textAttributes.offset = new Offset(WorldWind.OFFSET_FRACTION, 0, WorldWind.OFFSET_FRACTION, 1);
 
             // Intentionally not documented.
-            this.frameRateText = new ScreenText(new Offset(WorldWind.OFFSET_PIXELS, 5, WorldWind.OFFSET_INSET_PIXELS, 5), " ");
-            this.frameRateText.attributes = textAttributes;
+            this.frameTime = new ScreenText(new Offset(WorldWind.OFFSET_PIXELS, 5, WorldWind.OFFSET_INSET_PIXELS, 5), " ");
+            this.frameTime.attributes = textAttributes;
+
+            // Intentionally not documented.
+            this.frameRate = new ScreenText(new Offset(WorldWind.OFFSET_PIXELS, 5, WorldWind.OFFSET_INSET_PIXELS, 25), " ");
+            this.frameRate.attributes = textAttributes;
 
             // Register a redraw callback on the World Window.
             var thisLayer = this;
@@ -70,7 +77,8 @@ define([
 
         // Documented in superclass.
         FrameStatisticsLayer.prototype.doRender = function (dc) {
-            this.frameRateText.render(dc);
+            this.frameRate.render(dc);
+            this.frameTime.render(dc);
             this.inCurrentFrame = true;
         };
 
@@ -81,7 +89,8 @@ define([
             }
 
             var frameStats = worldWindow.frameStatistics;
-            this.frameRateText.text = "Frame time  " + frameStats.frameTimeAverage.toFixed(1) + " ms  (" + frameStats.frameRateAverage.toFixed(0) + " fps)";
+            this.frameTime.text = "Frame time  " + frameStats.frameTimeAverage.toFixed(0) + " ms  (" + frameStats.frameTimeMin + " - " + frameStats.frameTimeMax + ")";
+            this.frameRate.text = "Frame rate  " + frameStats.frameRateAverage.toFixed(0) + " fps";
         };
 
         return FrameStatisticsLayer;
