@@ -100,6 +100,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './shapes/SurfacePolygon',
         './shapes/SurfacePolyline',
         './shapes/SurfaceRectangle',
+        './render/SurfaceRenderable',
         './shapes/SurfaceSector',
         './shapes/SurfaceShape',
         './shapes/SurfaceShapeTile',
@@ -228,6 +229,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               SurfacePolygon,
               SurfacePolyline,
               SurfaceRectangle,
+              SurfaceRenderable,
               SurfaceSector,
               SurfaceShape,
               SurfaceShapeTile,
@@ -565,6 +567,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['SurfacePolygon'] = SurfacePolygon;
         WorldWind['SurfacePolyline'] = SurfacePolyline;
         WorldWind['SurfaceRectangle'] = SurfaceRectangle;
+        WorldWind['SurfaceRenderable'] = SurfaceRenderable;
         WorldWind['SurfaceSector'] = SurfaceSector;
         WorldWind['SurfaceShape'] = SurfaceShape;
         WorldWind['SurfaceShapeTile'] = SurfaceShapeTile;
