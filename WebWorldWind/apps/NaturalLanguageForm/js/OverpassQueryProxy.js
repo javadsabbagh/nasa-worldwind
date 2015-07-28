@@ -42,7 +42,6 @@ define(['jquery','OpenStreetMapConfig', 'OSMDataHelper'], function($, OpenStreet
         var queryURI = this.constuctAPICall(boundingBox, callbackSpecifications);
         //console.log('query uri ', queryURI);
         $.get(queryURI, function(data) {
-            //console.log(data);
             var dataAsGeoJSON = self._helper.processOSMData(data);
             callback(callbackSpecifications, dataAsGeoJSON);
         });

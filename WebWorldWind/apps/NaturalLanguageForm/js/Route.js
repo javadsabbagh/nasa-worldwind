@@ -19,6 +19,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js'], function(ww)
         });
 
         this._renderable = new WorldWind.SurfacePolyline(this._polylineCoordsArray);
+        console.log(this._renderable);
+        this._renderable._attributes._outlineColor = new WorldWind.Color(1,0,0,1);
         this._enabled = true;
 
     }
