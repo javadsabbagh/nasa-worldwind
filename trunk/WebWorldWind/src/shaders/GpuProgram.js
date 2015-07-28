@@ -22,29 +22,29 @@ define([
          * Constructs a GPU program with specified source code for vertex and fragment shaders.
          * This constructor is intended to be called only by subclasses.
          * <p>
-         * This constructor creates WebGL shaders for the specified shader sources and attaches them to a new GLSL program. The
-         * method compiles the shaders and then links the program if compilation is successful. Use the [bind]{@link GpuProgram#bind}
-         * function to make the program current during rendering.
+         * This constructor creates WebGL shaders for the specified shader sources and attaches them to a new GLSL
+         * program. The method compiles the shaders and then links the program if compilation is successful. Use the
+         * [DrawContext.bindProgram]{@link DrawContext#bindProgram} function to make the program current during rendering.
          *
          * @alias GpuProgram
          * @constructor
          * @classdesc
-         * Represents an OpenGL shading language (GLSL) shader program and provides methods for identifying and accessing shader
-         * variables. Shader programs are created by instances of this class and made current when the instance's bind
-         * method is invoked.
+         * Represents an OpenGL shading language (GLSL) shader program and provides methods for identifying and
+         * accessing shader variables. Shader programs are created by instances of this class and made current when the
+         * DrawContext.bindProgram function is invoked.
          * <p>
          * This is an abstract class and not intended to be created directly.
          *
          * @param {WebGLRenderingContext} gl The current WebGL context.
          * @param {String} vertexShaderSource The source code for the vertex shader.
          * @param {String} fragmentShaderSource The source code for the fragment shader.
-         * @param {String[]} bindings An array of attribute variable names whose bindings are to be explicitly
+         * @param {String[]} attributeBindings An array of attribute variable names whose bindings are to be explicitly
          * specified. Each name is bound to its corresponding index in the array. May be null, in which case the
          * linker determines all the bindings.
          * @throws {ArgumentError} If either source is null or undefined, the shaders cannot be compiled, or linking of
          * the compiled shaders into a program fails.
          */
-        var GpuProgram = function (gl, vertexShaderSource, fragmentShaderSource, bindings) {
+        var GpuProgram = function (gl, vertexShaderSource, fragmentShaderSource, attributeBindings) {
             if (!vertexShaderSource || !fragmentShaderSource) {
                 throw new ArgumentError(Logger.logMessage(Logger.LEVEL_SEVERE, "GpuProgram", "constructor",
                     "The specified shader source is null or undefined."));
@@ -73,9 +73,9 @@ define([
             gl.attachShader(program, vShader.shaderId);
             gl.attachShader(program, fShader.shaderId);
 
-            if (bindings) {
-                for (var i = 0; i < bindings.length; i++) {
-                    gl.bindAttribLocation(program, i, bindings[i]);
+            if (attributeBindings) {
+                for (var i = 0, len = attributeBindings.length; i < len; i++) {
+                    gl.bindAttribLocation(program, i, attributeBindings[i]);
                 }
             }
 
@@ -93,26 +93,28 @@ define([
                     "Unable to link shader program: " + infoLog));
             }
 
-            // These will be filled in as attribute locations are requested.
+            /**
+             * Indicates the WebGL program object associated with this GPU program.
+             * @type {WebGLProgram}
+             * @readonly
+             */
+            this.programId = program;
+
+            // Internal. Intentionally not documented. These will be filled in as attribute locations are requested.
             this.attributeLocations = {};
             this.uniformLocations = {};
 
-            this.programId = program;
+            // Internal. Intentionally not documented.
             this.vertexShader = vShader;
+
+            // Internal. Intentionally not documented.
             this.fragmentShader = fShader;
 
+            // Internal. Intentionally not documented.
             this.size = vertexShaderSource.length + fragmentShaderSource.length;
 
+            // Internal. Intentionally not documented.
             this.scratchArray = new Float32Array(16);
-        };
-
-        /**
-         * Makes this program the current program in the specified WebGL context.
-         *
-         * @param {WebGLRenderingContext} gl The current WebGL context.
-         */
-        GpuProgram.prototype.bind = function (gl) {
-            gl.useProgram(this.programId);
         };
 
         /**

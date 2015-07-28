@@ -138,7 +138,6 @@ define([
         SurfaceTileRenderer.prototype.endRendering = function (dc) {
             var gl = dc.currentGlContext;
             gl.bindTexture(WebGLRenderingContext.TEXTURE_2D, null);
-            dc.bindProgram(null);
         };
 
         // Intentionally not documented.

@@ -16,12 +16,15 @@ define([
         "use strict";
 
         /**
-         * Constructs a framebuffer texture with the specified dimensions and an optional depth buffer.
+         * Constructs a framebuffer texture with the specified dimensions and an optional depth buffer. Use the
+         * [DrawContext.bindFramebuffer]{@link DrawContext#bindFramebuffer} function to make the program current during rendering.
+         *
          * @alias FramebufferTexture
          * @constructor
          * @classdesc Represents an off-screen WebGL framebuffer. The framebuffer has color buffer stored in a 32
          * bit RGBA texture, and has an optional depth buffer of at least 16 bits. Applications typically do not
-         * interact with this class.
+         * interact with this class. WebGL framebuffers are created by instances of this class and made current when the
+         * DrawContext.bindFramebuffer function is invoked.
          * @param {WebGLRenderingContext} gl The current WebGL rendering context.
          * @param {Number} width The width of the framebuffer, in pixels.
          * @param {Number} height The height of the framebuffer, in pixels.
@@ -69,9 +72,13 @@ define([
              */
             this.size = (width * height * 4) + (depth ? width * height * 2 : 0);
 
-            // Internal. Intentionally not documented. Create this framebuffer's WebGL framebuffer object.
-            this.framebuffer = gl.createFramebuffer();
-            gl.bindFramebuffer(WebGLRenderingContext.FRAMEBUFFER, this.framebuffer);
+            /**
+             * Indicates the WebGL framebuffer object object associated with this framebuffer texture.
+             * @type {WebGLFramebuffer}
+             * @readonly
+             */
+            this.framebufferId = gl.createFramebuffer();
+            gl.bindFramebuffer(WebGLRenderingContext.FRAMEBUFFER, this.framebufferId);
 
             // Internal. Intentionally not documented. Configure this framebuffer's color buffer.
             this.texture = gl.createTexture();
@@ -104,7 +111,7 @@ define([
             if (e != WebGLRenderingContext.FRAMEBUFFER_COMPLETE) {
                 Logger.logMessage(Logger.LEVEL_WARNING, "FramebufferTexture", "constructor",
                     "Error creating framebuffer: " + e);
-                this.framebuffer = null;
+                this.framebufferId = null;
                 this.texture = null;
                 this.depthBuffer = null;
             }
@@ -128,23 +135,6 @@ define([
             }
 
             return !!this.texture;
-        };
-
-        /**
-         * Binds this off-screen framebuffer as the current WebGL framebuffer. WebGL operations that affect the
-         * framebuffer now affect this framebuffer, rather than the default WebGL framebuffer. Color fragments are
-         * written to a WebGL texture, which can be made active by calling
-         * [FramebufferTexture.bind]{@link FramebufferTexture#bind}.
-         *
-         * @param {DrawContext} dc The current draw context.
-         * @returns {Boolean} true if this framebuffer was bound successfully, otherwise false.
-         */
-        FramebufferTexture.prototype.bindFramebuffer = function (dc) {
-            if (this.framebuffer) {
-                dc.currentGlContext.bindFramebuffer(WebGLRenderingContext.FRAMEBUFFER, this.framebuffer);
-            }
-
-            return !!this.framebuffer;
         };
 
         return FramebufferTexture;

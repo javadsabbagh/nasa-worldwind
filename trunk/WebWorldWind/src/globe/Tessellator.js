@@ -584,7 +584,6 @@ define([
                 }
             } finally {
                 this.endRendering(dc);
-                dc.bindProgram(null);
             }
         };
 

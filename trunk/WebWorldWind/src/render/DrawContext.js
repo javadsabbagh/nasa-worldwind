@@ -429,17 +429,12 @@ define([
          * default WebGL framebuffer is made active.
          */
         DrawContext.prototype.bindFramebuffer = function (framebuffer) {
-            var gl = this.currentGlContext;
-
-            if (framebuffer) {
-                framebuffer.bindFramebuffer(this);
-            } else {
-                gl.bindFramebuffer(WebGLRenderingContext.FRAMEBUFFER, null);
+            if (this.currentFramebuffer === framebuffer) {
+                this.currentGlContext.bindFramebuffer(WebGLRenderingContext.FRAMEBUFFER,
+                    framebuffer ? framebuffer.framebufferId : null);
+                this.currentFramebuffer = framebuffer;
             }
-
-            this.currentFramebuffer = framebuffer;
         };
-
 
         /**
          * Binds a specified WebGL program. This function also makes the program the current program.
@@ -447,15 +442,10 @@ define([
          * bound program is unbound.
          */
         DrawContext.prototype.bindProgram = function (program) {
-            var gl = this.currentGlContext;
-
-            if (program) {
-                program.bind(gl);
-            } else {
-                gl.useProgram(null);
+            if (this.currentProgram != program) {
+                this.currentGlContext.useProgram(program ? program.programId : null);
+                this.currentProgram = program;
             }
-
-            this.currentProgram = program;
         };
 
         /**
@@ -472,13 +462,12 @@ define([
                         "The specified program constructor is null or undefined."));
             }
 
-            var gl = this.currentGlContext,
-                program = this.gpuResourceCache.resourceForKey(programConstructor.key);
+            var program = this.gpuResourceCache.resourceForKey(programConstructor.key);
             if (program) {
                 this.bindProgram(program);
             } else {
                 try {
-                    program = new programConstructor(gl);
+                    program = new programConstructor(this.currentGlContext);
                     this.bindProgram(program);
                     this.gpuResourceCache.putResource(programConstructor.key, program, program.size);
                 } catch (e) {
