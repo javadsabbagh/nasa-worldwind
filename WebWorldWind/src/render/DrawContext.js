@@ -153,6 +153,12 @@ define([
             this.currentProgram = null;
 
             /**
+             * The list of surface renderables.
+             * @type {Array}
+             */
+            this.surfaceRenderables = [];
+
+            /**
              * Indicates whether this draw context is in ordered rendering mode.
              * @type {Boolean}
              */
@@ -352,6 +358,7 @@ define([
         DrawContext.prototype.reset = function () {
             // Reset the draw context's internal properties.
             this.screenCreditController.clear();
+            this.surfaceRenderables = []; // clears the surface renderables array
             this.orderedRenderingMode = false;
             this.orderedRenderables = []; // clears the ordered renderables array
             this.orderedRenderablesCounter = 0;
@@ -476,6 +483,52 @@ define([
             }
 
             return program;
+        };
+
+        /**
+         * Adds a surface renderable to this draw context's surface renderable list.
+         * @param {SurfaceRenderable} surfaceRenderable The surface renderable to add. May be null, in which case the
+         * current surface renderable list remains unchanged.
+         */
+        DrawContext.prototype.addSurfaceRenderable = function (surfaceRenderable) {
+            if (surfaceRenderable) {
+                this.surfaceRenderables.push(surfaceRenderable);
+            }
+        };
+
+        /**
+         * Returns the surface renderable at the head of the surface renderable list without removing it from the list.
+         * @returns {SurfaceRenderable} The first surface renderable in this draw context's surface renderable list, or
+         * null if the surface renderable list is empty.
+         */
+        DrawContext.prototype.peekSurfaceRenderable = function () {
+            if (this.surfaceRenderables.length > 0) {
+                return this.surfaceRenderables[this.surfaceRenderables.length - 1];
+            } else {
+                return null;
+            }
+        };
+
+        /**
+         * Returns the surface renderable at the head of the surface renderable list and removes it from the list.
+         * @returns {SurfaceRenderable} The first surface renderable in this draw context's surface renderable list, or
+         * null if the surface renderable list is empty.
+         */
+        DrawContext.prototype.popSurfaceRenderable = function () {
+            if (this.surfaceRenderables.length > 0) {
+                return this.surfaceRenderables.pop();
+            } else {
+                return null;
+            }
+        };
+
+        /**
+         * Reverses the surface renderable list in place. After this function completes, the functions
+         * peekSurfaceRenderable and popSurfaceRenderable return renderables in the order in which they were added to
+         * the surface renderable list.
+         */
+        DrawContext.prototype.reverseSurfaceRenderables = function () {
+            this.surfaceRenderables.reverse();
         };
 
         /**

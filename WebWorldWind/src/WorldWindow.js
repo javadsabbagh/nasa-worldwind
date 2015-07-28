@@ -713,6 +713,7 @@ define([
                 this.drawContext.currentGlContext.disable(WebGLRenderingContext.STENCIL_TEST);
                 this.drawContext.surfaceShapeTileBuilder.clear();
                 this.drawLayers(true);
+                this.drawSurfaceRenderables();
                 this.drawContext.surfaceShapeTileBuilder.doRender(this.drawContext);
 
                 if (!this.deferOrderedRendering) {
@@ -734,6 +735,7 @@ define([
             } else {
                 this.drawContext.surfaceShapeTileBuilder.clear();
                 this.drawLayers(true);
+                this.drawSurfaceRenderables();
                 this.drawContext.surfaceShapeTileBuilder.doRender(this.drawContext);
 
                 if (!this.deferOrderedRendering) {
@@ -752,6 +754,7 @@ define([
                 WebGLRenderingContext.KEEP, WebGLRenderingContext.KEEP, WebGLRenderingContext.KEEP);
             this.drawContext.surfaceShapeTileBuilder.clear();
             this.drawLayers(false);
+            this.drawSurfaceRenderables();
             this.drawContext.surfaceShapeTileBuilder.doRender(this.drawContext);
         };
 
@@ -765,6 +768,7 @@ define([
                 this.drawContext.surfaceShapeTileBuilder.clear();
 
                 this.drawLayers(true);
+                this.drawSurfaceRenderables();
 
                 this.drawContext.surfaceShapeTileBuilder.doRender(this.drawContext);
 
@@ -979,6 +983,24 @@ define([
         };
 
         // Internal function. Intentionally not documented.
+        WorldWindow.prototype.drawSurfaceRenderables = function () {
+            var dc = this.drawContext,
+                sr;
+
+            dc.reverseSurfaceRenderables();
+
+            while (sr = dc.popSurfaceRenderable()) {
+                try {
+                    sr.renderSurface(dc);
+                } catch (e) {
+                    Logger.logMessage(Logger.LEVEL_WARNING, "WorldWindow", "drawSurfaceRenderables",
+                        "Error while rendering a surface renderable.\n" + e.message);
+                    // Keep going. Render the rest of the surface renderables.
+                }
+            }
+        };
+
+        // Internal function. Intentionally not documented.
         WorldWindow.prototype.drawOrderedRenderables = function () {
             var beginTime = Date.now(),
                 dc = this.drawContext,
@@ -999,7 +1021,7 @@ define([
                     or.renderOrdered(dc);
                 } catch (e) {
                     Logger.logMessage(Logger.LEVEL_WARNING, "WorldWindow", "drawOrderedRenderables",
-                        "Error while rendering a shape:" + e.message);
+                        "Error while rendering an ordered renderable.\n" + e.message);
                     // Keep going. Render the rest of the ordered renderables.
                 }
             }
