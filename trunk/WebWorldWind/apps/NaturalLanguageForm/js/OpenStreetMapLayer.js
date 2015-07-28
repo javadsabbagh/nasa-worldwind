@@ -7,6 +7,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         'OSMDataRetriever',
         'Set',
         'OverpassAPIWrapper',
+        'lodash',
         '../js/polyline'],
     function(ww,
              OpenStreetMapConfig,
@@ -14,6 +15,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
              OSMDataRetriever,
              Set,
              OverpassAPIWrapper,
+             _,
              polyline) {
 
         'use strict';
@@ -200,6 +202,11 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             if(this._enabled) {
                 this._baseLayer.render(dc);
                 var currEyeAltitude = getEyeAltitude(dc);
+                if(currEyeAltitude <= 1000) {
+                    console.log('current eye position is 1000 or less');
+                    console.log(this.getAllBoundingBoxes());
+                    console.log(this.getEncompassingBoudingBox());
+                }
                 /*
                 if(currEyeAltitude <= this._config.drawHeight) {
                     var center = dc.eyePosition;
@@ -235,6 +242,39 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         }
 
 
+        OpenStreetMapLayer.prototype.getAllBoundingBoxes  = function() {
+            var tiles = this._baseLayer.currentTiles;
+            var boxes = tiles.map(function(tile) {
+                var tileDimensions = tile.sector;
+                var maxLongitude = tileDimensions.maxLongitude;
+                var maxLatitude = tileDimensions.maxLatitude;
+                var minLongitude = tileDimensions.minLongitude;
+                var minLatitude = tileDimensions.minLatitude;
+                // returns in format [up, left, down, right]
+                var boundingBox = [maxLatitude, minLongitude, minLatitude, maxLongitude];
+                return boundingBox;
+            });
+            return boxes;
+        }
+
+
+        OpenStreetMapLayer.prototype.getEncompassingBoudingBox = function() {
+            var boundingBoxes = this.getAllBoundingBoxes();
+            function getFromArrayLoc(index) {
+                return function(arr) {
+                    return arr[index];
+                }
+            }
+            var indicies = _.range(4);
+            var accessFuns = _.map(indicies, getFromArrayLoc);
+            var boundingBox = _.map(accessFuns, function(f) {
+               return f(_.max(boundingBoxes, f));
+            });
+            return boundingBox;
+        }
+
+
+
 
 
 
@@ -253,7 +293,16 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 get: function() {
                     return this._displayName;
                 }
+            },
+
+            currentTiles: {
+                get: function() {
+                    var tiles = this._baseLayer.currentTiles;
+                    return tiles;
+                }
             }
+
+
         });
 
 
