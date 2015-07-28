@@ -2,9 +2,12 @@
     Authors: Matt Evers, Inzamam Rahaman
  */
 
-define(function() {
+define(['buckets','rbush','lodash'], function(buckets, rbush, _) {
 
     var baseURL = 'http://data.osmbuildings.org/0.2/anonymous';
+
+    //var buildingCache
+
     var cachedURLData = {
         keys: {},
         URL: [],
@@ -56,6 +59,13 @@ define(function() {
     }
 
     function OSMBuildingDataRetriever() {
+
+        function arrayToString(arr) {
+            return arr.join(',');
+        }
+
+        this.buildingDataCache = new buckets.Dictionary(arrayToString);
+        this.tree = new rbush(1000);
         //this.applyKey();
     };
 
@@ -65,10 +75,10 @@ define(function() {
     };
 
     OSMBuildingDataRetriever.prototype.buildBBoxAPICall = function (bbox) {
-        console.log('Building API call for building data in a BBox...')
-        bbox.forEach(function (entry, index) {
-            bbox[index] = entry.toFixed(5)
-        });
+        //console.log('Building API call for building data in a BBox...')
+        //bbox.forEach(function (entry, index) {
+        //    bbox[index] = entry.toFixed(5)
+        //});
         return baseURL + '/bbox.json?bbox=' + bbox.join(',');
     };
 
@@ -134,9 +144,11 @@ define(function() {
 
     OSMBuildingDataRetriever.prototype.callAPI = function (url, callback) {
         var self = this;
-        console.log(url)
+        console.log(url);
         $.get(url, function(returnedData){
-            console.log(returnedData)
+            console.log('returned data');
+            console.log(returnedData['features']);
+            callback(returnedData['features']);
         });
         //if (cachedURLData.keys[url]){
         //    self.updateBuildingCacheFromData(cachedURLData.URL[cachedURLData.keys[url]],callback)
@@ -151,16 +163,34 @@ define(function() {
 
     // Bounding Box should be [Low Lat, high long, high lat, low long]
     OSMBuildingDataRetriever.prototype.requestOSMBuildingData = function (boundingBoxCoords, callback) {
-        console.log('Fetching OSM Building Data...');
         var self = this;
-        // = [39.00050,-76.89950,37.99950,-76.90050];
-        boundingBoxCoords = ([37.38258, -122.08888999999999, 37.39758, -122.07389]);
-
-        boundingBoxCoords = self.fixBoundingBoxForOSMB(boundingBoxCoords)
-
-        var url = this.buildBBoxAPICall(boundingBoxCoords);
-        self.callAPI(url, callback);
+        console.log('fetching osm building data');
+        var box = boundingBoxCoords;
+        if(this.tree.collides(box) === false) {
+            var url = this.buildBBoxAPICall(box);
+            this.tree.insert(box);
+            this.callAPI(url, function(data) {
+                self.buildingDataCache.set(box, data);
+                callback(data);
+            });
+        } else {
+            var data = this.buildingDataCache.get(box);
+            callback(data);
+        }
     };
+
+    //console.log('Fetching OSM Building Data...');
+    //var self = this;
+    //// = [39.00050,-76.89950,37.99950,-76.90050];
+    ////boundingBoxCoords = ([37.38258, -122.08888999999999, 37.39758, -122.07389]);
+    ////var box = this.fixBoundingBoxForOSMB(boundingBoxCoords);
+    ////boundingBoxCoords = self.fixBoundingBoxForOSMB(boundingBoxCoords)
+    //var box = boundingBoxCoords;
+    //var url = this.buildBBoxAPICall(box);
+    //console.log('calling for box, ', box);
+    //self.callAPI(url, callback);
+
+
 
     /*
     * Takes a bounding box of the form [low lat, low long, high lat, high long] and returns a corrosponding array of

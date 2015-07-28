@@ -3,6 +3,7 @@
  */
 define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         'OpenStreetMapConfig',
+        'OSMBuildingDataRetriever',
         'rbush',
         'OSMDataRetriever',
         'Set',
@@ -11,6 +12,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         '../js/polyline'],
     function(ww,
              OpenStreetMapConfig,
+             OSMBuildingDataRetriever,
              rbush,
              OSMDataRetriever,
              Set,
@@ -53,6 +55,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             this._dataRetriever = new OSMDataRetriever();
             this._set = new Set();
             this._overpassWrapper = new OverpassAPIWrapper();
+            this._osmBuildingRetriever = new OSMBuildingDataRetriever();
 
         }
 
@@ -203,9 +206,19 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 this._baseLayer.render(dc);
                 var currEyeAltitude = getEyeAltitude(dc);
                 if(currEyeAltitude <= 1000) {
-                    console.log('current eye position is 1000 or less');
-                    console.log(this.getAllBoundingBoxes());
-                    console.log(this.getEncompassingBoudingBox());
+                    var boundingBox = this.getEncompassingBoudingBox();
+                    this._osmBuildingRetriever.requestOSMBuildingData(boundingBox, function(buildingData) {
+                        console.log('building data for ', boundingBox);
+                        console.log(buildingData);
+                    });
+                    //console.log('current eye position is 1000 or less');
+                    //console.log(this.getAllBoundingBoxes());
+                    //var boundingBox = this.getEncompassingBoudingBox();
+                    //console.log(boundingBox);
+                    //console.log('Buildings detected....');
+                    //this._osmBuildingRetriever.requestOSMBuildingData(boundingBox, function(data) {
+                    //    console.log('data : ' , data);
+                    //});
                 }
                 /*
                 if(currEyeAltitude <= this._config.drawHeight) {
@@ -260,13 +273,15 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
         OpenStreetMapLayer.prototype.getEncompassingBoudingBox = function() {
             var boundingBoxes = this.getAllBoundingBoxes();
-            function getFromArrayLoc(index) {
+
+            function getArrayFromLoc(index) {
                 return function(arr) {
                     return arr[index];
                 }
             }
+
             var indicies = _.range(4);
-            var accessFuns = _.map(indicies, getFromArrayLoc);
+            var accessFuns = _.map(indicies, getArrayFromLoc);
             var boundingBox = _.map(accessFuns, function(f) {
                return f(_.max(boundingBoxes, f));
             });
