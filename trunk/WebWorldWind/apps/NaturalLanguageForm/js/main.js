@@ -5,7 +5,8 @@
 requirejs.config({
     paths: {
         "worldwind" : "http://worldwindserver.net/webworldwind/worldwindlib.js",
-        "jquery" : "http://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min"
+        "jquery" : "http://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min",
+        "buckets" : "https://cdn.rawgit.com/mauriciosantos/Buckets-JS/master/buckets.min"
     }
 });
 
