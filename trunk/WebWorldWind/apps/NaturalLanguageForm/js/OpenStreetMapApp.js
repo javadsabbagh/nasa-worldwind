@@ -14,13 +14,15 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         'OSMDataRetriever','RouteLayer', 'Route','RouteAPIWrapper','NaturalLanguageHandler', 'polyline',
         'MapQuestGeocoder',
         'nlform',
-        'nlbuilder'],
+        'nlbuilder',
+        'HUDMaker',
+        'OSMBuildingDataRetriever'],
     function(ww,
              OpenStreetMapLayer,
              OpenStreetMapConfig,
              $,
              OSMDataRetriever, RouteLayer, Route, RouteAPIWrapper, NaturalLanguageHandler, polyline, MapQuestGeocoder,
-             NLForm, NLBuilder) {
+             NLForm, NLBuilder, HUD, OSMB) {
 
 
         'use strict';
@@ -69,18 +71,55 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
             amenity = 'cafe';
             address = 'mountain view';
-
             var routeLayerRouteBuilder = new (this.RouteBuilder(routeLayer));
+
+            var test = new OSMB();
+            //Unit test for osm buildings
+            test.requestOSMBuildingData([37.14008, -122.33139, 37.64008, -121.83139],function(data){
+                console.log(data)
+            });
+
+            //(function selectionDisplay () {
+            //    $("<style>")
+            //        .prop("type", "text/css")
+            //        .html("\
+            //            #layDiv2 {\
+            //              position: fixed;\
+            //                width: 100px;\
+            //                background-color: black;\
+            //                height: 140px;\
+            //                z-index: 1;\
+            //                right: 78px;\
+            //                bottom: 22px;\
+            //            }")
+            //        .appendTo("head");
+            //    var infoDisplay = $('<div>')
+            //    infoDisplay.attr('id', 'layDiv1');
+            //    infoDisplay.css('background-color','white');
+            //    var IMGOD = $('<img>')
+            //    IMGOD.attr('src','img/pin.png')
+            //    IMGOD.attr('width','44')
+            //    IMGOD.attr('height','46')
+            //
+            //    IMGOD.attr('alt','Pin')
+            //    IMGOD.attr('longdesc','img/pin.png')
+            //    infoDisplay.on('click', function (ev) {
+            //        IMGOD.remove()
+            //    })
+            //    infoDisplay.append(IMGOD)
+            //    $('body').append(infoDisplay)
+            //})();
 
             //First, geocode the address
             //console.log('111111111111111');
             this.callGeocoder(address, amenity, function(returnedSpecs) {
                 // Second, call the natural language handler with the specs.
                 // This calls the callback with data corrosponding to all the amenities of the given
-                //      amenity type inside a bounding box around the address provided.
+                // amenity type inside a bounding box around the address provided. (returned Specs is the geocoded address)
                 //console.log('222222222222222222');
                 naturalLanguageHandler.receiveInput(returnedSpecs, function(newSpecs, returnedData){
                     // Third, build the layer.
+                    console.log(returnedData);
                     //console.log('3333333333333333333');
                     self.buildPlacemarkLayer(renderableLayer, returnedData);
                     // Fourth, add the selection controller to the layer.
@@ -93,6 +132,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                     })
 
                 })
+
+
             });
 
         };
