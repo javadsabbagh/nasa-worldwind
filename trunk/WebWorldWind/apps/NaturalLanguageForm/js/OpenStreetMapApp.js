@@ -22,12 +22,31 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
              OpenStreetMapConfig,
              $,
              OSMDataRetriever, RouteLayer, Route, RouteAPIWrapper, NaturalLanguageHandler, polyline, MapQuestGeocoder,
-             NLForm, NLBuilder, HUD, OSMB) {
+             NLForm, NLBuilder, HUD, OSMBuildingDataRetriever) {
 
 
         'use strict';
 
         WorldWind.Logger.setLoggingLevel(WorldWind.Logger.LEVEL_WARNING);
+
+        /*
+        * Removes all special characters from a string
+        *
+        * @param str: any string
+        *
+        * @return: the input string with special characters ommitted.
+         */
+        function removeSpecials(str) {
+            var lower = str.toLowerCase();
+            var upper = str.toUpperCase();
+
+            var res = "";
+            for(var i=0; i<lower.length; ++i) {
+                if(lower[i] != upper[i] || lower[i].trim() === '')
+                    res += str[i];
+            }
+            return res;
+        }
 
         var OpenStreetMapApp = function(amenity, address) {
             var self = this;
@@ -69,64 +88,66 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
             this._wwd.addLayer(renderableLayer);
 
-            amenity = 'cafe';
-            address = 'mountain view';
+            //amenity = 'cafe';
+            //address = 'mountain view';
             var routeLayerRouteBuilder = new (this.RouteBuilder(routeLayer));
 
-            var test = new OSMB();
-            //Unit test for osm buildings
-            test.requestOSMBuildingData([37.14008, -122.33139, 37.64008, -121.83139],function(data){
-                console.log(data)
-            });
+            //var test = new OSMBuildingDataRetriever();
+            ////Unit test for osm buildings
+            //test.requestOSMBuildingData([37.14008, -122.33139, 37.64008, -121.83139],function(data){
+            //    console.log(data)
+            //});
 
-            (function selectionDisplay () {
-                $("<style>")
-                    .prop("type", "text/css")
-                    .html("\ #layDiv2 {\
-                          position: fixed;\
-                            width: 100px;\
-                            background-color: black;\
-                            height: 140px;\
-                            z-index: 1;\
-                            right: 78px;\
-                            bottom: 22px;\
-                        }")
-                    .appendTo("head");
-                var infoDisplay = $('<div>')
-                infoDisplay.attr('id', 'layDiv2');
-                infoDisplay.css('background-color','white');
-                var IMGOD = $('<img>')
-                IMGOD.attr('src','img/pin.png')
-                IMGOD.attr('width','44')
-                IMGOD.attr('height','46')
+            //var HudTest = new HUDMaker('test', [150,150] );
 
-                IMGOD.attr('alt','Pin')
-                IMGOD.attr('longdesc','img/pin.png')
-                infoDisplay.on('click', function (ev) {
-                    IMGOD.remove()
-                })
-                infoDisplay.append(IMGOD)
-                $('body').append(infoDisplay)
-            })();
+            //(function selectionDisplay () {
+            //    $("<style>")
+            //        .prop("type", "text/css")
+            //        .html("\ #layDiv2 {\
+            //              position: fixed;\
+            //                width: 100px;\
+            //                background-color: black;\
+            //                height: 140px;\
+            //                z-index: 1;\
+            //                right: 78px;\
+            //                bottom: 22px;\
+            //            }")
+            //        .appendTo("head");
+            //    var infoDisplay = $('<div>')
+            //    infoDisplay.attr('id', 'layDiv2');
+            //    infoDisplay.css('background-color','white');
+            //    var IMGOD = $('<img>')
+            //    IMGOD.attr('src','img/pin.png')
+            //    IMGOD.attr('width','44')
+            //    IMGOD.attr('height','46')
+            //
+            //    IMGOD.attr('alt','Pin')
+            //    IMGOD.attr('longdesc','img/pin.png')
+            //    infoDisplay.on('click', function (ev) {
+            //        IMGOD.remove()
+            //    })
+            //    infoDisplay.append(IMGOD)
+            //    $('body').append(infoDisplay)
+            //})();
 
             //First, geocode the address
-            //console.log('111111111111111');
             this.callGeocoder(address, amenity, function(returnedSpecs) {
                 // Second, call the natural language handler with the specs.
                 // This calls the callback with data corrosponding to all the amenities of the given
                 // amenity type inside a bounding box around the address provided. (returned Specs is the geocoded address)
-                //console.log('222222222222222222');
                 naturalLanguageHandler.receiveInput(returnedSpecs, function(newSpecs, returnedData){
                     // Third, build the layer.
-                    console.log(returnedData);
-                    //console.log('3333333333333333333');
                     self.buildPlacemarkLayer(renderableLayer, returnedData);
                     // Fourth, add the selection controller to the layer.
-                    //console.log('444444444444444444444');
                     self.HighlightAndSelectController(renderableLayer, function (returnedRenderable){
-                        var pointOfRenderable = self.getPointFromRenderableSelection(returnedRenderable);
-                        //Fifth, add this point to the route layer and see if it is enough to build a route.
-                        //console.log('55555555555555555555');
+                        var pointOfRenderable = self.getPointFromRenderableSelection(returnedRenderable.amenity);
+                        var hudID = removeSpecials(returnedRenderable.amenity._amenity.split(' ').join(''));
+                        console.log(returnedRenderable);
+                        var HudTest = new HUD(
+                            hudID,
+                            [returnedRenderable.clickedEvent.x,returnedRenderable.clickedEvent.y]
+                        );
+                        //Sixth, add this point to the route layer and see if it is enough to build a route.
                         routeLayerRouteBuilder.processPoint(pointOfRenderable);
                     })
 
@@ -240,11 +261,12 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
          * Creates a mouse listener that highlights placemarks on a layer if the mouse is over that placemark.
          *
          * @param callback: What function to call when a placemark is clicked on. The callback is called with the
-         *                      the renderable as a param (with the amenity info in renderable.amenity).
+         *                      the renderable as a param (with the amenity info in renderable.amenity and clickevent
+         *                      in renderable.clickedEvent).
          * @param renderableLayer: Layer to add the listener to. The highlight controller will only highlight placemarks
          *                           on this layer.
          */
-        OpenStreetMapApp.prototype.HighlightAndSelectController = function (renderableLayer, callback) {
+        OpenStreetMapApp.prototype.HighlightAndSelectController = function (renderableLayer, callback, callbackWithMouse) {
             var self = this;
 
             //Create a highlight controller for the layer.
@@ -255,7 +277,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 //  an issue.
                 renderableLayer.renderables.forEach(function(renderable){
                     if (renderable.highlighted){
-                        callback(renderable.amenity);
+                        renderable.clickedEvent = o;
+                        callback(renderable);
                     }
                 });
 

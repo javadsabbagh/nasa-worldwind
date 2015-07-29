@@ -39,7 +39,7 @@ define(['osmtogeojson', 'Amenity'], function(osmtogeojson, Amenity) {
         var latitude = coordinates[1];
         var location = new WorldWind.Location(latitude, longitude);
         return location;
-    }
+    };
 
     OSMDataHelper.prototype.generateAmenityObject = function(feature) {
         var location = this.extractWorldWindLocation(feature);
@@ -51,7 +51,7 @@ define(['osmtogeojson', 'Amenity'], function(osmtogeojson, Amenity) {
         var amenityRepr = new Amenity(id, name, amenity, location);
         //console.log('Aneminity :', amenityRepr );
         return amenityRepr;
-    }
+    };
 
     OSMDataHelper.prototype.processOSMData = function(rawOSMData) {
         var self = this;
