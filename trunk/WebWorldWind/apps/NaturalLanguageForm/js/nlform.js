@@ -12,6 +12,13 @@
 * Modified for our purposes by Ritesh Mishra, Matt Evers.
 *
 */
+/*
+* @dependency: This module requires an NLform in the html under <form id="nl-form" class="nl-form">
+*     			Use the nlbuilder to create this form dynamically.
+* @dependency: This module requires a 'background' in the html under <body class="nl-blurred">
+*
+* @param window: the document's window.
+ */
 
 define(['OpenStreetMapApp'],
 	function (OpenStreetMapApp){
