@@ -9,6 +9,9 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         'Set',
         'OverpassAPIWrapper',
         'lodash',
+        'AnyAmenityRequestProxy',
+        'buckets',
+        'BuildingLayer',
         '../js/polyline'],
     function(ww,
              OpenStreetMapConfig,
@@ -18,6 +21,9 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
              Set,
              OverpassAPIWrapper,
              _,
+             AnyAmenityRequestProxy,
+             buckets,
+             BuildingLayer,
              polyline) {
 
         'use strict';
@@ -56,7 +62,10 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             this._set = new Set();
             this._overpassWrapper = new OverpassAPIWrapper();
             this._osmBuildingRetriever = new OSMBuildingDataRetriever();
-
+            this._amenityReqest = new AnyAmenityRequestProxy();
+            this._buildingGrabIntervalID = null;
+            this._urlSet = new buckets.Set();
+            this._buildingLayer = new BuildingLayer();
         }
 
 
@@ -193,6 +202,124 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         }
 
 
+        OpenStreetMapLayer.prototype.handleBuildingInfo = function(eyeAltitude) {
+            var self = this;
+            var boundingBox = this.getEncompassingBoudingBox();
+            var box = [boundingBox[0], boundingBox[3], boundingBox[2], boundingBox[1]];
+
+            //var specs = {
+            //    north: boundingBox[0],
+            //    west : boundingBox[1],
+            //    south: boundingBox[2],
+            //    east : boundingBox[3]
+            //};
+            //
+            //
+            //// 888 17th St NW Washington, DC 20006
+            //this._amenityReqest.retrieveData(specs, function(specifications, data) {
+            //   console.log('Amenity(ies) : ',data);
+            //});
+
+
+
+            this._osmBuildingRetriever.requestOSMBuildingData(box, function(buildingData) {
+                console.log('building data for ', boundingBox);
+                console.log(buildingData);
+
+                // [[]]
+                var polygons = _.map(buildingData, function(building) {
+                    var geometry = building['geometry'];
+                    var coordinates = geometry['coordinates'];
+                    var points = coordinates[0];
+                    return _.map(points, function(point) {
+                        return new WorldWind.Position(point[1], point[0], 100);
+                    });
+                });
+
+                polygons.forEach(function(polygon) {
+                    console.log('adding building at ', polygon.join(','));
+                   self._buildingLayer.addBuilding(polygon, null);
+                });
+
+
+                var boundings = _.map(polygons, function(polygon) {
+
+
+
+                    var pointWithHighestLongitude = _.max(polygon, 'latitude');
+                    var pointWithHighestLatitude = _.max(polygon, 'longitude');
+                    var pointWithLowestLongitude = _.min(polygon, 'latitude');
+                    var pointWithLowestLatitude = _.min(polygon, 'longitude');
+
+                    console.log(pointWithHighestLatitude, pointWithHighestLongitude,
+                        pointWithLowestLatitude, pointWithLowestLongitude);
+
+                    var maxLongitude = pointWithHighestLongitude['latitude'];
+                    var minLongitude = pointWithLowestLongitude['latitude'];
+                    var maxLatitude = pointWithHighestLatitude['longitude'];
+                    var minLatitude = pointWithLowestLatitude['longitude'];
+
+                    var decimalPoints = 5;
+
+                    var obj = {
+                        north : maxLatitude,
+                        south : minLatitude,
+                        east : maxLongitude,
+                        west : minLongitude
+                    };
+
+                    //var coordinates = _.map(obj, function(coordinate) {
+                    //    return coordinate.toFixed(decimalPoints);
+                    //});
+                    var coordinates = obj;
+
+                    return coordinates;
+                });
+
+                console.log('polygons ' , polygons);
+                console.log('bounding boxes ', boundings);
+
+
+
+                //var east = boundingBox[1];
+                //var north = boundingBox[0];
+                //var west = boundingBox[3];
+                //var south = boundingBox[2];
+
+
+                // go to 888 17th St NW
+                // Washington, DC 20006 for testing
+                // 888 17th St NW Washington, DC 20006
+
+                if(boundings.length > 0) {
+
+                    var totalBox = {
+                        north : _.max(boundings, 'north')['north'],
+                        south : _.min(boundings, 'south')['south'],
+                        west : _.min(boundings, 'west')['west'],
+                        east : _.max(boundings, 'east')['east']
+                    };
+
+                    var boxAsArr = [totalBox.north, totalBox.east, totalBox.south, totalBox.west];
+
+                    var processedRetrievedAmenities = function(specs, data) {
+                        if(data.length > 0) {
+                            console.log('amenities in area ', boxAsArr.join(','));
+                            console.log('amenity : ', data);
+                        } else {
+                            console.log('no amenities in area ', boxAsArr.join(','));
+                            console.log('result from call : ', data);
+                        }
+                    }
+
+                    self._amenityReqest.retrieveData(totalBox, processedRetrievedAmenities);
+
+                }
+
+            });
+
+        }
+
 
         /*
             Abstracts over the render functions of both the open street map layer
@@ -205,51 +332,20 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             if(this._enabled) {
                 this._baseLayer.render(dc);
                 var currEyeAltitude = getEyeAltitude(dc);
-                if(currEyeAltitude <= 1000) {
-                    var boundingBox = this.getEncompassingBoudingBox();
-                    this._osmBuildingRetriever.requestOSMBuildingData(boundingBox, function(buildingData) {
-                        console.log('building data for ', boundingBox);
-                        console.log(buildingData);
-                    });
-                    //console.log('current eye position is 1000 or less');
-                    //console.log(this.getAllBoundingBoxes());
-                    //var boundingBox = this.getEncompassingBoudingBox();
-                    //console.log(boundingBox);
-                    //console.log('Buildings detected....');
-                    //this._osmBuildingRetriever.requestOSMBuildingData(boundingBox, function(data) {
-                    //    console.log('data : ' , data);
-                    //});
-                }
-                /*
-                if(currEyeAltitude <= this._config.drawHeight) {
-                    var center = dc.eyePosition;
-                    var boundingRect = this.getBoundingRectLocs(center);
-                    //console.log('center ' ,center);
-                    //console.log('going to box ', boundingRect);
-                    var key = this.createBoundingRectKey(boundingRect);
-                    if(this._set.contains(key)) {
-                        console.log('we have this key')
-                        self.resetVisibleNodes();
-                        self._visibleNodes = self._visibleNodes.concat(self.enableNodesToBeDrawn(center));
-                        self._drawLayer.render(dc);
-                    } else {
-                        this._overpassWrapper.getAllAmenitiesInBox(boundingRect, function(data) {
-
-                            console.log('data from overpass ', data);
-                        })
-                        //this._dataRetriever.requestOSMData(boundingRect, function(data){
-                        //    self._set.add(key);
-                        //    console.log(data, ' is ');
-                        //    self.resetVisibleNodes();
-                        //    self._visibleNodes = self._visibleNodes.concat(self.enableNodesToBeDrawn(center));
-                        //    self._drawLayer.render(dc);
-                        //});
+                if(currEyeAltitude <= 5000) {
+                    this._buildingLayer.render(dc);
+                    if(this._buildingGrabIntervalID === null) {
+                        this._buildingGrabIntervalID = setInterval(function() {
+                            if(currEyeAltitude <= 1000) {
+                                self.handleBuildingInfo(currEyeAltitude);
+                            }
+                        }, 5 * 1000);
                     }
                 } else {
-                    this.resetVisibleNodes();
-                    this._visibleNodes = [];
+                    clearInterval(self._buildingGrabIntervalID);
+                    self._buildingGrabIntervalID = null;
+                    self._buildingLayer.clearBuildings();
                 }
-                */
             }
 
         }
@@ -271,6 +367,48 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         }
 
 
+        function mapMaxOrMin(property, maxBy) {
+            function extractMap(f) {
+                return function(polgon) {
+                    return _.map(f(polgon, property), property);
+                }
+            }
+            if(maxBy === true) {
+                return extractMap(_.max);
+            }
+            return extractMap(_.min)
+        }
+
+
+        OpenStreetMapLayer.prototype.polygonToBoundingBox = function(polygon) {
+            console.log('Processing ', polygon);
+            var maxLongitude = _.map(_.max(polygon, 'longitude'), 'longitude');
+            var maxLatitude = _.map(_.max(polygon, 'latitude'), 'latitude');
+            var minLongitude = _.map(_.min(polygon, 'longitude'), 'longitude');
+            var minLatitude = _.map(_.min(polygon, 'latitude'), 'latitude');
+            var boundingBox = [maxLatitude, minLongitude, minLatitude, maxLongitude];
+            return boundingBox;
+        }
+
+
+        OpenStreetMapLayer.prototype.getEncompassingOfBoundingBoxes = function(boxes) {
+            var boundingBoxes = boxes;
+
+            function getArrayFromLoc(index) {
+                return function(arr) {
+                    return arr[index];
+                }
+            }
+
+            var indicies = _.range(4);
+            var accessFuns = _.map(indicies, getArrayFromLoc);
+            var boundingBox = _.map(accessFuns, function(f) {
+                return f(_.max(boundingBoxes, f));
+            });
+            return boundingBox;
+        }
+
+
         OpenStreetMapLayer.prototype.getEncompassingBoudingBox = function() {
             var boundingBoxes = this.getAllBoundingBoxes();
 
@@ -289,7 +427,36 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         }
 
 
+        /*
+         if(currEyeAltitude <= this._config.drawHeight) {
+         var center = dc.eyePosition;
+         var boundingRect = this.getBoundingRectLocs(center);
+         //console.log('center ' ,center);
+         //console.log('going to box ', boundingRect);
+         var key = this.createBoundingRectKey(boundingRect);
+         if(this._set.contains(key)) {
+         console.log('we have this key')
+         self.resetVisibleNodes();
+         self._visibleNodes = self._visibleNodes.concat(self.enableNodesToBeDrawn(center));
+         self._drawLayer.render(dc);
+         } else {
+         this._overpassWrapper.getAllAmenitiesInBox(boundingRect, function(data) {
 
+         console.log('data from overpass ', data);
+         })
+         //this._dataRetriever.requestOSMData(boundingRect, function(data){
+         //    self._set.add(key);
+         //    console.log(data, ' is ');
+         //    self.resetVisibleNodes();
+         //    self._visibleNodes = self._visibleNodes.concat(self.enableNodesToBeDrawn(center));
+         //    self._drawLayer.render(dc);
+         //});
+         }
+         } else {
+         this.resetVisibleNodes();
+         this._visibleNodes = [];
+         }
+         */
 
 
 
