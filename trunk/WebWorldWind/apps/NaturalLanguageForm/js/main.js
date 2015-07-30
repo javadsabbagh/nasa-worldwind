@@ -20,10 +20,6 @@ requirejs(['jquery', 'nlform', 'nlbuilder', 'HUDMaker', 'OverlayButton', 'OpenSt
         var jQueryDoc = $(window.document);
         var menubutton = new OverlayButton('windIconMenu','img/windGear.svg',[70, jQueryDoc.height()-40-42], '.content');
 
-        /*
-        * Add the function that is called when the wind icon is clicked.
-         */
-
         var nLForm1 = new NLBuilder('Form1');
         nLForm1.addBasicText('I\'m looking for ');
         nLForm1.addField('amenityField', 'amenity', "For example: <em>cafe</em>");
@@ -64,7 +60,9 @@ requirejs(['jquery', 'nlform', 'nlbuilder', 'HUDMaker', 'OverlayButton', 'OpenSt
             })
         });
 
-
+        /*
+         * Add the function that is called when the wind icon is clicked.
+         */
         menubutton.addClickEvent(function(o){
             // Get the div in which the element is located
             var menuIcon = $(o.target).parent();
@@ -77,18 +75,24 @@ requirejs(['jquery', 'nlform', 'nlbuilder', 'HUDMaker', 'OverlayButton', 'OpenSt
                     INDEX += 1
                 }
                 menuIcon.css('left', 70 + (INDEX*6));
-                //console.log(INDEX*6)
             }, 10);
 
-            // Creates a menu when the fadeout is complete.
+            /*
+            * Creates a menu containing buttons to add new querys linked to apps.
+            */
             menuIcon.fadeOut(190, function () {
                 clearInterval(clickAwayAnimationTimer);
 
                 // Creates the menu
                 var menuDisplay = new HUDMaker('LayerMenu', [0,0], '.content');
+
+                /*
+                 * Creates the button that appends a new OSM query to the screen.
+                 */
                 menuDisplay.assembleDisplay('', 'New OSM Query', function (e) {
                     naturalLanguageCanvas.addForm(nLForm1)
                 });
+
                 // Creates the function that restores the original icon when the menu is closed.
                 menuDisplay.addCloseEvent(function(event){
 

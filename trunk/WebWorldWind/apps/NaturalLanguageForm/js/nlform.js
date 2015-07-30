@@ -36,7 +36,6 @@ define(['OpenStreetMapApp', 'WorldWindBase'],
 		}
 
 		NaturalLanguageCanvas.prototype.addForm = function (form) {
-			console.log(form)
 			this.buildForms([form])
 		}
 
