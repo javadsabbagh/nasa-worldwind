@@ -32,13 +32,20 @@ define(['OpenStreetMapApp', 'WorldWindBase'],
 			if (!String.prototype.trim) {
 				String.prototype.trim=function(){return this.replace(/^\s+|\s+$/g, '');};
 			}
-
 			this.buildForms(arrayofforms)
+		}
 
+		NaturalLanguageCanvas.prototype.addForm = function (form) {
+			console.log(form)
+			this.buildForms([form])
 		}
 
 		NaturalLanguageCanvas.prototype.buildForms = function (arrayofforms) {
 			var self = this;
+			console.log('hi');
+			if (!arrayofforms){
+				return
+			}
 			console.log(arrayofforms);
 			arrayofforms.forEach(function(form){
 				var htmlForm = form.getForm();
@@ -66,7 +73,8 @@ define(['OpenStreetMapApp', 'WorldWindBase'],
 		};
 
 		NaturalLanguageCanvas.prototype._loadPage = function () {
-			var self = this
+			var self = this;
+
 			/*
 			 * Initialize the loading sequence of events.
 			 * The pin icon follows the path of a x^6 function. To make it steeper or less so,
@@ -84,7 +92,14 @@ define(['OpenStreetMapApp', 'WorldWindBase'],
 						INDEX += 1;
 					} else {
 						loadSymbol.fadeOut(4000, function(){
-							$('#landingScreen').fadeOut(400)//.remove();
+
+							$('#landingScreen').fadeOut(400, function () {
+
+								if (self.closingAction){
+									self.closingAction()
+								}
+							})
+							//.remove();
 							//$('body').removeClass('nl-blurred');
 							//if (window.NLForm){
 							//	delete window.NLForm
@@ -92,11 +107,13 @@ define(['OpenStreetMapApp', 'WorldWindBase'],
 							loadSymbol.css('right', 78);
 							loadSymbol.css('bottom',  22);
 						})
+						clearInterval(loadTimeAnimator);
 					}
 					x = ((self.jQueryDoc.width()/2 - 78)/steps)*INDEX;
 					y = m*Math.pow(x,6);
 					loadSymbol.css('right', x + 78);
 					loadSymbol.css('bottom',  y + 22);
+
 				},20);
 			}();
 
@@ -362,6 +379,10 @@ define(['OpenStreetMapApp', 'WorldWindBase'],
 			return nlfield
 		};
 
+		NaturalLanguageCanvas.prototype.setClosingAction = function (func) {
+			console.log('action set')
+				this.closingAction = func
+		};
 
 		return NaturalLanguageCanvas
 	});

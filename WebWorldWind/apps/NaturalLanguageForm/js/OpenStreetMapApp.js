@@ -22,7 +22,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
              OpenStreetMapConfig,
              $,
              OSMDataRetriever, RouteLayer, Route, RouteAPIWrapper, NaturalLanguageHandler, polyline, MapQuestGeocoder,
-             NLForm, NLBuilder, HUD, OSMBuildingDataRetriever) {
+             NLForm, NLBuilder, HUDMaker, OSMBuildingDataRetriever) {
 
 
         'use strict';
@@ -51,8 +51,12 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         var OpenStreetMapApp = function(worldwindow, amenity, address) {
             var self = this;
 
+            this._osmBuildingRetriever = new OSMBuildingDataRetriever();
             this._wwd = worldwindow;
-            this._wwd.addLayer(new OpenStreetMapLayer(this._wwd))
+
+            var openStreetMapLayer = new OpenStreetMapLayer(this._wwd);
+
+            this._wwd.addLayer(openStreetMapLayer);
 
             this._animator = new WorldWind.GoToAnimator(self._wwd);
 
@@ -67,48 +71,39 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             var renderableLayer = new WorldWind.RenderableLayer('Pins');
 
             this._wwd.addLayer(renderableLayer);
+            //
+            //var polygonLayer = new WorldWind.RenderableLayer('Building Layers');
+            //
+            //this._wwd.addLayer(polygonLayer);
+            //this.DIDCALL = false;
+            //if (!this.DIDCALL){
+            //    this._osmBuildingRetriever.requestOSMBuildingData([0,0,0,0], function(buildingData) {
+            //        //console.log('building data for ', boundingBox);
+            //        console.log(buildingData);
+            //        buildingData.forEach(function (building){
+            //            var geometries = building.geometry.coordinates;
+            //            // Turn the raw lat long data into worldwind positions
+            //            building.geometry.worldWindCoordinates = [];
+            //            geometries.forEach(function (boundary) {
+            //                var boundaryToPush = [];
+            //                boundary.forEach(function (point){
+            //                    boundaryToPush.push(new WorldWind.Position(point[1], point[0], 5e1))
+            //                });
+            //                building.geometry.worldWindCoordinates.push(boundaryToPush)
+            //            })
+            //        });
+            //        console.log(buildingData)
+            //
+            //        buildingData.forEach(function (building) {
+            //            self.drawPolygon(polygonLayer, building.geometry.worldWindCoordinates)
+            //        })
+            //    });
+            //    this.DIDCALL = true;
+            //}
 
             //amenity = 'cafe';
             //address = 'mountain view';
             var routeLayerRouteBuilder = new (this.RouteBuilder(routeLayer));
-
-            //var test = new OSMBuildingDataRetriever();
-            ////Unit test for osm buildings
-            //test.requestOSMBuildingData([37.14008, -122.33139, 37.64008, -121.83139],function(data){
-            //    console.log(data)
-            //});
-
-            //var HudTest = new HUDMaker('test', [150,150] );
-
-            //(function selectionDisplay () {
-            //    $("<style>")
-            //        .prop("type", "text/css")
-            //        .html("\ #layDiv2 {\
-            //              position: fixed;\
-            //                width: 100px;\
-            //                background-color: black;\
-            //                height: 140px;\
-            //                z-index: 1;\
-            //                right: 78px;\
-            //                bottom: 22px;\
-            //            }")
-            //        .appendTo("head");
-            //    var infoDisplay = $('<div>')
-            //    infoDisplay.attr('id', 'layDiv2');
-            //    infoDisplay.css('background-color','white');
-            //    var IMGOD = $('<img>')
-            //    IMGOD.attr('src','img/pin.png')
-            //    IMGOD.attr('width','44')
-            //    IMGOD.attr('height','46')
-            //
-            //    IMGOD.attr('alt','Pin')
-            //    IMGOD.attr('longdesc','img/pin.png')
-            //    infoDisplay.on('click', function (ev) {
-            //        IMGOD.remove()
-            //    })
-            //    infoDisplay.append(IMGOD)
-            //    $('body').append(infoDisplay)
-            //})();
 
             //First, geocode the address
             this.callGeocoder(address, amenity, function(returnedSpecs) {
@@ -122,7 +117,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                     self.HighlightAndSelectController(renderableLayer, function (returnedRenderable){
                         var pointOfRenderable = self.getPointFromRenderableSelection(returnedRenderable.amenity);
                         var hudID = removeSpecials(returnedRenderable.amenity._amenity.split(' ').join(''));
-                        var HudTest = new HUD(
+                        var HudTest = new HUDMaker(
                             hudID,
                             [returnedRenderable.clickedEvent.x,returnedRenderable.clickedEvent.y]
                         );
@@ -374,6 +369,27 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             });
 
         };
+
+        ////TEMP
+        //OpenStreetMapApp.prototype.drawPolygon = function (layer, boundaries) {
+        //    var self = this;
+        //
+        //
+        //    // Create and set attributes for it. The shapes below except the surface polyline use this same attributes
+        //    // object. Real apps typically create new attributes objects for each shape unless they know the attributes
+        //    // can be shared among shapes.
+        //    var attributes = new WorldWind.ShapeAttributes(null);
+        //    attributes.outlineColor = WorldWind.Color.BLUE;
+        //    attributes.interiorColor = new WorldWind.Color(0, 1, 1, 0.5);
+        //
+        //    var highlightAttributes = new WorldWind.ShapeAttributes(attributes);
+        //    highlightAttributes.interiorColor = new WorldWind.Color(1, 1, 1, 1);
+        //    console.log(boundaries)
+        //    var shape = new WorldWind.SurfacePolygon(boundaries, attributes);
+        //    shape.highlightAttributes = highlightAttributes;
+        //    console.log(shape)
+        //    layer.addRenderable(shape);
+        //};
 
         return OpenStreetMapApp;
 
