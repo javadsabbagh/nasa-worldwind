@@ -5,13 +5,16 @@
 define(
     function(){
 
-        function NLBuilder ( el ) {
-            this.el = el
+        function NLBuilder (id) {
+            this.el = $('<form>');
+            this.el.attr('id',id);
+            this.el.attr('class','nl-form')
         }
 
         NLBuilder.prototype.addBasicText = function (text) {
             this.el.append(text)
         };
+
         /*
         @param ex: the word that appears on click and as default
         @param forex: subline string e.g. "For example: <em>cafe</em> or <em>Fad</em>"
@@ -26,6 +29,17 @@ define(
             field.attr('data-subline', forex);
             this.el.append(field)
         };
+
+        NLBuilder.prototype.getForm = function () {
+            console.log(this.el)
+            return this.el
+        };
+
+        NLBuilder.prototype.setApplication = function (application) {
+            this.application = application
+        }
+
+
 
         return NLBuilder
     }

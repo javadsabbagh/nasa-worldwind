@@ -48,31 +48,11 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             return res;
         }
 
-        var OpenStreetMapApp = function(amenity, address) {
+        var OpenStreetMapApp = function(worldwindow, amenity, address) {
             var self = this;
 
-            this._config = new OpenStreetMapConfig();
-            
-            /*
-             Changes the size of the canvas that renders the world wind globe
-             */
-            $(this._config.canvasIDString).
-                attr('width',
-                this._config.canvasWidth);
-            $(this._config.canvasIDString).
-                attr('height',
-                this._config.canvasHeight);
-
-            this._wwd = new WorldWind.WorldWindow(this._config.canvasName);
-
-            this._layers = [new OpenStreetMapLayer(this._wwd),
-                new WorldWind.CompassLayer(this._wwd), new WorldWind.ViewControlsLayer(this._wwd)];
-
-            this._layers.forEach(function (layer) {
-                self._wwd.addLayer(layer);
-            });
-
-            var self = this;
+            this._wwd = worldwindow;
+            this._wwd.addLayer(new OpenStreetMapLayer(this._wwd))
 
             this._animator = new WorldWind.GoToAnimator(self._wwd);
 
@@ -142,7 +122,6 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                     self.HighlightAndSelectController(renderableLayer, function (returnedRenderable){
                         var pointOfRenderable = self.getPointFromRenderableSelection(returnedRenderable.amenity);
                         var hudID = removeSpecials(returnedRenderable.amenity._amenity.split(' ').join(''));
-                        console.log(returnedRenderable);
                         var HudTest = new HUD(
                             hudID,
                             [returnedRenderable.clickedEvent.x,returnedRenderable.clickedEvent.y]
@@ -155,6 +134,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
 
             });
+
+
 
         };
 

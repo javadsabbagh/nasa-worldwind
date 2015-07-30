@@ -10,8 +10,10 @@ requirejs.config({
     }
 });
 
-requirejs(['jquery', "OpenStreetMapApp", 'nlform', 'nlbuilder'], function($, OpenStreetMapApp, NaturalLanguageCanvas, NLBuilder) {
-    new OpenStreetMapApp()
+requirejs(['jquery', "OpenStreetMapApp", 'nlform', 'nlbuilder', 'WorldWindBase'],
+    function($, OpenStreetMapApp, NaturalLanguageCanvas, NLBuilder) {
+        var worldWindow = new WorldWindBase( window );
+        new OpenStreetMapApp( worldWindow );
 });
 
 

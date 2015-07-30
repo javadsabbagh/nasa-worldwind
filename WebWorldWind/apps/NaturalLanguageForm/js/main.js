@@ -10,89 +10,76 @@ requirejs.config({
     }
 });
 
-requirejs(['jquery', 'nlform', 'nlbuilder', 'HUDMaker', 'OverlayButton'],
-    function($, NaturalLanguageCanvas, NLBuilder, HUDMaker, OverlayButton) {
+requirejs(['jquery', 'nlform', 'nlbuilder', 'HUDMaker', 'OverlayButton', 'OpenStreetMapApp'],
+    function($, NaturalLanguageCanvas, NLBuilder, HUDMaker, OverlayButton, OpenStreetMapApp) {
         console.log('setting up');
         console.log($('#amenityField'));
-        //var menuIcon = $('#apDiv4');
-        //menuIcon.on('click', function(o){
-        //
-        //    var INDEX = 0;
-        //    var clickedLoc =[o.x, o.y];
-        //    var clickAwayAnimationTimer = window.setInterval(function () {
-        //        if (INDEX < 20){
-        //            INDEX += 1
-        //        }
-        //        menuIcon.css('left', 70 + (INDEX*6));
-        //        console.log(INDEX*6)
-        //    }, 10);
-        //    menuIcon.fadeOut(190, function () {
-        //        clearInterval(clickAwayAnimationTimer);
-        //        var menuDisplay = new HUDMaker('LayerMenu', clickedLoc, '.content');
-        //
-        //        menuDisplay.addCloseEvent(function(event){
-        //
-        //            var clickInAnimationTimer = window.setInterval(function () {
-        //                if (INDEX < 20){
-        //                    INDEX += 1
-        //                }
-        //                console.log(menuIcon.css('left'));
-        //                menuIcon.css('left', 70)
-        //            }, 10);
-        //
-        //            menuIcon.fadeIn(190, function () {
-        //                clearInterval(clickInAnimationTimer)
-        //            })
-        //
-        //
-        //        })
-        //    })
-        //})
-
+        /*
+        * Create the html, css, and js for the wind icon in the bottom left. This will act as a menu for the canvas.
+         */
         var jQueryDoc = $(window.document);
-        console
         var menubutton = new OverlayButton('windIconMenu','img/windGear.svg',[70, jQueryDoc.height()-40-42], '.content');
+
+        /*
+        * Add the function that is called when the wind icon is clicked.
+         */
         menubutton.addClickEvent(function(o){
+            // Get the div in which the element is located
             var menuIcon = $(o.target).parent();
 
             var INDEX = 0;
-                var clickedLoc =[o.x, o.y];
-                var clickAwayAnimationTimer = window.setInterval(function () {
+            var clickedLoc =[o.x, o.y];
+            // Animates the fadeOut
+            var clickAwayAnimationTimer = window.setInterval(function () {
                     if (INDEX < 20){
                         INDEX += 1
                     }
                     menuIcon.css('left', 70 + (INDEX*6));
                     console.log(INDEX*6)
                 }, 10);
-                menuIcon.fadeOut(190, function () {
-                    clearInterval(clickAwayAnimationTimer);
-                    var menuDisplay = new HUDMaker('LayerMenu', clickedLoc, '.content');
 
-                    menuDisplay.addCloseEvent(function(event){
+            // Creates a menu when the fadeout is complete.
+            menuIcon.fadeOut(190, function () {
+                clearInterval(clickAwayAnimationTimer);
 
-                        var clickInAnimationTimer = window.setInterval(function () {
-                            if (INDEX < 20){
-                                INDEX += 1
-                            }
-                            menuIcon.css('left', 70)
-                        }, 10);
+                // Creates the menu
+                var menuDisplay = new HUDMaker('LayerMenu', clickedLoc, '.content');
 
-                        menuIcon.fadeIn(190, function () {
-                            clearInterval(clickInAnimationTimer)
-                        })
+                // Creates the function that restores the original icon when the menu is closed.
+                menuDisplay.addCloseEvent(function(event){
 
+                    var clickInAnimationTimer = window.setInterval(function () {
+                        if (INDEX < 20){
+                            INDEX += 1
+                        }
+                        menuIcon.css('left', 70)
+                    }, 10);
 
+                    menuIcon.fadeIn(190, function () {
+                        clearInterval(clickInAnimationTimer)
                     })
-                })
-        })
-        var nLBuilder = new NLBuilder($(' #nl-form' ));
-        nLBuilder.addBasicText('I\'m looking for ');
-        nLBuilder.addField('amenityField', 'amenity', "For example: <em>cafe</em>");
-        nLBuilder.addBasicText(' near ');
-        nLBuilder.addField('addressField', 'address', "For example: <em>Mountain View</em>");
 
-        NaturalLanguageCanvas( window );
-        new NLForm(document.getElementById( 'nl-form' ));
+
+                })
+            })
+        });
+
+        var nLForm1 = new NLBuilder('Form1');
+        nLForm1.addBasicText('I\'m looking for ');
+        nLForm1.addField('amenityField', 'amenity', "For example: <em>cafe</em>");
+        nLForm1.addBasicText(' near ');
+        nLForm1.addField('addressField', 'address', "For example: <em>Mountain View</em>");
+        nLForm1.setApplication(OpenStreetMapApp)
+
+        var nLForm2 = new NLBuilder('Form2');
+        nLForm2.addBasicText('I\'m looking for ');
+        nLForm2.addField('amenityField', 'amenity', "For example: <em>cafe</em>");
+        nLForm2.addBasicText(' near ');
+        nLForm2.addField('addressField', 'address', "For example: <em>Mountain View</em>");
+        nLForm2.setApplication(OpenStreetMapApp)
+
+        var naturalLanguageCanvas = new NaturalLanguageCanvas( window , [nLForm1, nLForm2]);
+        //new (naturalLanguageCanvas.NLForm(document.getElementById( 'nl-form' )))
 });
 
 
