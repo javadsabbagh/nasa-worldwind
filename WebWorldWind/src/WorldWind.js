@@ -72,6 +72,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './layer/OpenStreetMapImageLayer',
         './gesture/PanRecognizer',
         './shapes/Path',
+        './util/PeriodicTimeSequence',
         './pick/PickedObject',
         './pick/PickedObjectList',
         './gesture/PinchRecognizer',
@@ -130,6 +131,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         './ogc/WmsCapabilities',
         './layer/WmsLayer',
         './ogc/WmsLayerCapabilities',
+        './layer/WmsTimeDimensionedLayer',
         './util/WmsUrlBuilder',
         './WorldWindow',
         './util/WWMath',
@@ -201,6 +203,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               OpenStreetMapImageLayer,
               PanRecognizer,
               Path,
+              PeriodicTimeSequence,
               PickedObject,
               PickedObjectList,
               PinchRecognizer,
@@ -259,6 +262,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
               WmsCapabilities,
               WmsLayer,
               WmsLayerCapabilities,
+              WmsTimeDimensionedLayer,
               WmsUrlBuilder,
               WorldWindow,
               WWMath,
@@ -539,6 +543,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['OpenStreetMapImageLayer'] = OpenStreetMapImageLayer;
         WorldWind['PanRecognizer'] = PanRecognizer;
         WorldWind['Path'] = Path;
+        WorldWind['PeriodicTimeSequence'] = PeriodicTimeSequence;
         WorldWind['PickedObject'] = PickedObject;
         WorldWind['PickedObjectList'] = PickedObjectList;
         WorldWind['PinchRecognizer'] = PinchRecognizer;
@@ -597,6 +602,7 @@ define([ // PLEASE KEEP ALL THIS IN ALPHABETICAL ORDER BY MODULE NAME (not direc
         WorldWind['WmsCapabilities'] = WmsCapabilities;
         WorldWind['WmsLayer'] = WmsLayer;
         WorldWind['WmsLayerCapabilities'] = WmsLayerCapabilities;
+        WorldWind['WmsTimeDimensionedLayer'] = WmsTimeDimensionedLayer;
         WorldWind['WmsUrlBuilder'] = WmsUrlBuilder;
         WorldWind['WWMath'] = WWMath;
         WorldWind['WWUtil'] = WWUtil;

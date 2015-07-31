@@ -44,11 +44,7 @@ define(function () {
 
             if (layer.displayName === layerName) {
                 layer.enabled = !layer.enabled;
-                if (layer.enabled) {
-                    layerButton.addClass("active");
-                } else {
-                    layerButton.removeClass("active");
-                }
+                this.synchronizeLayerList();
 
                 if (layer.companionLayer) {
                     if (layer.enabled) {
@@ -65,11 +61,42 @@ define(function () {
         }
     };
 
+    LayersPanel.prototype.onTimeButtonClick = function (timeButton) {
+        var isOn = timeButton.hasClass("btn-primary");
+
+        if (this.timeSeriesPlayer) {
+            var layer = null;
+
+            for (var i = 0, len = this.wwd.layers.length; i < len; i++) {
+                var layer = this.wwd.layers[i];
+
+                if (timeButton.hasClass(layer.displayName)) {
+                    break;
+                }
+            }
+
+            if (isOn) {
+                this.timeSeriesPlayer.layer = null;
+                this.timeSeriesPlayer.timeSequence = null;
+            } else {
+                layer.enabled = true;
+                this.timeSeriesPlayer.layer = layer;
+                this.timeSeriesPlayer.timeSequence = layer.timeSequence;
+            }
+
+            this.synchronizeLayerList();
+        }
+    };
+
+    LayersPanel.prototype.onLayerDropdownClicked = function (dropButton) {
+    };
+
     LayersPanel.prototype.synchronizeLayerList = function () {
-        var layerListItem = $("#layerList");
+        var thisLayersPanel = this,
+            layerListItem = $("#layerList");
 
         layerListItem.find("button").off("click");
-        layerListItem.find("button").remove();
+        layerListItem.empty();
 
         // Synchronize the displayed layer list with the World Window's layer list.
         for (var i = 0, len = this.wwd.layers.length; i < len; i++) {
@@ -77,22 +104,62 @@ define(function () {
             if (layer.hide) {
                 continue;
             }
-            var layerItem = $('<button class="list-group-item btn btn-block wrap-panel-heading">' + layer.displayName + '</button>');
-            layerListItem.append(layerItem);
-            //
-            //layerItem.draggable({cancel:false});
+
+            var btnGroup = $('<div class="btn-group btn-block" style="display: flex; display: -webkit-flex"></div>'),
+                layerButton, dropButton = null, timeButton = null;
+
+            if (!layer.timeSequence) {
+                layerButton = $('<button type="button" class="btn wrap-panel-heading" style="display: block; width: 100%">' + layer.displayName + '</button>');
+                btnGroup.append(layerButton);
+            } else {
+                //var caretSpan = $('<span class="caret"></span><span class="sr-only"></span>');
+                var timeSpan = $('<span class="glyphicon glyphicon-time"></span>');
+
+                layerButton = $('<button type="button" class="btn wrap-panel-heading" style="display: block; width: 85%">' + layer.displayName + '</button>');
+                //dropButton = $('<button type=button class="btn dropdown-toggle" data-toggle="dropdown" style="width: 10%"></button>');
+                timeButton = $('<button type=button class="btn timeButton" style="width: 15%"></button>');
+                timeButton.addClass(layer.displayName);
+
+                timeButton.append(timeSpan);
+                //dropButton.append(caretSpan);
+                btnGroup.append(layerButton);
+                btnGroup.append(timeButton);
+            }
+
+            layerListItem.append(btnGroup);
 
             if (layer.enabled) {
-                layerItem.addClass("active");
+                layerButton.addClass("btn-primary");
+                if (dropButton) {
+                    dropButton.addClass("btn-primary");
+                }
             } else {
-                layerItem.removeClass("active");
+                layerButton.removeClass("btn-primary");
+                if (dropButton) {
+                    dropButton.removeClass("btn-primary");
+                }
+            }
+
+            layerButton.on("click", function (e) {
+                thisLayersPanel.onLayerClick($(this));
+            });
+
+            if (timeButton) {
+                if (this.timeSeriesPlayer && this.timeSeriesPlayer.layer === layer) {
+                    timeButton.addClass("btn-primary");
+                }
+
+                timeButton.on("click", function(e) {
+                    thisLayersPanel.onTimeButtonClick($(this));
+                })
+            }
+
+            if (dropButton) {
+                dropButton.on("click", function (e) {
+                    thisLayersPanel.onLayerDropdownClicked($(this));
+                });
             }
         }
-
-        var thisLayersPanel = this;
-        layerListItem.find("button").on("click", function (e) {
-            thisLayersPanel.onLayerClick($(this));
-        });
     };
 
     return LayersPanel;

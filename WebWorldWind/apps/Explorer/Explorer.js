@@ -9,12 +9,14 @@ define(['../../src/WorldWind',
         '../util/GoToBox',
         '../util/LayersPanel',
         '../util/ProjectionMenu',
-        '../util/ServersPanel'],
+        '../util/ServersPanel',
+        '../util/TimeSeriesPlayer'],
     function (ww,
               GoToBox,
               LayersPanel,
               ProjectionMenu,
-              ServersPanel) {
+              ServersPanel,
+              TimeSeriesPlayer) {
         "use strict";
 
         var Explorer = function () {
@@ -47,9 +49,16 @@ define(['../../src/WorldWind',
 
             this.goToBox = new GoToBox(this.wwd);
             this.layersPanel = new LayersPanel(this.wwd);
-            this.serversPanel = new ServersPanel(this.wwd, this.layersPanel);
+            this.timeSeriesPlayer = new TimeSeriesPlayer(this.wwd);
+            this.serversPanel = new ServersPanel(this.wwd, this.layersPanel, this.timeSeriesPlayer);
             this.projectionMenu = new ProjectionMenu(this.wwd);
+
+            this.layersPanel.timeSeriesPlayer = this.timeSeriesPlayer;
+
+            this.serversPanel.attachServer("neowms.sci.gsfc.nasa.gov/wms/wms");
         };
 
         return Explorer;
-    });
+    }
+)
+;
