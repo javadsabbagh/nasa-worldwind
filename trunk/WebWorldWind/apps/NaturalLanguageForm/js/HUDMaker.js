@@ -130,6 +130,11 @@ define(function(){
 
     };
 
+    Hud.prototype.addAnchor = function (anchor) {
+        console.log('anchor ', anchor)
+        this.DIV.append(anchor)
+    };
+
     Hud.prototype.addCloseEvent = function (callback) {
         this.closeButton.on('click', callback)
     };
