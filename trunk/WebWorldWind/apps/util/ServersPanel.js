@@ -19,11 +19,12 @@ define(function () {
      * @param {WorldWindow} worldWindow The World Window to associate this layers panel with.
      * @param {LayersPanel} layersPanel The layers panel managing the specified World Windows layer list.
      */
-    var ServersPanel = function (worldWindow, layersPanel) {
+    var ServersPanel = function (worldWindow, layersPanel, timeSeriesPlayer) {
         var thisServersPanel = this;
 
         this.wwd = worldWindow;
         this.layersPanel = layersPanel;
+        this.timeSeriesPlayer = timeSeriesPlayer;
 
         this.idCounter = 1;
 
@@ -133,7 +134,7 @@ define(function () {
             remove = $('<a href="#"><small><span class="pull-right glyphicon glyphicon-remove clickable_space"></span></small></a>'),
             bodyParent = $('<div id="' + collapseID + '" class="panel-collapse collapse in" role="tabpanel"' +
                 ' aria-labelledby="' + headingID + '"></div>'),
-            body = $('<div class="panel-body"></div>'),
+            body = $('<div style="max-height: 250px; overflow-y: scroll; -webkit-overflow-scrolling: touch;"></div>'),
             treeDiv = this.makeTree(serverAddress, treeId);
 
         remove.on("click", function () {
@@ -152,7 +153,26 @@ define(function () {
         serversItem.append(topDiv);
 
         var treeRoot = treeDiv.fancytree("getRootNode");
-        treeRoot.addChildren(this.assembleLayers(wmsCapsDoc.capability.layers, []));
+
+        // Don't show the top-level layer if it's a grouping layer with the same title as the server title.
+        // The NEO server is set up this way, for example.
+        var layers = wmsCapsDoc.capability.layers;
+        if ((layers.length === 1) && (layers[0].layers) &&
+            (layers[0].title === wmsCapsDoc.service.title) && !(layers[0].name && layers[0].name.length > 0)) {
+            layers = layers[0].layers;
+        }
+        treeRoot.addChildren(this.assembleLayers(layers, []));
+
+        // Collapse grouping nodes if there are many of them.
+        var numNodes = 0;
+        treeRoot.visit(function (node) {
+            ++numNodes;
+        });
+        if (numNodes > 10) {
+            treeRoot.visit(function (node) {
+                node.setExpanded(false);
+            });
+        }
     };
 
     ServersPanel.prototype.makeTree = function (serverAddress, treeId) {
@@ -234,7 +254,23 @@ define(function () {
     ServersPanel.prototype.addLayer = function (layerCaps) {
         if (layerCaps.name) {
             var config = WorldWind.WmsLayer.formLayerConfiguration(layerCaps, null);
-            var layer = new WorldWind.WmsLayer(config);
+            var layer;
+
+            if (config.timeSequences &&
+                (config.timeSequences[config.timeSequences.length - 1] instanceof WorldWind.PeriodicTimeSequence)) {
+                var timeSequence = config.timeSequences[config.timeSequences.length - 1];
+                config.levelZeroDelta = new WorldWind.Location(180, 180);
+                layer = new WorldWind.WmsTimeDimensionedLayer(config);
+                layer.opacity = 0.8;
+                layer.time = timeSequence.startTime;
+                this.timeSeriesPlayer.timeSequence = timeSequence;
+                this.timeSeriesPlayer.layer = layer;
+                layer.timeSequence = timeSequence;
+            } else {
+                layer = new WorldWind.WmsLayer(config, null);
+                this.timeSeriesPlayer.timeSequence = null;
+                this.timeSeriesPlayer.layer = null;
+            }
 
             if (layerCaps.styles && layerCaps.styles.length > 0
                 && layerCaps.styles[0].legendUrls && layerCaps.styles[0].legendUrls.length > 0) {
@@ -260,6 +296,12 @@ define(function () {
         //if (layer.companionLayer) {
         //    this.wwd.removeLayer(layer.companionLayer);
         //}
+
+        if (this.timeSeriesPlayer && this.timeSeriesPlayer.layer === layer) {
+            this.timeSeriesPlayer.timeSequence = null;
+            this.timeSeriesPlayer.layer = null;
+        }
+
         this.wwd.redraw();
         this.layersPanel.synchronizeLayerList();
     };
