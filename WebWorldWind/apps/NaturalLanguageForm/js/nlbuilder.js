@@ -1,7 +1,10 @@
 /*
  * Author: Matt Evers
  */
-//Needs a form with id='nl-form' in html
+/*
+* This module helps you define an nlform. The object created by this module should be passed to the nlfactory before
+*   accessing it.
+ */
 define(
     function(){
 
@@ -16,11 +19,11 @@ define(
         };
 
         /*
-        @param ex: the word that appears on click and as default
-        @param forex: subline string e.g. "For example: <em>cafe</em> or <em>Fad</em>"
+        * @param placeholder: the word that appears on click and as default
+        * @param forex: subline string e.g. "For example: <em>cafe</em> or <em>Fad</em>"
          */
         NLBuilder.prototype.addField = function (id, placeholder, forex) {
-            var field = $('<input>');
+            var field = new $('<input>');
                 //<input id="amenityField" type="text" value="" placeholder="amenity" data-subline="For example: <em>cafe</em>">
             field.attr('id', id);
             field.attr('type', 'text');
@@ -31,15 +34,15 @@ define(
         };
 
         NLBuilder.prototype.getForm = function () {
-            console.log(this.el)
             return this.el
         };
 
+        /*
+        * Stores a reference to the application that will be called upon completion of the form.
+         */
         NLBuilder.prototype.setApplication = function (application) {
             this.application = application
-        }
-
-
+        };
 
         return NLBuilder
     }

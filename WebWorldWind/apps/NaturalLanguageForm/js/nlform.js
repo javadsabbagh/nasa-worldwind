@@ -13,21 +13,28 @@
 *
 */
 /*
-* @dependency: This module requires an NLform in the html under <form id="nl-form" class="nl-form">
-*     			Use the nlbuilder to create this form dynamically.
 * @dependency: This module requires a 'background' in the html under <body class="nl-blurred">
+* @dependency: This module requires a div with the class main-clearfix inside nl-blurred
 *
 * @param window: the document's window.
 * @param arrayofforms: an array of natural language forms created in the format returned by the nlbuilder.
+* 						Note that these forms must have exactly as many fields as arguments required by the app.
  */
 
-define(['OpenStreetMapApp', 'WorldWindBase'],
-	function (OpenStreetMapApp, WorldWindBase){
+define(['OpenStreetMapApp',
+		'WorldWindBase',
+		'nlfactory'],
+	function (OpenStreetMapApp,
+			  WorldWindBase,
+			  NaturalLanguageFactory){
 		'use strict';
-		function NaturalLanguageCanvas ( window , arrayofforms) {
+		function NaturalLanguageCanvas ( window,
+										 arrayofforms) {
 			this.document = window.document;
 			this.jQueryDoc = $(window.document);
 			this.forms = [];
+
+			this.formFactory = new NaturalLanguageFactory();
 
 			if (!String.prototype.trim) {
 				String.prototype.trim=function(){return this.replace(/^\s+|\s+$/g, '');};
@@ -35,19 +42,33 @@ define(['OpenStreetMapApp', 'WorldWindBase'],
 			this.buildForms(arrayofforms)
 		}
 
+		/*
+		* Calls the build form function for a given form object.
+		*
+		* @param form: the form must be an object as returned by the nlbuilder.
+		 */
 		NaturalLanguageCanvas.prototype.addForm = function (form) {
 			this.buildForms([form])
 		}
 
+		/*
+		* Loops through each form given in an array and creates the interface corrosponding to that form.
+		* Appends the form to a div with the class main-clearfix.
+		* Additionally, it creates a form with the specifications given using the form factory.
+		*
+		* @param arrayofforms: array containing forms as above.
+		 */
 		NaturalLanguageCanvas.prototype.buildForms = function (arrayofforms) {
 			var self = this;
-			console.log('hi');
 			if (!arrayofforms){
 				return
 			}
 			console.log(arrayofforms);
 			arrayofforms.forEach(function(form){
-				var htmlForm = form.getForm();
+				var htmlForm = self.formFactory.createForm(form).getForm();
+				// Add a random number to the ID so there is no name clash.
+				htmlForm.attr('id',htmlForm.attr('id') + Math.round(100*Math.random()) )
+				console.log(htmlForm)
 				$('.main-clearfix').append(htmlForm);
 				var canvasForm = new (self.NLForm()) ( self.document.getElementById(htmlForm.attr('id')) );
 				canvasForm._setApplicationToOpen(form.application);
@@ -56,6 +77,9 @@ define(['OpenStreetMapApp', 'WorldWindBase'],
 
 		};
 
+		/*
+		* This checks if all forms have all entries filled and then calls the load page function if true.
+		 */
 		NaturalLanguageCanvas.prototype._loadPageIfAllFormsFilled = function () {
 			var allFormsFilled = true;
 			this.forms.forEach(function (form) {
@@ -71,6 +95,10 @@ define(['OpenStreetMapApp', 'WorldWindBase'],
 			}
 		};
 
+		/*
+		* Initializes the loading sequence. Upon completion of the loading sequence, the closingAction function
+		* 	is called if one exists.
+		 */
 		NaturalLanguageCanvas.prototype._loadPage = function () {
 			var self = this;
 
@@ -86,28 +114,28 @@ define(['OpenStreetMapApp', 'WorldWindBase'],
 					loadIcon = $('#apDiv2'),
 					loadSymbol = $('#apDiv3');
 				var loadTimeAnimator = window.setInterval(function () {
-					loadIcon.remove();
+					loadIcon.fadeOut(10)
 					if (INDEX < steps){
 						INDEX += 1;
 					} else {
-						loadSymbol.fadeOut(4000, function(){
-
+						loadSymbol.fadeOut(1000, function(){
 							$('#landingScreen').fadeOut(400, function () {
-
 								if (self.closingAction){
 									self.closingAction()
 								}
-							})
-							//.remove();
-							//$('body').removeClass('nl-blurred');
-							//if (window.NLForm){
-							//	delete window.NLForm
-							//}
+							});
+
+							// Return Everything to the way it was so the canvas looks new upon return.
+							loadIcon.fadeIn(10);
+							loadSymbol.fadeIn(10);
 							loadSymbol.css('right', 78);
 							loadSymbol.css('bottom',  22);
-						})
+						});
+
 						clearInterval(loadTimeAnimator);
 					}
+
+					// Animate the icon in the bottom left.
 					x = ((self.jQueryDoc.width()/2 - 78)/steps)*INDEX;
 					y = m*Math.pow(x,6);
 					loadSymbol.css('right', x + 78);
@@ -118,14 +146,21 @@ define(['OpenStreetMapApp', 'WorldWindBase'],
 
 		};
 
+		/*
+		* Creates a form module. See module inside.
+		 */
 		NaturalLanguageCanvas.prototype.NLForm = function () {
 			var self = this;
+
+			/*
+			* Creates the interface for the given form and constructs a field module for each field defined in the form.
+			 */
 			function nlform( el ) {
 				var form = this;
 				this.canvas = self;
 				this.document = $(document);
 				this.el = el;
-				console.log(this.el);
+				this.ID = $(this.el).attr('id')
 				this.backDrop = document.querySelector( '.nl-blurred' );
 				this.fields = [];
 				this.fldOpen = -1;
@@ -146,27 +181,42 @@ define(['OpenStreetMapApp', 'WorldWindBase'],
 					this.backDrop.addEventListener( 'click', function(ev) { ev.preventDefault(); ev.stopPropagation(); form.closeAllFields(); } );
 					this.backDrop.addEventListener( 'touchstart', function(ev) { ev.preventDefault(); ev.stopPropagation(); form.closeAllFields(); } );
 				},
+				/*
+				 * Start the World Wind window in the background so that it can load the tiles.
+				 * This function loops through all inputs in the form. If the input has an ID, the it passes
+				 * the value of that input into an array which is then passed to the application.
+				 */
 				_loadLayer : function() {
 
 					var form = this;
-					/*
-					 * Start the World Wind window in the background so that it can load the tiles.
-					 */
-					//console.log(OpenStreetMapApp)
-					var loadInBackground = function(){
-						var amenity = $('#amenityField').val().trim();
-						var address = $('#addressField').val().trim();
 
-						//console.log('amenity ', amenity);
-						//console.log('address ', address );
+					var loadInBackground = function(){
+
+						var argumentArray = [];
+						var allInputs = $('#' + form.ID).find(':input');
+						allInputs.each(function(index){
+							if (allInputs[index].getAttribute('id')){
+								var valueToPush = $(allInputs[index]);
+								argumentArray.push(valueToPush.val().trim());
+								valueToPush.remove()
+							}
+						});
+
 						if (!window.worldWindow) {
 							window.worldWindow = new WorldWindBase( window )
 						}
-						new form.application(window.worldWindow, amenity, address);
+
+						new form.application(window.worldWindow, argumentArray);
+
 					}();
 
 					//Remove the natural language line because the user is done with it.
+					$(this.el).empty(); // So the fields are cleared as well.
 					this.el.remove();
+					// Remove the form from the form array.
+					if (self.forms.indexOf(form) > -1) {
+						self.forms.splice(self.forms.indexOf(form), 1);
+					}
 					this.canvas._loadPageIfAllFormsFilled();
 				},
 				_setApplicationToOpen: function(application) {
@@ -286,9 +336,10 @@ define(['OpenStreetMapApp', 'WorldWindBase'],
 					this.optionsList.appendChild( this.example );
 					this.fld.appendChild( this.toggle );
 					this.fld.appendChild( this.optionsList );
-					//console.log(this.elOriginal);
-					//console.log(this.elOriginal.parentNode);
-					this.elOriginal.parentNode.insertBefore( this.fld, this.elOriginal );
+					console.log(this.elOriginal);
+					console.log(this.elOriginal.parentNode);
+					console.log(this.form.el)
+					this.form.el.insertBefore( this.fld, this.elOriginal );
 					this.elOriginal.style.display = 'none';
 					//Values used later...
 					//this.toggle
