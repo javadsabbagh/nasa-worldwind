@@ -4,15 +4,15 @@
 define(['HUDMaker'], function (HUDMaker) {
         function LayerManager ( worldWindow ) {
             var thisExplorer = this;
-            console.log('yo')
-
 
             this.wwd = worldWindow;
 
             this.roundGlobe = this.wwd.globe;
 
             this.createProjectionList();
-            $("#projectionDropdown").find(" li").on("click", function (e) {
+            console.log($("#projectionDropdown"))
+
+            $("#projectionDropdown").find("li").on("click", function (e) {
                 thisExplorer.onProjectionClick(e);
             });
 
@@ -161,6 +161,7 @@ define(['HUDMaker'], function (HUDMaker) {
             projectionDropdown.append(dropdownButton);
 
             var ulItem = $('<ul class="dropdown-menu">');
+            ulItem.css('z-index', 28)
             projectionDropdown.append(ulItem);
 
             for (var i = 0; i < projectionNames.length; i++) {
@@ -210,18 +211,13 @@ define(['HUDMaker'], function (HUDMaker) {
         };
 
         function LayerManagerHud ( wwd ) {
-            console.log('Hud made')
-            var anchorForLayerManager = new HUDMaker('LayerMenuHAHA', [0,0])
+            console.log('Hud made');
+            var anchorForLayerManager = new HUDMaker('Layer Menu', [0,0]);
 
-            var projectionAnchor = $('<div>')
-            projectionAnchor.attr('class', 'dropdown')
-            projectionAnchor.attr('id', 'projectionDropdown')
-            anchorForLayerManager.addAnchor(projectionAnchor)
-
-            var layerAnchor = $('<div>')
-            layerAnchor.attr('class', 'list-group')
-            layerAnchor.attr('id', 'layerList')
-            anchorForLayerManager.addAnchor(layerAnchor)
+            var layerAnchor = $('<div>');
+            layerAnchor.attr('class', 'list-group');
+            layerAnchor.attr('id', 'layerList');
+            anchorForLayerManager.addAnchor(layerAnchor);
 
             window.layerManager = new LayerManager(wwd)
 

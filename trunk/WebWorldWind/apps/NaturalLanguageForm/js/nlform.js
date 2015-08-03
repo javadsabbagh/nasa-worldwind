@@ -63,12 +63,12 @@ define(['OpenStreetMapApp',
 			if (!arrayofforms){
 				return
 			}
-			console.log(arrayofforms);
+			//console.log(arrayofforms);
 			arrayofforms.forEach(function(form){
 				var htmlForm = self.formFactory.createForm(form).getForm();
 				// Add a random number to the ID so there is no name clash.
 				htmlForm.attr('id',htmlForm.attr('id') + Math.round(100*Math.random()) )
-				console.log(htmlForm)
+				//console.log(htmlForm)
 				$('.main-clearfix').append(htmlForm);
 				var canvasForm = new (self.NLForm()) ( self.document.getElementById(htmlForm.attr('id')) );
 				canvasForm._setApplicationToOpen(form.application);
@@ -336,9 +336,6 @@ define(['OpenStreetMapApp',
 					this.optionsList.appendChild( this.example );
 					this.fld.appendChild( this.toggle );
 					this.fld.appendChild( this.optionsList );
-					console.log(this.elOriginal);
-					console.log(this.elOriginal.parentNode);
-					console.log(this.form.el)
 					this.form.el.insertBefore( this.fld, this.elOriginal );
 					this.elOriginal.style.display = 'none';
 					//Values used later...
@@ -430,8 +427,8 @@ define(['OpenStreetMapApp',
 		};
 
 		NaturalLanguageCanvas.prototype.setClosingAction = function (func) {
-			console.log('action set')
-				this.closingAction = func
+			//console.log('action set')
+			this.closingAction = func
 		};
 
 		return NaturalLanguageCanvas

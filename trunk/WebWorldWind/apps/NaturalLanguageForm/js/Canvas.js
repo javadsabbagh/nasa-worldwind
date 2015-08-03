@@ -111,7 +111,7 @@ define(['jquery',
                     clearInterval(clickAwayAnimationTimer);
 
                     // Creates the menu
-                    var menuDisplay = new HUDMaker('AppMenu', [0,0], '.content');
+                    var menuDisplay = new HUDMaker('Application Menu', [0,0], '.content');
 
                     /*
                      * Creates the button that appends a new OSM query to the screen.

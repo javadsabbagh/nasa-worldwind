@@ -29,27 +29,12 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
         WorldWind.Logger.setLoggingLevel(WorldWind.Logger.LEVEL_WARNING);
 
-        /*
-        * Removes all special characters from a string
-        *
-        * @param str: any string
-        *
-        * @return: the input string with special characters ommitted.
-         */
-        function removeSpecials(str) {
-            var lower = str.toLowerCase();
-            var upper = str.toUpperCase();
 
-            var res = "";
-            for(var i=0; i<lower.length; ++i) {
-                if(lower[i] != upper[i] || lower[i].trim() === '')
-                    res += str[i];
-            }
-            return res;
-        }
-
-        var OpenStreetMapApp = function(worldwindow, amenity, address) {
-            var self = this;
+        var OpenStreetMapApp = function(worldwindow, argumentarray) {
+            var self = this,
+            amenity = argumentarray[0],
+            address = argumentarray[1];
+            console.log(amenity, address)
 
             this._osmBuildingRetriever = new OSMBuildingDataRetriever();
             this._wwd = worldwindow;
@@ -71,6 +56,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             var renderableLayer = new WorldWind.RenderableLayer('Pins');
 
             this._wwd.addLayer(renderableLayer);
+
+            console.log(this._wwd);
             //
             //var polygonLayer = new WorldWind.RenderableLayer('Building Layers');
             //
@@ -116,13 +103,27 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                     // Fourth, add the selection controller to the layer.
                     self.HighlightAndSelectController(renderableLayer, function (returnedRenderable){
                         var pointOfRenderable = self.getPointFromRenderableSelection(returnedRenderable.amenity);
-                        var hudID = removeSpecials(returnedRenderable.amenity._amenity.split(' ').join(''));
+                        var hudID = returnedRenderable.amenity._amenity;
+
+                        // Build an overlay when a placemark is clicked on.
                         var HudTest = new HUDMaker(
                             hudID,
                             [returnedRenderable.clickedEvent.x,returnedRenderable.clickedEvent.y]
                         );
+
+
                         //Sixth, add this point to the route layer and see if it is enough to build a route.
-                        routeLayerRouteBuilder.processPoint(pointOfRenderable);
+                        if (routeLayerRouteBuilder.routeArray.length === 0){
+                            HudTest.assembleDisplay(
+                                'Get directions',
+                                'from Here',
+                                function(o){routeLayerRouteBuilder.processPoint(pointOfRenderable); HudTest.close()})
+                        } else {
+                            HudTest.assembleDisplay(
+                                'Get directions',
+                                'to Here',
+                                function(o){routeLayerRouteBuilder.processPoint(pointOfRenderable); HudTest.close()})
+                        }
                     })
 
                 })
@@ -142,25 +143,25 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
          */
         OpenStreetMapApp.prototype.RouteBuilder = function (routeLayer) {
             var self = this;
-            var RouteBuilderMod = function  (){
-                var routeBuilder = this;
-                //This should eventually look like [fromLatitude, fromLongitude, toLatitude, toLongitude]
-                // This refers to RouteBuilder
-                routeBuilder.routeArray = [];
-                routeBuilder.routeLayer = routeLayer;
+             var RouteBuilderMod = function  (){
+                 var routeBuilder = this;
+                 //This should eventually look like [fromLatitude, fromLongitude, toLatitude, toLongitude]
+                 // This refers to RouteBuilder
+                 routeBuilder.routeArray = [];
+                 routeBuilder.routeLayer = routeLayer;
 
-                // A singleton routefinder.
-                if (!self.routeFinder) {
-                    self.routeFinder = new RouteAPIWrapper();
-                }
-            };
+                 // A singleton routefinder.
+                 if (!self.routeFinder) {
+                 self.routeFinder = new RouteAPIWrapper();
+                 }
+             };
 
-            /*
-            * Concatenates a pointArray of the form [lat, lon] to the attribute routeBuilder.routeArray. Then if
-            * the routeArray has 2 points (i.e. a start and stop) then it calls the function to draw the route on the
-            * layer.
-            *
-            * @param pointArray: a pointArray of the form [lat, lon]
+             /*
+             * Concatenates a pointArray of the form [lat, lon] to the attribute routeBuilder.routeArray. Then if
+             * the routeArray has 2 points (i.e. a start and stop) then it calls the function to draw the route on the
+             * layer.
+             *
+             * @param pointArray: a pointArray of the form [lat, lon]
              */
             RouteBuilderMod.prototype.processPoint = function (pointArray) {
                 var routeBuilder = this;
@@ -173,18 +174,93 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 }
             };
 
+            RouteBuilderMod.prototype.displayInstructions = function (text) {
+                var jQueryDoc = $(window.document);
+                var directionDisplay = new HUDMaker(
+                    'Route Instructions',
+                    [jQueryDoc.width() *.3, 0]
+                );
+                directionDisplay.assembleDisplay(text)
+            };
+
             /*
             * Draws the desired route onto the layer this routebuilder is bound to.
             *
             * @param routeArray: an array of the form [fromLatitude, fromLongitude, toLatitude, toLongitude]
-             */
+            */
             RouteBuilderMod.prototype.drawRoute = function (routeArray) {
                 var routeBuilder = this;
                 self.routeFinder.getRouteData(routeArray, function(routeData) {
-                    //console.log('routeInformation : ', routeData);
+                    console.log('routeInformation : ', routeData);
+                    routeBuilder.displayInstructions(routeBuilder.buildTextInstructions(routeData['route_instructions']));
                     routeBuilder.routeLayer.addRoute(routeData);
                 });
             };
+
+            RouteBuilderMod.prototype.decodeRouteAngle = function (angle) {
+                var routeBuilder = this;
+
+                for (var i = 0; i < angle.length; i++){
+                    var character = angle[i];
+                    if (character === '-'){
+                        return routeBuilder.decodeRouteAngle(angle.slice(0,i)) + ' then ' +
+                            routeBuilder.decodeRouteAngle(angle.slice(i+1,angle.length))
+                    }
+                }
+
+                if (angle == 1) {
+                    return 'Go Straight';
+                } else if (angle == 2) {
+                    return 'Turn Slight Right';
+                } else if (angle == 3) {
+                    return 'Turn Right';
+                } else if (angle == 4) {
+                    return 'Turn Sharp Right';
+                } else if (angle == 5) {
+                    return 'U-Turn';
+                } else if (angle == 6) {
+                    return 'Turn Sharp Left';
+                } else if (angle == 7) {
+                    return 'Turn Left';
+                } else if (angle == 8) {
+                    return 'Turn Slight Left';
+                } else if (angle == 9) {
+                    return 'Reach Via Location';
+                } else if (angle == 10) {
+                    return 'Head On';
+                } else if (angle == 11) {
+                    return 'Enter Round About';
+                } else if (angle == 12) {
+                    return 'Leave Round About';
+                } else if (angle == 13) {
+                    return 'Stay on Round About';
+                } else if (angle == 14) {
+                    return 'Start at End of Street';
+                } else if (angle == 15) {
+                    return 'Arrive at Your Destination'
+                }
+
+
+            };
+            //["10", "Castro Street", 280, 0, 18, "280m", "NE", 27, 1]
+            RouteBuilderMod.prototype.buildTextInstructions = function (arrayOfInstructions) {
+                var routeBuilder = this;
+                var instructions = '';
+                arrayOfInstructions.forEach(function(instruction) {
+                    var instructionst = routeBuilder.decodeRouteAngle(instruction[0]);
+                    if (instruction[1]){
+                        instructionst += ' onto ' + instruction[1];
+                    }
+                    if (instruction[5] && instruction[5] != '0m'){
+                        instructionst += ' for ' + instruction[5];
+                    }
+                    instructionst += '<br>';
+                    instructions += instructionst
+                });
+                console.log(instructions);
+                return instructions
+            };
+
             return RouteBuilderMod
 
         };
@@ -249,6 +325,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             self.HighlightController(renderableLayer);
 
             var ListenerForClickOnPlacemark = function (o) {
+                o.preventDefault()
                 // Calls the callback for each highlighted placemark. There should only be one so this shouldn't be
                 //  an issue.
                 renderableLayer.renderables.forEach(function(renderable){
@@ -369,27 +446,6 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             });
 
         };
-
-        ////TEMP
-        //OpenStreetMapApp.prototype.drawPolygon = function (layer, boundaries) {
-        //    var self = this;
-        //
-        //
-        //    // Create and set attributes for it. The shapes below except the surface polyline use this same attributes
-        //    // object. Real apps typically create new attributes objects for each shape unless they know the attributes
-        //    // can be shared among shapes.
-        //    var attributes = new WorldWind.ShapeAttributes(null);
-        //    attributes.outlineColor = WorldWind.Color.BLUE;
-        //    attributes.interiorColor = new WorldWind.Color(0, 1, 1, 0.5);
-        //
-        //    var highlightAttributes = new WorldWind.ShapeAttributes(attributes);
-        //    highlightAttributes.interiorColor = new WorldWind.Color(1, 1, 1, 1);
-        //    console.log(boundaries)
-        //    var shape = new WorldWind.SurfacePolygon(boundaries, attributes);
-        //    shape.highlightAttributes = highlightAttributes;
-        //    console.log(shape)
-        //    layer.addRenderable(shape);
-        //};
 
         return OpenStreetMapApp;
 
