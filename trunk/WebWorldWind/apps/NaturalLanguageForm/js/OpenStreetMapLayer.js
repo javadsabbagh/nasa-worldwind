@@ -13,6 +13,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         'buckets',
         'BuildingLayer',
         'Building',
+        'BuildingFactory',
         '../js/polyline'],
     function(ww,
              OpenStreetMapConfig,
@@ -26,6 +27,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
              buckets,
              BuildingLayer,
              Building,
+             BuildingFactory,
              polyline) {
 
         'use strict';
@@ -71,6 +73,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             this._renderOnce = true;
             this._hasRenderedOnce = false;
             this._renderableLayer = new WorldWind.RenderableLayer('Buildings');
+            this._buildingFactory = new BuildingFactory();
         }
 
 
@@ -228,7 +231,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
 
 
-            function buildingFromData(buildingData) {
+            OpenStreetMapLayer.prototype.buildingFromDatum = function(buildingData) {
                 var id = buildingData['id'];
                 var geometry = buildingData['geometry'];
                 var coordinates = geometry['coordinates'];
@@ -236,7 +239,9 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 var polygon = _.map(points, function(point) {
                     return new WorldWind.Position(point[1], point[0], 100);
                 });
-                return new Building(id, polygon, undefined);
+                var building = this._buildingFactory.createBuilding(id, polygon, undefined);
+                return building;
+                //return new Building(id, polygon, undefined);
             }
 
             this._osmBuildingRetriever.requestOSMBuildingData(box, function(buildingData) {
@@ -246,7 +251,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                  //(_.map(buildingData, JSON.stringify));
                 //alert(_.map(buildingData, JSON.stringify));
                buildingData.forEach(function(buildingDatum) {
-                    var building = buildingFromData(buildingDatum);
+                    var building = self.buildingFromDatum(buildingDatum);
                     console.log(building);
                     self._osmBuildingRetriever.requestBuildingInfoById(building.id, function(data) {
                         var features = data['features'];
