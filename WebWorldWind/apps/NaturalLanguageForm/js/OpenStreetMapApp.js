@@ -53,7 +53,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
             this._wwd.addLayer(routeLayer);
 
-            var renderableLayer = new WorldWind.RenderableLayer('Pins');
+
+            var renderableLayer = new WorldWind.RenderableLayer(argumentarray[0]);
 
             this._wwd.addLayer(renderableLayer);
 
