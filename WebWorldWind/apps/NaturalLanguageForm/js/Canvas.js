@@ -52,7 +52,7 @@ define(['jquery',
             //var newLayer = new EarthquakeViewLayer(wwd,"Data Display");
             //newLayer.Manage.setDisplayType('placemarks');
 
-            var naturalLanguageCanvas = new NaturalLanguageCanvas( window , [nLForm2]);
+            var naturalLanguageCanvas = new NaturalLanguageCanvas( window , []);
             naturalLanguageCanvas.setClosingAction(function () {
                 var buttonY = jQueryDoc.height() * .02;
                 var buttonX = jQueryDoc.width() * .02;

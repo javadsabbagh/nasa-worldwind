@@ -370,7 +370,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 latitude = amenity['_location']['latitude'];
                 longitude = amenity['_location']['longitude'];
                 // Create the placemark and its label.
-                placemark = new WorldWind.Placemark(new WorldWind.Position(latitude, longitude, 1e2, true, null));
+                placemark = new WorldWind.Placemark(new WorldWind.Position(latitude, longitude, 1e1, true, null));
                 placemark.label = amenity['_amenity'];
                 placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
 
