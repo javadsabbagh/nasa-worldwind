@@ -186,6 +186,14 @@ define(['RBushCache','lodash'], function(RBushCache, _) {
         }
     };
 
+
+    OSMBuildingDataRetriever.prototype.requestBuildingInfoById = function(id, callback) {
+        var url = this.buildGetFeatureAPICall(id);
+        $.get(url, function(data) {
+            callback(data);
+        });
+    }
+
     //console.log('Fetching OSM Building Data...');
     //var self = this;
     //// = [39.00050,-76.89950,37.99950,-76.90050];
