@@ -70,6 +70,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             this._buildingLayer = new BuildingLayer();
             this._renderOnce = true;
             this._hasRenderedOnce = false;
+            this._renderableLayer = new WorldWind.RenderableLayer('Buildings');
         }
 
 
@@ -228,80 +229,88 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
 
             function buildingFromData(buildingData) {
-                var id = building['id'];
-                var geometry = building['geometry'];
+                var id = buildingData['id'];
+                var geometry = buildingData['geometry'];
                 var coordinates = geometry['coordinates'];
                 var points = coordinates[0];
                 var polygon = _.map(points, function(point) {
-                    return new WorldWind.Position(point[1], point[2], 100);
+                    return new WorldWind.Position(point[1], point[0], 100);
                 });
                 return new Building(id, polygon, undefined);
             }
 
             this._osmBuildingRetriever.requestOSMBuildingData(box, function(buildingData) {
+
                 //
                  //console.log('building data for ', boundingBox);
-                 //alert(_.map(buildingData, JSON.stringify));
-
-
-
-                var buildings = _.map(buildingData, function(building) {
-
-
-
-
-
-                });
-
-                // [[]]
-                var polygons = _.map(buildingData, function(building) {
-                    var geometry = building['geometry'];
-                    var coordinates = geometry['coordinates'];
-                    var points = coordinates[0];
-                    return _.map(points, function(point) {
-                        return new WorldWind.Position(point[1], point[0], 100);
+                 //(_.map(buildingData, JSON.stringify));
+                //alert(_.map(buildingData, JSON.stringify));
+               buildingData.forEach(function(buildingDatum) {
+                    var building = buildingFromData(buildingDatum);
+                    console.log(building);
+                    self._osmBuildingRetriever.requestBuildingInfoById(building.id, function(data) {
+                        var features = data['features'];
+                        var first = features[0];
+                        var properties = first['properties'];
+                        console.log('prop ', properties);
+                        var tags = properties['tags'];
+                        var buildingType = tags['building'];
+                        building.buildingType = buildingType;
+                        //self._buildingLayer.addBuilding()
+                        console.log('building info for,', building.id, ': ', data, ' is ', buildingType);
+                        self._renderableLayer.addRenderable(building);
                     });
                 });
 
-                polygons.forEach(function(polygon) {
-                    //console.log('adding building at ', polygon.join(','));
-                   self._buildingLayer.addBuilding(polygon, null);
-                });
+                // [[]]
+                //var polygons = _.map(buildingData, function(building) {
+                //    var geometry = building['geometry'];
+                //    var coordinates = geometry['coordinates'];
+                //    var points = coordinates[0];
+                //    return _.map(points, function(point) {
+                //        return new WorldWind.Position(point[1], point[0], 100);
+                //    });
+                //});
+
+                //polygons.forEach(function(polygon) {
+                //    //console.log('adding building at ', polygon.join(','));
+                //   self._buildingLayer.addBuilding(polygon, null);
+                //});
 
 
-                var boundings = _.map(polygons, function(polygon) {
-
-
-
-                    var pointWithHighestLongitude = _.max(polygon, 'latitude');
-                    var pointWithHighestLatitude = _.max(polygon, 'longitude');
-                    var pointWithLowestLongitude = _.min(polygon, 'latitude');
-                    var pointWithLowestLatitude = _.min(polygon, 'longitude');
-
-                    //console.log(pointWithHighestLatitude, pointWithHighestLongitude,
-                    //    pointWithLowestLatitude, pointWithLowestLongitude);
-
-                    var maxLongitude = pointWithHighestLongitude['latitude'];
-                    var minLongitude = pointWithLowestLongitude['latitude'];
-                    var maxLatitude = pointWithHighestLatitude['longitude'];
-                    var minLatitude = pointWithLowestLatitude['longitude'];
-
-                    var decimalPoints = 5;
-
-                    var obj = {
-                        north : maxLatitude,
-                        south : minLatitude,
-                        east : maxLongitude,
-                        west : minLongitude
-                    };
-
-                    //var coordinates = _.map(obj, function(coordinate) {
-                    //    return coordinate.toFixed(decimalPoints);
-                    //});
-                    var coordinates = obj;
-
-                    return coordinates;
-                });
+                //var boundings = _.map(polygons, function(polygon) {
+                //
+                //
+                //
+                //    var pointWithHighestLongitude = _.max(polygon, 'latitude');
+                //    var pointWithHighestLatitude = _.max(polygon, 'longitude');
+                //    var pointWithLowestLongitude = _.min(polygon, 'latitude');
+                //    var pointWithLowestLatitude = _.min(polygon, 'longitude');
+                //
+                //    //console.log(pointWithHighestLatitude, pointWithHighestLongitude,
+                //    //    pointWithLowestLatitude, pointWithLowestLongitude);
+                //
+                //    var maxLongitude = pointWithHighestLongitude['latitude'];
+                //    var minLongitude = pointWithLowestLongitude['latitude'];
+                //    var maxLatitude = pointWithHighestLatitude['longitude'];
+                //    var minLatitude = pointWithLowestLatitude['longitude'];
+                //
+                //    var decimalPoints = 5;
+                //
+                //    var obj = {
+                //        north : maxLatitude,
+                //        south : minLatitude,
+                //        east : maxLongitude,
+                //        west : minLongitude
+                //    };
+                //
+                //    //var coordinates = _.map(obj, function(coordinate) {
+                //    //    return coordinate.toFixed(decimalPoints);
+                //    //});
+                //    var coordinates = obj;
+                //
+                //    return coordinates;
+                //});
 
                 //console.log('polygons ' , polygons);
                 //console.log('bounding boxes ', boundings);
@@ -318,79 +327,79 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 // Washington, DC 20006 for testing
                 // 888 17th St NW Washington, DC 20006
 
-                if(boundings.length > 0) {
-
-                    var totalBox = {
-                        north : _.max(boundings, 'north')['north'],
-                        south : _.min(boundings, 'south')['south'],
-                        west : _.min(boundings, 'west')['west'],
-                        east : _.max(boundings, 'east')['east']
-                    };
-
-                    var boxAsArr = [totalBox.north, totalBox.east, totalBox.south, totalBox.west];
-
-
-
-                    // Based on algorithm found at
-                    // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
-                    var pointInPolygon = function(point, polygon) {
-                        var x = point.latitude;
-                        var y = point.longitude;
-
-                        for(var idx = 0, jdx = polygon.length - 1; idx < jdx; jdx = idx++) {
-                            var polyPoint1 = polygon[idx];
-                            var polyPoint2 = polygon[jdx];
-
-                            var xi = polyPoint1.latitude;
-                            var yi = polyPoint1.longitude;
-                            var xj = polyPoint2.latitude;
-                            var yj = polyPoint2.longitude;
-
-                            var intersect = ((yi > y) != (yj > y))
-                                && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-
-                            if(intersect === true) {
-                                return true;
-                            }
-                        }
-                        return false;
-                    }
-
-                    var assignToPolygon = function(polygons, amenities) {
-
-                        var mapping = new buckets.Dictionary(function(polygon) {
-                            var pointsAsStrings = _.map(polygon, function(point) {
-                                return point.latitude.toFixed(5) + ',' + point.longitude.toFixed(5);
-                            });
-                            return pointsAsStrings.join(',');
-                        });
-
-                        polygons.forEach(function(polygon) {
-                            var filteredAmenities = _.filter(amenities, function(amenity) {
-                                var amenityLoc = amenity.location;
-                                return pointInPolygon(amenityLoc, polygon);
-                            });
-                            mapping.set(polygon, filteredAmenities);
-                        });
-                        return mapping;
-                    }
-
-
-                    var processedRetrievedAmenities = function(specs, data) {
-                        if(data.length > 0) {
-                            //console.log('amenities in area ', boxAsArr.join(','));
-                            //console.log('amenity : ', data);
-                            var mapping = assignToPolygon(polygons, data);
-                            //console.log(mapping);
-                        } else {
-                            //console.log('no amenities in area ', boxAsArr.join(','));
-                            //console.log('result from call : ', data);
-                        }
-                    }
-
-                    self._amenityReqest.retrieveData(totalBox, processedRetrievedAmenities);
-
-                }
+                //if(boundings.length > 0) {
+                //
+                //    var totalBox = {
+                //        north : _.max(boundings, 'north')['north'],
+                //        south : _.min(boundings, 'south')['south'],
+                //        west : _.min(boundings, 'west')['west'],
+                //        east : _.max(boundings, 'east')['east']
+                //    };
+                //
+                //    var boxAsArr = [totalBox.north, totalBox.east, totalBox.south, totalBox.west];
+                //
+                //
+                //
+                //    // Based on algorithm found at
+                //    // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+                //    var pointInPolygon = function(point, polygon) {
+                //        var x = point.latitude;
+                //        var y = point.longitude;
+                //
+                //        for(var idx = 0, jdx = polygon.length - 1; idx < jdx; jdx = idx++) {
+                //            var polyPoint1 = polygon[idx];
+                //            var polyPoint2 = polygon[jdx];
+                //
+                //            var xi = polyPoint1.latitude;
+                //            var yi = polyPoint1.longitude;
+                //            var xj = polyPoint2.latitude;
+                //            var yj = polyPoint2.longitude;
+                //
+                //            var intersect = ((yi > y) != (yj > y))
+                //                && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+                //
+                //            if(intersect === true) {
+                //                return true;
+                //            }
+                //        }
+                //        return false;
+                //    }
+                //
+                //    var assignToPolygon = function(polygons, amenities) {
+                //
+                //        var mapping = new buckets.Dictionary(function(polygon) {
+                //            var pointsAsStrings = _.map(polygon, function(point) {
+                //                return point.latitude.toFixed(5) + ',' + point.longitude.toFixed(5);
+                //            });
+                //            return pointsAsStrings.join(',');
+                //        });
+                //
+                //        polygons.forEach(function(polygon) {
+                //            var filteredAmenities = _.filter(amenities, function(amenity) {
+                //                var amenityLoc = amenity.location;
+                //                return pointInPolygon(amenityLoc, polygon);
+                //            });
+                //            mapping.set(polygon, filteredAmenities);
+                //        });
+                //        return mapping;
+                //    }
+                //
+                //
+                //    var processedRetrievedAmenities = function(specs, data) {
+                //        if(data.length > 0) {
+                //            //console.log('amenities in area ', boxAsArr.join(','));
+                //            //console.log('amenity : ', data);
+                //            var mapping = assignToPolygon(polygons, data);
+                //            //console.log(mapping);
+                //        } else {
+                //            //console.log('no amenities in area ', boxAsArr.join(','));
+                //            //console.log('result from call : ', data);
+                //        }
+                //    }
+                //
+                //    self._amenityReqest.retrieveData(totalBox, processedRetrievedAmenities);
+                //
+                //}
 
             });
 
@@ -410,10 +419,11 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 var currEyeAltitude = getEyeAltitude(dc);
                 if(currEyeAltitude <= 5000) {
                     this._buildingLayer.render(dc);
+                    this._renderableLayer.render(dc);
                     if(this._buildingGrabIntervalID === null) {
                         this._buildingGrabIntervalID = setInterval(function() {
                             if(currEyeAltitude <= 1000) {
-                                console.log('checking to render');
+                                //console.log('checking to render');
                                 self.handleBuildingInfo(currEyeAltitude);
                                 //if(self._renderOnce === true && self._hasRenderedOnce === false) {
                                 //    self.handleBuildingInfo(currEyeAltitude);

@@ -11,19 +11,30 @@ define(function() {
         this._shape = null;
     }
 
+    Building.prototype.chooseOutlineColorBasedOnBuildingType = function(buildingType) {
+        if(buildingType === 'yes') {
+            return WorldWind.Color.BLUE;
+        } else if(buildingType === 'retail') {
+            return WorldWind.Color.GREEN;
+        } else if(buildingType === 'house'){
+            return WorldWind.Color.RED;
+        } else {
+            return WorldWind.Color.BLACK;
+        }
+    }
+
     Building.prototype.assignColors = function(buildingType) {
 
-        var interiorColor = WorldWind.Color.BLUE;
-
-        var outlineColor = new WorldWind.Color(interiorColor.red * 0.5, interiorColor.blue * 0.5,
-            interiorColor.green * 0.5);
+        var outlineColor = this.chooseOutlineColorBasedOnBuildingType(buildingType);
+        var interiorColor = new WorldWind.Color(outlineColor.red * 0.5, outlineColor.green * 0.5,
+            outlineColor.blue * 0.5);
 
         var colors = {
             interiorColor : interiorColor,
             outlineColor : outlineColor
         };
 
-        return color;
+        return colors;
 
     }
 
@@ -76,5 +87,7 @@ define(function() {
 
     });
 
+    return Building;
 
-})
+
+});
