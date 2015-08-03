@@ -37,6 +37,14 @@ define(['buckets','lodash'], function(buckets, _) {
         return color;
     }
 
+    function worldWindColorToRGB(color) {
+        var red = color.red * 255;
+        var green = color.green * 255;
+        var blue = color.blue * 255;
+        var result = 'rgb(' + [red, green, blue].join(',') + ')';
+        return result;
+    }
+
 
     function BuildingColorMapping() {
 
@@ -58,8 +66,28 @@ define(['buckets','lodash'], function(buckets, _) {
             ['Crayola Blue','#1F75FE'],
             ['Fern Green', '#71BC78'],
             ['Champagne Pink', '#F1DDCF'],
-            ['Apricot', '#FBCEB1']
+            ['Apricot', '#FBCEB1'],
+            ['Grape', '#6F2DA8'],
+            ['Paris Green', '#50C878'],
+            ['Persian Green', '#00A693'],
+            ["Davy's Grey", '#555555'],
+            ['Glaucous', '#6082B6']
         ];
+
+
+        var buildingTypes = [
+            ['yes', 'Crayola Blue'],
+            ['retail', 'Fern Green'],
+            ['house', 'Champagne Pink'],
+            ['apartment', 'Apricot'],
+            ['office', 'Grape'],
+            ['farm', 'Paris Green'],
+            ['house', 'Persian Green'],
+            ['industrial', "Davy's Grey"],
+            ['warehouse', 'Glaucous']
+        ];
+
+
 
         colors.forEach(function(pair) {
             var name = pair[0];
@@ -71,12 +99,6 @@ define(['buckets','lodash'], function(buckets, _) {
 
 
         // assign building types to colors here
-        var buildingTypes = [
-            ['yes', 'Crayola Blue'],
-            ['retail', 'Fern Green'],
-            ['house', 'Champagne Pink'],
-            ['apartment', 'Apricot']
-        ]
 
         buildingTypes.forEach(function(pair) {
             var type = pair[0];
@@ -97,6 +119,17 @@ define(['buckets','lodash'], function(buckets, _) {
         } else {
             return WorldWind.Color.BLACK;
         }
+    }
+
+    BuildingColorMapping.prototype.getColorKey = function() {
+        var self = this;
+        var validTypes = this._typeColorAssignments.keys();
+        var res = validTypes.map(function(key) {
+            var wwColor = self._colors.get(key);
+            var arr = [key, wwColor];
+            return arr;
+        });
+        return res;
     }
 
 
