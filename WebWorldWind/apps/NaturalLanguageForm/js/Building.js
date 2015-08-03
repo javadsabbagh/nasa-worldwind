@@ -4,23 +4,23 @@ define(function() {
     'use strict';
 
 
-    function Building(id, polygon, buildingType) {
+
+
+    function Building(id, polygon, buildingType, colorMapper) {
         this._id = id;
         this._polygon = polygon;
         this._buildingType = buildingType;
+        this._colorMapper = colorMapper;
         this._shape = null;
     }
 
+
+
+
+
     Building.prototype.chooseOutlineColorBasedOnBuildingType = function(buildingType) {
-        if(buildingType === 'yes') {
-            return WorldWind.Color.BLUE;
-        } else if(buildingType === 'retail') {
-            return WorldWind.Color.GREEN;
-        } else if(buildingType === 'house'){
-            return WorldWind.Color.RED;
-        } else {
-            return WorldWind.Color.BLACK;
-        }
+        var color = this._colorMapper.getColor(buildingType);
+        return color;
     }
 
     Building.prototype.assignColors = function(buildingType) {
@@ -45,6 +45,7 @@ define(function() {
         shapeAttributes.interiorColor = colors.interiorColor;
         shapeAttributes.outlineColor = colors.outlineColor;
         shapeAttributes.drawOutline = true;
+        shapeAttributes.outlineWidth = 0.4;
 
         var polygonShape = new WorldWind.SurfacePolygon(polygon, shapeAttributes);
         return polygonShape;
