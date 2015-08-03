@@ -12,6 +12,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         'AnyAmenityRequestProxy',
         'buckets',
         'BuildingLayer',
+        'Building',
         '../js/polyline'],
     function(ww,
              OpenStreetMapConfig,
@@ -24,6 +25,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
              AnyAmenityRequestProxy,
              buckets,
              BuildingLayer,
+             Building,
              polyline) {
 
         'use strict';
@@ -66,6 +68,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             this._buildingGrabIntervalID = null;
             this._urlSet = new buckets.Set();
             this._buildingLayer = new BuildingLayer();
+            this._renderOnce = true;
+            this._hasRenderedOnce = false;
         }
 
 
@@ -204,7 +208,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
         OpenStreetMapLayer.prototype.handleBuildingInfo = function(eyeAltitude) {
             var self = this;
-            var boundingBox = this.getEncompassingBoudingBox();
+            var boundingBox = this.getEncompassingBoundingBox();
+            console.log('bounding box returned ', boundingBox);
             var box = [boundingBox[0], boundingBox[3], boundingBox[2], boundingBox[1]];
 
             //var specs = {
@@ -222,9 +227,31 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
 
 
+            function buildingFromData(buildingData) {
+                var id = building['id'];
+                var geometry = building['geometry'];
+                var coordinates = geometry['coordinates'];
+                var points = coordinates[0];
+                var polygon = _.map(points, function(point) {
+                    return new WorldWind.Position(point[1], point[2], 100);
+                });
+                return new Building(id, polygon, undefined);
+            }
+
             this._osmBuildingRetriever.requestOSMBuildingData(box, function(buildingData) {
-                console.log('building data for ', boundingBox);
-                console.log(buildingData);
+                //
+                 //console.log('building data for ', boundingBox);
+                 //alert(_.map(buildingData, JSON.stringify));
+
+
+
+                var buildings = _.map(buildingData, function(building) {
+
+
+
+
+
+                });
 
                 // [[]]
                 var polygons = _.map(buildingData, function(building) {
@@ -237,7 +264,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 });
 
                 polygons.forEach(function(polygon) {
-                    console.log('adding building at ', polygon.join(','));
+                    //console.log('adding building at ', polygon.join(','));
                    self._buildingLayer.addBuilding(polygon, null);
                 });
 
@@ -251,8 +278,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                     var pointWithLowestLongitude = _.min(polygon, 'latitude');
                     var pointWithLowestLatitude = _.min(polygon, 'longitude');
 
-                    console.log(pointWithHighestLatitude, pointWithHighestLongitude,
-                        pointWithLowestLatitude, pointWithLowestLongitude);
+                    //console.log(pointWithHighestLatitude, pointWithHighestLongitude,
+                    //    pointWithLowestLatitude, pointWithLowestLongitude);
 
                     var maxLongitude = pointWithHighestLongitude['latitude'];
                     var minLongitude = pointWithLowestLongitude['latitude'];
@@ -276,8 +303,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                     return coordinates;
                 });
 
-                console.log('polygons ' , polygons);
-                console.log('bounding boxes ', boundings);
+                //console.log('polygons ' , polygons);
+                //console.log('bounding boxes ', boundings);
 
 
 
@@ -302,13 +329,62 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
                     var boxAsArr = [totalBox.north, totalBox.east, totalBox.south, totalBox.west];
 
+
+
+                    // Based on algorithm found at
+                    // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+                    var pointInPolygon = function(point, polygon) {
+                        var x = point.latitude;
+                        var y = point.longitude;
+
+                        for(var idx = 0, jdx = polygon.length - 1; idx < jdx; jdx = idx++) {
+                            var polyPoint1 = polygon[idx];
+                            var polyPoint2 = polygon[jdx];
+
+                            var xi = polyPoint1.latitude;
+                            var yi = polyPoint1.longitude;
+                            var xj = polyPoint2.latitude;
+                            var yj = polyPoint2.longitude;
+
+                            var intersect = ((yi > y) != (yj > y))
+                                && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+
+                            if(intersect === true) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+
+                    var assignToPolygon = function(polygons, amenities) {
+
+                        var mapping = new buckets.Dictionary(function(polygon) {
+                            var pointsAsStrings = _.map(polygon, function(point) {
+                                return point.latitude.toFixed(5) + ',' + point.longitude.toFixed(5);
+                            });
+                            return pointsAsStrings.join(',');
+                        });
+
+                        polygons.forEach(function(polygon) {
+                            var filteredAmenities = _.filter(amenities, function(amenity) {
+                                var amenityLoc = amenity.location;
+                                return pointInPolygon(amenityLoc, polygon);
+                            });
+                            mapping.set(polygon, filteredAmenities);
+                        });
+                        return mapping;
+                    }
+
+
                     var processedRetrievedAmenities = function(specs, data) {
                         if(data.length > 0) {
-                            console.log('amenities in area ', boxAsArr.join(','));
-                            console.log('amenity : ', data);
+                            //console.log('amenities in area ', boxAsArr.join(','));
+                            //console.log('amenity : ', data);
+                            var mapping = assignToPolygon(polygons, data);
+                            //console.log(mapping);
                         } else {
-                            console.log('no amenities in area ', boxAsArr.join(','));
-                            console.log('result from call : ', data);
+                            //console.log('no amenities in area ', boxAsArr.join(','));
+                            //console.log('result from call : ', data);
                         }
                     }
 
@@ -337,7 +413,14 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                     if(this._buildingGrabIntervalID === null) {
                         this._buildingGrabIntervalID = setInterval(function() {
                             if(currEyeAltitude <= 1000) {
+                                console.log('checking to render');
                                 self.handleBuildingInfo(currEyeAltitude);
+                                //if(self._renderOnce === true && self._hasRenderedOnce === false) {
+                                //    self.handleBuildingInfo(currEyeAltitude);
+                                //    self._hasRenderedOnce = true;
+                                //} else if(self._renderOnce === false) {
+                                //    self.handleBuildingInfo(currEyeAltitude);
+                                //}
                             }
                         }, 5 * 1000);
                     }
@@ -409,20 +492,25 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         }
 
 
-        OpenStreetMapLayer.prototype.getEncompassingBoudingBox = function() {
+        OpenStreetMapLayer.prototype.getEncompassingBoundingBox = function() {
             var boundingBoxes = this.getAllBoundingBoxes();
 
-            function getArrayFromLoc(index) {
-                return function(arr) {
-                    return arr[index];
-                }
-            }
+            var first = boundingBoxes[0];
+            var last = boundingBoxes[boundingBoxes.length  - 1];
+            var boundingBox = [first[0], first[1], last[0], last[1]];
 
-            var indicies = _.range(4);
-            var accessFuns = _.map(indicies, getArrayFromLoc);
-            var boundingBox = _.map(accessFuns, function(f) {
-               return f(_.max(boundingBoxes, f));
-            });
+            //console.log('all bounding boxes ', boundingBoxes);
+            //function getArrayFromLoc(index) {
+            //    return function(arr) {
+            //        return arr[index];
+            //    }
+            //}
+            //
+            //var indicies = _.range(4);
+            //var accessFuns = _.map(indicies, getArrayFromLoc);
+            //var boundingBox = _.map(accessFuns, function(f) {
+            //   return f(_.max(boundingBoxes, f));
+            //});
             return boundingBox;
         }
 
