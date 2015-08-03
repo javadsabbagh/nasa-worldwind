@@ -44,7 +44,7 @@ define(['jquery',
             nLForm2.addBasicText('I\'m looking for ');
             nLForm2.addField('amenityField2', 'amenity', "For example: <em>cafe</em>");
             nLForm2.addBasicText(' near ');
-            nLForm2.addField('addressField2', 'address', "For example: <em>Mountain View</em>");
+            nLForm2.addField('addressField2', 'location', "For example: <em>Mountain View</em>");
             nLForm2.setApplication(OpenStreetMapApp);
 
 
