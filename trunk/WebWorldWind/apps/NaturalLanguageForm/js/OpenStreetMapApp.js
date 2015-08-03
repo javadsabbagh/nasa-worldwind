@@ -325,7 +325,6 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             self.HighlightController(renderableLayer);
 
             var ListenerForClickOnPlacemark = function (o) {
-                o.preventDefault()
                 // Calls the callback for each highlighted placemark. There should only be one so this shouldn't be
                 //  an issue.
                 renderableLayer.renderables.forEach(function(renderable){
