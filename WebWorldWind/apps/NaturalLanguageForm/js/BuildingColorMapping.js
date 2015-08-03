@@ -124,12 +124,12 @@ define(['buckets','lodash'], function(buckets, _) {
     BuildingColorMapping.prototype.getColorKey = function() {
         var self = this;
         var validTypes = this._typeColorAssignments.keys();
-        var res = validTypes.map(function(key) {
-            var wwColor = self._colors.get(key);
-            var arr = [key, wwColor];
-            return arr;
+        var mappings = _.map(validTypes, function(type) {
+            var wwColor = self.getColor(type);
+            var color = worldWindColorToRGB(wwColor);
+            return [type, color];
         });
-        return res;
+        return mappings;
     }
 
 

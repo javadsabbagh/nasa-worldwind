@@ -45,7 +45,7 @@ define(function() {
         shapeAttributes.interiorColor = colors.interiorColor;
         shapeAttributes.outlineColor = colors.outlineColor;
         shapeAttributes.drawOutline = true;
-        shapeAttributes.outlineWidth = 0.4;
+        shapeAttributes.outlineWidth = 0.1;
 
         var polygonShape = new WorldWind.SurfacePolygon(polygon, shapeAttributes);
         return polygonShape;
