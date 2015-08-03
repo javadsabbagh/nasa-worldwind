@@ -5,6 +5,7 @@ define(['Building','BuildingColorMapping'], function(Building, BuildingColorMapp
 
     function BuildingFactory() {
         this._colorMapping = new BuildingColorMapping();
+        alert(JSON.stringify(this._colorMapping.getColorKey()));
     }
 
     BuildingFactory.prototype.createBuilding = function(id, polygon, buildingType) {
