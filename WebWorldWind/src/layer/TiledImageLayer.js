@@ -106,11 +106,20 @@ define([
 
             this.levels = new LevelSet(sector, levelZeroDelta, numLevels, tileWidth, tileHeight);
 
+            this.detailHintOrigin = 2.4;
+
+            /**
+             * Affects the degree of detail shown by this layer. Values greater than zero increase detail, but at the
+             * expense of performance. Values less than zero decrease detail. To increase detail, try values greater
+             * than but near 0, such as 0.1 and 0.2, until the desired detail is achieved.
+             * @type {Number}
+             * @default 0
+             */
+            this.detailHint = 0;
+
             this.currentTiles = [];
             this.currentTilesInvalid = true;
             this.tileCache = new MemoryCache(500000, 400000);
-            this.detailHintOrigin = 2.4;
-            this.detailHint = 0;
             this.currentRetrievals = [];
             this.absentResourceList = new AbsentResourceList(3, 50e3);
             this.mapAncestorToTile = true;
