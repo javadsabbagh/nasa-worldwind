@@ -69,6 +69,14 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js','Cylinder'],
             })
         };
 
+        EarthquakeViewLayer.prototype.drawEarthquakesV2 = function(earthquakes) {
+            var self = this;
+            earthquakes.forEach(function(earthquake) {
+               earthquake.addToRenderableLayer(self._baseLayer);
+            });
+            self._wwd.redraw();
+        };
+
         EarthquakeViewLayer.prototype.drawEarthquakes = function(array) {
             var self = this;
             var colorSpect = [[255,0,0],[0,255,0]];

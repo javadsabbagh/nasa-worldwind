@@ -159,8 +159,10 @@ define([''], function(ww) {
                 // method 2
                 if(dc.eyePosition.altitude < height) {
                     boundary.altitude = 0
+                    this.enabled = false;
                 } else {
                     boundary.altitude = height;
+                    this.enabled  = true;
                 }
 
 

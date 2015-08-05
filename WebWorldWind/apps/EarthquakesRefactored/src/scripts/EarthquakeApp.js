@@ -118,7 +118,7 @@ define(['EarthquakeViewLayer',
             self.sortedData['age'] = self.latestData;
             self.earthquakeLayer.removeAllRenderables();
 
-            self.earthquakeLayer.drawEarthquakes(
+            self.earthquakeLayer.drawEarthquakesV2(
                 self.earthquakeLayer.filterByMinimumMagnitude(USGSData,(minimum || 5))
             );
 
@@ -227,7 +227,9 @@ define(['EarthquakeViewLayer',
             self._focusedEarthquakeAgeIndex = ageArrayIndex;
 
             displayDiv.empty();
-            displayDiv.append(renderable.data.info);
+            var info = renderable.info;
+            console.log('info to display ', info);
+            displayDiv.append(info);
 
             if (!renderable.animationKey){
                 self.earthquakeLayer.stopAllAnimations();
