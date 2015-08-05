@@ -1,5 +1,6 @@
 /*
     Author: Inzamam Rahaman
+    Provides helper methods to process OSM data
  */
 
 define(['osmtogeojson', 'Amenity'], function(osmtogeojson, Amenity) {
@@ -32,6 +33,11 @@ define(['osmtogeojson', 'Amenity'], function(osmtogeojson, Amenity) {
 
 
 
+    /*
+        Extracts coordinate information from a geoJSON point and generates a WorldWind.Location
+        @param {feature} : a geoJSON point document
+        @return : a WorldWind.Location for the feature's location
+     */
     OSMDataHelper.prototype.extractWorldWindLocation = function(feature) {
         var geometry = feature['geometry'];
         var coordinates = geometry['coordinates'];
@@ -41,6 +47,13 @@ define(['osmtogeojson', 'Amenity'], function(osmtogeojson, Amenity) {
         return location;
     };
 
+    /*
+        Constructs an amenity using a geoJSON point object that has been
+        retrieved from OSM and converted from osm xml to geoJSON
+        @param {feature} : the geoJSON with the amenity information
+        @return : an amenity object that encapsulates the information from the
+                  supplied feature
+     */
     OSMDataHelper.prototype.generateAmenityObject = function(feature) {
         var location = this.extractWorldWindLocation(feature);
         var id = feature['id'];
@@ -53,6 +66,12 @@ define(['osmtogeojson', 'Amenity'], function(osmtogeojson, Amenity) {
         return amenityRepr;
     };
 
+    /*
+        Takes the response from the OSM server, and parses it, generating
+        an array of Amenity objects
+        @param {rawOSMData} : the OSM data returned from the Overpass API as an XML document
+        @return : an array of Amenity objects
+     */
     OSMDataHelper.prototype.processOSMData = function(rawOSMData) {
         var self = this;
         var asGeoJSON = osmtogeojson(rawOSMData);

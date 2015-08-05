@@ -1,3 +1,8 @@
+/*
+    Abstracts away the process of creating the buildings
+ */
+
+
 define(['Building','BuildingColorMapping'], function(Building, BuildingColorMapping) {
 
 
@@ -5,38 +10,23 @@ define(['Building','BuildingColorMapping'], function(Building, BuildingColorMapp
 
     function BuildingFactory() {
         this._colorMapping = new BuildingColorMapping();
-        alert(JSON.stringify(this._colorMapping.getColorKey()));
+        //alert(JSON.stringify(this._colorMapping.getColorKey()));
     }
 
+    /*
+        Given an id, polygon, and buildingTypes of a building, generates the
+        Bulilding object to represent it.
+        @param {id} : the OSMBuildings ID for the building being considered
+        @param {polygon} : the polygon for the building as an array of WorldWind.Location
+        @param {buildingType} : the type of the building
+        @return : a Building object representing the building
+     */
     BuildingFactory.prototype.createBuilding = function(id, polygon, buildingType) {
         var building = new Building(id, polygon, buildingType, this._colorMapping);
         return building;
     }
 
 
-
-
-
-    //BuildingFactory.prototype.chooseColor = function(amenity) {
-    //    return WorldWind.Color.BLACK;
-    //}
-    //
-    //BuildingFactory.prototype.constructBuilding = function(polygonShape, amenity) {
-    //
-    //    var color = this.chooseColor(amenity);
-    //    var shapeAttributes = new WorldWind.ShapeAttributes(null);
-    //    shapeAttributes.drawOutline = true;
-    //    shapeAttributes.outlineColor = color;
-    //    shapeAttributes.interiorColor = color;
-    //
-    //
-    //    var polygon = new WorldWind.SurfacePolygon(polygonShape, shapeAttributes);
-    //    console.log('shape :',polygonShape);
-    //    console.log('polgon being created ', polygon);
-    //    return polygon;
-    //
-    //
-    //}
 
 
     return BuildingFactory;

@@ -1,3 +1,8 @@
+/*
+    Decouples the activity of building color code selection
+ */
+
+
 define(['buckets','lodash'], function(buckets, _) {
 
     'use strict';
@@ -54,6 +59,11 @@ define(['buckets','lodash'], function(buckets, _) {
 
     }
 
+    /*
+        Initializes the Dictionaries to be
+        used for determining the colors of buildings by their building
+        types
+     */
     BuildingColorMapping.prototype.init = function() {
 
         // initialize the colors available here
@@ -71,7 +81,10 @@ define(['buckets','lodash'], function(buckets, _) {
             ['Paris Green', '#50C878'],
             ['Persian Green', '#00A693'],
             ["Davy's Grey", '#555555'],
-            ['Glaucous', '#6082B6']
+            ['Glaucous', '#6082B6'],
+            ['Red-Violet', '#C71585'],
+            ['Onyx', '#353839'],
+            ['Cerulean', '#007BA7']
         ];
 
 
@@ -84,7 +97,10 @@ define(['buckets','lodash'], function(buckets, _) {
             ['farm', 'Paris Green'],
             ['house', 'Persian Green'],
             ['industrial', "Davy's Grey"],
-            ['warehouse', 'Glaucous']
+            ['warehouse', 'Glaucous'],
+            ['public', 'Red-Violet'],
+            ['garage', 'Onyx'],
+            ['commercial', 'Cerulean']
         ];
 
 
@@ -108,6 +124,11 @@ define(['buckets','lodash'], function(buckets, _) {
 
     }
 
+    /*
+        Given a building type, chooses the color to be used by the pre-programmed key
+        @param {buildingType} : the type of building
+        @return : the WorldWind.Color for the building type
+     */
     BuildingColorMapping.prototype.getColor = function(buildingType) {
         if(this._typeColorAssignments.containsKey(buildingType)) {
             console.log('checking for valid color');
@@ -117,10 +138,14 @@ define(['buckets','lodash'], function(buckets, _) {
             console.log('Color ', color);
             return color
         } else {
+            //alert('No color set for ' +  buildingType);
             return WorldWind.Color.BLACK;
         }
     }
 
+    /*
+        Gives an array of 2 element arrays that represent the color key
+     */
     BuildingColorMapping.prototype.getColorKey = function() {
         var self = this;
         var validTypes = this._typeColorAssignments.keys();

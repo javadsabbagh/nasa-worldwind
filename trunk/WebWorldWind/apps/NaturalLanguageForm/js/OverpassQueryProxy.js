@@ -1,5 +1,6 @@
 /*
     Author: Inzamam Rahaman
+    Acts a means of abstracting away access to the OverpassQueryProxy
  */
 
 define(['jquery','OpenStreetMapConfig', 'OSMDataHelper'], function($, OpenStreetMapConfig, OSMDataHelper) {
@@ -11,6 +12,11 @@ define(['jquery','OpenStreetMapConfig', 'OSMDataHelper'], function($, OpenStreet
         this._helper = new OSMDataHelper();
     }
 
+    /*
+        Given a bounding box, computes a string representation
+        @param {boundingBox} : the bounding box for some Overpass API Query
+        @return : the bounding box portion of an Overpass Query call
+     */
     OverpassQueryProxy.prototype.getBoundingBoxString = function(boundingBox) {
         var joinedCoords = boundingBox.join(',');
         var boundingBoxPortion = '(' + joinedCoords + ');';
@@ -18,6 +24,13 @@ define(['jquery','OpenStreetMapConfig', 'OSMDataHelper'], function($, OpenStreet
     }
 
 
+    /*
+        Given a bounding box and a list of specifications for the request,
+        constructs the appropriate API call for the Overpass Query
+        @param {boundingBox} : the bounding box for the call
+        @param {callbackSpecifications} : further specifications for the query
+        @param return : an encoded url for the query
+     */
     OverpassQueryProxy.prototype.constuctAPICall = function(boundingBox, callbackSpecifications) {
         var baseURI = this._config.overPassAPIBody;
         var node = 'node';
@@ -37,6 +50,12 @@ define(['jquery','OpenStreetMapConfig', 'OSMDataHelper'], function($, OpenStreet
 
 
 
+    /*
+        Retrieves the desired OSM data withing a specified bounding box
+        @param {boundingBox} : the bounding box to consider
+        @param {callbackSpecifications} : the specifications for the query
+        @param {callback} : the callback to be performed on the geoJSON data retrived from the server
+     */
     OverpassQueryProxy.prototype.retrieveOSMData = function(boundingBox, callbackSpecifications, callback) {
         var self = this;
         var queryURI = this.constuctAPICall(boundingBox, callbackSpecifications);
