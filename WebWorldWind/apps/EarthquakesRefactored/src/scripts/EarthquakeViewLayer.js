@@ -26,6 +26,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js','Cylinder'],
         var EarthquakeViewLayer = function (wwd, name, columns) {
             var self = this;
             this._columns = columns;
+            this._placemarks = true;
             this._wwd = wwd;
             this._baseLayer = new WorldWind.RenderableLayer(name);
             this._baseLayer._enabled = true;
@@ -71,7 +72,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js','Cylinder'],
         EarthquakeViewLayer.prototype.drawEarthquakes = function(array) {
             var self = this;
             var colorSpect = [[255,0,0],[0,255,0]];
-            if (!self._columns){
+            if (self._placemarks){
                 var placemark, highlightAttributes,
                     placemarkAttributes = new WorldWind.PlacemarkAttributes(null);
 
@@ -118,7 +119,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js','Cylinder'],
                     // Add the placemark to the layer.
                     self.addRenderable(placemark);
                 });
-            } else {
+            }
+            if (self._columns){
                 //grid should be size of gridsquare
                 var format = false;
 
@@ -137,12 +139,14 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js','Cylinder'],
                         }
                         var color = GetColorFromSpectrum(
                             earthquake.age/array[array.length-1].age,
-                            colorSpect, true)
+                            colorSpect, true);
                         //color = new WorldWind.Color(1,0,0,1)
                         column = (new Cylinder(
                             color,
                             MapTo, .12,
                             earthquake.magnitude * 5e5));
+                        column.data = earthquake;
+                        column.column = true
                         console.log(column);
                         self.addRenderable(column);
                     }
@@ -155,8 +159,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js','Cylinder'],
         EarthquakeViewLayer.prototype.startAnimation = function(renderable) {
             var self = this,
                 INDEX = 0;
-            console.log(renderable)
-            if (renderable.animationKey){
+            if (renderable.animationKey || renderable.column){
                 return
             }
             renderable.animationKey = window.setInterval(function () {

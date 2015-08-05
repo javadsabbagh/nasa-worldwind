@@ -83,7 +83,7 @@ define(['EarthquakeViewLayer',
         EarthquakeApp.prototype.createEarthquakeLayer = function(){
             var self = this;
             console.log(self);
-            self.earthquakeLayer = new EarthquakeViewLayer(self.wwd, self._displayName);
+            self.earthquakeLayer = new EarthquakeViewLayer(self.wwd, self._displayName, true);
             self.wwd.addLayer(self.earthquakeLayer._baseLayer);
             // It should be this, I don't know why it isn't working.
             //self.wwd.addLayer(self.earthquakeLayer)
