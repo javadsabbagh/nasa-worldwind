@@ -135,10 +135,12 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js','Cylinder'],
                                 Math.round(earthquake.long / grid) * grid
                             )
                         }
+                        var color = GetColorFromSpectrum(
+                            earthquake.age/array[array.length-1].age,
+                            colorSpect, true)
+                        //color = new WorldWind.Color(1,0,0,1)
                         column = (new Cylinder(
-                            GetColorFromSpectrum(
-                                earthquake.age/array[array.length-1].age,
-                                colorSpect),
+                            color,
                             MapTo, .12,
                             earthquake.magnitude * 5e5));
                         console.log(column);
