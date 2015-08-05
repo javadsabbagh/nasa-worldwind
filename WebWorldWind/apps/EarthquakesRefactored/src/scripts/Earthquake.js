@@ -68,7 +68,19 @@ define(['Cylinder'], function(Cylinder) {
         layer.addRenderable(this);
         this._placemark.indexInRenderables = layer.renderables.length - 1;
         this._indexInRenderables = this._placemark.indexInRenderables;
-    }
+    };
+
+    Earthquake.prototype.highlight = function () {
+        this._placemark.highlighted = true
+    };
+
+    Earthquake.prototype.unHighlight = function () {
+        this._placemark.highlighted = false
+    };
+
+    Earthquake.prototype.isHighlighted = function () {
+        return this._placemark.highlighted
+    };
 
     Earthquake.prototype.colorIfWorldWind = function() {
         var colorSpect = [[255,0,0],[0,255,0]];

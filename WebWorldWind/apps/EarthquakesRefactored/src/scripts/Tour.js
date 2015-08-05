@@ -87,7 +87,7 @@
         this.goForward = function() {
             var self = this;
             self.tripStop = Math.floor((self.tripIndex+2)/3);
-            //console.log('this is ' , self);
+            console.log('this is ' , self);
             self.callbacks.forEach(function(callback){
                 //console.log(self.itenarary[self.tripStop]['data']);
                 //console.log(self.tripStop);
