@@ -1,3 +1,8 @@
+/*
+    Encapsulates the data for a building that has been retrieved using
+    the OSMBuildings API
+ */
+
 define(function() {
 
 
@@ -18,10 +23,21 @@ define(function() {
 
 
 
+    /*
+        Gets the outline color for a building depending on the type of building
+        @param {buildingType} : the building type as a string, eg. public, garage, yes
+        @return : a WorldWind Color for the building's outline
+     */
     Building.prototype.chooseOutlineColorBasedOnBuildingType = function(buildingType) {
         var color = this._colorMapper.getColor(buildingType);
         return color;
     }
+
+    /*
+        Assigns colors for both the building's outline and interior fill based on its type
+        @param {buildingType} : the type of building
+        @return : an object that contains both the interior and outline colors
+     */
 
     Building.prototype.assignColors = function(buildingType) {
 
@@ -38,6 +54,13 @@ define(function() {
 
     }
 
+    /*
+        Given a polygon as an array of WorldWind.Locations and a buildingType
+        greates a polygon to be rendered
+        @param {polgyon} : the polygon for the building as an array of WorldWind.Locations
+        @param {buildingType} : the type of the building
+        @return : a WorldWind.SurfacePolygon to be rendered
+     */
     Building.prototype.createSurfacePolygon = function(polygon, buildingType) {
 
         var colors = this.assignColors(buildingType);
@@ -52,6 +75,10 @@ define(function() {
 
     }
 
+    /*
+        Renders this building's representative polygon
+        @param {dc} : a WorldWind.DrawContext object to be used in rendering
+     */
     Building.prototype.render = function(dc) {
         if(this._shape === null) {
             this._shape = this.createSurfacePolygon(this._polygon, this._buildingType);

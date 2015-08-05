@@ -1,6 +1,7 @@
 
 /*
     Authors: Inzamam Rahaman, Matt Evers
+    Encapsulates data about a Route from one place to another
  */
 
 define(['http://worldwindserver.net/webworldwind/worldwindlib.js'], function(ww) {

@@ -16,13 +16,13 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         'nlform',
         'nlbuilder',
         'HUDMaker',
-        'OSMBuildingDataRetriever'],
+        'OSMBuildingDataRetriever', 'DrainageBasinLayer'],
     function(ww,
              OpenStreetMapLayer,
              OpenStreetMapConfig,
              $,
              OSMDataRetriever, RouteLayer, Route, RouteAPIWrapper, NaturalLanguageHandler, polyline, MapQuestGeocoder,
-             NLForm, NLBuilder, HUDMaker, OSMBuildingDataRetriever) {
+             NLForm, NLBuilder, HUDMaker, OSMBuildingDataRetriever, DrainageBasinLayer) {
 
 
         'use strict';
@@ -42,6 +42,10 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             var openStreetMapLayer = new OpenStreetMapLayer(this._wwd);
 
             this._wwd.addLayer(openStreetMapLayer);
+
+            //var drainageBasins = new DrainageBasinLayer();
+            //
+            //this._wwd.addLayer(drainageBasins);
 
             this._animator = new WorldWind.GoToAnimator(self._wwd);
 

@@ -6,12 +6,10 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         'OSMBuildingDataRetriever',
         'rbush',
         'OSMDataRetriever',
-        'Set',
         'OverpassAPIWrapper',
         'lodash',
         'AnyAmenityRequestProxy',
         'buckets',
-        'BuildingLayer',
         'Building',
         'BuildingFactory',
         '../js/polyline'],
@@ -20,12 +18,10 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
              OSMBuildingDataRetriever,
              rbush,
              OSMDataRetriever,
-             Set,
              OverpassAPIWrapper,
              _,
              AnyAmenityRequestProxy,
              buckets,
-             BuildingLayer,
              Building,
              BuildingFactory,
              polyline) {
@@ -63,13 +59,12 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             this._tree = new rbush(this._config.rTreeSize);
             this._visibleNodes = [];
             this._dataRetriever = new OSMDataRetriever();
-            this._set = new Set();
+            this._set = new buckets.Set();
             this._overpassWrapper = new OverpassAPIWrapper();
             this._osmBuildingRetriever = new OSMBuildingDataRetriever();
             this._amenityReqest = new AnyAmenityRequestProxy();
             this._buildingGrabIntervalID = null;
             this._urlSet = new buckets.Set();
-            this._buildingLayer = new BuildingLayer();
             this._renderOnce = true;
             this._hasRenderedOnce = false;
             this._renderableLayer = new WorldWind.RenderableLayer('Buildings');
@@ -423,7 +418,6 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 this._baseLayer.render(dc);
                 var currEyeAltitude = getEyeAltitude(dc);
                 if(currEyeAltitude <= 5000) {
-                    this._buildingLayer.render(dc);
                     this._renderableLayer.render(dc);
                     if(this._buildingGrabIntervalID === null) {
                         this._buildingGrabIntervalID = setInterval(function() {
@@ -442,7 +436,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 } else {
                     clearInterval(self._buildingGrabIntervalID);
                     self._buildingGrabIntervalID = null;
-                    self._buildingLayer.clearBuildings();
+                    //self._buildingLayer.clearBuildings();
                 }
             }
 
@@ -506,6 +500,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             return boundingBox;
         }
 
+
+        OpenStreetMapLayer.prototype.shrinkBox
 
         OpenStreetMapLayer.prototype.getEncompassingBoundingBox = function() {
             var boundingBoxes = this.getAllBoundingBoxes();

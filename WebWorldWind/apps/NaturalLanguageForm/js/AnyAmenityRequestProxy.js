@@ -1,3 +1,12 @@
+/*
+
+
+    Provides a means of accessing Amenity data by means of the Overpass API.
+    This code grabs all of the amenities in a specified bounding box
+
+ */
+
+
 define(['OverpassQueryProxy', 'RBushCache', 'lodash'], function(OverpassQueryProxy, RbushCache, _) {
 
     'use strict';
