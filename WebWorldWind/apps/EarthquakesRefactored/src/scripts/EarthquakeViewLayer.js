@@ -141,7 +141,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js','Cylinder'],
                                 colorSpect),
                             MapTo, .12,
                             earthquake.magnitude * 5e5));
-                        console.log(column)
+                        console.log(column);
                         self.addRenderable(column);
                     }
                 );

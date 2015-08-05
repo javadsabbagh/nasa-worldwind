@@ -79,9 +79,10 @@ define([''], function(ww) {
 
         var boundaries = [positions, []];
 
-        for(idx = 0; idx < positions.length; idx += 1) {
+        for(var idx = 0; idx < positions.length; idx += 1) {
             boundaries[1].push(new WorldWind.Position(center.latitude, center.longitude, height));
         }
+
 
 
         var cylinderAttribute = new WorldWind.ShapeAttributes(null);
@@ -90,15 +91,152 @@ define([''], function(ww) {
         cylinderAttribute.drawInterior = true;
         cylinderAttribute.drawVerticals = true;
 
-        this.cylinder = new WorldWind.Polygon(boundaries, null);
+        //this.enabled = true;
+
+        this.cylinder = new WorldWind.Polygon(boundaries);
         this.cylinder.attributes = cylinderAttribute;
         this.cylinder.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
         this.cylinder.extrude = true;
 
-        this.cylinder.enabled = true;
+        this.cylinder.eyeDistanceScalingThreshold = 1e6;
 
-        return this.cylinder
+        this.cylinder.enabled = true;
+        //this.highlighted = this.cylinder.highlighted;
+        //var cylinderRender = cylinder.render;
+
+        function flatten(arr) {
+            var ans = [].concat.apply([], arr);
+            return ans;
+        }
+
+
+
+        function positionDistances(pos1, pos2) {
+            var dlong = pos2.longitude - pos1.longitude;
+            var dlat = pos2.latitude  - pos1.latitude;
+            var aPrime = Math.sin(dlat / 2);
+            var aBeta = Math.cos(pos1.latitude) *
+                Math.cos(pos2.latitude);
+            var aGamma = Math.sin(dlong / 2);
+            var a = aPrime * aPrime +
+                aBeta * aGamma * aGamma;
+            var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            var d = earthRadiusInfo.earthRadiusInKm * c;
+            var altitudeDiff = pos1.altitude - pos2.altitude;
+            var ans  =  Math.sqrt(altitudeDiff * altitudeDiff +
+                d * d);
+            //console.log('ans :' , ans);
+            //ans = Math.sqrt(pos1.altitude - pos2.altitude);
+            console.log('before return d, altitudeDiff: ', ans);
+            ans = altitudeDiff;
+            return ans;
+        }
+
+        this.render = function(dc) {
+            var cylinderBoundaries = flatten(this.cylinder._boundaries);
+            var someBoundary = cylinderBoundaries[0];
+            var currHeight = someBoundary;
+            //console.log(currHeight);
+            //var eyeDistance = Math.abs(dc.eyePosition.altitude - currHeight.altitude);
+
+            //var eyeDistance = positionDistances(dc.eyePosition, currHeight);
+            ////console.log('eyeDistance :', eyeDistance);
+            ////var visibilityScale = Math.max(0.0, Math.min(1, this.eyeDistanceScalingThreshold / eyeDistance));
+            //var visibilityScale = eyeDistance / 1e4;
+            cylinderBoundaries.forEach(function(boundary) {
+                //console.log('scalling down');
+                //console.log(visibilityScale, ' ', eyeDistance, ' ', currHeight);
+
+                // method one
+                //if(Math.floor(visibilityScale) < 1) {
+                //
+                //    boundary.altitude = 0;//visibilityScale * height;
+                //} else {
+                //    boundary.altitude = height;
+                //}
+
+
+                // method 2
+                if(dc.eyePosition.altitude < height) {
+                    boundary.altitude = 0
+                } else {
+                    boundary.altitude = height;
+                }
+
+
+
+                //boundary.altitude = visibilityScale * height;
+            });
+            //(eyeDistance / this.cylinder.eyeDistanceScalingThreshold);
+            //Math.max(0.0, Math.min(1, this.cylinder.eyeDistanceScalingThreshold /
+            //eyeDistance));
+
+            //if(true) {
+            //    cylinderBoundaries.forEach(function (boundary) {
+            //        var temp = visibilityScale * height;
+            //        boundary.altitude = Math.min(height, temp);
+            //    });
+            //}
+
+
+            //if(Math.floor(visibilityScale) < 1) {
+            //    //console.log('rendering at ', visibilityScale);
+            //    cylinderBoundaries.forEach(function (boundary) {
+            //    //    console.log('visible ', visibilityScale);
+            //    //    console.log('scalling down to ', visibilityScale * height);
+            //        boundary.altitude = visibilityScale * height;
+            //    });
+            //}
+
+            //console.log(this.cylinder.eyeDistanceScalingThreshold);
+            //cylinderBoundaries.forEach(function(boundary) {
+            //    boundary.altitude = visibilityScale * boundary.altitude;
+            //});
+            //if(Math.floor(visibilityScale) <= 1) {
+            //    console.log('rendering at ', visibilityScale);
+            //    cylinderBoundaries.forEach(function (boundary) {
+            //        boundary.altitude = visibilityScale * this.initialHeight;
+            //    });
+            //}
+            //} else {
+            //    cylinderBoundaries.forEach(function(boundary) {
+            //       boundary.altitude = this.initialHeight;
+            //    });
+            //}
+
+            this.cylinder.render(dc);
+
+        }
+
+
+
+
+
+
     }
+
+    Object.defineProperties(Cylinder.prototype, {
+        highlighted: {
+            get: function() {
+                return this.cylinder.highlighted;
+            },
+
+            set: function(value) {
+                this.cylinder.highlighted = value;
+            }
+        },
+
+        enabled: {
+            get: function() {
+                return this.cylinder.enabled;
+            },
+
+            set: function(value) {
+                this.cylinder.enabled = value;
+            }
+        }
+    })
+
 
     return Cylinder;
 
