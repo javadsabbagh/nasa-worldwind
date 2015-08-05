@@ -6,6 +6,8 @@ define(['EarthquakeViewLayer',
         'USGSDataRetriever',
         'MinimumMagnitudeSlider',
         'CommandsPanel',
+        'TectonicPlatesLayer',
+        'PlateBoundaryDataProvider',
         'TourManager',
         'Tour'],
     function(
@@ -13,6 +15,8 @@ define(['EarthquakeViewLayer',
         USGSDataRetriever,
         MinimumMagnitudeSlider,
         CommandsPanel,
+        TectonicPlatesLayer,
+        PlateBoundaryDataProvider,
         TourManager,
         Tour){
 
@@ -47,7 +51,15 @@ define(['EarthquakeViewLayer',
             self._focusedEarthquakeAgeIndex = 0; //age units, i.e the youngest earthquake
             self.goToAnimator = new WorldWind.GoToAnimator(self.wwd);
 
+            var plateData = new PlateBoundaryDataProvider();
+            var plateRecords = plateData.records;
+            var tectnonicPlatesLayer = new TectonicPlatesLayer(plateRecords);
+
+            this.wwd.addLayer(tectnonicPlatesLayer);
+
             console.log('Calling USGS');
+
+
 
             self.createEarthquakeLayer();
 
@@ -65,6 +77,9 @@ define(['EarthquakeViewLayer',
                 function(renderable){self.highlightSelectionHandler(self, renderable)},
                 'mousemove'
             );
+
+
+
 
             // Initiate a magnitude control slider.
             var MagSlider = new MinimumMagnitudeSlider('MinMagSlider', 'minMag', function(slider){
