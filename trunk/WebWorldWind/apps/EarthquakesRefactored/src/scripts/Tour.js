@@ -8,6 +8,24 @@
         this.callbacks = [];
         this.quakes = dataPoints;
 
+        //this.inSortedOrder = dataPoints.map(function(point) {
+        //    return {
+        //        position : positionExtractor(point),
+        //        data : point
+        //    };
+        //}).sort(function(point1, point2) {
+        //    //console.log(point1)
+        //    return sorter(point1['data'], point2['data']);
+        //});
+        //
+        //this.itenarary = this.inSortedOrder.map(function(point) {
+        //    point['position']['data'] = point['data']
+        //    return point['position'];
+        //});
+        //
+        //this.quakesInOrder = this.inSortedOrder.map(function())
+
+
         this.itenarary = dataPoints.map(function(point) {
             return {
                 position : positionExtractor(point),
@@ -33,10 +51,16 @@
         this.hops.push(this.itenarary[0]);
         var lastHop = this.hops[0];
         for(var idx = 1; idx < this.tripLength; idx += 1) {
-            this.hops.push(new WorldWind.Position(lastHop.latitude, lastHop.longitude, this.jumpUpHeight));
+            var temp1 = new WorldWind.Position(lastHop.latitude, lastHop.longitude, this.jumpUpHeight);
+            temp1.data = lastHop.data;
+            this.hops.push(temp1);
             var next = this.itenarary[idx];
-            this.hops.push(new WorldWind.Position(next.latitude, next.longitude, this.jumpUpHeight));
-            lastHop = new WorldWind.Position(next.latitude, next.longitude, this.jumpDownHeight);
+            var temp2 = new WorldWind.Position(next.latitude, next.longitude, this.jumpUpHeight);
+            temp2.data = next.data;
+            this.hops.push(temp2);
+            var temp3 = new WorldWind.Position(next.latitude, next.longitude, this.jumpDownHeight);
+            temp3.data = next.data;
+            lastHop = temp3;
             this.hops.push(lastHop);
         }
 
