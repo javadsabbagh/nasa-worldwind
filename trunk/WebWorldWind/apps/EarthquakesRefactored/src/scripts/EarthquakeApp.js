@@ -144,6 +144,7 @@ define(['EarthquakeViewLayer',
          */
         EarthquakeApp.prototype.initHighlightController = function (renderableLayer) {
             var self = this;
+            console.log(renderableLayer);
             var ListenerForHighlightOnLayer = function(o) {
                 var worldWindow = self.wwd,
                     highlightedItems = [];
@@ -153,8 +154,9 @@ define(['EarthquakeViewLayer',
                     y = o.clientY;
                 var redrawRequired = renderableLayer.renderables.length > 0; // must redraw if we de-highlight previous shapes
                 // De-highlight any previously highlighted shapes.
+
                 renderableLayer.renderables.forEach(function (renderable) {
-                    renderable.highlighted = false
+                    renderable.unHighlight()//ed = false
                 });
                 // Perform the pick. Must first convert from window coordinates to canvas coordinates, which are
                 // relative to the upper left corner of the canvas rather than the upper left corner of the page.
@@ -199,7 +201,7 @@ define(['EarthquakeViewLayer',
                 // Calls the callback for each highlighted placemark. There should only be one so this shouldn't be
                 //  an issue.
                 renderableLayer.renderables.forEach(function(renderable){
-                    if (renderable.highlighted){
+                    if (renderable.isHighlighted()){
                         renderable.clickedEvent = o;
                         callback(renderable);
                         renderable.clickedEvent = false;
@@ -210,8 +212,10 @@ define(['EarthquakeViewLayer',
             self.wwd.addEventListener((event || 'mousedown'), ListenerForClickOnPlacemark);
         };
 
-        EarthquakeApp.prototype.highlightSelectionHandler = function(self, renderable){
-            self.setFocusedEarthquake(renderable.indexInRenderables, renderable)
+        EarthquakeApp.prototype.highlightSelectionHandler = function(self, earthquake){
+            console.log('highlight handler called')
+            console.log(earthquake)
+            self.setFocusedEarthquake(earthquake._indexInRenderables)
         };
 
         EarthquakeApp.prototype.setFocusedEarthquake = function(ageArrayIndex, renderable){
