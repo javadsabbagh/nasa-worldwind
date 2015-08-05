@@ -64,6 +64,12 @@ define(['Cylinder'], function(Cylinder) {
 
     }
 
+    Earthquake.prototype.addToRenderableLayer = function(layer) {
+        layer.addRenderable(this);
+        this._placemark.indexInRenderables = layer.renderables.length - 1;
+        this._indexInRenderables = this._placemark.indexInRenderables;
+    }
+
     Earthquake.prototype.colorIfWorldWind = function() {
         var colorSpect = [[255,0,0],[0,255,0]];
         var colors = {
@@ -111,7 +117,7 @@ define(['Cylinder'], function(Cylinder) {
             placemarkAttributes = new WorldWind.PlacemarkAttributes(null);
         var canvas = document.createElement("canvas"),
             ctx2d = canvas.getContext("2d");
-        var size = this._magnitude * 5,
+        var size = Math.abs(this._magnitude * 5),
             c = size / 2  - 0.5,
             outerRadius = size/2.2;
         canvas.width = size;
@@ -123,8 +129,8 @@ define(['Cylinder'], function(Cylinder) {
         placemark = new WorldWind.Placemark(new WorldWind.Position(this._lat, this._long, 1e2));
         placemark.altitudeMode = WorldWind.RELATIVE_TO_GROUND;
         placemark.data = this;
-        placemark.indexInRenderables = self._baseLayer.renderables.length-1;
-        this._indexInRenderables = self._baseLayer.renderables.length-1;
+        //placemark.indexInRenderables = self._baseLayer.renderables.length-1;
+        //this._indexInRenderables = self._baseLayer.renderables.length-1;
         // Create the placemark attributes for the placemark.
         placemarkAttributes = new WorldWind.PlacemarkAttributes(placemarkAttributes);
         placemarkAttributes.imageScale = 1;
@@ -228,9 +234,40 @@ define(['Cylinder'], function(Cylinder) {
         indexInRenderables : {
             get: function() {
                 return this._indexInRenderables;
+            },
+
+            set: function(value) {
+                this._indexInRenderables = value;
+                this._placemark.indexInRenderables = value;
+            }
+        },
+
+        attributes : {
+            get: function() {
+                return this._placemark.attributes;
+            }
+        },
+
+        highlightAttributes : {
+            get: function() {
+                return this._placemark.highlightAttributes;
+            }
+        },
+
+        renderable : {
+            get: function() {
+                return this._placemark;
+            }
+        },
+
+        data: {
+            get: function() {
+                return this;
             }
         }
 
     });
+
+    return Earthquake;
 
 });
