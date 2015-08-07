@@ -337,7 +337,7 @@ define(['EarthquakeViewLayer',
                 }
 
                 var magnitudeTour = new Tour('Magnitude Tour',quakesInTour, getQuakePosition, function(q1, q2) {
-                    return Math.ceil(q1.magnitude - q2.magnitude);
+                    return Math.ceil(-q1.magnitude + q2.magnitude);
                 });
                 magnitudeTour.addStopCallback(function(quake){
                     console.log(quake);
