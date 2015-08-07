@@ -7,7 +7,6 @@ define(['jquery',
         'HUDMaker',
         'OverlayButton',
         'OpenStreetMapApp',
-        'EarthquakeViewerWrapper',
         'LayerManager'],
     function($,
              NaturalLanguageCanvas,
@@ -15,7 +14,6 @@ define(['jquery',
              HUDMaker,
              OverlayButton,
              OpenStreetMapApp,
-             EarthquakeViewerWrapper,
              LayerManager){
 
         function Canvas () {
@@ -34,10 +32,10 @@ define(['jquery',
             /*
              * Note that each form must have exactly as many fields as the app takes arguments.
              */
-            var nLForm1 = new NLBuilder('Form1');
-            nLForm1.addBasicText('I want an earthquake viewer named: ');
-            nLForm1.addField('nameField', 'name', "For example: <em>Data</em>");
-            nLForm1.setApplication(EarthquakeViewerWrapper);
+            //var nLForm1 = new NLBuilder('Form1');
+            //nLForm1.addBasicText('I want an earthquake viewer named: ');
+            //nLForm1.addField('nameField', 'name', "For example: <em>Data</em>");
+            //nLForm1.setApplication(EarthquakeViewerWrapper);
 
 
             var nLForm2 = new NLBuilder('Form2');
@@ -116,9 +114,9 @@ define(['jquery',
                     /*
                      * Creates the button that appends a new OSM query to the screen.
                      */
-                    menuDisplay.assembleDisplay('', 'Earthquake Viewer', function (e) {
-                        naturalLanguageCanvas.addForm(nLForm1)
-                    });
+                    //menuDisplay.assembleDisplay('', 'Earthquake Viewer', function (e) {
+                    //    naturalLanguageCanvas.addForm(nLForm1)
+                    //});
                     menuDisplay.assembleDisplay('', 'New OSM Query', function (e) {
                         naturalLanguageCanvas.addForm(nLForm2)
                     });

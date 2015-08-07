@@ -10,7 +10,6 @@ define(['HUDMaker'], function (HUDMaker) {
             this.roundGlobe = this.wwd.globe;
 
             this.createProjectionList();
-            console.log($("#projectionDropdown"))
 
             $("#projectionDropdown").find("li").on("click", function (e) {
                 thisExplorer.onProjectionClick(e);
@@ -161,7 +160,7 @@ define(['HUDMaker'], function (HUDMaker) {
             projectionDropdown.append(dropdownButton);
 
             var ulItem = $('<ul class="dropdown-menu">');
-            ulItem.css('z-index', 28)
+
             projectionDropdown.append(ulItem);
 
             for (var i = 0; i < projectionNames.length; i++) {
@@ -212,7 +211,9 @@ define(['HUDMaker'], function (HUDMaker) {
 
         function LayerManagerHud ( wwd ) {
             console.log('Hud made');
-            var anchorForLayerManager = new HUDMaker('Layer Menu', [0,0]);
+            var jQueryDoc = $(window.document);
+
+            var anchorForLayerManager = new HUDMaker('Layer Menu', [jQueryDoc.width()-240,0]);
 
             var layerAnchor = $('<div>');
             layerAnchor.attr('class', 'list-group');

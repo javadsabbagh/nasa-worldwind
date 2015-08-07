@@ -2,7 +2,7 @@
  * Created by Matthew on 7/27/2015.
  */
 
-define(function(){
+define(['jquery'],function($){
 
     /*
      * Removes all special characters from a string
@@ -111,6 +111,7 @@ define(function(){
         var self = this;
         this.DIV = $('<div>');
         this.DIV.attr('class',this.ID);
+        // this.DIV.draggable();
         this.DIV.css('background-color','white');
         this.closeButtonAndTitleDiv = $('<h3>');
         this.closeButtonAndTitleDiv.append(this.NAME);
