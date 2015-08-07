@@ -95,67 +95,12 @@ define(['RBushCache','lodash'], function(RBushCache, _) {
         return baseURL + '/feature/' + idOfFeature + '.json';
     };
 
-    //OSMBuildingDataRetriever.prototype.restrictBuildingCache = function () {
-    //    while (cachedBuildingData.buildings.length + 1 > cachedBuildingData.maxCacheSize) {
-    //        var item = cachedBuildingData.buildings.shift();
-    //        console.log(item.id + ' removed.')
-    //        delete cachedBuildingData.keys[item.id];
-    //
-    //    }
-    //    cachedBuildingData.buildings.forEach(function (building, index) {
-    //        console.log(building)
-    //        cachedBuildingData.keys[building.id] = index;
-    //    });
-    //};
-
-    //OSMBuildingDataRetriever.prototype.updateBuildingCacheFromData = function (data, callback) {
-    //    var self = this;
-    //    //console.log(data)
-    //    console.log('Caching data...');
-    //    if (data.features) {
-    //        data.features.forEach(function (building, index) {
-    //            if (!cachedBuildingData['keys'][building.id]) {
-    //                //console.log(building.id + ' is a new building.')
-    //
-    //                //console.log('Fetching building '+ building.id + '.' )
-    //                $.get(self.buildGetFeatureAPICall(building.id), function (info) {
-    //                    if (building['properties']) {
-    //                        building['properties'].tags = info.features[0].properties.tags
-    //                    } else {
-    //                        building['properties'] = {
-    //                            tags: info.features[0].properties.tags
-    //                        }
-    //                    }
-    //                    //console.log('Building '+ building.id + ' fetched.' )
-    //                    cachedBuildingData['keys'][building.id] = cachedBuildingData.buildings.length;
-    //                    cachedBuildingData.buildings.push(building);
-    //
-    //                    if (index === data.features.length - 1) {
-    //                        self.restrictBuildingCache();
-    //                        console.log('Data Cached!');
-    //                        callback(cachedBuildingData)
-    //                    }
-    //                });
-    //
-    //            } else {
-    //                //console.log('We already know about this building.')
-    //                if (index === data.features.length - 1) {
-    //                    self.restrictBuildingCache();
-    //                    console.log('Data Cached!')
-    //                    callback(cachedBuildingData)
-    //                }
-    //            }
-    //
-    //        });
-    //    };
-    //};
-
     OSMBuildingDataRetriever.prototype.callAPI = function (url, callback) {
         var self = this;
         console.log(url);
         $.get(url, function(returnedData){
-            console.log('returned data');
-            console.log(returnedData['features']);
+            //console.log('returned data');
+            //console.log(returnedData['features']);
             callback(returnedData['features']);
         });
         //if (cachedURLData.keys[url]){
@@ -172,7 +117,7 @@ define(['RBushCache','lodash'], function(RBushCache, _) {
     // Bounding Box should be [Low Lat, high long, high lat, low long]
     OSMBuildingDataRetriever.prototype.requestOSMBuildingData = function (boundingBoxCoords, callback) {
         var self = this;
-        console.log('fetching osm building data');
+        //console.log('fetching osm building data');
         var box = boundingBoxCoords;
         if(this._cache.collides(box) === false) {
             var url = this.buildBBoxAPICall(box);
@@ -193,18 +138,6 @@ define(['RBushCache','lodash'], function(RBushCache, _) {
             callback(data);
         });
     }
-
-    //console.log('Fetching OSM Building Data...');
-    //var self = this;
-    //// = [39.00050,-76.89950,37.99950,-76.90050];
-    ////boundingBoxCoords = ([37.38258, -122.08888999999999, 37.39758, -122.07389]);
-    ////var box = this.fixBoundingBoxForOSMB(boundingBoxCoords);
-    ////boundingBoxCoords = self.fixBoundingBoxForOSMB(boundingBoxCoords)
-    //var box = boundingBoxCoords;
-    //var url = this.buildBBoxAPICall(box);
-    //console.log('calling for box, ', box);
-    //self.callAPI(url, callback);
-
 
 
     /*
