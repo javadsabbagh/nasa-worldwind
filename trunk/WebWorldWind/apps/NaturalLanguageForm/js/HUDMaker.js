@@ -23,15 +23,22 @@ define(['jquery'],function($){
         return res;
     }
 
-
+    /*
+    * Creates a css class and calls the function to build an html div and button. The name of the css class
+    *   is the id.
+    *
+    * @param id: Name of the html and css id.
+    * @param screenLoc: The array of location on the screen to place the div. [x,y]
+    * @param selectorToAppendTo: The html div to append the div to. Saved in parentNode.
+    */
     var Hud = function (id, screenLoc, selectorToAppendTo) {
         var self = this;
         this.ParentNode = (selectorToAppendTo) ? $(selectorToAppendTo) : $('body');
-        console.log(id)
+        //console.log(id)
         this.ID = removeSpecials(id).split(' ').join('');
-        console.log(this.ID)
+        //console.log(this.ID)
         this.NAME = id;
-        console.log(this.ParentNode);
+        //console.log(this.ParentNode);
         this.StyleSheet =
             $("<style>")
             .prop("type", "text/css")
@@ -107,6 +114,9 @@ define(['jquery'],function($){
         return this
     };
 
+    /*
+    * Utilizes JQuery to build a div and a button. Appends the div to the parentnode
+    */
     Hud.prototype.buildDiv = function () {
         var self = this;
         this.DIV = $('<div>');
@@ -131,14 +141,20 @@ define(['jquery'],function($){
 
     };
 
+    /*
+    *  Removes all div objects and css selectors associated with the Hud
+    */
     Hud.prototype.close = function (ev) {
         var self = this;
         self.DIV.remove();
         self.StyleSheet.remove();
-
-
     };
 
+    /*
+    * Builds the basic display. This should only be called once. Use addAnchor and build your own jquery object on that.
+    *
+    * @param bodytext:
+    */
     Hud.prototype.assembleDisplay = function (bodyText, buttonText, buttonFunction){
         if (!this.DIV){
             this.buildDiv()

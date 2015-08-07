@@ -29,26 +29,12 @@ define(['jquery',
                 '.content'
             );
 
-            /*
-             * Note that each form must have exactly as many fields as the app takes arguments.
-             */
-            //var nLForm1 = new NLBuilder('Form1');
-            //nLForm1.addBasicText('I want an earthquake viewer named: ');
-            //nLForm1.addField('nameField', 'name', "For example: <em>Data</em>");
-            //nLForm1.setApplication(EarthquakeViewerWrapper);
-
-
             var nLForm2 = new NLBuilder('Form2');
             nLForm2.addBasicText('I\'m looking for ');
             nLForm2.addField('amenityField2', 'amenity', "For example: <em>cafe</em>");
             nLForm2.addBasicText(' near ');
             nLForm2.addField('addressField2', 'location', "For example: <em>Mountain View</em>");
             nLForm2.setApplication(OpenStreetMapApp);
-
-
-
-            //var newLayer = new EarthquakeViewLayer(wwd,"Data Display");
-            //newLayer.Manage.setDisplayType('placemarks');
 
             var naturalLanguageCanvas = new NaturalLanguageCanvas( window , []);
             naturalLanguageCanvas.setClosingAction(function () {
@@ -82,8 +68,9 @@ define(['jquery',
                 })
 
                 var layerManager = new LayerManager( window.worldWindow )
-            });
 
+
+            });
 
             /*
              * Add the function that is called when the wind icon is clicked.
@@ -139,9 +126,6 @@ define(['jquery',
                     })
                 })
             });
-
-
-            //new (naturalLanguageCanvas.NLForm(document.getElementById( 'nl-form' )))
 
         }
 

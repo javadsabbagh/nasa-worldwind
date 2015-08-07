@@ -11,7 +11,7 @@ define(function(){
         this.ID = id;
         this.image = image;
         this.sizeArray = sizeOfImageArray
-        console.log(this.ParentNode);
+        //console.log(this.ParentNode);
         this.StyleSheet =
             $("<style>")
                 .prop("type", "text/css")

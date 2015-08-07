@@ -16,25 +16,40 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         'nlform',
         'nlbuilder',
         'HUDMaker',
-        'OSMBuildingDataRetriever', 'DrainageBasinLayer'],
+        'OSMBuildingDataRetriever',
+        'BuildingColorMapping'],
     function(ww,
              OpenStreetMapLayer,
              OpenStreetMapConfig,
              $,
-             OSMDataRetriever, RouteLayer, Route, RouteAPIWrapper, NaturalLanguageHandler, polyline, MapQuestGeocoder,
-             NLForm, NLBuilder, HUDMaker, OSMBuildingDataRetriever, DrainageBasinLayer) {
+             OSMDataRetriever,
+             RouteLayer,
+             Route,
+             RouteAPIWrapper,
+             NaturalLanguageHandler,
+             polyline,
+             MapQuestGeocoder,
+             NLForm,
+             NLBuilder,
+             HUDMaker,
+             OSMBuildingDataRetriever,
+             BuildingColorMapping) {
 
 
         'use strict';
 
         WorldWind.Logger.setLoggingLevel(WorldWind.Logger.LEVEL_WARNING);
 
+        if (!String.prototype.capitalizeFirstLetter) {
+            String.prototype.capitalizeFirstLetter = function () {
+                return this.charAt(0).toUpperCase() + this.slice(1);
+            }
+        }
 
         var OpenStreetMapApp = function(worldwindow, argumentarray) {
             var self = this,
             amenity = argumentarray[0],
             address = argumentarray[1];
-            console.log(amenity, address)
 
             this._osmBuildingRetriever = new OSMBuildingDataRetriever();
             this._wwd = worldwindow;
@@ -43,13 +58,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
             this._wwd.addLayer(openStreetMapLayer);
 
-            //var drainageBasins = new DrainageBasinLayer();
-            //
-            //this._wwd.addLayer(drainageBasins);
-
             this._animator = new WorldWind.GoToAnimator(self._wwd);
-
-            //this._animator.goTo(self._config.startPosition);
 
             var naturalLanguageHandler = new NaturalLanguageHandler(self._wwd);
 
@@ -57,45 +66,14 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
             this._wwd.addLayer(routeLayer);
 
-
-            var renderableLayer = new WorldWind.RenderableLayer(argumentarray[0]);
+            var renderableLayer = new WorldWind.RenderableLayer('Pins');
 
             this._wwd.addLayer(renderableLayer);
 
-            console.log(this._wwd);
-            //
-            //var polygonLayer = new WorldWind.RenderableLayer('Building Layers');
-            //
-            //this._wwd.addLayer(polygonLayer);
-            //this.DIDCALL = false;
-            //if (!this.DIDCALL){
-            //    this._osmBuildingRetriever.requestOSMBuildingData([0,0,0,0], function(buildingData) {
-            //        //console.log('building data for ', boundingBox);
-            //        console.log(buildingData);
-            //        buildingData.forEach(function (building){
-            //            var geometries = building.geometry.coordinates;
-            //            // Turn the raw lat long data into worldwind positions
-            //            building.geometry.worldWindCoordinates = [];
-            //            geometries.forEach(function (boundary) {
-            //                var boundaryToPush = [];
-            //                boundary.forEach(function (point){
-            //                    boundaryToPush.push(new WorldWind.Position(point[1], point[0], 5e1))
-            //                });
-            //                building.geometry.worldWindCoordinates.push(boundaryToPush)
-            //            })
-            //        });
-            //        console.log(buildingData)
-            //
-            //        buildingData.forEach(function (building) {
-            //            self.drawPolygon(polygonLayer, building.geometry.worldWindCoordinates)
-            //        })
-            //    });
-            //    this.DIDCALL = true;
-            //}
+            var colorKey = this.buildColorKey();
 
-            //amenity = 'cafe';
-            //address = 'mountain view';
             var routeLayerRouteBuilder = new (this.RouteBuilder(routeLayer));
+
 
             //First, geocode the address
             this.callGeocoder(address, amenity, function(returnedSpecs) {
@@ -196,7 +174,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             RouteBuilderMod.prototype.drawRoute = function (routeArray) {
                 var routeBuilder = this;
                 self.routeFinder.getRouteData(routeArray, function(routeData) {
-                    console.log('routeInformation : ', routeData);
+                    //console.log('routeInformation : ', routeData);
                     routeBuilder.displayInstructions(routeBuilder.buildTextInstructions(routeData['route_instructions']));
                     routeBuilder.routeLayer.addRoute(routeData);
                 });
@@ -247,7 +225,10 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
 
             };
-            //["10", "Castro Street", 280, 0, 18, "280m", "NE", 27, 1]
+
+            /*
+            *
+             */
             RouteBuilderMod.prototype.buildTextInstructions = function (arrayOfInstructions) {
                 var routeBuilder = this;
                 var instructions = '';
@@ -449,6 +430,23 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
             });
 
+        };
+
+        /*
+        * Builds and displays the color key for buildings.
+        */
+        OpenStreetMapApp.prototype.buildColorKey = function () {
+            var openStreetMapKey = (new BuildingColorMapping()).getColorKey()
+            var jQueryDoc = $(window.document);
+            var keyDisplay = new HUDMaker('Building Color Key', [jQueryDoc.width()-260,jQueryDoc.height()-320]);
+            openStreetMapKey.forEach(function(pair){
+                var colorBox = $('<div>');
+                colorBox.css('background', pair[1]);
+                colorBox.css('color', 'white')
+                colorBox.append(pair[0].capitalizeFirstLetter());
+                keyDisplay.addAnchor(colorBox)
+            });
+            return keyDisplay
         };
 
         return OpenStreetMapApp;

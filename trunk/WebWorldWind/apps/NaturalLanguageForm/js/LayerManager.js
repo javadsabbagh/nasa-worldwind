@@ -210,7 +210,7 @@ define(['HUDMaker'], function (HUDMaker) {
         };
 
         function LayerManagerHud ( wwd ) {
-            console.log('Hud made');
+            //console.log('Hud made');
             var jQueryDoc = $(window.document);
 
             var anchorForLayerManager = new HUDMaker('Layer Menu', [jQueryDoc.width()-240,0]);

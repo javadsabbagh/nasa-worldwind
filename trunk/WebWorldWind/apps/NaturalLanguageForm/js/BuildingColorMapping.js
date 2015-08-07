@@ -131,11 +131,11 @@ define(['buckets','lodash'], function(buckets, _) {
      */
     BuildingColorMapping.prototype.getColor = function(buildingType) {
         if(this._typeColorAssignments.containsKey(buildingType)) {
-            console.log('checking for valid color');
+            //console.log('checking for valid color');
             var colorName = this._typeColorAssignments.get(buildingType);
-            console.log('Color name ', colorName);
+            //console.log('Color name ', colorName);
             var color = this._colors.get(colorName);
-            console.log('Color ', color);
+            //console.log('Color ', color);
             return color
         } else {
             //alert('No color set for ' +  buildingType);
