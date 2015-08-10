@@ -265,6 +265,9 @@ define(['OpenStreetMapApp',
 			return nlform
 		};
 
+		/*
+		* Creates a module to handle each Field in a form (aka the words that take an input.)
+		 */
 		NaturalLanguageCanvas.prototype.NLField = function( ) {
 			var self = this
 			function nlfield( form, el, type, idx ) {
@@ -426,6 +429,11 @@ define(['OpenStreetMapApp',
 			return nlfield
 		};
 
+		/*
+		* Assigns the function to call when all natural language forms are filled.
+		*
+		* @param func: Callback function.
+		 */
 		NaturalLanguageCanvas.prototype.setClosingAction = function (func) {
 			//console.log('action set')
 			this.closingAction = func

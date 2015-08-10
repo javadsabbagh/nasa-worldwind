@@ -1,5 +1,7 @@
 /**
  * Created by Matthew on 7/31/2015.
+ *
+ * Adapted from http://worldwindserver.net/webworldwind/examples/LayerManager.js
  */
 define(['HUDMaker'], function (HUDMaker) {
         function LayerManager ( worldWindow ) {
@@ -31,12 +33,6 @@ define(['HUDMaker'], function (HUDMaker) {
                 thisExplorer.onSearchTextKeyPress($(this), e);
             });
 
-            //
-            //this.wwd.redrawCallbacks.push(function (worldWindow, stage) {
-            //    if (stage == WorldWind.AFTER_REDRAW) {
-            //        thisExplorer.updateVisibilityState(worldWindow);
-            //    }
-            //});
         };
 
         LayerManager.prototype.onProjectionClick = function (event) {
@@ -123,26 +119,6 @@ define(['HUDMaker'], function (HUDMaker) {
                 this.wwd.redraw();
             }
         };
-        //
-        //LayerManager.prototype.updateVisibilityState = function (worldWindow) {
-        //    var layerButtons = $("#layerList").find("button"),
-        //        layers = worldWindow.layers;
-        //
-        //    for (var i = 0; i < layers.length; i++) {
-        //        var layer = layers[i];
-        //        for (var j = 0; j < layerButtons.length; j++) {
-        //            var button = layerButtons[j];
-        //
-        //            if (layer.displayName === button.innerText) {
-        //                if (layer.inCurrentFrame) {
-        //                    button.innerHTML = "<em>" + layer.displayName + "</em>";
-        //                } else {
-        //                    button.innerHTML = layer.displayName;
-        //                }
-        //            }
-        //        }
-        //    }
-        //};
 
         LayerManager.prototype.createProjectionList = function () {
             var projectionNames = [
@@ -209,8 +185,12 @@ define(['HUDMaker'], function (HUDMaker) {
             }
         };
 
+        /*
+        * Creates a hud with an html anchor for the layer manager to construct itself on.
+        *
+        * @param wwd: Worldwindow to apply to.
+         */
         function LayerManagerHud ( wwd ) {
-            //console.log('Hud made');
             var jQueryDoc = $(window.document);
 
             var anchorForLayerManager = new HUDMaker('Layer Menu', [jQueryDoc.width()-240,0]);
