@@ -17,6 +17,7 @@ define(['jquery',
              LayerManager){
 
         function Canvas () {
+            var self = this;
             /*
              * Create the html, css, and js for the wind icon in the bottom left. This will act as a menu for the canvas.
              */
@@ -38,7 +39,7 @@ define(['jquery',
             nLForm2.setApplication(OpenStreetMapApp);
 
             var naturalLanguageCanvas = new NaturalLanguageCanvas( window , []);
-            naturalLanguageCanvas.setClosingAction(function () {
+            naturalLanguageCanvas.addClosingAction(function (NLHandler) {
                 var buttonY = jQueryDoc.height() * .02;
                 var buttonX = jQueryDoc.width() * .02;
                 var returnButton = new OverlayButton(
@@ -53,6 +54,8 @@ define(['jquery',
                     var windIcon = $(o.target).parent();
                     var INDEX = 0;
                     $('#landingScreen').fadeIn(400);
+                    // Hide the layer manager upon return the NLH
+                    self.layerManager.anchor.DIV.fadeOut(10);
                     windIcon.fadeOut(400);
                     var loadTimeAnimator = window.setInterval(function () {
                         if (INDEX < 20){
@@ -63,12 +66,16 @@ define(['jquery',
                         }
                         $(o.target).css('width', 75 + 2*INDEX);
                         $(o.target).css('height', 75 + 2*INDEX);
-
                     },20);
 
-                })
-
-                var layerManager = new LayerManager( window.worldWindow )
+                    NLHandler.applicationManager.unFocusAll()
+                });
+                if (!self.layerManager){
+                    self.layerManager = new LayerManager( window.worldWindow )
+                } else {
+                    // Fade the layer manager in if already created.
+                    self.layerManager.anchor.DIV.fadeIn(10)
+                }
             });
 
             /*

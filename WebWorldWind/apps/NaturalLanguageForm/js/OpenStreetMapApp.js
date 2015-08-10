@@ -4,9 +4,21 @@
 * Extended by Matt Evers
 */
 /*
-    This module acts as the application entry point
- */
 
+
+ */
+/*
+* This module acts as the application entry point for the citysmart application.
+*
+* This module is to behave as a SINGLETON application. All queries from the canvas will be handled by ONE instance.
+* (See CanvasAppManager)
+*
+* This application creates 3 layers. A routelayer on which routing will be drawn; a renderable layer on which pins and
+*   placemarks will be drawn; and a building layer on which building polygons will be drawn.
+*
+* This application creates a listener for all placemarks and pins and creates a hud to appear on click. It also creates
+*   a HUD with the building color key.
+ */
 define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         'OpenStreetMapLayer',
         'OpenStreetMapConfig',
@@ -17,7 +29,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         'nlbuilder',
         'HUDMaker',
         'OSMBuildingDataRetriever',
-        'BuildingColorMapping'],
+        'BuildingColorMapping',
+        'ApplicationHUDManager'],
     function(ww,
              OpenStreetMapLayer,
              OpenStreetMapConfig,
@@ -33,7 +46,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
              NLBuilder,
              HUDMaker,
              OSMBuildingDataRetriever,
-             BuildingColorMapping) {
+             BuildingColorMapping,
+             ApplicationHUDManager) {
 
 
         'use strict';
@@ -47,68 +61,116 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         }
 
         var OpenStreetMapApp = function(worldwindow, argumentarray) {
-            var self = this,
-            amenity = argumentarray[0],
-            address = argumentarray[1];
+            var self = this;
+            this.singletonApplication = true;
+            this.applicationName = 'CitySmart';
+
+            this.HUDManager = new ApplicationHUDManager()
 
             this._osmBuildingRetriever = new OSMBuildingDataRetriever();
             this._wwd = worldwindow;
 
             var openStreetMapLayer = new OpenStreetMapLayer(this._wwd);
+            this.openStreetMapLayer = openStreetMapLayer;
 
             this._wwd.addLayer(openStreetMapLayer);
 
             this._animator = new WorldWind.GoToAnimator(self._wwd);
 
             var naturalLanguageHandler = new NaturalLanguageHandler(self._wwd);
+            this.naturalLanguageHandler = naturalLanguageHandler;
 
             var routeLayer = new RouteLayer();
+            this.routeLayer = routeLayer;
 
             this._wwd.addLayer(routeLayer);
 
             var renderableLayer = new WorldWind.RenderableLayer('Pins');
+            this.renderableLayer = renderableLayer;
 
             this._wwd.addLayer(renderableLayer);
 
-            var colorKey = this.buildColorKey();
-
             var routeLayerRouteBuilder = new (this.RouteBuilder(routeLayer));
+            this.routeLayerRouteBuilder = routeLayerRouteBuilder;
 
+            self.newCall(worldwindow, argumentarray)
+        };
 
+        /*
+        * This function is called by the canvas when the canvas is fully faded out.
+         */
+        OpenStreetMapApp.prototype.isFocussed = function () {
+            console.log('OSM FOCUS CALLED')
+            if (!this.colorKey) {
+                this.colorKey = this.buildColorKey();
+            }
+            this.HUDManager.unFadeAll()
+        };
+
+        /*
+         * This function is called by the canvas when the canvas is returned.
+         */
+        OpenStreetMapApp.prototype.isNotFocussed = function () {
+            this.HUDManager.fadeAll()
+        };
+
+        /*
+        * If this application were to be called a second time by the canvas, it does not a create a new application.
+        *   Populates the renderable layer with the amenities queried for inside the bounding box. Builds each placemark
+        *   and assigns a HUD to display when each is clicked.
+        *
+        * @param address: The address to build the bounding box around that bounds the query area.
+        * @param amenity: The amenity key to query the OSM Database for.
+         */
+        OpenStreetMapApp.prototype.newCall = function(ww, argumentarray) {
+            //console.log(argumentarray)
+            var self = this,
+                amenity = argumentarray[0],
+                address = argumentarray[1];
             //First, geocode the address
             this.callGeocoder(address, amenity, function(returnedSpecs) {
                 // Second, call the natural language handler with the specs.
                 // This calls the callback with data corrosponding to all the amenities of the given
                 // amenity type inside a bounding box around the address provided. (returned Specs is the geocoded address)
-                naturalLanguageHandler.receiveInput(returnedSpecs, function(newSpecs, returnedData){
+                self.naturalLanguageHandler.receiveInput(returnedSpecs, function(newSpecs, returnedData){
                     // Third, build the layer.
-                    self.buildPlacemarkLayer(renderableLayer, returnedData);
-                    // Fourth, add the selection controller to the layer.
-                    self.HighlightAndSelectController(renderableLayer, function (returnedRenderable){
-                        var pointOfRenderable = self.getPointFromRenderableSelection(returnedRenderable.amenity);
-                        var hudID = returnedRenderable.amenity._amenity;
+                    self.buildPlacemarkLayer(self.renderableLayer, returnedData);
+                    // Fourth, add the selection controller to the layer if one does not already exist.
+                    if (!self.hasHighlightController && !self.hasSelectionController) {
+                        self.HighlightAndSelectController(self.renderableLayer, function (returnedRenderable) {
+                            var pointOfRenderable = self.getPointFromRenderableSelection(returnedRenderable.amenity);
+                            var hudID = returnedRenderable.amenity._amenity;
 
-                        // Build an overlay when a placemark is clicked on.
-                        var HudTest = new HUDMaker(
-                            hudID,
-                            [returnedRenderable.clickedEvent.x,returnedRenderable.clickedEvent.y]
-                        );
+                            // Build an overlay when a placemark is clicked on.
+                            var HudTest = new HUDMaker(
+                                hudID,
+                                [returnedRenderable.clickedEvent.x, returnedRenderable.clickedEvent.y]
+                            );
 
+                            console.log('hud called')
+                            //Sixth, add this point to the route layer and see if it is enough to build a route.
+                            if (self.routeLayerRouteBuilder.routeArray.length === 0) {
+                                HudTest.assembleDisplay(
+                                    'Get directions',
+                                    'from Here',
+                                    function (o) {
+                                        self.routeLayerRouteBuilder.processPoint(pointOfRenderable);
+                                        HudTest.close()
+                                    })
+                            } else {
+                                HudTest.assembleDisplay(
+                                    'Get directions',
+                                    'to Here',
+                                    function (o) {
+                                        self.routeLayerRouteBuilder.processPoint(pointOfRenderable);
+                                        HudTest.close()
+                                    })
+                            }
 
-                        //Sixth, add this point to the route layer and see if it is enough to build a route.
-                        if (routeLayerRouteBuilder.routeArray.length === 0){
-                            HudTest.assembleDisplay(
-                                'Get directions',
-                                'from Here',
-                                function(o){routeLayerRouteBuilder.processPoint(pointOfRenderable); HudTest.close()})
-                        } else {
-                            HudTest.assembleDisplay(
-                                'Get directions',
-                                'to Here',
-                                function(o){routeLayerRouteBuilder.processPoint(pointOfRenderable); HudTest.close()})
-                        }
-                    })
+                            self.HUDManager.subscribeHUD(HudTest);
 
+                        })
+                    }
                 })
 
 
@@ -259,6 +321,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         */
         OpenStreetMapApp.prototype.HighlightController = function (renderableLayer) {
             var self = this;
+            self.hasHighlightController = true;
             var ListenerForHighlightOnLayer = function(o) {
                 var worldWindow = self._wwd,
                     highlightedItems = [];
@@ -306,7 +369,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
          */
         OpenStreetMapApp.prototype.HighlightAndSelectController = function (renderableLayer, callback, callbackWithMouse) {
             var self = this;
-
+            self.hasSelectionController = true;
             //Create a highlight controller for the layer.
             self.HighlightController(renderableLayer);
 
@@ -436,18 +499,32 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         * Builds and displays the color key for buildings.
         */
         OpenStreetMapApp.prototype.buildColorKey = function () {
-            var openStreetMapKey = (new BuildingColorMapping()).getColorKey()
+            var self = this;
+            var openStreetMapKey = (new BuildingColorMapping()).getColorKey();
             var jQueryDoc = $(window.document);
             var keyDisplay = new HUDMaker('Building Color Key', [jQueryDoc.width()-260,jQueryDoc.height()-320]);
             openStreetMapKey.forEach(function(pair){
                 var colorBox = $('<div>');
                 colorBox.css('background', pair[1]);
-                colorBox.css('color', 'white')
+                colorBox.css('color', 'white');
                 colorBox.append(pair[0].capitalizeFirstLetter());
                 keyDisplay.addAnchor(colorBox)
             });
+            self.HUDManager.subscribeHUD(keyDisplay);
             return keyDisplay
         };
+
+        //Object.defineProperties(OpenStreetMapApp.prototype, {
+        //    // Tell the canvas that this application should only be created once.
+        //    // This is not necessary unless it is true.
+        //    // <app>.newCall is a requirement if it is true.
+        //    _singletonApplication: {
+        //        get: function() {return true}
+        //    },
+        //    _applicationName: {
+        //        get: function(){return 'CitySmart'}
+        //    }
+        //});
 
         return OpenStreetMapApp;
 

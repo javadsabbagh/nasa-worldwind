@@ -23,17 +23,20 @@
 
 define(['OpenStreetMapApp',
 		'WorldWindBase',
-		'nlfactory'],
+		'nlfactory',
+		'CanvasAppManager'],
 	function (OpenStreetMapApp,
 			  WorldWindBase,
-			  NaturalLanguageFactory){
+			  NaturalLanguageFactory,
+			  CanvasAppManager){
 		'use strict';
 		function NaturalLanguageCanvas ( window,
 										 arrayofforms) {
 			this.document = window.document;
 			this.jQueryDoc = $(window.document);
 			this.forms = [];
-
+			this.closingActions = [];
+			this.applicationManager = new CanvasAppManager();
 			this.formFactory = new NaturalLanguageFactory();
 
 			if (!String.prototype.trim) {
@@ -67,8 +70,7 @@ define(['OpenStreetMapApp',
 			arrayofforms.forEach(function(form){
 				var htmlForm = self.formFactory.createForm(form).getForm();
 				// Add a random number to the ID so there is no name clash.
-				htmlForm.attr('id',htmlForm.attr('id') + Math.round(100*Math.random()) )
-				//console.log(htmlForm)
+				htmlForm.attr('id',htmlForm.attr('id') + Math.round(100*Math.random()) );
 				$('.main-clearfix').append(htmlForm);
 				var canvasForm = new (self.NLForm()) ( self.document.getElementById(htmlForm.attr('id')) );
 				canvasForm._setApplicationToOpen(form.application);
@@ -120,10 +122,12 @@ define(['OpenStreetMapApp',
 					} else {
 						loadSymbol.fadeOut(1000, function(){
 							$('#landingScreen').fadeOut(400, function () {
-								if (self.closingAction){
-									self.closingAction()
-								}
+								self.closingActions.forEach(function(funct){
+									funct(self)
+								});
 							});
+							// Call all the isFocus functions for each app.
+							self.applicationManager.focusAll();
 
 							// Return Everything to the way it was so the canvas looks new upon return.
 							loadIcon.fadeIn(10);
@@ -160,7 +164,7 @@ define(['OpenStreetMapApp',
 				this.canvas = self;
 				this.document = $(document);
 				this.el = el;
-				this.ID = $(this.el).attr('id')
+				this.ID = $(this.el).attr('id');
 				this.backDrop = document.querySelector( '.nl-blurred' );
 				this.fields = [];
 				this.fldOpen = -1;
@@ -206,7 +210,7 @@ define(['OpenStreetMapApp',
 							window.worldWindow = new WorldWindBase( window )
 						}
 
-						new form.application(window.worldWindow, argumentArray);
+						self.applicationManager.callInstance(form.application, window.worldWindow, argumentArray)
 
 					}();
 
@@ -430,13 +434,13 @@ define(['OpenStreetMapApp',
 		};
 
 		/*
-		* Assigns the function to call when all natural language forms are filled.
-		*
+		* Assigns a function to call when all natural language forms are filled.
+		*		These functions are called with the NLH as the only parameter.
 		* @param func: Callback function.
 		 */
-		NaturalLanguageCanvas.prototype.setClosingAction = function (func) {
+		NaturalLanguageCanvas.prototype.addClosingAction = function (func) {
 			//console.log('action set')
-			this.closingAction = func
+			this.closingActions.push(func)
 		};
 
 		return NaturalLanguageCanvas
