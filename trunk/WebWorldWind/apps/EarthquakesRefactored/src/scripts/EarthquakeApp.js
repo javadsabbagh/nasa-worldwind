@@ -2,14 +2,14 @@
  * Created by Matthew on 8/4/2015.
  */
 
-define(['EarthquakeViewLayer',
-        'USGSDataRetriever',
-        'MinimumMagnitudeSlider',
-        'CommandsPanel',
-        'TectonicPlatesLayer',
-        'PlateBoundaryDataProvider',
-        'TourManager',
-        'Tour'],
+define(['./EarthquakeViewLayer',
+        './USGSDataRetriever',
+        './MinimumMagnitudeSlider',
+        './CommandsPanel',
+        './TectonicPlatesLayer',
+        './PlateBoundaryDataProvider',
+        './TourManager',
+        './Tour'],
     function(
         EarthquakeViewLayer,
         USGSDataRetriever,
