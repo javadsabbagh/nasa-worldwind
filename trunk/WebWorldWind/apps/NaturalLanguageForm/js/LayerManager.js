@@ -19,10 +19,6 @@ define(['HUDMaker'], function (HUDMaker) {
 
             this.synchronizeLayerList();
 
-            $("#layerList").find("button").on("click", function (e) {
-                thisExplorer.onLayerClick($(this));
-            });
-
             $("#searchBox").find("button").on("click", function (e) {
                 thisExplorer.onSearchButton(e);
             });
@@ -32,7 +28,6 @@ define(['HUDMaker'], function (HUDMaker) {
             $("#searchText").on("keypress", function (e) {
                 thisExplorer.onSearchTextKeyPress($(this), e);
             });
-
         };
 
         LayerManager.prototype.onProjectionClick = function (event) {
@@ -97,6 +92,7 @@ define(['HUDMaker'], function (HUDMaker) {
         };
 
         LayerManager.prototype.synchronizeLayerList = function () {
+            var thisExplorer = this;
             var layerListItem = $("#layerList");
 
             layerListItem.find("button").off("click");
@@ -118,6 +114,13 @@ define(['HUDMaker'], function (HUDMaker) {
                 }
                 this.wwd.redraw();
             }
+
+            layerListItem.find("button").on("click", function (e) {
+                thisExplorer.onLayerClick($(this));
+            });
+
+
+
         };
 
         LayerManager.prototype.createProjectionList = function () {
@@ -200,7 +203,7 @@ define(['HUDMaker'], function (HUDMaker) {
             layerAnchor.attr('id', 'layerList');
             anchorForLayerManager.addAnchor(layerAnchor);
             this.anchor = anchorForLayerManager
-            window.layerManager = new LayerManager(wwd)
+            this.layerMan = new LayerManager(wwd)
 
         }
 

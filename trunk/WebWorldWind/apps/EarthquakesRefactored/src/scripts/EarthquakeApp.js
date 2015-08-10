@@ -45,6 +45,7 @@ define(['EarthquakeViewLayer',
         var EarthquakeApp = function(wwd, name){
             var self = this;
             self.wwd = wwd;
+            self.applicationName = 'QuakeScape'
             self._displayName = name;
             self.sortedData = {};
             self.sortingMaps = {};
@@ -254,7 +255,7 @@ define(['EarthquakeViewLayer',
                 1e7);
             console.log('going to ', pos);
             goToAnimator.goTo(pos);
-        }
+        };
 
         EarthquakeApp.prototype.createCommandsPanel = function(id, parentNode){
             var self = this;
