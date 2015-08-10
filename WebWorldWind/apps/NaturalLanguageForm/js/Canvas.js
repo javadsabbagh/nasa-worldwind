@@ -75,6 +75,7 @@ define(['jquery',
                 } else {
                     // Fade the layer manager in if already created.
                     self.layerManager.anchor.DIV.fadeIn(10)
+                    self.layerManager.layerMan.synchronizeLayerList();
                 }
             });
 

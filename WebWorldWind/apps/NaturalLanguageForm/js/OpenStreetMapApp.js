@@ -85,10 +85,11 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
             this._wwd.addLayer(routeLayer);
 
-            var renderableLayer = new WorldWind.RenderableLayer('Pins');
-            this.renderableLayer = renderableLayer;
-
-            this._wwd.addLayer(renderableLayer);
+            this.renderableLayers = []
+            //var renderableLayer = new WorldWind.RenderableLayer('Pins');
+            //this.renderableLayer = renderableLayer;
+            //this.renderableLayers.push(renderableLayer)
+            //this._wwd.addLayer(renderableLayer);
 
             var routeLayerRouteBuilder = new (this.RouteBuilder(routeLayer));
             this.routeLayerRouteBuilder = routeLayerRouteBuilder;
@@ -123,10 +124,13 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         * @param amenity: The amenity key to query the OSM Database for.
          */
         OpenStreetMapApp.prototype.newCall = function(ww, argumentarray) {
+            var renderableLayer = new WorldWind.RenderableLayer(argumentarray[0].capitalizeFirstLetter());
             //console.log(argumentarray)
             var self = this,
                 amenity = argumentarray[0],
                 address = argumentarray[1];
+            self._wwd.addLayer(renderableLayer);
+            self.renderableLayers.push(renderableLayer);
             //First, geocode the address
             this.callGeocoder(address, amenity, function(returnedSpecs) {
                 // Second, call the natural language handler with the specs.
@@ -134,43 +138,42 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 // amenity type inside a bounding box around the address provided. (returned Specs is the geocoded address)
                 self.naturalLanguageHandler.receiveInput(returnedSpecs, function(newSpecs, returnedData){
                     // Third, build the layer.
-                    self.buildPlacemarkLayer(self.renderableLayer, returnedData);
+                    self.buildPlacemarkLayer(renderableLayer, returnedData);
                     // Fourth, add the selection controller to the layer if one does not already exist.
-                    if (!self.hasHighlightController && !self.hasSelectionController) {
-                        self.HighlightAndSelectController(self.renderableLayer, function (returnedRenderable) {
-                            var pointOfRenderable = self.getPointFromRenderableSelection(returnedRenderable.amenity);
-                            var hudID = returnedRenderable.amenity._amenity;
+                    self.HighlightAndSelectController(renderableLayer, function (returnedRenderable) {
+                        var pointOfRenderable = self.getPointFromRenderableSelection(returnedRenderable.amenity);
+                        var hudID = returnedRenderable.amenity._amenity;
 
-                            // Build an overlay when a placemark is clicked on.
-                            var HudTest = new HUDMaker(
-                                hudID,
-                                [returnedRenderable.clickedEvent.x, returnedRenderable.clickedEvent.y]
-                            );
+                        // Build an overlay when a placemark is clicked on.
+                        var HudTest = new HUDMaker(
+                            hudID,
+                            [returnedRenderable.clickedEvent.x, returnedRenderable.clickedEvent.y]
+                        );
 
-                            console.log('hud called')
-                            //Sixth, add this point to the route layer and see if it is enough to build a route.
-                            if (self.routeLayerRouteBuilder.routeArray.length === 0) {
-                                HudTest.assembleDisplay(
-                                    'Get directions',
-                                    'from Here',
-                                    function (o) {
-                                        self.routeLayerRouteBuilder.processPoint(pointOfRenderable);
-                                        HudTest.close()
-                                    })
-                            } else {
-                                HudTest.assembleDisplay(
-                                    'Get directions',
-                                    'to Here',
-                                    function (o) {
-                                        self.routeLayerRouteBuilder.processPoint(pointOfRenderable);
-                                        HudTest.close()
-                                    })
-                            }
+                        console.log('hud called');
+                        //Sixth, add this point to the route layer and see if it is enough to build a route.
+                        if (self.routeLayerRouteBuilder.routeArray.length === 0) {
+                            HudTest.assembleDisplay(
+                                'Get directions',
+                                'from Here',
+                                function (o) {
+                                    self.routeLayerRouteBuilder.processPoint(pointOfRenderable);
+                                    HudTest.close()
+                                })
+                        } else {
+                            HudTest.assembleDisplay(
+                                'Get directions',
+                                'to Here',
+                                function (o) {
+                                    self.routeLayerRouteBuilder.processPoint(pointOfRenderable);
+                                    HudTest.close()
+                                })
+                        }
 
-                            self.HUDManager.subscribeHUD(HudTest);
+                        self.HUDManager.subscribeHUD(HudTest);
 
-                        })
-                    }
+                    })
+
                 })
 
 
@@ -513,18 +516,6 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             self.HUDManager.subscribeHUD(keyDisplay);
             return keyDisplay
         };
-
-        //Object.defineProperties(OpenStreetMapApp.prototype, {
-        //    // Tell the canvas that this application should only be created once.
-        //    // This is not necessary unless it is true.
-        //    // <app>.newCall is a requirement if it is true.
-        //    _singletonApplication: {
-        //        get: function() {return true}
-        //    },
-        //    _applicationName: {
-        //        get: function(){return 'CitySmart'}
-        //    }
-        //});
 
         return OpenStreetMapApp;
 
