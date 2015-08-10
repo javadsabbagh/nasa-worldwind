@@ -153,7 +153,7 @@ define(['jquery'],function($){
     /*
     * Builds the basic display. This should only be called once. Use addAnchor and build your own jquery object on that.
     *
-    * @param bodytext:
+    * @param buttonfunction: The function to call when the button is clicked.
     */
     Hud.prototype.assembleDisplay = function (bodyText, buttonText, buttonFunction){
         if (!this.DIV){
@@ -178,10 +178,20 @@ define(['jquery'],function($){
 
     };
 
+    /*
+    *  Appends a jquery object to the main div.
+    *
+    *  @param anchor: Jquery object
+     */
     Hud.prototype.addAnchor = function (anchor) {
         this.DIV.append(anchor)
     };
 
+    /*
+    * Assigns a callback function for when the hud is closed.
+    *
+    * @param callback: Function to call when the hud is closed.
+     */
     Hud.prototype.addCloseEvent = function (callback) {
         this.closeButton.on('click', callback)
     };

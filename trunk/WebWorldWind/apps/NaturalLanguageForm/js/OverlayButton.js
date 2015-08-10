@@ -10,8 +10,7 @@ define(function(){
         this.ParentNode = (selectorToAppendTo) ? $(selectorToAppendTo) : $('body');
         this.ID = id;
         this.image = image;
-        this.sizeArray = sizeOfImageArray
-        //console.log(this.ParentNode);
+        this.sizeArray = sizeOfImageArray;
         this.StyleSheet =
             $("<style>")
                 .prop("type", "text/css")
@@ -27,11 +26,12 @@ define(function(){
         this.StyleSheet.appendTo("head");
 
         this.buildDiv();
-        //this.assembleDisplay();
-
         return this
     };
 
+    /*
+     * Utilizes JQuery to build a div and a button. Appends the div to the parentnode
+     */
     OverlayButton.prototype.buildDiv = function () {
         var self = this;
         this.DIV = $('<div>');
@@ -43,23 +43,26 @@ define(function(){
         this.HTMLImage.attr('height',self.sizeArray[1]);
         this.HTMLImage.attr('alt',this.image);
         this.HTMLImage.attr('longdesc',this.image);
-        //this.HTMLImage.on('click', function (ev) {
-        //    self.DIV.remove();
-        //    self.StyleSheet.remove();
-        //});
 
         this.DIV.append(this.HTMLImage);
         this.ParentNode.append(this.DIV)
 
     };
 
+    /*
+     *  Removes all div objects and css selectors associated with the Hud
+     */
     OverlayButton.prototype.destroySelf = function () {
         var self = this;
         self.DIV.remove();
         self.StyleSheet.remove();
     };
 
-
+    /*
+    * Assigns a callback for when the button is clicked.
+    *
+    * @param callback: function to call upon click.
+     */
     OverlayButton.prototype.addClickEvent = function (callback) {
         this.HTMLImage.on('click', callback)
     };

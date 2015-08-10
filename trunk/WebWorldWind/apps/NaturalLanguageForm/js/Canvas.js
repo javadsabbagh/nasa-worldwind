@@ -29,6 +29,7 @@ define(['jquery',
                 '.content'
             );
 
+            // Form for open street map.
             var nLForm2 = new NLBuilder('Form2');
             nLForm2.addBasicText('I\'m looking for ');
             nLForm2.addField('amenityField2', 'amenity', "For example: <em>cafe</em>");
@@ -68,8 +69,6 @@ define(['jquery',
                 })
 
                 var layerManager = new LayerManager( window.worldWindow )
-
-
             });
 
             /*
