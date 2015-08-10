@@ -419,7 +419,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             if(this._enabled) {
                 this._baseLayer.render(dc);
                 var currEyeAltitude = getEyeAltitude(dc);
-                if(currEyeAltitude <= 5000) {
+                if(currEyeAltitude <= 3000) {
                     this._renderableLayer.render(dc);
                     if(this._buildingGrabIntervalID === null) {
                         this._buildingGrabIntervalID = setInterval(function() {
@@ -433,7 +433,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                                 //    self.handleBuildingInfo(currEyeAltitude);
                                 //}
                             }
-                        }, 5 * 1000);
+                        }, 15 * 1000);
                     }
                 } else {
                     clearInterval(self._buildingGrabIntervalID);

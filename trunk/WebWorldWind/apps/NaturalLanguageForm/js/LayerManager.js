@@ -199,7 +199,7 @@ define(['HUDMaker'], function (HUDMaker) {
             layerAnchor.attr('class', 'list-group');
             layerAnchor.attr('id', 'layerList');
             anchorForLayerManager.addAnchor(layerAnchor);
-
+            this.anchor = anchorForLayerManager
             window.layerManager = new LayerManager(wwd)
 
         }

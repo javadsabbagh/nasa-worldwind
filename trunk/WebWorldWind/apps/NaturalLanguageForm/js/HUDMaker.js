@@ -146,6 +146,9 @@ define(['jquery'],function($){
     */
     Hud.prototype.close = function (ev) {
         var self = this;
+        if (self.HUDManager){
+            self.HUDManager.unsubscribeHUD(self)
+        }
         self.DIV.remove();
         self.StyleSheet.remove();
     };
@@ -196,6 +199,18 @@ define(['jquery'],function($){
         this.closeButton.on('click', callback)
     };
 
+    /*
+    * Assigns itself to a hudmanager.
+    *
+    * @param hudmanager: hudmanager to subscribe self to.
+     */
+    Hud.prototype.assignHUDManager = function (hudmanager) {
+        var self = this;
+
+        self.HUDManager = hudmanager;
+
+        self.HUDManager.subscribeHUD(self)
+    };
 
     return Hud
 });
