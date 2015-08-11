@@ -179,6 +179,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         /*
             Accepts a renderable and a function to extract a boundingRectangle from the renderable to insert
             and manage said renderable in the layer
+
             @param renderable : the renderable to be added
             @param extractBoundingRectFun : the function to be used to extract the bouding rectangle from
                                             the renderable
@@ -258,8 +259,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                     eyeLatitude-.75*Math.atan(viewHeight*100/(2*(currEyeAltitude + 6371000))),
                     eyeLongitude+.75*Math.atan(viewWidth*100/(2*(currEyeAltitude + 6371000)))
                 ];
-            //console.log(box)
-            //console.log('bounding box returned ', boundingBox);
+
             var box = [boundingBox[0], boundingBox[3], boundingBox[2], boundingBox[1]];
             // If a call has not returned yet it does not get called again.
             if (!self.isInCall) {

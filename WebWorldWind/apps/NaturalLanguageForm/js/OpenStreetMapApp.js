@@ -62,8 +62,9 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
         var OpenStreetMapApp = function(worldwindow, argumentarray) {
             var self = this;
+
+            // This is a requirement if we dont want the app to be run anew for each query.
             this.singletonApplication = true;
-            this.applicationName = 'CitySmart';
 
             this.HUDManager = new ApplicationHUDManager()
 
@@ -86,10 +87,6 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             this._wwd.addLayer(routeLayer);
 
             this.renderableLayers = []
-            //var renderableLayer = new WorldWind.RenderableLayer('Pins');
-            //this.renderableLayer = renderableLayer;
-            //this.renderableLayers.push(renderableLayer)
-            //this._wwd.addLayer(renderableLayer);
 
             var routeLayerRouteBuilder = new (this.RouteBuilder(routeLayer));
             this.routeLayerRouteBuilder = routeLayerRouteBuilder;
@@ -101,7 +98,6 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         * This function is called by the canvas when the canvas is fully faded out.
          */
         OpenStreetMapApp.prototype.isFocussed = function () {
-            //console.log('OSM FOCUS CALLED')
             if (!this.colorKey) {
                 this.colorKey = this.buildColorKey();
             }
