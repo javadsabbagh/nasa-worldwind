@@ -247,23 +247,24 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 viewHeight = jQueryDoc.height(),
                 viewWidth = jQueryDoc.width(),
                 currEyeAltitude = getEyeAltitude(drawContext);
-            console.log('Eye alt', currEyeAltitude)
-            console.log('view height', viewHeight)
+            //console.log('Eye alt', currEyeAltitude)
+            //console.log('view height', viewHeight)
             //var boundingBox = this.getEncompassingBoundingBox();
             var eyeLatitude = drawContext.eyePosition.latitude,
                 eyeLongitude = drawContext.eyePosition.longitude,
-                box = [
-                    eyeLatitude-Math.atan(viewHeight*100/(2*(currEyeAltitude + 6371000))),
-                    eyeLongitude+Math.atan(viewWidth*100/(2*(currEyeAltitude + 6371000))),
+                boundingBox = [
                     eyeLatitude+Math.atan(viewHeight*100/(2*(currEyeAltitude + 6371000))),
-                    eyeLongitude-Math.atan(viewWidth*100/(2*(currEyeAltitude + 6371000)))
+                    eyeLongitude-Math.atan(viewWidth*100/(2*(currEyeAltitude + 6371000))),
+                    eyeLatitude-Math.atan(viewHeight*100/(2*(currEyeAltitude + 6371000))),
+                    eyeLongitude+Math.atan(viewWidth*100/(2*(currEyeAltitude + 6371000)))
                 ];
+            //console.log(box)
             //console.log('bounding box returned ', boundingBox);
-            //var box = [boundingBox[0], boundingBox[3], boundingBox[2], boundingBox[1]];
-            var route = new Route(bBoxToPolyline(box), {});
-            self._renderableLayer.addRenderable(route);
+            var box = [boundingBox[0], boundingBox[3], boundingBox[2], boundingBox[1]];
             // If a call has not returned yet it does not get called again.
             if (!self.isInCall) {
+                var route = new Route(bBoxToPolyline(box), {});
+                self._renderableLayer.addRenderable(route);
                 //console.log('Call to buildings made')
                 this._osmBuildingRetriever.requestOSMBuildingData(box, function (buildingData) {
                     var numberOfBuildingsDrawSoFar = 0;
