@@ -253,18 +253,18 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             var eyeLatitude = drawContext.eyePosition.latitude,
                 eyeLongitude = drawContext.eyePosition.longitude,
                 boundingBox = [
-                    eyeLatitude+Math.atan(viewHeight*100/(2*(currEyeAltitude + 6371000))),
-                    eyeLongitude-Math.atan(viewWidth*100/(2*(currEyeAltitude + 6371000))),
-                    eyeLatitude-Math.atan(viewHeight*100/(2*(currEyeAltitude + 6371000))),
-                    eyeLongitude+Math.atan(viewWidth*100/(2*(currEyeAltitude + 6371000)))
+                    eyeLatitude +.75*Math.atan(viewHeight*100/(2*(currEyeAltitude + 6371000))),
+                    eyeLongitude-.75*Math.atan(viewWidth*100/(2*(currEyeAltitude + 6371000))),
+                    eyeLatitude-.75*Math.atan(viewHeight*100/(2*(currEyeAltitude + 6371000))),
+                    eyeLongitude+.75*Math.atan(viewWidth*100/(2*(currEyeAltitude + 6371000)))
                 ];
             //console.log(box)
             //console.log('bounding box returned ', boundingBox);
             var box = [boundingBox[0], boundingBox[3], boundingBox[2], boundingBox[1]];
             // If a call has not returned yet it does not get called again.
             if (!self.isInCall) {
-                var route = new Route(bBoxToPolyline(box), {});
-                self._renderableLayer.addRenderable(route);
+                //var route = new Route(bBoxToPolyline(box), {});
+                //self._renderableLayer.addRenderable(route);
                 //console.log('Call to buildings made')
                 this._osmBuildingRetriever.requestOSMBuildingData(box, function (buildingData) {
                     var numberOfBuildingsDrawSoFar = 0;
@@ -274,20 +274,31 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                             self.listOfBuildingsStoredByID.push(building.id);
                             self._osmBuildingRetriever.requestBuildingInfoById(building.id, function (data) {
                                 var features = data['features'];
-                                var first = features[0];
-                                var properties = first['properties'];
+                                if (features){
+                                    var first = features[0];
+                                }
+                                if (first){
+                                    var properties = first['properties'];
+                                }
+                                if (properties){
+                                    var tags = properties['tags'];
+                                }
+                                if (tags) {
+                                    var buildingType = tags['building'];
+                                }
+                                if (buildingType) {
+                                    building.buildingType = buildingType;
+                                }
                                 // console.log('prop ', properties);
-                                var tags = properties['tags'];
-                                var buildingType = tags['building'];
-                                building.buildingType = buildingType;
+
                                 //console.log('building info for,', building.id, ': ', data, ' is ', buildingType);
-
-                                self._renderableLayer.addRenderable(building);
-
+                                if (building.buildingType){
+                                    self._renderableLayer.addRenderable(building);
+                                }
                                 numberOfBuildingsDrawSoFar++;
                                 console.log(numberOfBuildingsDrawSoFar, 'of', buildingData.length);
                                 // Wait until all the buildings are drawn to call the api again.
-                                if (numberOfBuildingsDrawSoFar === buildingData.length) {
+                                if (numberOfBuildingsDrawSoFar >= buildingData.length-5) {
                                     self.isInCall = false;
                                 }
                             });
