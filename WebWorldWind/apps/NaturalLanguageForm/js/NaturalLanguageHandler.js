@@ -111,7 +111,7 @@ define(['OverpassAPIWrapper','RouteAPIWrapper','OSMDataRetriever','OpenStreetMap
 
             var lat2 = boundingBoxCenter[0] + width;
             var long2 = boundingBoxCenter[1] + height;
-            console.log([lat1, long1, lat2, long2])
+            //console.log([lat1, long1, lat2, long2])
             return [lat1, long1, lat2, long2];
         };
 

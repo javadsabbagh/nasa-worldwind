@@ -38,7 +38,7 @@ define(['jquery',
             nLForm2.addField('addressField2', 'location', "For example: <em>Mountain View</em>");
             nLForm2.setApplication(OpenStreetMapApp);
 
-            var naturalLanguageCanvas = new NaturalLanguageCanvas( window , []);
+            var naturalLanguageCanvas = new NaturalLanguageCanvas( window , [nLForm2]);
             naturalLanguageCanvas.addClosingAction(function (NLHandler) {
                 var buttonY = jQueryDoc.height() * .02;
                 var buttonX = jQueryDoc.width() * .02;

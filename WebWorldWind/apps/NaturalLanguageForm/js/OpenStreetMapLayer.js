@@ -12,7 +12,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         'buckets',
         'Building',
         'BuildingFactory',
-        '../js/polyline'],
+        '../js/polyline',
+        'Route'],
     function(ww,
              OpenStreetMapConfig,
              OSMBuildingDataRetriever,
@@ -24,9 +25,20 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
              buckets,
              Building,
              BuildingFactory,
-             polyline) {
+             polyline,
+             Route) {
 
         'use strict';
+
+        function bBoxToPolyline (bBox) {
+            return [
+                [bBox[0],bBox[1]],
+                [bBox[0],bBox[3]],
+                [bBox[2],bBox[3]],
+                [bBox[2],bBox[1]],
+                [bBox[0],bBox[1]]
+            ]
+        };
 
         /*
             From the draw context, extracts the current altitude of the eyePosition
@@ -69,6 +81,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             this._hasRenderedOnce = false;
             this._renderableLayer = new WorldWind.RenderableLayer('Buildings');
             this._buildingFactory = new BuildingFactory();
+            this.listOfBuildingsStoredByID = []
         }
 
 
@@ -215,195 +228,93 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             var building = this._buildingFactory.createBuilding(id, polygon, undefined);
             return building;
             //return new Building(id, polygon, undefined);
-        }
+        };
 
-        OpenStreetMapLayer.prototype.handleBuildingInfo = function(eyeAltitude) {
+        /*
+        * Calls the osmbuilding api to request all the buildings inside a bounding box. It then calls a second
+        *   osmbuildings api to get information about each building. Upon response from the first api, it checks if each
+        *   building is already drawn before proceeding with the second call and drawing it. The layer will not make
+        *   another call until self.isInCall is false which only occurs once all building responses have returned.
+        *
+        * Bounding box required here is in the form [Low Lat, high long, high lat, low long]
+        *
+        * @param eyeAltitude: ...
+         */
+
+        OpenStreetMapLayer.prototype.handleBuildingInfo = function(drawContext) {
             var self = this;
-
-            var boundingBox = this.getEncompassingBoundingBox();
+            var jQueryDoc = $(window.document),
+                viewHeight = jQueryDoc.height(),
+                viewWidth = jQueryDoc.width(),
+                currEyeAltitude = getEyeAltitude(drawContext);
+            console.log('Eye alt', currEyeAltitude)
+            console.log('view height', viewHeight)
+            //var boundingBox = this.getEncompassingBoundingBox();
+            var eyeLatitude = drawContext.eyePosition.latitude,
+                eyeLongitude = drawContext.eyePosition.longitude,
+                box = [
+                    eyeLatitude-Math.atan(viewHeight*100/(2*(currEyeAltitude + 6371000))),
+                    eyeLongitude+Math.atan(viewWidth*100/(2*(currEyeAltitude + 6371000))),
+                    eyeLatitude+Math.atan(viewHeight*100/(2*(currEyeAltitude + 6371000))),
+                    eyeLongitude-Math.atan(viewWidth*100/(2*(currEyeAltitude + 6371000)))
+                ];
             //console.log('bounding box returned ', boundingBox);
-            var box = [boundingBox[0], boundingBox[3], boundingBox[2], boundingBox[1]];
-
-            //var specs = {
-            //    north: boundingBox[0],
-            //    west : boundingBox[1],
-            //    south: boundingBox[2],
-            //    east : boundingBox[3]
-            //};
-            //
-            //
-            //// 888 17th St NW Washington, DC 20006
-            //this._amenityReqest.retrieveData(specs, function(specifications, data) {
-            //   console.log('Amenity(ies) : ',data);
-            //});
-
-
-
+            //var box = [boundingBox[0], boundingBox[3], boundingBox[2], boundingBox[1]];
+            var route = new Route(bBoxToPolyline(box), {});
+            self._renderableLayer.addRenderable(route);
             // If a call has not returned yet it does not get called again.
             if (!self.isInCall) {
                 //console.log('Call to buildings made')
                 this._osmBuildingRetriever.requestOSMBuildingData(box, function (buildingData) {
-
-                    //
-                    //console.log('building data for ', boundingBox);
-                    //(_.map(buildingData, JSON.stringify));
-                    //alert(_.map(buildingData, JSON.stringify));
+                    var numberOfBuildingsDrawSoFar = 0;
                     buildingData.forEach(function (buildingDatum) {
                         var building = self.buildingFromDatum(buildingDatum);
-                        //console.log(building);
-                        self._osmBuildingRetriever.requestBuildingInfoById(building.id, function (data) {
-                            var features = data['features'];
-                            var first = features[0];
-                            var properties = first['properties'];
-                           // console.log('prop ', properties);
-                            var tags = properties['tags'];
-                            var buildingType = tags['building'];
-                            building.buildingType = buildingType;
-                            //self._buildingLayer.addBuilding()
-                            //console.log('building info for,', building.id, ': ', data, ' is ', buildingType);
-                            self._renderableLayer.addRenderable(building);
-                        });
+                        if (self.listOfBuildingsStoredByID.indexOf(building.id) === -1){
+                            self.listOfBuildingsStoredByID.push(building.id);
+                            self._osmBuildingRetriever.requestBuildingInfoById(building.id, function (data) {
+                                var features = data['features'];
+                                var first = features[0];
+                                var properties = first['properties'];
+                                // console.log('prop ', properties);
+                                var tags = properties['tags'];
+                                var buildingType = tags['building'];
+                                building.buildingType = buildingType;
+                                //console.log('building info for,', building.id, ': ', data, ' is ', buildingType);
+
+                                self._renderableLayer.addRenderable(building);
+
+                                numberOfBuildingsDrawSoFar++;
+                                console.log(numberOfBuildingsDrawSoFar, 'of', buildingData.length);
+                                // Wait until all the buildings are drawn to call the api again.
+                                if (numberOfBuildingsDrawSoFar === buildingData.length) {
+                                    self.isInCall = false;
+                                }
+                            });
+                        } else {
+                            numberOfBuildingsDrawSoFar++;
+                            console.log('Building Already Drawn')
+                            console.log(numberOfBuildingsDrawSoFar, 'of', buildingData.length);
+                            // Wait until all the buildings are drawn to call the api again.
+                            if (numberOfBuildingsDrawSoFar === buildingData.length) {
+                                self.isInCall = false;
+                            }
+                        }
+
+
+                        //console.log(numberOfBuildingsDrawSoFar, 'of', buildingData.length);
+                        //// Wait until all the buildings are drawn to call the api again.
+                        //if (numberOfBuildingsDrawSoFar === buildingData.length) {
+                        //    self.isInCall = false;
+                        //}
                     });
 
-                    self.isInCall = false;
 
-                    // [[]]
-                    //var polygons = _.map(buildingData, function(building) {
-                    //    var geometry = building['geometry'];
-                    //    var coordinates = geometry['coordinates'];
-                    //    var points = coordinates[0];
-                    //    return _.map(points, function(point) {
-                    //        return new WorldWind.Position(point[1], point[0], 100);
-                    //    });
-                    //});
-
-                    //polygons.forEach(function(polygon) {
-                    //    //console.log('adding building at ', polygon.join(','));
-                    //   self._buildingLayer.addBuilding(polygon, null);
-                    //});
-
-                    //var boundings = _.map(polygons, function(polygon) {
-                    //
-                    //
-                    //
-                    //    var pointWithHighestLongitude = _.max(polygon, 'latitude');
-                    //    var pointWithHighestLatitude = _.max(polygon, 'longitude');
-                    //    var pointWithLowestLongitude = _.min(polygon, 'latitude');
-                    //    var pointWithLowestLatitude = _.min(polygon, 'longitude');
-                    //
-                    //    //console.log(pointWithHighestLatitude, pointWithHighestLongitude,
-                    //    //    pointWithLowestLatitude, pointWithLowestLongitude);
-                    //
-                    //    var maxLongitude = pointWithHighestLongitude['latitude'];
-                    //    var minLongitude = pointWithLowestLongitude['latitude'];
-                    //    var maxLatitude = pointWithHighestLatitude['longitude'];
-                    //    var minLatitude = pointWithLowestLatitude['longitude'];
-                    //
-                    //    var decimalPoints = 5;
-                    //
-                    //    var obj = {
-                    //        north : maxLatitude,
-                    //        south : minLatitude,
-                    //        east : maxLongitude,
-                    //        west : minLongitude
-                    //    };
-                    //
-                    //    //var coordinates = _.map(obj, function(coordinate) {
-                    //    //    return coordinate.toFixed(decimalPoints);
-                    //    //});
-                    //    var coordinates = obj;
-                    //
-                    //    return coordinates;
-                    //});
-
-                    //console.log('polygons ' , polygons);
-                    //console.log('bounding boxes ', boundings);
-
-                    //var east = boundingBox[1];
-                    //var north = boundingBox[0];
-                    //var west = boundingBox[3];
-                    //var south = boundingBox[2];
-
-                    // go to 888 17th St NW
-                    // Washington, DC 20006 for testing
-                    // 888 17th St NW Washington, DC 20006
-
-                    //if(boundings.length > 0) {
-                    //
-                    //    var totalBox = {
-                    //        north : _.max(boundings, 'north')['north'],
-                    //        south : _.min(boundings, 'south')['south'],
-                    //        west : _.min(boundings, 'west')['west'],
-                    //        east : _.max(boundings, 'east')['east']
-                    //    };
-                    //
-                    //    var boxAsArr = [totalBox.north, totalBox.east, totalBox.south, totalBox.west];
-                    //
-                    //
-                    //
-                    //    // Based on algorithm found at
-                    //    // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
-                    //    var pointInPolygon = function(point, polygon) {
-                    //        var x = point.latitude;
-                    //        var y = point.longitude;
-                    //
-                    //        for(var idx = 0, jdx = polygon.length - 1; idx < jdx; jdx = idx++) {
-                    //            var polyPoint1 = polygon[idx];
-                    //            var polyPoint2 = polygon[jdx];
-                    //
-                    //            var xi = polyPoint1.latitude;
-                    //            var yi = polyPoint1.longitude;
-                    //            var xj = polyPoint2.latitude;
-                    //            var yj = polyPoint2.longitude;
-                    //
-                    //            var intersect = ((yi > y) != (yj > y))
-                    //                && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-                    //
-                    //            if(intersect === true) {
-                    //                return true;
-                    //            }
-                    //        }
-                    //        return false;
-                    //    }
-                    //
-                    //    var assignToPolygon = function(polygons, amenities) {
-                    //
-                    //        var mapping = new buckets.Dictionary(function(polygon) {
-                    //            var pointsAsStrings = _.map(polygon, function(point) {
-                    //                return point.latitude.toFixed(5) + ',' + point.longitude.toFixed(5);
-                    //            });
-                    //            return pointsAsStrings.join(',');
-                    //        });
-                    //
-                    //        polygons.forEach(function(polygon) {
-                    //            var filteredAmenities = _.filter(amenities, function(amenity) {
-                    //                var amenityLoc = amenity.location;
-                    //                return pointInPolygon(amenityLoc, polygon);
-                    //            });
-                    //            mapping.set(polygon, filteredAmenities);
-                    //        });
-                    //        return mapping;
-                    //    }
-                    //
-                    //
-                    //    var processedRetrievedAmenities = function(specs, data) {
-                    //        if(data.length > 0) {
-                    //            //console.log('amenities in area ', boxAsArr.join(','));
-                    //            //console.log('amenity : ', data);
-                    //            var mapping = assignToPolygon(polygons, data);
-                    //            //console.log(mapping);
-                    //        } else {
-                    //            //console.log('no amenities in area ', boxAsArr.join(','));
-                    //            //console.log('result from call : ', data);
-                    //        }
-                    //    }
-                    //
-                    //    self._amenityReqest.retrieveData(totalBox, processedRetrievedAmenities);
-                    //
-                    //}
 
                 });
+            } else {
+                console.log('Another Call Attempted')
             }
+
             self.isInCall = true;
         }
 
@@ -424,16 +335,9 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                     if(this._buildingGrabIntervalID === null) {
                         this._buildingGrabIntervalID = setInterval(function() {
                             if(currEyeAltitude <= 1000) {
-                                //console.log('checking to render');
-                                self.handleBuildingInfo(currEyeAltitude);
-                                //if(self._renderOnce === true && self._hasRenderedOnce === false) {
-                                //    self.handleBuildingInfo(currEyeAltitude);
-                                //    self._hasRenderedOnce = true;
-                                //} else if(self._renderOnce === false) {
-                                //    self.handleBuildingInfo(currEyeAltitude);
-                                //}
+                                self.handleBuildingInfo(dc);
                             }
-                        }, 15 * 1000);
+                        }, 5 * 1000);
                     }
                 } else {
                     clearInterval(self._buildingGrabIntervalID);
@@ -502,9 +406,6 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             return boundingBox;
         }
 
-
-        OpenStreetMapLayer.prototype.shrinkBox
-
         OpenStreetMapLayer.prototype.getEncompassingBoundingBox = function() {
             var boundingBoxes = this.getAllBoundingBoxes();
 
@@ -512,53 +413,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             var last = boundingBoxes[boundingBoxes.length  - 1];
             var boundingBox = [first[0], first[1], last[0], last[1]];
 
-            //console.log('all bounding boxes ', boundingBoxes);
-            //function getArrayFromLoc(index) {
-            //    return function(arr) {
-            //        return arr[index];
-            //    }
-            //}
-            //
-            //var indicies = _.range(4);
-            //var accessFuns = _.map(indicies, getArrayFromLoc);
-            //var boundingBox = _.map(accessFuns, function(f) {
-            //   return f(_.max(boundingBoxes, f));
-            //});
             return boundingBox;
         }
-
-
-        /*
-         if(currEyeAltitude <= this._config.drawHeight) {
-         var center = dc.eyePosition;
-         var boundingRect = this.getBoundingRectLocs(center);
-         //console.log('center ' ,center);
-         //console.log('going to box ', boundingRect);
-         var key = this.createBoundingRectKey(boundingRect);
-         if(this._set.contains(key)) {
-         console.log('we have this key')
-         self.resetVisibleNodes();
-         self._visibleNodes = self._visibleNodes.concat(self.enableNodesToBeDrawn(center));
-         self._drawLayer.render(dc);
-         } else {
-         this._overpassWrapper.getAllAmenitiesInBox(boundingRect, function(data) {
-
-         console.log('data from overpass ', data);
-         })
-         //this._dataRetriever.requestOSMData(boundingRect, function(data){
-         //    self._set.add(key);
-         //    console.log(data, ' is ');
-         //    self.resetVisibleNodes();
-         //    self._visibleNodes = self._visibleNodes.concat(self.enableNodesToBeDrawn(center));
-         //    self._drawLayer.render(dc);
-         //});
-         }
-         } else {
-         this.resetVisibleNodes();
-         this._visibleNodes = [];
-         }
-         */
-
 
 
         Object.defineProperties(OpenStreetMapLayer.prototype, {

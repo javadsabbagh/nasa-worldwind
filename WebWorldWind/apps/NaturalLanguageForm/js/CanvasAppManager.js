@@ -72,7 +72,7 @@ define(function(){
 
     ApplicationManager.prototype.focusAll = function () {
         var self = this;
-        console.log('focus Called')
+        //console.log('focus Called')
         for (var key in self._applications) {
             if (self._applications.hasOwnProperty(key)) {
                 var appEquivalenceClass = self._applications[key];
