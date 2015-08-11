@@ -101,7 +101,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         * This function is called by the canvas when the canvas is fully faded out.
          */
         OpenStreetMapApp.prototype.isFocussed = function () {
-            console.log('OSM FOCUS CALLED')
+            //console.log('OSM FOCUS CALLED')
             if (!this.colorKey) {
                 this.colorKey = this.buildColorKey();
             }
@@ -397,7 +397,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         * @param renderableLayer: A worldwind layer to populate.
         */
         OpenStreetMapApp.prototype.buildPlacemarkLayer = function (renderableLayer, arrayofamenities) {
-            var pinImgLocation = '../NaturalLanguageForm/img/pin.png' , // location of the image files
+            var pinImgLocation = '../NaturalLanguageForm/img/pinclosed.gif' , // location of the image files
                 placemark,
                 placemarkAttributes = new WorldWind.PlacemarkAttributes(null),
                 highlightAttributes,
