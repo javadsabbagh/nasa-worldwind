@@ -5,11 +5,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         'OpenStreetMapConfig',
         'OSMBuildingDataRetriever',
         'rbush',
-        'OSMDataRetriever',
         'OverpassAPIWrapper',
         'lodash',
-        'AnyAmenityRequestProxy',
-        'buckets',
         'Building',
         'BuildingFactory',
         '../js/polyline',
@@ -18,11 +15,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
              OpenStreetMapConfig,
              OSMBuildingDataRetriever,
              rbush,
-             OSMDataRetriever,
              OverpassAPIWrapper,
              _,
-             AnyAmenityRequestProxy,
-             buckets,
              Building,
              BuildingFactory,
              polyline,
@@ -70,20 +64,11 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             this._displayName = 'Open Street Maps';
             this._tree = new rbush(this._config.rTreeSize);
             this._visibleNodes = [];
-            this._dataRetriever = new OSMDataRetriever();
-            this._set = new buckets.Set();
-            this._overpassWrapper = new OverpassAPIWrapper();
             this._osmBuildingRetriever = new OSMBuildingDataRetriever();
-            this._amenityReqest = new AnyAmenityRequestProxy();
             this._buildingGrabIntervalID = null;
-            this._urlSet = new buckets.Set();
-            this._renderOnce = true;
-            this._hasRenderedOnce = false;
-            this._renderableLayer = new WorldWind.RenderableLayer('Buildings');
             this._buildingFactory = new BuildingFactory();
             this.listOfBuildingsStoredByID = []
         }
-
 
         /*
             Given a WorldWind Location or WorldWind Position, uses the maximum bounding
@@ -95,19 +80,27 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             @return : returns an array, [left, top, right, bottom], that represents the bounding rectangle
          */
 
-        OpenStreetMapLayer.prototype.getBoundingRectLocs = function(center) {
-            //creates a grid of .125 degrees by rounding the center point to the nearest .125 degrees.
-            center.latitude = Math.round(center.latitude/.125)*.125;
-            center.longitude = Math.round(center.latitude/.125)*.125;
+        OpenStreetMapLayer.prototype.getBoundingRectLocs = function(center, grid) {
+            var jQueryDoc = $(window.document),
+                jQH = jQueryDoc.height(),
+                jQW = jQueryDoc.width(),
+                R = jQH/jQW,
+                size = (grid ||.002);
+            //grid = (grid || .01);
+            //center.latitude = Math.round(center.latitude/grid)*grid;
+            //center.longitude = Math.round(center.longitude/grid)*grid;
+            center.latitude = Math.round(center.latitude/(2*size))*(2*size);
+            center.longitude = Math.round(center.longitude/(2*size/R))*(2*size/R);
 
+            //console.log(R);
             return [
-                center.longitude - .0625,
-                center.latitude - .0625,
-                center.longitude + .0625,
-                center.latitude + .0625
+                center.latitude + size,
+                center.longitude - size/R,
+                center.latitude - size,
+                center.longitude + size/R
             ];
 
-        }
+        };
 
         /*
             Uses a center point and the default configuration for the drawable bounding rectangle's
@@ -117,7 +110,9 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
          */
         OpenStreetMapLayer.prototype.getAllNodesToDraw = function(center) {
             var boundingRectangle = this.getBoundingRectLocs(center);
+            //console.log(boundingRectangle)
             var rTreeNodesToBeConsidered = this._tree.search(boundingRectangle);
+            //console.log(rTreeNodesToBeConsidered)
             return rTreeNodesToBeConsidered;
         }
 
@@ -130,10 +125,14 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             @param enabled : the value to set the enabled property field to
          */
         OpenStreetMapLayer.prototype.setEnabledPropertyOnNodes = function(nodes, enabled) {
+            var self = this;
             nodes.forEach(function(node) {
                 console.log('node is ', node);
                 var renderableObject = node[node.length - 1];
                 renderableObject.enabled = enabled;
+                if (enabled) {
+                    self._visibleNodes.push(renderableObject);
+                }
             })
         }
 
@@ -147,6 +146,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         OpenStreetMapLayer.prototype.enableNodesToBeDrawn = function(center) {
             var rTreeNodesToBeConsidered = this.getAllNodesToDraw(center);
             this.setEnabledPropertyOnNodes(rTreeNodesToBeConsidered, true);
+            //console.log(rTreeNodesToBeConsidered)
             return rTreeNodesToBeConsidered;
         }
 
@@ -172,6 +172,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             renderable.enabled = false;
             var boundingRect = extractBoundingRectFun(renderable);
             boundingRect.push(renderable);
+            //console.log(boundingRect)
             return boundingRect;
         }
 
@@ -228,7 +229,6 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             });
             var building = this._buildingFactory.createBuilding(id, polygon, undefined);
             return building;
-            //return new Building(id, polygon, undefined);
         };
 
         /*
@@ -252,24 +252,34 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             //console.log('view height', viewHeight)
             //var boundingBox = this.getEncompassingBoundingBox();
             var eyeLatitude = drawContext.eyePosition.latitude,
-                eyeLongitude = drawContext.eyePosition.longitude,
-                boundingBox = [
-                    eyeLatitude +.75*Math.atan(viewHeight*100/(2*(currEyeAltitude + 6371000))),
-                    eyeLongitude-.75*Math.atan(viewWidth*100/(2*(currEyeAltitude + 6371000))),
-                    eyeLatitude-.75*Math.atan(viewHeight*100/(2*(currEyeAltitude + 6371000))),
-                    eyeLongitude+.75*Math.atan(viewWidth*100/(2*(currEyeAltitude + 6371000)))
-                ];
+                eyeLongitude = drawContext.eyePosition.longitude;
 
+            var bboxCenter = {
+                latitude: eyeLatitude,
+                longitude: eyeLongitude
+            };
+            //
+            var boundingBox = self.getBoundingRectLocs(bboxCenter);
+
+            // var   boundingBox2 = [
+            //        eyeLatitude +.75*Math.atan(viewHeight*100/(2*(currEyeAltitude + 6371000))),
+            //        eyeLongitude-.75*Math.atan(viewWidth*100/(2*(currEyeAltitude + 6371000))),
+            //        eyeLatitude-.75*Math.atan(viewHeight*100/(2*(currEyeAltitude + 6371000))),
+            //        eyeLongitude+.75*Math.atan(viewWidth*100/(2*(currEyeAltitude + 6371000)))
+            //    ];
+            //console.log('this works',boundingBox2)
+            //console.log('before',boundingBox)
             var box = [boundingBox[0], boundingBox[3], boundingBox[2], boundingBox[1]];
+            //console.log('after',box)
             // If a call has not returned yet it does not get called again.
             if (!self.isInCall) {
-                //var route = new Route(bBoxToPolyline(box), {});
-                //self._renderableLayer.addRenderable(route);
-                //console.log('Call to buildings made')
+                var route = new Route(bBoxToPolyline(box), {});
+                self._drawLayer.addRenderable(route);
                 this._osmBuildingRetriever.requestOSMBuildingData(box, function (buildingData) {
                     var numberOfBuildingsDrawSoFar = 0;
                     buildingData.forEach(function (buildingDatum) {
                         var building = self.buildingFromDatum(buildingDatum);
+                        // Call the building data if that building id has not already been retrieved.
                         if (self.listOfBuildingsStoredByID.indexOf(building.id) === -1){
                             self.listOfBuildingsStoredByID.push(building.id);
                             self._osmBuildingRetriever.requestBuildingInfoById(building.id, function (data) {
@@ -289,14 +299,12 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                                 if (buildingType) {
                                     building.buildingType = buildingType;
                                 }
-                                // console.log('prop ', properties);
-
-                                //console.log('building info for,', building.id, ': ', data, ' is ', buildingType);
                                 if (building.buildingType){
-                                    self._renderableLayer.addRenderable(building);
+                                    building.bbox = box;
+                                    self.addRenderable(building, function(renderable){return renderable.bbox})
                                 }
                                 numberOfBuildingsDrawSoFar++;
-                                console.log(numberOfBuildingsDrawSoFar, 'of', buildingData.length);
+                                //console.log(numberOfBuildingsDrawSoFar, 'of', buildingData.length);
                                 // Wait until all the buildings are drawn to call the api again.
                                 if (numberOfBuildingsDrawSoFar >= buildingData.length-5) {
                                     self.isInCall = false;
@@ -304,20 +312,14 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                             });
                         } else {
                             numberOfBuildingsDrawSoFar++;
-                            console.log('Building Already Drawn')
-                            console.log(numberOfBuildingsDrawSoFar, 'of', buildingData.length);
+                            //console.log('Building Already Drawn' , numberOfBuildingsDrawSoFar, 'of', buildingData.length);
                             // Wait until all the buildings are drawn to call the api again.
+
+
                             if (numberOfBuildingsDrawSoFar === buildingData.length) {
                                 self.isInCall = false;
                             }
                         }
-
-
-                        //console.log(numberOfBuildingsDrawSoFar, 'of', buildingData.length);
-                        //// Wait until all the buildings are drawn to call the api again.
-                        //if (numberOfBuildingsDrawSoFar === buildingData.length) {
-                        //    self.isInCall = false;
-                        //}
                     });
 
 
@@ -343,7 +345,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 this._baseLayer.render(dc);
                 var currEyeAltitude = getEyeAltitude(dc);
                 if(currEyeAltitude <= 3000) {
-                    this._renderableLayer.render(dc);
+                    self._drawLayer.render(dc);
                     if(this._buildingGrabIntervalID === null) {
                         this._buildingGrabIntervalID = setInterval(function() {
                             if(currEyeAltitude <= 1000) {
@@ -369,7 +371,6 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 var maxLatitude = tileDimensions.maxLatitude;
                 var minLongitude = tileDimensions.minLongitude;
                 var minLatitude = tileDimensions.minLatitude;
-                // returns in format [up, left, down, right]
                 var boundingBox = [maxLatitude, minLongitude, minLatitude, maxLongitude];
                 return boundingBox;
             });
