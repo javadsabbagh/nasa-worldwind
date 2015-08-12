@@ -241,6 +241,12 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                 });
             };
 
+            /*
+            * Constructs a string based on the corrosponding number. If the number contains a dash, for example, 11-2,
+            *   it constructs the first number + 'then" + the second number.
+            *
+            * @param angle: integer, or string of integers separated by a dash corresponding to route instructions.
+             */
             RouteBuilderMod.prototype.decodeRouteAngle = function (angle) {
                 var routeBuilder = this;
 
@@ -288,7 +294,9 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             };
 
             /*
+            * Builds the html text of instructions.
             *
+            * @param arrayOfInstructions: An array containing strings of step by step instructions.
              */
             RouteBuilderMod.prototype.buildTextInstructions = function (arrayOfInstructions) {
                 var routeBuilder = this;
