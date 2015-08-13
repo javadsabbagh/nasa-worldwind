@@ -4,7 +4,6 @@
 /*
 * This layer utilizes rbush to determine which renderables to draw.
 *
-* Module Incomplete...
  */
 define(['rbush',
         'OpenStreetMapConfig',
@@ -42,6 +41,13 @@ define(['rbush',
 
         };
 
+        /*
+         * Arranges the ordering of a bounding box array in an appropriate manner to be used with rbush
+         *
+         * @param bbox: any bounding box array
+         *
+         * @return: Returns bounding box in the form [minlat, minlong, maxlat, maxlon]
+         */
         function bboxToNode (bbox) {
             return [
                 Math.min(bbox[0],bbox[2]),
@@ -112,7 +118,13 @@ define(['rbush',
         };
 
         /*
+        * Adds the renderable to the drawlayer and extracts the bounding box from that renderable to be used to create
+        *   a node.
         *
+        * @param renderable: Renderable with bounding box info
+        *
+        * @param boundingBoxExtractingFunction: Function that returns the renderables bounding box in the form
+        *                                           of an array given by the order of the point in the api call.
          */
         OpenStreetMapLayer.prototype.addRenderable = function (renderable, boundingBoxExtractingFunction) {
             var self = this;
@@ -124,23 +136,42 @@ define(['rbush',
             self._tree.insert(node)
         };
 
+        /*
+         Takes a renderable and a function to extract its bounding rectangle to yield
+         an RTree node.
+         @param renderable : the renderable to be drawn
+         @param extractBoundingRectFun : the function to extract a bounding box for a
+         renderable
+         @return : an array to be inserted into an RTree as a node
+         */
         OpenStreetMapLayer.prototype.createNode = function (renderable, boundingBoxExtractingFunction) {
             var boundingRect = boundingBoxExtractingFunction(renderable);
             boundingRect.push(renderable);
             return boundingRect;
         };
 
+        /*
+        * returns all the renderables in the bounding boxes surrounding the center.
+        *
+        * @param center: object with properties latitude and longitude
+        *
+        * @param return: Array of nodes with the renderable in the 4th entry of each node.
+         */
         OpenStreetMapLayer.prototype.getAllRenderablesAroundCenter= function (center) {
             var self = this;
-            var res = self._tree.search(bboxToNode(getBoundingRectLocs(center,0.004)));
-            //console.log(res);
+            var res = self._tree.search(bboxToNode(getBoundingRectLocs(center,0.003)));
             return res
         };
 
+        /*
+        * Looks at all nearby bounding boxes and enables the visibility of all the renderables in those boxes.
+        *
+        * @param drawContext: Drawcontext given by worldwind
+        *
+         */
         OpenStreetMapLayer.prototype.enableOnlyVisibleRenderables = function (drawContext) {
             var self = this;
-            //
-            //console.log(drawContext)
+
             var centerOfView = {
                 latitude: drawContext.eyePosition.latitude,
                 longitude: drawContext.eyePosition.longitude
@@ -151,12 +182,16 @@ define(['rbush',
             self.setEnabledOnRenderables();
 
             visibleRenderables.forEach(function (node) {
-                //console.log('search results', renderable)
                 node[4].setVisibility(true);
             })
 
         };
 
+        /*
+        * Sets the visibility of all the renderables in the draw layer to the chosen param.
+        *
+        * @param trueFalse: visibility to be set to. False is null.
+         */
         OpenStreetMapLayer.prototype.setEnabledOnRenderables = function(trueFalse) {
             var self = this;
 

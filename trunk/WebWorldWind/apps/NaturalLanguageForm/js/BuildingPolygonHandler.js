@@ -42,6 +42,13 @@ define(['OSMBuildingDataRetriever',
 
         }
 
+        /*
+        * Arranges the ordering of a bounding box array in an appropriate manner to be used with rbush
+        *
+        * @param bbox: any bounding box array
+        *
+        * @return: Returns bounding box in the form [minlat, minlong, maxlat, maxlon]
+         */
         function bboxToNode (bbox) {
             return [
                 Math.min(bbox[0],bbox[2]),
@@ -50,6 +57,8 @@ define(['OSMBuildingDataRetriever',
                 Math.max(bbox[1],bbox[3])
             ]
         }
+
+
 
         var BuildingPolygonHandler = function ( layer ) {
             var self = this;
@@ -61,11 +70,16 @@ define(['OSMBuildingDataRetriever',
             self._layer = layer;
             self._boxesOwned = {};
 
-
+            /*
+             * Manages building and bounding box calls. Acts as an access point by the layer. The layer calls this
+             *  function with draw context as an arg.
+             *
+             *  @param drawContext: Drawcontext of layer
+             */
             self.buildingHandler = function (drawContext) {
 
                 //console.log(drawContext)
-                var callCompleteCallback = function () {self.isInCall = false; console.log('isincall set to false')};
+                var callCompleteCallback = function () {self.isInCall = false;};
                 var eyeAltitude = drawContext.eyePosition.altitude;
                 var box = getBoundingRectLocs(
                     {
@@ -74,7 +88,7 @@ define(['OSMBuildingDataRetriever',
                     }
 
                 );
-                //console.log(!self.isInCall && eyeAltitude <= self._config._maxBuildingDrawHeight)
+
                 if (!self.isInCall && eyeAltitude <= self._config._maxBuildingDrawHeight) {
                     self.isInCall = true;
                     self.getBuildingArrayAndType(
@@ -88,6 +102,11 @@ define(['OSMBuildingDataRetriever',
 
             };
 
+            /*
+            *   Behaves as callback function for the api caller to add renderables to the layer.
+            *
+            *   @param building: a renderable building abstraction from the building module.
+             */
             self.buildingRenderableHandler = function (building) {
                 if (building) {
                     self._layer.addRenderable(building, function(renderable){return renderable.bbox})
@@ -97,6 +116,18 @@ define(['OSMBuildingDataRetriever',
 
         };
 
+        /*
+        * If a bounding box has not been called for yet, it calls the api with that bounding box then calls the second
+        *   api for the building details. Bounding boxes are stored in a key object for checking if a box has been
+        *   called for already. Upon return from the last of the buildings, the call is opened up again for another
+        *   call.
+        *
+        *   @param box: bounding box in the form given by the getboudingrecslocs function.
+        *   @param buildingRetreivedCallback: Function to call when a single building date has been returned. This is
+        *                                       called with the building as an argument.
+        *   @param CompletionCallback: Callback function to call when the last few of the buildings are retrieved or if
+        *                               the call has already been made.
+         */
         BuildingPolygonHandler.prototype.getBuildingArrayAndType = function (
             box,
             buildingRetreivedCallback,
@@ -161,9 +192,13 @@ define(['OSMBuildingDataRetriever',
             }
         };
 
-
-
-
+        /*
+        * Puts building data from the api into a form that we can work with.
+        *
+        * @param buildingData: Building data as returned by the api
+        *
+        * @return: building renderable abstraction as given by the building module.
+         */
         BuildingPolygonHandler.prototype.buildingFromDatum = function(buildingData) {
             var self = this;
             var id = buildingData['id'];
