@@ -33,6 +33,14 @@ define(function() {
         return color;
     }
 
+    Building.prototype.setVisibility = function(trueFalse){
+        this.enabled = (trueFalse || false)
+        if (this._shape){
+            this._shape.enabled = (trueFalse || false);
+        }
+
+    };
+
     /*
         Assigns colors for both the building's outline and interior fill based on its type
         @param {buildingType} : the type of building
@@ -83,7 +91,10 @@ define(function() {
         if(this._shape === null) {
             this._shape = this.createSurfacePolygon(this._polygon, this._buildingType);
         }
-        this._shape.render(dc);
+        if (this.enabled){
+            this._shape.render(dc);
+        }
+
     }
 
 

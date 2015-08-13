@@ -42,6 +42,14 @@ define(['rbush',
 
         };
 
+        function bboxToNode (bbox) {
+            return [
+                Math.min(bbox[0],bbox[2]),
+                Math.min(bbox[1],bbox[3]),
+                Math.max(bbox[0],bbox[2]),
+                Math.max(bbox[1],bbox[3])
+            ]
+        }
 
         /*
          Abstracts off of the OpenStreetMap Layer and a Renderable Layer
@@ -80,7 +88,11 @@ define(['rbush',
                     //console.log(dc)
                     callback(dc)
                 });
-                self.enableOnlyVisibleRenderables(dc);
+                if (dc.eyePosition.altitude <= this._config._maxBuildingDrawHeight){
+                    self.enableOnlyVisibleRenderables(dc);
+                } else {
+                    self.setEnabledOnRenderables(false);
+                }
                 self._baseLayer.render(dc);
                 self._drawLayer.render(dc)
             }
@@ -113,7 +125,6 @@ define(['rbush',
         };
 
         OpenStreetMapLayer.prototype.createNode = function (renderable, boundingBoxExtractingFunction) {
-            renderable.visible = false;
             var boundingRect = boundingBoxExtractingFunction(renderable);
             boundingRect.push(renderable);
             return boundingRect;
@@ -121,8 +132,8 @@ define(['rbush',
 
         OpenStreetMapLayer.prototype.getAllRenderablesAroundCenter= function (center) {
             var self = this;
-            var res = self._tree.search(getBoundingRectLocs(center, 0.003));
-            console.log(res);
+            var res = self._tree.search(bboxToNode(getBoundingRectLocs(center,0.004)));
+            //console.log(res);
             return res
         };
 
@@ -139,8 +150,9 @@ define(['rbush',
 
             self.setEnabledOnRenderables();
 
-            visibleRenderables.forEach(function (renderable) {
-                renderable.visible = true
+            visibleRenderables.forEach(function (node) {
+                //console.log('search results', renderable)
+                node[4].setVisibility(true);
             })
 
         };
@@ -149,7 +161,8 @@ define(['rbush',
             var self = this;
 
             self._drawLayer.renderables.forEach(function(renderable){
-                renderable.visible = (trueFalse || false);
+                //console.log('renderables',renderable)
+                renderable.setVisibility(trueFalse || false);
             })
         };
 

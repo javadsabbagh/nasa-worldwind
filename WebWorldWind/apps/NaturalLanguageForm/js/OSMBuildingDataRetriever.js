@@ -85,7 +85,7 @@ define(['RBushCache','lodash'], function(RBushCache, _) {
         //bbox.forEach(function (entry, index) {
         //    bbox[index] = entry.toFixed(5)
         //});
-        console.log(bbox)
+        //console.log(bbox)
         var box = bbox.map(function(point) {
            return point.toFixed(5);
         });
