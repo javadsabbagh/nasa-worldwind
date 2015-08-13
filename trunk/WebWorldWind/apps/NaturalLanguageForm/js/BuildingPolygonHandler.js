@@ -4,7 +4,7 @@
 /*
 * This modules calls the polygon api, calls the building info api.
 *
-* Module Completed but unused...
+*
  */
 define(['OSMBuildingDataRetriever',
         'BuildingFactory',
@@ -57,8 +57,6 @@ define(['OSMBuildingDataRetriever',
                 Math.max(bbox[1],bbox[3])
             ]
         }
-
-
 
         var BuildingPolygonHandler = function ( layer ) {
             var self = this;
