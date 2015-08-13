@@ -20,19 +20,23 @@
 *   a HUD with the building color key.
  */
 define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
-        'OpenStreetMapLayer',
         'OpenStreetMapConfig',
         'jquery',
-        'OSMDataRetriever','RouteLayer', 'Route','RouteAPIWrapper','NaturalLanguageHandler', 'polyline',
+        'OSMDataRetriever',
+        'RouteLayer',
+        'Route',
+        'RouteAPIWrapper',
+        'NaturalLanguageHandler',
+        'polyline',
         'MapQuestGeocoder',
         'nlform',
         'nlbuilder',
         'HUDMaker',
         'OSMBuildingDataRetriever',
         'BuildingColorMapping',
-        'ApplicationHUDManager', 'OpenStreetMapRBushLayer'],
+        'ApplicationHUDManager',
+        'OpenStreetMapRBushLayer'],
     function(ww,
-             OpenStreetMapLayer,
              OpenStreetMapConfig,
              $,
              OSMDataRetriever,
@@ -47,7 +51,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
              HUDMaker,
              OSMBuildingDataRetriever,
              BuildingColorMapping,
-             ApplicationHUDManager, OpenStreetMapRBushLayer) {
+             ApplicationHUDManager,
+             OpenStreetMapRBushLayer) {
 
 
         'use strict';
