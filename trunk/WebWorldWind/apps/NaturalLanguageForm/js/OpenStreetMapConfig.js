@@ -14,6 +14,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
 
         this._drawHeightInM = 10000;
 
+        this._maxBuildingDrawHeight = 3000
+
         this._drawHeightInKm = this._drawHeightInM * 1000;
 
         this._drawRadiusInMiles = 20.0;

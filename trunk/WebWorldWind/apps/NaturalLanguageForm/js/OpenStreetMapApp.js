@@ -47,7 +47,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
              HUDMaker,
              OSMBuildingDataRetriever,
              BuildingColorMapping,
-             ApplicationHUDManager) {
+             ApplicationHUDManager, OpenStreetMapRBushLayer) {
 
 
         'use strict';
@@ -71,7 +71,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             this._osmBuildingRetriever = new OSMBuildingDataRetriever();
             this._wwd = worldwindow;
 
-            var openStreetMapLayer = new OpenStreetLayer(this._wwd);
+            var openStreetMapLayer = new OpenStreetMapRBushLayer(this._wwd);
             this.openStreetMapLayer = openStreetMapLayer;
 
             this._wwd.addLayer(openStreetMapLayer);
