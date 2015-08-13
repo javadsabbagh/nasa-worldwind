@@ -1,5 +1,8 @@
 /*
- * Author: Inzamam Rahaman
+ * Author: Matthew Evers
+ *
+ * Begun rework in openstreetmapRBushLayer. Issues in rbush. Search function isn't working... This is desperately needed
+ *  for optimization.
  */
 define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         'OpenStreetMapConfig',
@@ -148,7 +151,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             this.setEnabledPropertyOnNodes(rTreeNodesToBeConsidered, true);
             //console.log(rTreeNodesToBeConsidered)
             return rTreeNodesToBeConsidered;
-        }
+        };
 
         /*
             Iterates, through the renderables currently being drawn,
@@ -157,7 +160,7 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
         OpenStreetMapLayer.prototype.resetVisibleNodes = function() {
             this.setEnabledPropertyOnNodes(this._visibleNodes, false);
             this._visibleNodes = [];
-        }
+        };
 
 
         /*
@@ -199,10 +202,10 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                                             the renderable
 
          */
-        OpenStreetMapLayer.prototype.addRenderables = function(renderables, extractBouundingRectFun) {
+        OpenStreetMapLayer.prototype.addRenderables = function(renderables, extractBoundingRectFun) {
             var self = this;
             var nodes = renderables.map(function(renderable) {
-                return self.addRenderable(renderable, extractBouundingRectFun);
+                return self.addRenderable(renderable, extractBoundingRectFun);
             });
             this._drawLayer.addRenderables(renderables);
             this._tree.load(nodes);
@@ -261,16 +264,8 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
             //
             var boundingBox = self.getBoundingRectLocs(bboxCenter);
 
-            // var   boundingBox2 = [
-            //        eyeLatitude +.75*Math.atan(viewHeight*100/(2*(currEyeAltitude + 6371000))),
-            //        eyeLongitude-.75*Math.atan(viewWidth*100/(2*(currEyeAltitude + 6371000))),
-            //        eyeLatitude-.75*Math.atan(viewHeight*100/(2*(currEyeAltitude + 6371000))),
-            //        eyeLongitude+.75*Math.atan(viewWidth*100/(2*(currEyeAltitude + 6371000)))
-            //    ];
-            //console.log('this works',boundingBox2)
-            //console.log('before',boundingBox)
             var box = [boundingBox[0], boundingBox[3], boundingBox[2], boundingBox[1]];
-            //console.log('after',box)
+
             // If a call has not returned yet it does not get called again.
             if (!self.isInCall) {
                 var route = new Route(bBoxToPolyline(box), {});
@@ -314,8 +309,6 @@ define(['http://worldwindserver.net/webworldwind/worldwindlib.js',
                             numberOfBuildingsDrawSoFar++;
                             //console.log('Building Already Drawn' , numberOfBuildingsDrawSoFar, 'of', buildingData.length);
                             // Wait until all the buildings are drawn to call the api again.
-
-
                             if (numberOfBuildingsDrawSoFar === buildingData.length) {
                                 self.isInCall = false;
                             }
