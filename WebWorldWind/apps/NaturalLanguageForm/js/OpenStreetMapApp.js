@@ -1,7 +1,7 @@
 
 /*
-* Author: Inzamam Rahaman
-* Extended by Matt Evers
+* Author: Matthew Evers, Inzamam Rahaman
+*
 */
 /*
 
