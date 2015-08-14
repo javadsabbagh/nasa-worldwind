@@ -1,6 +1,7 @@
 
 /*
     Author : Inzamam Rahaman
+    Modified by Matthew Evers
     Provides the configuration for the globe
  */
 
