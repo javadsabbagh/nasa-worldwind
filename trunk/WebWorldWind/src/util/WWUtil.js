@@ -41,6 +41,9 @@ define([
                 if (mimeType === "application/bil16")
                     return "bil";
 
+                if (mimeType === "application/bil32")
+                    return "bil";
+
                 return null;
             },
 

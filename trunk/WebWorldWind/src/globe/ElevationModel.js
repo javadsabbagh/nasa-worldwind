@@ -670,6 +670,9 @@ define([
             if (this.retrievalImageFormat == "application/bil16") {
                 elevationImage.imageData = new Int16Array(xhr.response);
                 elevationImage.size = elevationImage.imageData.length * 2;
+            } else if (this.retrievalImageFormat == "application/bil32") {
+                elevationImage.imageData = new Float32Array(xhr.response);
+                elevationImage.size = elevationImage.imageData.length * 4;
             }
 
             if (elevationImage.imageData) {
