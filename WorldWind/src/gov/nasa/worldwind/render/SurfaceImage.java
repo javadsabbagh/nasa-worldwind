@@ -397,6 +397,9 @@ public class SurfaceImage extends WWObjectImpl
 
         SurfaceImage that = (SurfaceImage) o;
 
+        if (this.getSector() == null || that.getSector() == null)
+            return false;
+
         if (this.getImageSource() == null)
             return that.imageSource == null && this.getSector().equals(that.getSector());
 
