@@ -700,7 +700,7 @@ public class BasicElevationModel extends AbstractElevationModel implements BulkR
      * @param listener   an optional retrieval listener. May be null.
      *
      * @return the {@link BulkRetrievalThread} executing the retrieval or <code>null</code> if the specified sector does
-     *         not intersect the elevation model bounding sector.
+     * not intersect the elevation model bounding sector.
      *
      * @throws IllegalArgumentException if the sector is null or the resolution is less than  zero.
      * @see BasicElevationModelBulkDownloader
@@ -727,7 +727,7 @@ public class BasicElevationModel extends AbstractElevationModel implements BulkR
      * @param listener   an optional retrieval listener. May be null.
      *
      * @return the {@link BulkRetrievalThread} executing the retrieval or <code>null</code> if the specified sector does
-     *         not intersect the elevation model bounding sector.
+     * not intersect the elevation model bounding sector.
      *
      * @throws IllegalArgumentException if  the sector is null or the resolution is less than zero.
      * @see BasicElevationModelBulkDownloader
@@ -1219,6 +1219,56 @@ public class BasicElevationModel extends AbstractElevationModel implements BulkR
 
         // The containing tile is non-null, so look up the elevation and return.
         return this.lookupElevation(latitude, longitude, tile);
+    }
+
+    /**
+     * Returns the elevation for this elevation model's highest level of detail if the source file for that level and
+     * the specified location exists in the local elevation cache on disk.
+     * @param latitude The latitude of the location whose elevation is desired.
+     * @param longitude The longitude of the location whose elevation is desired.
+     * @return The elevation at the specified location, if that location is contained in this elevation model and the
+     * source file for the highest-resolution elevation at that location exists in the current disk cache. Otherwise
+     * this elevation model's missing data signal is returned (see {@link #getMissingDataSignal()}).
+     */
+    public double getUnmappedLocalSourceElevation(Angle latitude, Angle longitude)
+    {
+        if (latitude == null || longitude == null)
+        {
+            String msg = Logging.getMessage("nullValue.AngleIsNull");
+            Logging.logger().severe(msg);
+            throw new IllegalArgumentException(msg);
+        }
+
+        if (!this.contains(latitude, longitude))
+            return this.getMissingDataSignal();
+
+        Level lastLevel = this.levels.getLastLevel(latitude, longitude);
+        final TileKey tileKey = new TileKey(latitude, longitude, this.levels, lastLevel.getLevelNumber());
+        ElevationTile tile = this.getTileFromMemory(tileKey);
+
+        if (tile != null)
+        {
+            return this.lookupElevation(latitude, longitude, tile);
+        }
+
+        try
+        {
+            tile = this.createTile(tileKey);
+            final URL url = this.getDataFileStore().findFile(tile.getPath(), false);
+            if (url != null)
+            {
+                this.loadElevations(tile, url);
+            }
+        }
+        catch (Exception e)
+        {
+            String msg = Logging.getMessage("ElevationModel.ExceptionRequestingElevations",
+                tileKey.toString());
+            Logging.logger().log(java.util.logging.Level.FINE, msg, e);
+        }
+
+        tile = this.getTileFromMemory(tileKey);
+        return tile != null ? this.lookupElevation(latitude, longitude, tile) : this.getMissingDataSignal();
     }
 
     public double getElevations(Sector sector, List<? extends LatLon> latlons, double targetResolution, double[] buffer)
@@ -1949,8 +1999,8 @@ public class BasicElevationModel extends AbstractElevationModel implements BulkR
      * operations, and therefore should not be executed from the rendering thread.
      *
      * @return {@link gov.nasa.worldwind.avlist.AVKey#RETRIEVAL_STATE_SUCCESSFUL} if the retrieval succeeded, {@link
-     *         gov.nasa.worldwind.avlist.AVKey#RETRIEVAL_STATE_ERROR} if the retrieval failed with errors, and
-     *         <code>null</code> if the retrieval state is unknown.
+     * gov.nasa.worldwind.avlist.AVKey#RETRIEVAL_STATE_ERROR} if the retrieval failed with errors, and <code>null</code>
+     * if the retrieval state is unknown.
      */
     protected String retrieveResources()
     {
@@ -2054,7 +2104,7 @@ public class BasicElevationModel extends AbstractElevationModel implements BulkR
      * or in the local filesystem, and initialize itself using those resources.
      *
      * @return <code>true</code> if this ElevationModel should retrieve any non-tile resources, and <code>false</code>
-     *         otherwise.
+     * otherwise.
      */
     protected boolean isRetrieveResources()
     {
