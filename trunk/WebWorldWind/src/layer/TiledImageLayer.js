@@ -117,6 +117,14 @@ define([
              */
             this.detailHint = 0;
 
+            /**
+             * Indicates the time at which this layer's imagery expire. Expired images are re-retrieved
+             * when the current time exceeds the specified expiry time. If set to null, images do not expire.
+             * @type {Date}
+             * @default null
+             */
+            this.expiration = null;
+
             this.currentTiles = [];
             this.currentTilesInvalid = true;
             this.tileCache = new MemoryCache(500000, 400000);
@@ -142,7 +150,7 @@ define([
             if (!dc.terrain)
                 return;
 
-            if (this.expiration && (new Date().getTime() > this.expiration.getTime()))
+            if (this.expiration && (Date.now() >= this.expiration.getTime()))
                 this.currentTilesInvalid = true;
 
             if (this.currentTilesInvalid
@@ -288,7 +296,7 @@ define([
 
         // Intentionally not documented.
         TiledImageLayer.prototype.isTextureExpired = function (texture) {
-            return this.expiration && this.expiration < new Date().getTime;
+            return this.expiration && (Date.now() >= this.expiration.getTime());
         };
 
         /**
