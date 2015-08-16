@@ -152,6 +152,14 @@ define([
              */
             this.levels = new LevelSet(this.coverageSector, levelZeroDelta, numLevels, tileWidth, tileHeight);
 
+            /**
+             * Indicates the time at which this elevation model's elevations expire. Expired elevations are re-retrieved
+             * when the current time exceeds the specified expiry time. If set to null, elevations do not expire.
+             * @type {Date}
+             * @default null
+             */
+            this.expiration = null;
+
             // These are internal and intentionally not documented.
             this.currentTiles = []; // holds assembled tiles
             this.currentSector = new Sector(0, 0, 0, 0); // a scratch variable
@@ -557,7 +565,7 @@ define([
 
         // Intentionally not documented.
         ElevationModel.prototype.isTileImageExpired = function (tile) {
-            return !(!this.expiration || this.expiration > Date.now());
+            return this.expiration && (Date.now() >= this.expiration.getTime());
         };
 
         // Intentionally not documented.
