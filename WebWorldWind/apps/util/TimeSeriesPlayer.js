@@ -122,17 +122,17 @@ define(function () {
 
         sliderDiv.slider({orientation: "vertical"});
 
-        topButtonGroup.append(backwardButton);
-        topButtonGroup.append(playButton);
         topButtonGroup.append(forwardButton);
+        //topButtonGroup.append(playButton);
+        topButtonGroup.append(backwardButton);
 
-        bottomButtonGroup.append(repeatButton);
+        //bottomButtonGroup.append(repeatButton);
 
         var playerDiv = $("#timeSeriesPlayer");
         playerDiv.append(topButtonGroup);
         playerDiv.append(sliderDiv);
         playerDiv.append(displaySpan);
-        playerDiv.append(bottomButtonGroup);
+        //playerDiv.append(bottomButtonGroup);
 
         this.playButton = playButton;
         this.repeatButton = repeatButton;
@@ -220,8 +220,8 @@ define(function () {
     TimeSeriesPlayer.prototype.updateTimeDisplay = function (timeString) {
         timeString = timeString.replace("00:00:00 GMT", "GMT");
         this.timeDisplay.text(timeString);
-        this.timeDisplay.css('top', this.sliderThumb.offset().top - this.slider.offset().top + this.slider.height());
-        this.timeDisplay.css('left', this.sliderThumb.offset().left - this.slider.offset().left + 35);
+        this.timeDisplay.css('top', this.sliderThumb.offset().top - this.slider.offset().top + this.slider.height() - 30);
+        this.timeDisplay.css('left', this.sliderThumb.offset().left - this.slider.offset().left + 40);
     };
 
     TimeSeriesPlayer.prototype.updateTimeSlider = function (scaleValue) {
