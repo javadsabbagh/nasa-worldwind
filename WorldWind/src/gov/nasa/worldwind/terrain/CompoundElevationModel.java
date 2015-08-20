@@ -479,7 +479,7 @@ public class CompoundElevationModel extends AbstractElevationModel
      *                         contain at least as many elements as the list of locations.
      *
      * @return the resolution achieved, in radians, or {@link Double#MAX_VALUE} if individual elevations cannot be
-     *         determined for all of the locations.
+     * determined for all of the locations.
      */
     public double getElevations(Sector sector, List<? extends LatLon> latlons, double targetResolution, double[] buffer)
     {
@@ -510,7 +510,7 @@ public class CompoundElevationModel extends AbstractElevationModel
      *                         contain at least as many elements as the list of locations.
      *
      * @return the resolution achieved, in radians, or {@link Double#MAX_VALUE} if individual elevations cannot be
-     *         determined for all of the locations.
+     * determined for all of the locations.
      */
     public double getUnmappedElevations(Sector sector, List<? extends LatLon> latlons, double targetResolution,
         double[] buffer)
@@ -701,5 +701,37 @@ public class CompoundElevationModel extends AbstractElevationModel
         }
 
         return false;
+    }
+
+    /**
+     * Returns the elevation for this elevation model's highest level of detail at a specified location if the source
+     * file for that level and the specified location exists in the local elevation cache on disk.
+     * Note that this method consults only those elevation models whose type is {@link BasicElevationModel}.
+     * @param latitude The latitude of the location whose elevation is desired.
+     * @param longitude The longitude of the location whose elevation is desired.
+     * @return The elevation at the specified location, if that location is contained in this elevation model and the
+     * source file for the highest-resolution elevation at that location exists in the current disk cache. Otherwise
+     * this elevation model's missing data signal is returned (see {@link #getMissingDataSignal()}).
+     */
+    public double getUnmappedLocalSourceElevation(Angle latitude, Angle longitude)
+    {
+        double elevation = this.getMissingDataSignal();
+
+        // Traverse the elevation model list from highest resolution to lowest.
+        for (int i = this.elevationModels.size() - 1; i >= 0; i--)
+        {
+            ElevationModel em = this.elevationModels.get(i);
+            if (em instanceof BasicElevationModel)
+            {
+                double e = ((BasicElevationModel) em).getUnmappedLocalSourceElevation(latitude, longitude);
+                if (e != em.getMissingDataSignal())
+                {
+                    elevation = e;
+                    break;
+                }
+            }
+        }
+
+        return elevation;
     }
 }
