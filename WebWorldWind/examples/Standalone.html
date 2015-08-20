@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <!-- Invokes Web World Wind without using the internet. Refers to only data stored locally on the web server. -->
 <!-- To deploy:
-        - download http://worldwindserver.net/webworldwind/WebWorldWindStandaloneData.zip and
+        - Download and unzip http://worldwindserver.net/webworldwind/WebWorldWind.zip.
+        - Download http://worldwindserver.net/webworldwind/WebWorldWindStandaloneData.zip and
           unzip it into the Web World Wind top-level directory so that the "standalonedata" directory is a peer
-          of examples, src and apps.
+          of examples, src, apps and worldwindlib.js.
         - Ensure that your web server is configured to send an HTTP content type of application/octet-stream
-          or application/bil16 for files with a .bil suffix.
-        - Use your browser to invoke this HTML file, the one you're now reading.
+          or application/bil16 for files with a .bil suffix. You can do this for Apache servers by adding bil
+          to the list of application-octet-stream suffixes in the mime.types file and then restarting the server.
+        - Use your browser to invoke this HTML file, the one you're now reading, via the web server. Do not attempt
+          to open it using the browser's File->Open menu. Use an http or https URL with the server address.
       If deployment was successful then you should see a Web World Wind globe in the browser. The globe
       should have blue marble imagery all over it and greenish Landsat imagery over most of North America.
       If you zoom into a mountainous region you should see the raised mountains. There are no elevations
       included for the oceans, so they are all flat. -->
 <!-- Be sure that the "../standalonedata" directory exists (relative to this file) and that it
-     contains the Blue Marble imagery, the Landsat imagery and the DTED0 elevations. -->
+     contains the Blue Marble imagery, the Landsat imagery and the DTED0 elevations in its Earth directory. -->
 <html>
 <head lang="en">
     <meta charset="UTF-8">
