@@ -721,7 +721,7 @@ public class CompoundElevationModel extends AbstractElevationModel
         for (int i = this.elevationModels.size() - 1; i >= 0; i--)
         {
             ElevationModel em = this.elevationModels.get(i);
-            if (em instanceof BasicElevationModel)
+            if (em instanceof BasicElevationModel && em.isEnabled())
             {
                 double e = ((BasicElevationModel) em).getUnmappedLocalSourceElevation(latitude, longitude);
                 if (e != em.getMissingDataSignal())
