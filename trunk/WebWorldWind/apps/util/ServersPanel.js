@@ -266,6 +266,12 @@ define(function () {
                 this.timeSeriesPlayer.timeSequence = timeSequence;
                 this.timeSeriesPlayer.layer = layer;
                 layer.timeSequence = timeSequence;
+
+                //for (var t = timeSequence.currentTime; t != null; t = timeSequence.next()) {
+                //    console.log(t.toISOString());
+                //}
+                //timeSequence.reset();
+
             } else {
                 layer = new WorldWind.WmsLayer(config, null);
                 this.timeSeriesPlayer.timeSequence = null;
