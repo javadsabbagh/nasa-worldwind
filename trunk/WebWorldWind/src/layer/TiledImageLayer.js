@@ -117,11 +117,10 @@ define([
              */
             this.detailHint = 0;
 
-            /**
+            /* Intentionally not documented.
              * Indicates the time at which this layer's imagery expire. Expired images are re-retrieved
-             * when the current time exceeds the specified expiry time. If set to null, images do not expire.
+             * when the current time exceeds the specified expiry time. If null, images do not expire.
              * @type {Date}
-             * @default null
              */
             this.expiration = null;
 
@@ -137,6 +136,12 @@ define([
 
         TiledImageLayer.prototype = Object.create(Layer.prototype);
 
+        // Inherited from Layer.
+        TiledImageLayer.prototype.refresh = function (){
+            this.expiration = new Date();
+            this.currentTilesInvalid = true;
+        };
+
         // Intentionally not documented.
         TiledImageLayer.prototype.createTile = function (sector, level, row, column) {
             var path = this.cachePath + "-layer/" + level.levelNumber + "/" + row + "/" + row + "_" + column + "."
@@ -149,9 +154,6 @@ define([
         TiledImageLayer.prototype.doRender = function (dc) {
             if (!dc.terrain)
                 return;
-
-            if (this.expiration && (Date.now() >= this.expiration.getTime()))
-                this.currentTilesInvalid = true;
 
             if (this.currentTilesInvalid
                 || !this.lasTtMVP || !dc.navigatorState.modelviewProjection.equals(this.lasTtMVP)
@@ -296,7 +298,7 @@ define([
 
         // Intentionally not documented.
         TiledImageLayer.prototype.isTextureExpired = function (texture) {
-            return this.expiration && (Date.now() >= this.expiration.getTime());
+            return this.expiration && (texture.creationTime.getTime() <= this.expiration.getTime());
         };
 
         /**
