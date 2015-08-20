@@ -74,6 +74,12 @@ define([
             }
 
             this.textureId = textureId;
+
+            /**
+             * The time at which this texture was created.
+             * @type {Date}
+             */
+            this.creationTime = new Date();
         };
 
         /**
