@@ -103,6 +103,7 @@ define(function () {
             missingEntry: "The specified entry is null or undefined.",
             missingFont: "The specified font is null or undefined.",
             missingFrustum: "The specified frustum is null or undefined.",
+            missingFunction: "The specified function is null or undefined.",
             missingGlContext: "The specified WebGL rendering context is null or undefined.",
             missingGlobe: "The specified globe is null or undefined.",
             missingImage: "The specified image is null or undefined.",
