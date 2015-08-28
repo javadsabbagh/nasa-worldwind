@@ -71,6 +71,7 @@ New features and improvements in World Wind Java SDK 2.1.0
 - Repaired an issue where AnalyticSurface returns an incorrect picked object when the altitude mode is CLAMP_TO_GROUND.
 - Added ability to retrieve elevations via WCS. Added WCSElevations example.
 - Modified CompoundElevationModel to sort elevation models from lowest resolution to highest when models are added.
+- Modified SurfaceImage to optionally display on top of surface shapes, via the alwaysOnTop property.
 
 New features and improvements in World Wind Java SDK 2.0.0
 ------------------------------------------------------------
