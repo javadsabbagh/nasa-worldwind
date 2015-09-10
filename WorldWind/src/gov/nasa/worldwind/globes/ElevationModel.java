@@ -417,4 +417,16 @@ public interface ElevationModel extends WWObject, Restorable, Disposable
      * @see #setExtremesCachingEnabled(boolean)
      */
     boolean isExtremesCachingEnabled();
+
+    /**
+     * Returns the elevation for this elevation model's highest level of detail if the source file for that level and
+     * the specified location exists in the local elevation cache on disk. This method is useful only when an elevation
+     * dataset has been pre-cached.
+     * @param latitude The latitude of the location whose elevation is desired.
+     * @param longitude The longitude of the location whose elevation is desired.
+     * @return The elevation at the specified location, if that location is contained in this elevation model and the
+     * source file for the highest-resolution elevation at that location exists in the current disk cache. Otherwise
+     * this elevation model's missing data signal is returned (see {@link #getMissingDataSignal()}).
+     */
+    double getUnmappedLocalSourceElevation(Angle latitude, Angle longitude);
 }
