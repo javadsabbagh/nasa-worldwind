@@ -10,7 +10,7 @@ import gov.nasa.worldwind.*;
 import gov.nasa.worldwind.cache.*;
 import gov.nasa.worldwind.exception.*;
 import gov.nasa.worldwind.geom.*;
-import gov.nasa.worldwind.globes.Globe;
+import gov.nasa.worldwind.globes.*;
 import gov.nasa.worldwind.render.SurfaceQuad;
 import gov.nasa.worldwind.util.Logging;
 
@@ -993,9 +993,43 @@ public class HighResolutionTerrain extends WWObjectImpl implements Terrain
             new Position(maxElevationLocation, maxElevation));
     }
 
+    /**
+     * Indicates whether cached elevations are used exclusively. When this flag is true this high resolution terrain
+     * instance uses {@link ElevationModel#getUnmappedLocalSourceElevation(Angle, Angle)} to retrieve elevations.
+     * This assumes that the highest-resolution elevations for the elevation model are cached locally.
+     */
+    protected boolean useCachedElevationsOnly = false;
+
+    /**
+     * Indicates whether cached elevations are used exclusively. When this flag is true this high resolution terrain
+     * instance uses {@link ElevationModel#getUnmappedLocalSourceElevation(Angle, Angle)} to retrieve elevations.
+     * This assumes that the highest-resolution elevations for the elevation model are cached locally.
+     * @param tf true to force caching, otherwise false. The default is false.
+     */
+    public void setUseCachedElevationsOnly(boolean tf)
+    {
+        this.useCachedElevationsOnly = tf;
+    }
+
+    /**
+     * Indicates whether cached elevations are used exclusively. When this flag is true this high resolution terrain
+     * instance uses {@link ElevationModel#getUnmappedLocalSourceElevation(Angle, Angle)} to retrieve elevations.
+     * This assumes that the highest-resolution elevations for the elevation model are cached locally.
+     * @return true if cached elevations are forced, otherwise false.
+     */
+    public boolean isUseCachedElevationsOnly()
+    {
+        return this.useCachedElevationsOnly;
+    }
+
     protected void getElevations(Sector sector, List<LatLon> latlons, double[] targetResolution, double[] elevations)
         throws InterruptedException
     {
+        if (this.useCachedElevationsOnly) {
+            this.getCachedElevations(latlons, elevations);
+            return;
+        }
+
         double[] actualResolution = new double[targetResolution.length];
         for (int i = 0; i < targetResolution.length; i++)
         {
@@ -1029,6 +1063,21 @@ public class HighResolutionTerrain extends WWObjectImpl implements Terrain
         }
 
         return true;
+    }
+
+    protected void getCachedElevations(List<LatLon> latlons, double[] elevations)
+    {
+        ElevationModel em = this.globe.getElevationModel();
+
+        for (int i = 0; i < latlons.size(); i++) {
+            LatLon ll = latlons.get(i);
+            double elevation = em.getUnmappedLocalSourceElevation(ll.latitude, ll.longitude);
+            if (elevation == em.getMissingDataSignal()) {
+                elevation = em.getMissingDataReplacement();
+            }
+
+            elevations[i] = elevation;
+        }
     }
 
     /**

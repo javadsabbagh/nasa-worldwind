@@ -357,4 +357,9 @@ abstract public class AbstractElevationModel extends WWObjectImpl implements Ele
     {
         return 1d;
     }
+
+    public double getUnmappedLocalSourceElevation(Angle latitude, Angle longitude)
+    {
+        return this.getUnmappedElevation(latitude, longitude);
+    }
 }
