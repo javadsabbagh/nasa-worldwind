@@ -148,6 +148,16 @@ public class ShapeEditing extends ApplicationTemplate
             track.setAltitudes(1e4, 2e4);
             layer.addRenderable(track);
 
+            CappedEllipticalCylinder cec = new CappedEllipticalCylinder(LatLon.fromDegrees(40.5, -100), 5e4, 6e4,
+                Angle.fromDegrees(0));
+            cec.setRadii(3e4, 4e4, 5e4, 6e4);
+            cec.setDrawSurfaceShape(useSurfaceAirspaces);
+            cec.setAttributes(attrs);
+            cec.setHighlightAttributes(highlightAttrs);
+            cec.setAltitudeDatum(AVKey.ABOVE_GROUND_LEVEL, AVKey.ABOVE_GROUND_LEVEL);
+            cec.setAltitudes(1e4, 2e4);
+            layer.addRenderable(cec);
+
             // Surface Shapes
 
             ShapeAttributes shapeAttributes = new BasicShapeAttributes();
