@@ -228,9 +228,18 @@ public class Airspaces extends ApplicationTemplate
             ellipticalCylinder.setCenter(LatLon.fromDegrees(51, -110));
             ellipticalCylinder.setRadii(10e3, 15e3, 50e3, 75e3);
             ellipticalCylinder.setAltitudes(100000.0, 500000.0);
+            ellipticalCylinder.setHeading(180);
             ellipticalCylinder.setTerrainConforming(true);
             ellipticalCylinder.setValue(AVKey.DISPLAY_NAME, "Elliptical Cylinder above terrain");
             layer.addRenderable(ellipticalCylinder);
+
+            CappedCylinder cappedCylinder = new CappedCylinder(attrs);
+            cappedCylinder.setCenter(LatLon.fromDegrees(51, -105));
+            cappedCylinder.setRadii(15e3, 75e3);
+            cappedCylinder.setAltitudes(100000.0, 500000.0);
+            cappedCylinder.setTerrainConforming(true);
+            cappedCylinder.setValue(AVKey.DISPLAY_NAME, "Capped Cylinder above terrain");
+            layer.addRenderable(cappedCylinder);
 
             return layer;
         }

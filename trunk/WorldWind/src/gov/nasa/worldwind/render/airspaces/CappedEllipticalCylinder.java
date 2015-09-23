@@ -21,7 +21,7 @@ import java.util.*;
  * altitudes.
  *
  * @author tag
- * @version $Id:$
+ * @version $Id$
  */
 public class CappedEllipticalCylinder extends AbstractAirspace
 {
@@ -699,7 +699,7 @@ public class CappedEllipticalCylinder extends AbstractAirspace
         float[] norms = new float[3 * count];
         gb.makeCylinderVertices(dc.getTerrain(), center, minorRadius, majorRadius, heading, altitudes,
             terrainConformant, slices, stacks, referenceCenter, verts);
-        gb.makeCylinderNormals(slices, stacks, norms); // TODO
+        gb.makeEllipticalCylinderNormals(slices, stacks, minorRadius, majorRadius, heading, norms);
 
         dest.setVertexData(count, verts);
         dest.setNormalData(count, norms);
