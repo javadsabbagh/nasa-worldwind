@@ -36,14 +36,14 @@ public class CappedEllipticalCylinder extends AbstractAirspace
     protected double outerMinorRadius = 1.0;
     protected double innerMajorRadius = 0.0;
     protected double outerMajorRadius = 1.0;
-    protected double heading = 0;
+    protected Angle heading = Angle.ZERO;
     protected boolean enableCaps = true;
 
     protected int slices = DEFAULT_SLICES;
     protected final int stacks = DEFAULT_STACKS;
     protected int loops = DEFAULT_LOOPS;
 
-    public CappedEllipticalCylinder(LatLon location, double minorRadius, double majorRadius, double heading)
+    public CappedEllipticalCylinder(LatLon location, double minorRadius, double majorRadius, Angle heading)
     {
         if (location == null)
         {
@@ -274,7 +274,7 @@ public class CappedEllipticalCylinder extends AbstractAirspace
      *
      * @return This cylinder's heading, in degrees.
      */
-    public double getHeading()
+    public Angle getHeading()
     {
         return heading;
     }
@@ -284,7 +284,7 @@ public class CappedEllipticalCylinder extends AbstractAirspace
      *
      * @param heading This cylinder's heading, in degrees.
      */
-    public void setHeading(double heading)
+    public void setHeading(Angle heading)
     {
         this.heading = heading;
         this.invalidateAirspaceData();
@@ -627,7 +627,7 @@ public class CappedEllipticalCylinder extends AbstractAirspace
     //********************  Cylinder            ********************//
     //**************************************************************//
 
-    private void drawCylinder(DrawContext dc, LatLon center, double minorRadius, double majorRadius, double heading,
+    private void drawCylinder(DrawContext dc, LatLon center, double minorRadius, double majorRadius, Angle heading,
         double[] altitudes, boolean[] terrainConformant, int slices, int stacks, int orientation, Vec4 referenceCenter)
     {
         Geometry vertexGeom = this.createCylinderVertexGeometry(dc, center, minorRadius, majorRadius, heading,
@@ -646,7 +646,7 @@ public class CappedEllipticalCylinder extends AbstractAirspace
     }
 
     private void drawCylinderOutline(DrawContext dc, LatLon center, double minorRadius, double majorRadius,
-        double heading, double[] altitudes, boolean[] terrainConformant, int slices, int stacks, int orientation,
+        Angle heading, double[] altitudes, boolean[] terrainConformant, int slices, int stacks, int orientation,
         Vec4 referenceCenter)
     {
         Geometry vertexGeom = this.createCylinderVertexGeometry(dc, center, minorRadius, majorRadius, heading, altitudes,
@@ -666,7 +666,7 @@ public class CappedEllipticalCylinder extends AbstractAirspace
     }
 
     private Geometry createCylinderVertexGeometry(DrawContext dc, LatLon center, double minorRadius, double majorRadius,
-        double heading, double[] altitudes, boolean[] terrainConformant, int slices, int stacks, int orientation,
+        Angle heading, double[] altitudes, boolean[] terrainConformant, int slices, int stacks, int orientation,
         Vec4 referenceCenter)
     {
         Object cacheKey = new Geometry.CacheKey(dc.getGlobe(), this.getClass(), "EllipticalCylinder.Vertices", center,
@@ -687,7 +687,7 @@ public class CappedEllipticalCylinder extends AbstractAirspace
         return vertexGeom;
     }
 
-    private void makeCylinder(DrawContext dc, LatLon center, double minorRadius, double majorRadius, double heading,
+    private void makeCylinder(DrawContext dc, LatLon center, double minorRadius, double majorRadius, Angle heading,
         double[] altitudes,
         boolean[] terrainConformant, int slices, int stacks, int orientation, Vec4 referenceCenter, Geometry dest)
     {
@@ -735,7 +735,7 @@ public class CappedEllipticalCylinder extends AbstractAirspace
     //********************  Disk                ********************//
     //**************************************************************//
 
-    private void drawDisk(DrawContext dc, LatLon center, double[] radii, double heading, double altitude,
+    private void drawDisk(DrawContext dc, LatLon center, double[] radii, Angle heading, double altitude,
         boolean terrainConformant, int slices, int loops, int orientation, Vec4 referenceCenter)
     {
         Object cacheKey = new Geometry.CacheKey(dc.getGlobe(), this.getClass(), "EllipticalDisk.Vertices",
@@ -764,7 +764,7 @@ public class CappedEllipticalCylinder extends AbstractAirspace
         this.drawGeometry(dc, indexGeom, vertexGeom);
     }
 
-    private void makeDisk(DrawContext dc, LatLon center, double[] radii, double heading, double altitude,
+    private void makeDisk(DrawContext dc, LatLon center, double[] radii, Angle heading, double altitude,
         boolean terrainConformant, int slices, int loops, int orientation, Vec4 referenceCenter, Geometry dest)
     {
         GeometryBuilder gb = this.getGeometryBuilder();
@@ -809,7 +809,7 @@ public class CappedEllipticalCylinder extends AbstractAirspace
         rs.addStateValueAsDouble(context, "innerMajorRadius", this.getRadii()[1]);
         rs.addStateValueAsDouble(context, "outerMinorRadius", this.getRadii()[2]);
         rs.addStateValueAsDouble(context, "outerMajorRadius", this.getRadii()[3]);
-        rs.addStateValueAsDouble(context, "heading", this.getHeading());
+        rs.addStateValueAsDouble(context, "heading", this.getHeading().degrees);
     }
 
     @Override
@@ -845,8 +845,8 @@ public class CappedEllipticalCylinder extends AbstractAirspace
 
         Double heading = rs.getStateValueAsDouble(context, "heading");
         if (heading == null)
-            heading = this.getHeading();
+            heading = this.getHeading().degrees;
 
-        this.setHeading(heading);
+        this.setHeading(Angle.fromDegrees(heading));
     }
 }

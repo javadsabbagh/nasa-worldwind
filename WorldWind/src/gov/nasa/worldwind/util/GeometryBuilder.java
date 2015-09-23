@@ -1775,7 +1775,7 @@ public class GeometryBuilder
     }
 
     public LatLon[] makeCylinderLocations(Globe globe, LatLon center, double minorRadius, double majorRadius,
-        double heading, int slices)
+        Angle heading, int slices)
     {
         if (globe == null)
         {
@@ -1797,7 +1797,6 @@ public class GeometryBuilder
         }
 
         double da = 2.0 * Math.PI / slices;
-        double h = heading * Math.PI / 180;
         LatLon[] dest = new LatLon[slices];
 
         for (int i = 0; i < slices; i++)
@@ -1808,7 +1807,7 @@ public class GeometryBuilder
             double bCosA = minorRadius * cosA;
             double aSinA = majorRadius * sinA;
             double r = (minorRadius * majorRadius) / Math.sqrt(bCosA * bCosA + aSinA * aSinA);
-            dest[i] = LatLon.greatCircleEndPosition(center, a + h, r / globe.getRadius());
+            dest[i] = LatLon.greatCircleEndPosition(center, a + heading.radians, r / globe.getRadius());
         }
 
         return dest;
@@ -1874,7 +1873,7 @@ public class GeometryBuilder
     }
 
     public void makeCylinderVertices(Terrain terrain, LatLon center, double minorRadius, double majorRadius,
-        double heading, double[] altitudes,
+        Angle heading, double[] altitudes,
         boolean[] terrainConformant, int slices, int stacks, Vec4 refPoint, float[] dest)
     {
         int numPoints = this.getCylinderVertexCount(slices, stacks);
@@ -1918,7 +1917,6 @@ public class GeometryBuilder
         }
 
         double da = 2.0 * Math.PI / slices;
-        double h = heading * Math.PI / 180;
         FloatBuffer destBuffer = FloatBuffer.wrap(dest);
 
         for (int i = 0; i < slices; i++)
@@ -1929,7 +1927,7 @@ public class GeometryBuilder
             double bCosA = minorRadius * cosA;
             double aSinA = majorRadius * sinA;
             double r = (minorRadius * majorRadius) / Math.sqrt(bCosA * bCosA + aSinA * aSinA);
-            LatLon ll = LatLon.greatCircleEndPosition(center, a + h, r / terrain.getGlobe().getRadius());
+            LatLon ll = LatLon.greatCircleEndPosition(center, a + heading.radians, r / terrain.getGlobe().getRadius());
 
             for (int j = 0; j <= stacks; j++)
             {
@@ -2048,7 +2046,7 @@ public class GeometryBuilder
     }
 
     public void makeEllipticalCylinderNormals(int slices, int stacks, double minorRadius, double majorRadius,
-        double heading, float[] dest)
+        Angle heading, float[] dest)
     {
         int numPoints = this.getCylinderVertexCount(slices, stacks);
         int numCoords = 3 * numPoints;
@@ -2082,7 +2080,6 @@ public class GeometryBuilder
         double a2 = majorRadius * majorRadius;
         double b2 = minorRadius * minorRadius;
         double d;
-        double h = heading * Math.PI / 180;
 
         da = 2.0f * (float) Math.PI / (float) slices;
         nsign = (this.orientation == OUTSIDE) ? 1.0f : -1.0f;
@@ -2090,7 +2087,7 @@ public class GeometryBuilder
 
         for (i = 0; i < slices; i++)
         {
-            a = i * da + h;
+            a = i * da + heading.radians;
             x = majorRadius * Math.sin(a) / a2;
             y = minorRadius * Math.cos(a) / b2;
             d = Math.sqrt(x * x + y * y);
@@ -2624,7 +2621,7 @@ public class GeometryBuilder
         return dest;
     }
 
-    public LatLon[] makeDiskLocations(Globe globe, LatLon center, double[] radii, double heading, int slices, int loops)
+    public LatLon[] makeDiskLocations(Globe globe, LatLon center, double[] radii, Angle heading, int slices, int loops)
     {
         if (globe == null)
         {
@@ -2655,7 +2652,6 @@ public class GeometryBuilder
         double innerMajorRadius = radii[1];
         double outerMinorRadius = radii[2];
         double outerMajorRadius = radii[3];
-        double h = heading * Math.PI / 180;
         double da = 2.0 * Math.PI / slices;
         double dMinor = (outerMinorRadius - innerMinorRadius) / loops;
         double dMajor = (outerMajorRadius - innerMajorRadius) / loops;
@@ -2675,7 +2671,7 @@ public class GeometryBuilder
                 double bCosA = minorRadius * cosA;
                 double aSinA = majorRadius * sinA;
                 double r = (minorRadius * majorRadius) / Math.sqrt(bCosA * bCosA + aSinA * aSinA);
-                dest[index++] = LatLon.greatCircleEndPosition(center, a + h, r / globe.getRadius());
+                dest[index++] = LatLon.greatCircleEndPosition(center, a + heading.radians, r / globe.getRadius());
             }
         }
 
@@ -2743,7 +2739,7 @@ public class GeometryBuilder
         }
     }
 
-    public void makeDiskVertices(Terrain terrain, LatLon center, double[] radii, double heading,
+    public void makeDiskVertices(Terrain terrain, LatLon center, double[] radii, Angle heading,
         double altitude, boolean terrainConformant, int slices, int loops, Vec4 refPoint, float[] dest)
     {
         int numPoints = this.getDiskVertexCount(slices, loops);
@@ -2790,7 +2786,6 @@ public class GeometryBuilder
         double innerMajorRadius = radii[1];
         double outerMinorRadius = radii[2];
         double outerMajorRadius = radii[3];
-        double h = heading * Math.PI / 180;
         double da = 2.0 * Math.PI / slices;
         double dMinor = (outerMinorRadius - innerMinorRadius) / loops;
         double dMajor = (outerMajorRadius - innerMajorRadius) / loops;
@@ -2810,7 +2805,7 @@ public class GeometryBuilder
                 double bCosA = minorRadius * cosA;
                 double aSinA = majorRadius * sinA;
                 double r = (minorRadius * majorRadius) / Math.sqrt(bCosA * bCosA + aSinA * aSinA);
-                LatLon ll = LatLon.greatCircleEndPosition(center, a + h, r / globeRadius);
+                LatLon ll = LatLon.greatCircleEndPosition(center, a + heading.radians, r / globeRadius);
                 this.append(terrain, ll, altitude, terrainConformant, refPoint, destBuffer);
             }
         }

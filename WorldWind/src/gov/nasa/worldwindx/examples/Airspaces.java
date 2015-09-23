@@ -228,7 +228,7 @@ public class Airspaces extends ApplicationTemplate
             ellipticalCylinder.setCenter(LatLon.fromDegrees(51, -110));
             ellipticalCylinder.setRadii(10e3, 15e3, 50e3, 75e3);
             ellipticalCylinder.setAltitudes(100000.0, 500000.0);
-            ellipticalCylinder.setHeading(180);
+            ellipticalCylinder.setHeading(Angle.fromDegrees(180));
             ellipticalCylinder.setTerrainConforming(true);
             ellipticalCylinder.setValue(AVKey.DISPLAY_NAME, "Elliptical Cylinder above terrain");
             layer.addRenderable(ellipticalCylinder);
