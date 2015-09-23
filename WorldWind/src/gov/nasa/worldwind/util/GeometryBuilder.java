@@ -2047,6 +2047,67 @@ public class GeometryBuilder
         }
     }
 
+    public void makeEllipticalCylinderNormals(int slices, int stacks, double minorRadius, double majorRadius,
+        double heading, float[] dest)
+    {
+        int numPoints = this.getCylinderVertexCount(slices, stacks);
+        int numCoords = 3 * numPoints;
+
+        if (numPoints < 0)
+        {
+            String message = Logging.getMessage("generic.ArgumentOutOfRange", "slices=" + slices + " stacks=" + stacks);
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+        if (dest == null)
+        {
+            String message = "nullValue.DestinationArrayIsNull";
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+        if (dest.length < numCoords)
+        {
+            String message = "generic.DestinationArrayInvalidLength " + dest.length;
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+
+        double x, y;
+        double a;
+        double da;
+        double nsign;
+        int i, j;
+        int index;
+        float[] norm;
+        double a2 = majorRadius * majorRadius;
+        double b2 = minorRadius * minorRadius;
+        double d;
+        double h = heading * Math.PI / 180;
+
+        da = 2.0f * (float) Math.PI / (float) slices;
+        nsign = (this.orientation == OUTSIDE) ? 1.0f : -1.0f;
+        norm = new float[3];
+
+        for (i = 0; i < slices; i++)
+        {
+            a = i * da + h;
+            x = majorRadius * Math.sin(a) / a2;
+            y = minorRadius * Math.cos(a) / b2;
+            d = Math.sqrt(x * x + y * y);
+            norm[0] = (float) ((x / d) * nsign);
+            norm[1] = (float) ((y / d) * nsign);
+            norm[2] = 0.0f;
+            this.norm3AndSet(norm, 0);
+
+            for (j = 0; j <= stacks; j++)
+            {
+                index = j + i * (stacks + 1);
+                index = 3 * index;
+                System.arraycopy(norm, 0, dest, index, 3);
+            }
+        }
+    }
+
     public void makeCylinderIndices(int slices, int stacks, int[] dest)
     {
         int numIndices = this.getCylinderIndexCount(slices, stacks);
