@@ -1774,6 +1774,46 @@ public class GeometryBuilder
         return dest;
     }
 
+    public LatLon[] makeCylinderLocations(Globe globe, LatLon center, double minorRadius, double majorRadius,
+        double heading, int slices)
+    {
+        if (globe == null)
+        {
+            String message = Logging.getMessage("nullValue.GlobeIsNull");
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+        if (center == null)
+        {
+            String message = Logging.getMessage("nullValue.CenterIsNull");
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+        if (slices < 1)
+        {
+            String message = Logging.getMessage("generic.ArgumentOutOfRange", "slices < 1");
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+
+        double da = 2.0 * Math.PI / slices;
+        double h = heading * Math.PI / 180;
+        LatLon[] dest = new LatLon[slices];
+
+        for (int i = 0; i < slices; i++)
+        {
+            double a = i * da;
+            double cosA = Math.cos(a);
+            double sinA = Math.sin(a);
+            double bCosA = minorRadius * cosA;
+            double aSinA = majorRadius * sinA;
+            double r = (minorRadius * majorRadius) / Math.sqrt(bCosA * bCosA + aSinA * aSinA);
+            dest[i] = LatLon.greatCircleEndPosition(center, a + h, r / globe.getRadius());
+        }
+
+        return dest;
+    }
+
     public void makeCylinderVertices(Terrain terrain, LatLon center, double radius, double[] altitudes,
         boolean[] terrainConformant, int slices, int stacks, Vec4 refPoint, float[] dest)
     {
@@ -1825,6 +1865,71 @@ public class GeometryBuilder
         {
             double a = i * da;
             LatLon ll = LatLon.greatCircleEndPosition(center, a, r);
+
+            for (int j = 0; j <= stacks; j++)
+            {
+                this.append(terrain, ll, altitudes[j], terrainConformant[j], refPoint, destBuffer);
+            }
+        }
+    }
+
+    public void makeCylinderVertices(Terrain terrain, LatLon center, double minorRadius, double majorRadius,
+        double heading, double[] altitudes,
+        boolean[] terrainConformant, int slices, int stacks, Vec4 refPoint, float[] dest)
+    {
+        int numPoints = this.getCylinderVertexCount(slices, stacks);
+        int numCoords = 3 * numPoints;
+
+        if (terrain == null)
+        {
+            String message = Logging.getMessage("nullValue.TerrainIsNull");
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+        if (center == null)
+        {
+            String message = Logging.getMessage("nullValue.CenterIsNull");
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+        if (numPoints < 0)
+        {
+            String message = Logging.getMessage("generic.ArgumentOutOfRange", "slices=" + slices + " stacks=" + stacks);
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+        if (refPoint == null)
+        {
+            String message = Logging.getMessage("nullValue.PointIsNull");
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+        if (dest == null)
+        {
+            String message = "nullValue.DestinationArrayIsNull";
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+        if (dest.length < numCoords)
+        {
+            String message = "generic.DestinationArrayInvalidLength " + dest.length;
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+
+        double da = 2.0 * Math.PI / slices;
+        double h = heading * Math.PI / 180;
+        FloatBuffer destBuffer = FloatBuffer.wrap(dest);
+
+        for (int i = 0; i < slices; i++)
+        {
+            double a = i * da;
+            double cosA = Math.cos(a);
+            double sinA = Math.sin(a);
+            double bCosA = minorRadius * cosA;
+            double aSinA = majorRadius * sinA;
+            double r = (minorRadius * majorRadius) / Math.sqrt(bCosA * bCosA + aSinA * aSinA);
+            LatLon ll = LatLon.greatCircleEndPosition(center, a + h, r / terrain.getGlobe().getRadius());
 
             for (int j = 0; j <= stacks; j++)
             {
@@ -2458,6 +2563,64 @@ public class GeometryBuilder
         return dest;
     }
 
+    public LatLon[] makeDiskLocations(Globe globe, LatLon center, double[] radii, double heading, int slices, int loops)
+    {
+        if (globe == null)
+        {
+            String message = Logging.getMessage("nullValue.GlobeIsNull");
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+        if (center == null)
+        {
+            String message = Logging.getMessage("nullValue.CenterIsNull");
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+        if (slices < 1)
+        {
+            String message = Logging.getMessage("generic.ArgumentOutOfRange", "slices < 1");
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+        if (loops < 1)
+        {
+            String message = Logging.getMessage("generic.ArgumentOutOfRange", "loops < 1");
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+
+        double innerMinorRadius = radii[0];
+        double innerMajorRadius = radii[1];
+        double outerMinorRadius = radii[2];
+        double outerMajorRadius = radii[3];
+        double h = heading * Math.PI / 180;
+        double da = 2.0 * Math.PI / slices;
+        double dMinor = (outerMinorRadius - innerMinorRadius) / loops;
+        double dMajor = (outerMajorRadius - innerMajorRadius) / loops;
+        LatLon[] dest = new LatLon[slices * (loops + 1)];
+        int index = 0;
+
+        for (int s = 0; s < slices; s++)
+        {
+            double a = s * da;
+            double cosA = Math.cos(a);
+            double sinA = Math.sin(a);
+
+            for (int l = 0; l <= loops; l++)
+            {
+                double minorRadius = (innerMinorRadius + l * dMinor);
+                double majorRadius = (innerMajorRadius + l * dMajor);
+                double bCosA = minorRadius * cosA;
+                double aSinA = majorRadius * sinA;
+                double r = (minorRadius * majorRadius) / Math.sqrt(bCosA * bCosA + aSinA * aSinA);
+                dest[index++] = LatLon.greatCircleEndPosition(center, a + h, r / globe.getRadius());
+            }
+        }
+
+        return dest;
+    }
+
     public void makeDiskVertices(Terrain terrain, LatLon center, double innerRadius, double outerRadius,
         double altitude, boolean terrainConformant, int slices, int loops, Vec4 refPoint, float[] dest)
     {
@@ -2514,6 +2677,79 @@ public class GeometryBuilder
             {
                 double r = (innerRadius + l * dr) / globeRadius;
                 LatLon ll = LatLon.greatCircleEndPosition(center, a, r);
+                this.append(terrain, ll, altitude, terrainConformant, refPoint, destBuffer);
+            }
+        }
+    }
+
+    public void makeDiskVertices(Terrain terrain, LatLon center, double[] radii, double heading,
+        double altitude, boolean terrainConformant, int slices, int loops, Vec4 refPoint, float[] dest)
+    {
+        int numPoints = this.getDiskVertexCount(slices, loops);
+        int numCoords = 3 * numPoints;
+
+        if (terrain == null)
+        {
+            String message = Logging.getMessage("nullValue.TerrainIsNull");
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+        if (center == null)
+        {
+            String message = Logging.getMessage("nullValue.CenterIsNull");
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+        if (numPoints < 0)
+        {
+            String message = Logging.getMessage("generic.ArgumentOutOfRange", "slices=" + slices + " loops=" + loops);
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+        if (refPoint == null)
+        {
+            String message = Logging.getMessage("nullValue.PointIsNull");
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+        if (dest == null)
+        {
+            String message = "nullValue.DestinationArrayIsNull";
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+        if (dest.length < numCoords)
+        {
+            String message = "generic.DestinationArrayInvalidLength " + dest.length;
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+
+        double innerMinorRadius = radii[0];
+        double innerMajorRadius = radii[1];
+        double outerMinorRadius = radii[2];
+        double outerMajorRadius = radii[3];
+        double h = heading * Math.PI / 180;
+        double da = 2.0 * Math.PI / slices;
+        double dMinor = (outerMinorRadius - innerMinorRadius) / loops;
+        double dMajor = (outerMajorRadius - innerMajorRadius) / loops;
+        double globeRadius = terrain.getGlobe().getRadius();
+        FloatBuffer destBuffer = FloatBuffer.wrap(dest);
+
+        for (int s = 0; s < slices; s++)
+        {
+            double a = s * da;
+            double cosA = Math.cos(a);
+            double sinA = Math.sin(a);
+
+            for (int l = 0; l <= loops; l++)
+            {
+                double minorRadius = (innerMinorRadius + l * dMinor);
+                double majorRadius = (innerMajorRadius + l * dMajor);
+                double bCosA = minorRadius * cosA;
+                double aSinA = majorRadius * sinA;
+                double r = (minorRadius * majorRadius) / Math.sqrt(bCosA * bCosA + aSinA * aSinA);
+                LatLon ll = LatLon.greatCircleEndPosition(center, a + h, r / globeRadius);
                 this.append(terrain, ll, altitude, terrainConformant, refPoint, destBuffer);
             }
         }
@@ -2617,7 +2853,7 @@ public class GeometryBuilder
     }
 
     @SuppressWarnings({"UnusedDeclaration"})
-    public void makeDiskVertexNormals(float innerRadius, float outerRadius, int slices, int loops,
+    public void makeDiskVertexNormals(double innerMinorRadius, double outerMinorRadius, int slices, int loops,
         float[] srcVerts, float[] dest)
     {
         int numPoints = this.getDiskVertexCount(slices, loops);
@@ -2664,7 +2900,7 @@ public class GeometryBuilder
             if (l == 0 || l == loops)
             {
                 // Closed disk: all slices share a common center point.
-                if (l == 0 && innerRadius == 0.0f)
+                if (l == 0 && (innerMinorRadius == 0.0f || outerMinorRadius == 0))
                 {
                     // Compute common center point normal.
                     int nextSlice;

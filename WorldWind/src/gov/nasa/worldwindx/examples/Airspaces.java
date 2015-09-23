@@ -224,6 +224,14 @@ public class Airspaces extends ApplicationTemplate
             sphere.setValue(AVKey.DISPLAY_NAME, "Sphere centered on terrain");
             layer.addRenderable(sphere);
 
+            CappedEllipticalCylinder ellipticalCylinder = new CappedEllipticalCylinder(attrs);
+            ellipticalCylinder.setCenter(LatLon.fromDegrees(51, -110));
+            ellipticalCylinder.setRadii(10e3, 15e3, 50e3, 75e3);
+            ellipticalCylinder.setAltitudes(100000.0, 500000.0);
+            ellipticalCylinder.setTerrainConforming(true);
+            ellipticalCylinder.setValue(AVKey.DISPLAY_NAME, "Elliptical Cylinder above terrain");
+            layer.addRenderable(ellipticalCylinder);
+
             return layer;
         }
 
