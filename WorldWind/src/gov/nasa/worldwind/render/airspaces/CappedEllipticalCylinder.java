@@ -136,7 +136,7 @@ public class CappedEllipticalCylinder extends AbstractAirspace
         levels.add(level);
 
         level = new ScreenSizeDetailLevel(ramp[4], "Detail-Level-4");
-        level.setValue(SLICES, 8);
+        level.setValue(SLICES, 14);
         level.setValue(STACKS, 1);
         level.setValue(LOOPS, 1);
         level.setValue(DISABLE_TERRAIN_CONFORMANCE, true);
@@ -439,12 +439,12 @@ public class CappedEllipticalCylinder extends AbstractAirspace
         }
     }
 
-    protected int getSlices()
+    public int getSlices()
     {
         return this.slices;
     }
 
-    protected void setSlices(int slices)
+    public void setSlices(int slices)
     {
         if (slices < 0)
         {
@@ -456,17 +456,17 @@ public class CappedEllipticalCylinder extends AbstractAirspace
         this.slices = slices;
     }
 
-    protected int getStacks()
+    public int getStacks()
     {
         return this.stacks;
     }
 
-    protected int getLoops()
+    public int getLoops()
     {
         return this.loops;
     }
 
-    protected void setLoops(int loops)
+    public void setLoops(int loops)
     {
         if (loops < 0)
         {
