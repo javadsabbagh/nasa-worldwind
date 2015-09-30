@@ -1839,7 +1839,7 @@ public class Shapefile extends AVListImpl implements Closeable, Exportable
         {
             double normalizedLat = Angle.normalizedLatitude(Angle.fromDegrees(rect.coords[0])).degrees;
 
-            rect.coords[0] = 90;
+            rect.coords[0] = -90;
             rect.isNormalized = true;
 
             if (rect.coords[1] < normalizedLat)
