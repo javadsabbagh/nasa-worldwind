@@ -391,55 +391,66 @@ public class SurfacePolygon extends AbstractSurfaceShape implements Exportable
             }
 
             // Interpolate the contour vertices according to this polygon's path type and number of edge intervals.
-            this.interpolateContour(contour, edgeIntervalsPerDegree);
+            this.closeContour(contour);
+            List<Vertex> interpolated = this.interpolateContour(contour, edgeIntervalsPerDegree);
 
             // Modify the contour vertices to compensate for the spherical nature of geographic coordinates.
-            String pole = LatLon.locationsContainPole(locations);
+            String pole = LatLon.locationsContainPole(interpolated);
             if (pole != null)
             {
-                result.add(this.clipWithPole(contour, pole));
+                result.add(this.clipWithPole(interpolated, pole));
             }
-            else if (LatLon.locationsCrossDateLine(contour))
+            else if (LatLon.locationsCrossDateLine(interpolated))
             {
-                result.addAll(this.clipWithDateline(contour));
+                result.addAll(this.clipWithDateline(interpolated));
             }
             else
             {
-                result.add(contour);
+                result.add(interpolated);
             }
         }
 
         return result;
     }
 
-    protected void interpolateContour(List<Vertex> contour, double edgeIntervalsPerDegree)
+    protected void closeContour(List<Vertex> contour)
     {
         if (!contour.get(0).equals(contour.get(contour.size() - 1)))
         {
             contour.add(contour.get(0));
         }
+    }
 
-        int index = 0;
-        while (index < contour.size() - 1)
+    protected List<Vertex> interpolateContour(List<Vertex> contour, double edgeIntervalsPerDegree)
+    {
+        List<Vertex> result = new ArrayList<Vertex>();
+        Vertex prev = null;
+
+        for (Vertex cur : contour)
         {
-            Vertex begin = contour.get(index);
-            Vertex end = contour.get(index++);
-
-            Angle pathLength = LatLon.pathDistance(this.pathType, begin, end);
-            double edgeIntervals = WWMath.clamp(edgeIntervalsPerDegree * pathLength.degrees,
-                this.minEdgeIntervals, this.maxEdgeIntervals);
-            int numEdgeIntervals = (int) Math.ceil(edgeIntervals);
-
-            for (int j = 1; j <= numEdgeIntervals; j++)
+            if (prev != null)
             {
-                double amount = j / (double) (numEdgeIntervals + 1);
-                LatLon location = LatLon.interpolate(this.pathType, amount, begin, end);
-                Vertex vertex = new Vertex(location);
-                vertex.u = begin.u * (1 - amount) + end.u * amount;
-                vertex.v = begin.v * (1 - amount) + end.v * amount;
-                contour.add(index++, vertex);
+                Angle pathLength = LatLon.pathDistance(this.pathType, prev, cur);
+                double edgeIntervals = WWMath.clamp(edgeIntervalsPerDegree * pathLength.degrees,
+                    this.minEdgeIntervals, this.maxEdgeIntervals);
+                int numEdgeIntervals = (int) Math.ceil(edgeIntervals);
+
+                for (int j = 1; j <= numEdgeIntervals; j++)
+                {
+                    double amount = j / (double) (numEdgeIntervals + 1);
+                    LatLon location = LatLon.interpolate(this.pathType, amount, prev, cur);
+                    Vertex vertex = new Vertex(location);
+                    vertex.u = prev.u * (1 - amount) + cur.u * amount;
+                    vertex.v = prev.v * (1 - amount) + cur.v * amount;
+                    result.add(vertex);
+                }
             }
+
+            result.add(cur);
+            prev = cur;
         }
+
+        return result;
     }
 
     protected List<Vertex> clipWithPole(List<Vertex> contour, String pole)
