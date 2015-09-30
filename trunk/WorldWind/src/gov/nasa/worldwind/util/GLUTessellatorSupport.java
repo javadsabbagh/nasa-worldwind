@@ -5,10 +5,11 @@
  */
 package gov.nasa.worldwind.util;
 
-import gov.nasa.worldwind.geom.Vec4;
+import gov.nasa.worldwind.geom.*;
 
-import javax.media.opengl.GL2;
+import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
+import java.nio.IntBuffer;
 import java.util.*;
 
 /**
@@ -235,6 +236,148 @@ public class GLUTessellatorSupport
         {
 //            System.out.println("COMBINE CALLED");
             outData[0] = data[0];
+        }
+    }
+
+    /** Provides a container for associating a tessellator's vertex with its index and application-specified edge flag. */
+    public static class VertexData
+    {
+        public final int index;
+        public final boolean edgeFlag;
+
+        public VertexData(int index, boolean edgeFlag)
+        {
+            this.index = index;
+            this.edgeFlag = edgeFlag;
+        }
+    }
+
+    /** Provides the callback class used to capture triangle and line primitive indices determined by the tessellator. */
+    public static class CollectPrimitivesCallback extends GLUtessellatorCallbackAdapter
+    {
+        protected List<Integer> triangles = new ArrayList<Integer>();
+        protected List<Integer> lines = new ArrayList<Integer>();
+        protected IntBuffer triangleBuffer = IntBuffer.allocate(0);
+        protected IntBuffer lineBuffer = IntBuffer.allocate(0);
+        protected int error = 0;
+        protected int index = 0;
+        protected VertexData[] vertices = {null, null, null};
+        protected boolean[] edgeFlags = {true, true, true};
+        protected boolean edgeFlag = true;
+
+        public CollectPrimitivesCallback()
+        {
+        }
+
+        public IntBuffer getTriangleIndices()
+        {
+            return (IntBuffer) this.triangleBuffer.flip();
+        }
+
+        public IntBuffer getLineIndices()
+        {
+            return (IntBuffer) this.lineBuffer.flip();
+        }
+
+        public int getError()
+        {
+            return this.error;
+        }
+
+        public void attach(GLUtessellator tessellator)
+        {
+            GLU.gluTessCallback(tessellator, GLU.GLU_TESS_BEGIN, this);
+            GLU.gluTessCallback(tessellator, GLU.GLU_TESS_END, this);
+            GLU.gluTessCallback(tessellator, GLU.GLU_TESS_VERTEX, this);
+            GLU.gluTessCallback(tessellator, GLU.GLU_TESS_EDGE_FLAG, this);
+            GLU.gluTessCallback(tessellator, GLU.GLU_TESS_ERROR, this);
+        }
+
+        public void reset()
+        {
+            this.triangles.clear();
+            this.lines.clear();
+            this.triangleBuffer.clear();
+            this.lineBuffer.clear();
+            this.error = 0;
+            this.index = 0;
+            this.edgeFlag = true;
+        }
+
+        @Override
+        public void begin(int type)
+        {
+            if (type != GL.GL_TRIANGLES)
+            {
+                String msg = Logging.getMessage("generic.UnexpectedPrimitiveType", type);
+                Logging.logger().warning(msg);
+            }
+        }
+
+        @Override
+        public void end()
+        {
+            this.triangleBuffer = IntBuffer.allocate(this.triangles.size());
+            for (Integer index : this.triangles)
+            {
+                this.triangleBuffer.put(index);
+            }
+
+            this.lineBuffer = IntBuffer.allocate(this.lines.size());
+            for (Integer index : this.lines)
+            {
+                this.lineBuffer.put(index);
+            }
+        }
+
+        @Override
+        public void vertex(Object vertexData)
+        {
+            this.vertices[this.index] = (VertexData) vertexData;
+            this.edgeFlags[this.index] = this.edgeFlag;
+            this.index++;
+
+            if (this.index == 3)
+            {
+                VertexData i = this.vertices[0];
+                VertexData j = this.vertices[1];
+                VertexData k = this.vertices[2];
+                this.triangles.add(i.index);
+                this.triangles.add(j.index);
+                this.triangles.add(k.index);
+
+                if (this.edgeFlags[0] && (i.edgeFlag || j.edgeFlag))
+                {
+                    this.lines.add(i.index);
+                    this.lines.add(j.index);
+                }
+
+                if (this.edgeFlags[1] && (j.edgeFlag || k.edgeFlag))
+                {
+                    this.lines.add(j.index);
+                    this.lines.add(k.index);
+                }
+
+                if (this.edgeFlags[2] && (k.edgeFlag || i.edgeFlag))
+                {
+                    this.lines.add(k.index);
+                    this.lines.add(i.index);
+                }
+
+                this.index = 0;
+            }
+        }
+
+        @Override
+        public void edgeFlag(boolean flag)
+        {
+            this.edgeFlag = flag;
+        }
+
+        @Override
+        public void error(int errno)
+        {
+            this.error = errno;
         }
     }
 

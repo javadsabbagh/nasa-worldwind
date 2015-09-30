@@ -5,25 +5,70 @@
  */
 package gov.nasa.worldwind.render;
 
+import com.jogamp.common.nio.Buffers;
 import gov.nasa.worldwind.Exportable;
 import gov.nasa.worldwind.avlist.AVKey;
+import gov.nasa.worldwind.exception.WWRuntimeException;
 import gov.nasa.worldwind.geom.*;
 import gov.nasa.worldwind.globes.Globe;
 import gov.nasa.worldwind.ogc.kml.KMLConstants;
 import gov.nasa.worldwind.ogc.kml.impl.KMLExportUtil;
 import gov.nasa.worldwind.util.*;
 
+import javax.media.opengl.*;
+import javax.media.opengl.glu.*;
 import javax.xml.stream.*;
 import java.io.*;
+import java.nio.*;
 import java.util.*;
+import java.util.List;
 
 /**
  * @author dcollins
  * @version $Id$
  */
+@SuppressWarnings("unchecked")
 public class SurfacePolygon extends AbstractSurfaceShape implements Exportable
 {
+    protected static class ShapeData
+    {
+        public int vertexStride;
+        public FloatBuffer vertices;
+        public IntBuffer interiorIndices;
+        public IntBuffer outlineIndices;
+    }
+
+    protected static class Vertex extends LatLon
+    {
+        public double u;
+        public double v;
+        public boolean edgeFlag = true;
+
+        public Vertex(LatLon location)
+        {
+            super(location);
+        }
+
+        public Vertex(Angle latitude, Angle longitude, double u, double v)
+        {
+            super(latitude, longitude);
+            this.u = u;
+            this.v = v;
+        }
+    }
+
+    /* The polygon's boundaries. */
     protected List<Iterable<? extends LatLon>> boundaries = new ArrayList<Iterable<? extends LatLon>>();
+    /** The image source for this shape's texture, if any. */
+    protected Object explicitImageSource;
+    /** If an image source was specified, this is the WWTexture form. */
+    protected WWTexture explicitTexture;
+    /** This shape's texture coordinates. */
+    protected float[] explicitTextureCoords;
+
+    protected Map<Object, ShapeData> shapeDataCache = new HashMap<Object, ShapeData>();
+    protected static GLUtessellator tess;
+    protected static GLUTessellatorSupport.CollectPrimitivesCallback tessCallback;
 
     /** Constructs a new surface polygon with the default attributes and no locations. */
     public SurfacePolygon()
@@ -163,6 +208,68 @@ public class SurfacePolygon extends AbstractSurfaceShape implements Exportable
         this.onShapeChanged();
     }
 
+    /**
+     * Returns this polygon's texture image source.
+     *
+     * @return the texture image source, or null if no source has been specified.
+     */
+    public Object getTextureImageSource()
+    {
+        return this.explicitImageSource;
+    }
+
+    /**
+     * Returns the texture coordinates for this polygon.
+     *
+     * @return the texture coordinates, or null if no texture coordinates have been specified.
+     */
+    public float[] getTextureCoords()
+    {
+        return this.explicitTextureCoords;
+    }
+
+    /**
+     * Specifies the texture to apply to this polygon.
+     *
+     * @param imageSource   the texture image source. May be a {@link String} identifying a file path or URL, a {@link
+     *                      File}, or a {@link java.net.URL}.
+     * @param texCoords     the (s, t) texture coordinates aligning the image to the polygon. There must be one texture
+     *                      coordinate pair, (s, t), for each polygon location in the polygon's outer boundary.
+     * @param texCoordCount the number of texture coordinates, (s, v) pairs, specified.
+     *
+     * @throws IllegalArgumentException if the image source is not null and either the texture coordinates are null or
+     *                                  inconsistent with the specified texture-coordinate count, or there are fewer
+     *                                  than three texture coordinate pairs.
+     */
+    public void setTextureImageSource(Object imageSource, float[] texCoords, int texCoordCount)
+    {
+        if (imageSource == null)
+        {
+            this.explicitTexture = null;
+            this.explicitTextureCoords = null;
+            this.onShapeChanged();
+            return;
+        }
+
+        if (texCoords == null)
+        {
+            String message = Logging.getMessage("generic.ListIsEmpty");
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+
+        if (texCoordCount < 3 || texCoords.length < 2 * texCoordCount)
+        {
+            String message = Logging.getMessage("generic.InsufficientPositions");
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+
+        this.explicitTexture = new BasicWWTexture(imageSource, true);
+        this.explicitTextureCoords = texCoords;
+        this.onShapeChanged();
+    }
+
     public Position getReferencePosition()
     {
         if (this.getOuterBoundary() == null)
@@ -173,6 +280,355 @@ public class SurfacePolygon extends AbstractSurfaceShape implements Exportable
             return null;
 
         return new Position(iterator.next(), 0);
+    }
+
+    protected void clearCaches()
+    {
+        super.clearCaches();
+        this.shapeDataCache.clear();
+    }
+
+    protected void doDrawGeographic(DrawContext dc, SurfaceTileDrawContext sdc)
+    {
+        if (this.boundaries.isEmpty())
+            return;
+
+        Object key = this.createGeometryKey(dc, sdc);
+        ShapeData shapeData = this.shapeDataCache.get(key);
+
+        if (shapeData == null)
+        {
+            double edgeIntervalsPerDegree = this.computeEdgeIntervalsPerDegree(sdc);
+            List<List<Vertex>> contours = this.assembleContours(edgeIntervalsPerDegree);
+            shapeData = this.tessellateContours(contours);
+
+            if (shapeData == null)
+            {
+                String msg = Logging.getMessage("generic.ExceptionWhileTessellating", this);
+                dc.addRenderingException(new WWRuntimeException(msg));
+                this.handleUnsuccessfulInteriorTessellation(dc); // clears boundaries, preventing repeat attempts
+                return;
+            }
+
+            this.shapeDataCache.put(key, shapeData);
+        }
+
+        GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+        gl.glVertexPointer(2, GL.GL_FLOAT, shapeData.vertexStride, shapeData.vertices.position(0));
+
+        if (shapeData.vertexStride != 0)
+        {
+            gl.glEnableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
+            gl.glTexCoordPointer(2, GL.GL_FLOAT, shapeData.vertexStride, shapeData.vertices.position(2));
+        }
+
+        ShapeAttributes attrs = this.getActiveAttributes();
+        if (attrs.isDrawInterior())
+        {
+            this.applyInteriorState(dc, sdc, attrs, this.getInteriorTexture(), this.getReferencePosition());
+            IntBuffer indices = shapeData.interiorIndices;
+            gl.glDrawElements(GL.GL_TRIANGLES, indices.remaining(), GL.GL_UNSIGNED_INT, indices);
+        }
+
+        if (attrs.isDrawOutline())
+        {
+            this.applyOutlineState(dc, attrs);
+            IntBuffer indices = shapeData.outlineIndices;
+            gl.glDrawElements(GL.GL_LINES, indices.remaining(), GL.GL_UNSIGNED_INT, indices);
+        }
+
+        if (shapeData.vertexStride != 0)
+        {
+            gl.glDisableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
+        }
+    }
+
+    protected void applyInteriorState(DrawContext dc, SurfaceTileDrawContext sdc, ShapeAttributes attributes,
+        WWTexture texture, LatLon refLocation)
+    {
+        if (this.explicitTexture != null && !dc.isPickingMode())
+        {
+            GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
+            OGLUtil.applyBlending(gl, true);
+            OGLUtil.applyColor(gl, attributes.getInteriorMaterial().getDiffuse(), attributes.getInteriorOpacity(), true);
+
+            if (this.explicitTexture.bind(dc))
+            {
+                this.explicitTexture.applyInternalTransform(dc);
+                gl.glEnable(GL.GL_TEXTURE_2D);
+                gl.glDisable(GL2.GL_TEXTURE_GEN_S);
+                gl.glDisable(GL2.GL_TEXTURE_GEN_T);
+            }
+        }
+        else
+        {
+            super.applyInteriorState(dc, sdc, attributes, this.getInteriorTexture(), this.getReferencePosition());
+        }
+    }
+
+    protected List<List<Vertex>> assembleContours(double edgeIntervalsPerDegree)
+    {
+        List<List<Vertex>> result = new ArrayList<List<Vertex>>();
+
+        for (int b = 0; b < this.boundaries.size(); b++)
+        {
+            Iterable<? extends LatLon> locations = this.boundaries.get(b);
+            float[] texCoords = (b == 0) ? this.explicitTextureCoords : null;
+            int c = 0;
+
+            // Merge the boundary locations with their respective texture coordinates, if any.
+            List<Vertex> contour = new ArrayList<Vertex>();
+            for (LatLon location : locations)
+            {
+                Vertex vertex = new Vertex(location);
+                contour.add(vertex);
+
+                if (texCoords != null && texCoords.length > c)
+                {
+                    vertex.u = texCoords[c++];
+                    vertex.v = texCoords[c++];
+                }
+            }
+
+            // Interpolate the contour vertices according to this polygon's path type and number of edge intervals.
+            this.interpolateContour(contour, edgeIntervalsPerDegree);
+
+            // Modify the contour vertices to compensate for the spherical nature of geographic coordinates.
+            String pole = LatLon.locationsContainPole(locations);
+            if (pole != null)
+            {
+                result.add(this.clipWithPole(contour, pole));
+            }
+            else if (LatLon.locationsCrossDateLine(contour))
+            {
+                result.addAll(this.clipWithDateline(contour));
+            }
+            else
+            {
+                result.add(contour);
+            }
+        }
+
+        return result;
+    }
+
+    protected void interpolateContour(List<Vertex> contour, double edgeIntervalsPerDegree)
+    {
+        if (!contour.get(0).equals(contour.get(contour.size() - 1)))
+        {
+            contour.add(contour.get(0));
+        }
+
+        int index = 0;
+        while (index < contour.size() - 1)
+        {
+            Vertex begin = contour.get(index);
+            Vertex end = contour.get(index++);
+
+            Angle pathLength = LatLon.pathDistance(this.pathType, begin, end);
+            double edgeIntervals = WWMath.clamp(edgeIntervalsPerDegree * pathLength.degrees,
+                this.minEdgeIntervals, this.maxEdgeIntervals);
+            int numEdgeIntervals = (int) Math.ceil(edgeIntervals);
+
+            for (int j = 1; j <= numEdgeIntervals; j++)
+            {
+                double amount = j / (double) (numEdgeIntervals + 1);
+                LatLon location = LatLon.interpolate(this.pathType, amount, begin, end);
+                Vertex vertex = new Vertex(location);
+                vertex.u = begin.u * (1 - amount) + end.u * amount;
+                vertex.v = begin.v * (1 - amount) + end.v * amount;
+                contour.add(index++, vertex);
+            }
+        }
+    }
+
+    protected List<Vertex> clipWithPole(List<Vertex> contour, String pole)
+    {
+        Angle latPole = AVKey.NORTH.equals(pole) ? Angle.POS90 : Angle.NEG90;
+        Vertex last = null;
+
+        List<Vertex> result = new ArrayList<Vertex>();
+
+        for (Vertex cur : contour)
+        {
+            if (last != null)
+            {
+                if (LatLon.locationsCrossDateline(last, cur))
+                {
+                    // Determine where the edge crosses the dateline.
+                    Angle meridian = cur.longitude.degrees < 0 ? Angle.NEG180 : Angle.POS180;
+                    LatLon intersection = LatLon.intersectionWithMeridian(last, cur, meridian);
+                    Angle lat = intersection.getLatitude();
+                    Angle lon = intersection.getLongitude();
+                    Angle lonOther = lon.multiply(-1);
+
+                    // Add locations that run from the intersection to the pole, then back to the intersection. Note
+                    // that the longitude changes sign when the path returns from the pole.
+                    //         . Pole
+                    //      2 ^ | 3
+                    //        | |
+                    //      1 | v 4
+                    // --->---- ------>
+                    Vertex one = new Vertex(lat, lon, 0, 0);
+                    Vertex two = new Vertex(latPole, lon, 0, 0);
+                    Vertex three = new Vertex(latPole, lonOther, 0, 0);
+                    Vertex four = new Vertex(lat, lonOther, 0, 0);
+                    one.edgeFlag = two.edgeFlag = three.edgeFlag = four.edgeFlag = false;
+                    result.addAll(Arrays.asList(one, two, three, four));
+                }
+            }
+
+            last = cur;
+            result.add(cur);
+        }
+
+        return result;
+    }
+
+    protected List<List<Vertex>> clipWithDateline(List<Vertex> contour)
+    {
+        List<Vertex> result = new ArrayList<Vertex>();
+        Vertex prev = null;
+        Angle offset = null;
+        boolean applyOffset = false;
+
+        for (Vertex cur : contour)
+        {
+            if (prev != null && LatLon.locationsCrossDateline(prev, cur))
+            {
+                if (offset == null)
+                    offset = (prev.longitude.degrees < 0 ? Angle.NEG360 : Angle.POS360);
+                applyOffset = !applyOffset;
+            }
+
+            if (applyOffset)
+            {
+                result.add(new Vertex(cur.latitude, cur.longitude.add(offset), cur.u, cur.v));
+            }
+            else
+            {
+                result.add(cur);
+            }
+
+            prev = cur;
+        }
+
+        List<Vertex> mirror = new ArrayList<Vertex>();
+        for (Vertex cur : result)
+        {
+            mirror.add(new Vertex(cur.latitude, cur.longitude.subtract(offset), cur.u, cur.v));
+        }
+
+        return Arrays.asList(result, mirror);
+    }
+
+    protected ShapeData tessellateContours(List<List<Vertex>> contours)
+    {
+        List<Vertex> polygonData = new ArrayList<Vertex>();
+        double[] coords = {0, 0, 0};
+
+        if (tess == null)
+        {
+            tess = GLU.gluNewTess();
+            tessCallback = new GLUTessellatorSupport.CollectPrimitivesCallback();
+            tessCallback.attach(tess);
+            GLU.gluTessCallback(tess, GLU.GLU_TESS_COMBINE_DATA, new GLUtessellatorCallbackAdapter()
+            {
+                @Override
+                public void combineData(double[] coords, Object[] vertexData, float[] weight, Object[] outData, Object polygonData)
+                {
+                    List<Vertex> vertexList = (List<Vertex>) polygonData;
+                    Vertex vertex = new Vertex(LatLon.fromDegrees(coords[1], coords[0]));
+                    vertex.edgeFlag = false; // set to true if any of the combined vertices have the edge flag
+
+                    for (int w = 0; w < 4; w++) {
+                        if (weight[w] > 0) {
+                            int index = ((GLUTessellatorSupport.VertexData) vertexData[w]).index;
+                            Vertex tmp = vertexList.get(index);
+                            vertex.u += weight[w] * tmp.u;
+                            vertex.v += weight[w] * tmp.v;
+                            vertex.edgeFlag |= tmp.edgeFlag;
+                        }
+                    }
+
+                    int index = ((Collection) polygonData).size();
+                    vertexList.add(vertex);
+
+                    outData[0] = new GLUTessellatorSupport.VertexData(index, vertex.edgeFlag);
+                }
+            });
+        }
+
+        try
+        {
+            tessCallback.reset();
+            GLU.gluTessNormal(tess, 0, 0, 1);
+            GLU.gluTessBeginPolygon(tess, polygonData);
+
+            for (List<Vertex> contour : contours)
+            {
+                GLU.gluTessBeginContour(tess);
+
+                for (Vertex vertex : contour)
+                {
+                    coords[0] = vertex.longitude.degrees;
+                    coords[1] = vertex.latitude.degrees;
+                    int index = polygonData.size();
+                    polygonData.add(vertex);
+                    Object vertexData = new GLUTessellatorSupport.VertexData(index, vertex.edgeFlag);
+                    GLU.gluTessVertex(tess, coords, 0, vertexData);
+                }
+
+                GLU.gluTessEndContour(tess);
+            }
+
+            GLU.gluTessEndPolygon(tess);
+        }
+        catch (Exception e)
+        {
+            String msg = Logging.getMessage("generic.ExceptionWhileTessellating", e.getMessage());
+            Logging.logger().log(java.util.logging.Level.SEVERE, msg, e);
+            return null;
+        }
+
+        if (tessCallback.getError() != 0)
+        {
+            String msg = Logging.getMessage("generic.ExceptionWhileTessellating",
+                GLUTessellatorSupport.convertGLUTessErrorToString(tessCallback.getError()));
+            Logging.logger().log(java.util.logging.Level.SEVERE, msg);
+            return null;
+        }
+
+        int count = polygonData.size() * (this.explicitTexture != null ? 4 : 2);
+        ShapeData shapeData = new ShapeData();
+        shapeData.vertexStride = this.explicitTexture != null ? 16 : 0;
+        shapeData.vertices = Buffers.newDirectFloatBuffer(count);
+        double lonOffset = this.getReferencePosition().longitude.degrees;
+        double latOffset = this.getReferencePosition().latitude.degrees;
+        for (Vertex vertex : polygonData)
+        {
+            shapeData.vertices.put((float) (vertex.longitude.degrees - lonOffset));
+            shapeData.vertices.put((float) (vertex.latitude.degrees - latOffset));
+
+            if (this.explicitTexture != null)
+            {
+                shapeData.vertices.put((float) vertex.u);
+                shapeData.vertices.put((float) vertex.v);
+            }
+        }
+        shapeData.vertices.rewind();
+
+        IntBuffer tmp = tessCallback.getTriangleIndices();
+        shapeData.interiorIndices = Buffers.newDirectIntBuffer(tmp.remaining());
+        shapeData.interiorIndices.put(tmp);
+        shapeData.interiorIndices.rewind();
+
+        tmp = tessCallback.getLineIndices();
+        shapeData.outlineIndices = Buffers.newDirectIntBuffer(tmp.remaining());
+        shapeData.outlineIndices.put(tmp);
+        shapeData.outlineIndices.rewind();
+
+        return shapeData;
     }
 
     protected List<List<LatLon>> createGeometry(Globe globe, double edgeIntervalsPerDegree)
