@@ -444,23 +444,25 @@ public class SurfacePolygon extends AbstractSurfaceShape implements Exportable
 
     protected List<Vertex> clipWithPole(List<Vertex> contour, String pole)
     {
-        Angle latPole = AVKey.NORTH.equals(pole) ? Angle.POS90 : Angle.NEG90;
-        Vertex last = null;
+        List<Vertex> newVertices = new ArrayList<Vertex>();
 
-        List<Vertex> result = new ArrayList<Vertex>();
+        Angle poleLat = AVKey.NORTH.equals(pole) ? Angle.POS90 : Angle.NEG90;
 
-        for (Vertex cur : contour)
+        Vertex vertex = null;
+        for (Vertex nextVertex : contour)
         {
-            if (last != null)
+            if (vertex != null)
             {
-                if (LatLon.locationsCrossDateline(last, cur))
+                newVertices.add(vertex);
+                if (LatLon.locationsCrossDateline(vertex, nextVertex))
                 {
-                    // Determine where the edge crosses the dateline.
-                    Angle meridian = cur.longitude.degrees < 0 ? Angle.NEG180 : Angle.POS180;
-                    LatLon intersection = LatLon.intersectionWithMeridian(last, cur, meridian);
-                    Angle lat = intersection.getLatitude();
-                    Angle lon = intersection.getLongitude();
-                    Angle lonOther = lon.multiply(-1);
+                    // Determine where the segment crosses the dateline.
+                    LatLon separation = LatLon.intersectionWithMeridian(vertex, nextVertex, Angle.POS180);
+                    double sign = Math.signum(vertex.getLongitude().degrees);
+
+                    Angle lat = separation.getLatitude();
+                    Angle thisSideLon = Angle.POS180.multiply(sign);
+                    Angle otherSideLon = thisSideLon.multiply(-1);
 
                     // Add locations that run from the intersection to the pole, then back to the intersection. Note
                     // that the longitude changes sign when the path returns from the pole.
@@ -469,20 +471,19 @@ public class SurfacePolygon extends AbstractSurfaceShape implements Exportable
                     //        | |
                     //      1 | v 4
                     // --->---- ------>
-                    Vertex one = new Vertex(lat, lon, 0, 0);
-                    Vertex two = new Vertex(latPole, lon, 0, 0);
-                    Vertex three = new Vertex(latPole, lonOther, 0, 0);
-                    Vertex four = new Vertex(lat, lonOther, 0, 0);
+                    Vertex one = new Vertex(lat, thisSideLon, 0, 0);
+                    Vertex two = new Vertex(poleLat, thisSideLon, 0, 0);
+                    Vertex three = new Vertex(poleLat, otherSideLon, 0, 0);
+                    Vertex four = new Vertex(lat, otherSideLon, 0, 0);
                     one.edgeFlag = two.edgeFlag = three.edgeFlag = four.edgeFlag = false;
-                    result.addAll(Arrays.asList(one, two, three, four));
+                    newVertices.addAll(Arrays.asList(one, two, three, four));
                 }
             }
-
-            last = cur;
-            result.add(cur);
+            vertex = nextVertex;
         }
+        newVertices.add(vertex);
 
-        return result;
+        return newVertices;
     }
 
     protected List<List<Vertex>> clipWithDateline(List<Vertex> contour)
