@@ -296,6 +296,53 @@ public class LatLon
     }
 
     /**
+     * Returns the length of the path between <code>value1</code> and <code>value2</code>, according to the specified
+     * path type. If the path type is {@link AVKey#GREAT_CIRCLE} this returns the length of the great arc that spans the
+     * two locations (see {@link #greatCircleDistance(LatLon, LatLon)}). If the path type is {@link AVKey#RHUMB_LINE} or
+     * {@link AVKey#LOXODROME} this returns the length of the rhumb line that spans the two locations (see {@link
+     * #rhumbDistance(LatLon, LatLon)}). Otherwise, this returns the linear distance between the two locations (see
+     * {@link #linearDistance(LatLon, LatLon)}).
+     *
+     * @param pathType the path type used to interpolate between geographic locations.
+     * @param value1   the first location.
+     * @param value2   the second location.
+     *
+     * @return an length of the path between <code>value1</code> and <code>value2</code>, according to the specified
+     * path type.
+     *
+     * @throws IllegalArgumentException if the path type or either location is null.
+     */
+    public static Angle pathDistance(String pathType, LatLon value1, LatLon value2)
+    {
+        if (pathType == null)
+        {
+            String message = Logging.getMessage("nullValue.PathTypeIsNull");
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+
+        if (value1 == null || value2 == null)
+        {
+            String message = Logging.getMessage("nullValue.LatLonIsNull");
+            Logging.logger().severe(message);
+            throw new IllegalArgumentException(message);
+        }
+
+        if (pathType.equals(AVKey.GREAT_CIRCLE))
+        {
+            return greatCircleDistance(value1, value2);
+        }
+        else if (pathType.equals(AVKey.RHUMB_LINE) || pathType.equals(AVKey.LOXODROME))
+        {
+            return rhumbDistance(value1, value2);
+        }
+        else // Default to linear interpolation.
+        {
+            return linearDistance(value1, value2);
+        }
+    }
+
+    /**
      * Computes the great circle angular distance between two locations. The return value gives the distance as the
      * angle between the two positions on the pi radius circle. In radians, this angle is also the arc length of the
      * segment between the two positions on that circle. To compute a distance in meters from this value, multiply it by

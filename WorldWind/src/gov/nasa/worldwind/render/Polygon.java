@@ -460,6 +460,7 @@ public class Polygon extends AbstractShape
 
         float[] retCoords = new float[this.textureCoordsBuffer.limit()];
         this.textureCoordsBuffer.get(retCoords, 0, retCoords.length);
+        this.textureCoordsBuffer.rewind();
 
         return retCoords;
     }
@@ -527,6 +528,13 @@ public class Polygon extends AbstractShape
             this.textureCoordsBuffer.put(this.textureCoordsBuffer.get(0));
             this.textureCoordsBuffer.put(this.textureCoordsBuffer.get(1));
         }
+
+        this.textureCoordsBuffer.rewind();
+
+        if (this.surfaceShape != null)
+        {
+            this.setSurfacePolygonTexImageSource(this.surfaceShape);
+        }
     }
 
     public Position getReferencePosition()
@@ -566,6 +574,7 @@ public class Polygon extends AbstractShape
     {
         SurfacePolygon polygon = new SurfacePolygon();
         this.setSurfacePolygonBoundaries(polygon);
+        this.setSurfacePolygonTexImageSource(polygon);
 
         return polygon;
     }
@@ -580,6 +589,17 @@ public class Polygon extends AbstractShape
         for (int i = 1; i < bounds.size(); i++)
         {
             polygon.addInnerBoundary(bounds.get(i));
+        }
+    }
+
+    protected void setSurfacePolygonTexImageSource(SurfaceShape shape)
+    {
+        SurfacePolygon polygon = (SurfacePolygon) shape;
+
+        if (this.getTextureImageSource() != null)
+        {
+            polygon.setTextureImageSource(this.getTextureImageSource(), this.getTextureCoords(),
+                this.getTextureCoords().length / 2);
         }
     }
 
