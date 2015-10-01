@@ -33,6 +33,7 @@ public class SurfacePolygon extends AbstractSurfaceShape implements Exportable
     protected static class ShapeData
     {
         public int vertexStride;
+        public boolean hasTexCoords;
         public FloatBuffer vertices;
         public IntBuffer interiorIndices;
         public IntBuffer outlineIndices;
@@ -59,8 +60,6 @@ public class SurfacePolygon extends AbstractSurfaceShape implements Exportable
 
     /* The polygon's boundaries. */
     protected List<Iterable<? extends LatLon>> boundaries = new ArrayList<Iterable<? extends LatLon>>();
-    /** The image source for this shape's texture, if any. */
-    protected Object explicitImageSource;
     /** If an image source was specified, this is the WWTexture form. */
     protected WWTexture explicitTexture;
     /** This shape's texture coordinates. */
@@ -215,7 +214,7 @@ public class SurfacePolygon extends AbstractSurfaceShape implements Exportable
      */
     public Object getTextureImageSource()
     {
-        return this.explicitImageSource;
+        return this.explicitTexture != null ? this.explicitTexture.getImageSource() : null;
     }
 
     /**
@@ -316,7 +315,7 @@ public class SurfacePolygon extends AbstractSurfaceShape implements Exportable
         GL2 gl = dc.getGL().getGL2(); // GL initialization checks for GL2 compatibility.
         gl.glVertexPointer(2, GL.GL_FLOAT, shapeData.vertexStride, shapeData.vertices.position(0));
 
-        if (shapeData.vertexStride != 0)
+        if (shapeData.hasTexCoords)
         {
             gl.glEnableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
             gl.glTexCoordPointer(2, GL.GL_FLOAT, shapeData.vertexStride, shapeData.vertices.position(2));
@@ -337,7 +336,7 @@ public class SurfacePolygon extends AbstractSurfaceShape implements Exportable
             gl.glDrawElements(GL.GL_LINES, indices.remaining(), GL.GL_UNSIGNED_INT, indices);
         }
 
-        if (shapeData.vertexStride != 0)
+        if (shapeData.hasTexCoords)
         {
             gl.glDisableClientState(GL2.GL_TEXTURE_COORD_ARRAY);
         }
@@ -611,10 +610,10 @@ public class SurfacePolygon extends AbstractSurfaceShape implements Exportable
             return null;
         }
 
-        int count = polygonData.size() * (this.explicitTexture != null ? 4 : 2);
         ShapeData shapeData = new ShapeData();
-        shapeData.vertexStride = this.explicitTexture != null ? 16 : 0;
-        shapeData.vertices = Buffers.newDirectFloatBuffer(count);
+        shapeData.hasTexCoords = this.explicitTextureCoords != null;
+        shapeData.vertexStride = shapeData.hasTexCoords ? 16 : 0;
+        shapeData.vertices = Buffers.newDirectFloatBuffer(polygonData.size() * (shapeData.hasTexCoords ? 4 : 2));
         double lonOffset = this.getReferencePosition().longitude.degrees;
         double latOffset = this.getReferencePosition().latitude.degrees;
         for (Vertex vertex : polygonData)
@@ -622,7 +621,7 @@ public class SurfacePolygon extends AbstractSurfaceShape implements Exportable
             shapeData.vertices.put((float) (vertex.longitude.degrees - lonOffset));
             shapeData.vertices.put((float) (vertex.latitude.degrees - latOffset));
 
-            if (this.explicitTexture != null)
+            if (shapeData.hasTexCoords)
             {
                 shapeData.vertices.put((float) vertex.u);
                 shapeData.vertices.put((float) vertex.v);
