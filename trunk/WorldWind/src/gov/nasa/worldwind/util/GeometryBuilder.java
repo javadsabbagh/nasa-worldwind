@@ -1916,18 +1916,20 @@ public class GeometryBuilder
             throw new IllegalArgumentException(message);
         }
 
-        double da = 2.0 * Math.PI / slices;
+        double da = 2.0 * Math.PI / (slices - 1);
+        double globeRadius = terrain.getGlobe().getRadius();
         FloatBuffer destBuffer = FloatBuffer.wrap(dest);
 
         for (int i = 0; i < slices; i++)
         {
-            double a = i * da;
-            double cosA = Math.cos(a);
-            double sinA = Math.sin(a);
-            double bCosA = minorRadius * cosA;
-            double aSinA = majorRadius * sinA;
-            double r = (minorRadius * majorRadius) / Math.sqrt(bCosA * bCosA + aSinA * aSinA);
-            LatLon ll = LatLon.greatCircleEndPosition(center, a + heading.radians, r / terrain.getGlobe().getRadius());
+            double angle = (i != slices - 1) ? i * da : 0;
+            double yLength = majorRadius * Math.cos(angle);
+            double xLength = minorRadius * Math.sin(angle);
+            double distance = Math.sqrt(xLength * xLength + yLength * yLength);
+            // azimuth runs positive clockwise from north and through 360 degrees.
+            double azimuth = (Math.PI / 2.0) - (Math.acos(xLength / distance) * Math.signum(yLength) - heading.radians);
+
+            LatLon ll = LatLon.greatCircleEndPosition(center, azimuth, distance / globeRadius);
 
             for (int j = 0; j <= stacks; j++)
             {
@@ -2786,7 +2788,7 @@ public class GeometryBuilder
         double innerMajorRadius = radii[1];
         double outerMinorRadius = radii[2];
         double outerMajorRadius = radii[3];
-        double da = 2.0 * Math.PI / slices;
+        double da = 2.0 * Math.PI / (slices - 1);
         double dMinor = (outerMinorRadius - innerMinorRadius) / loops;
         double dMajor = (outerMajorRadius - innerMajorRadius) / loops;
         double globeRadius = terrain.getGlobe().getRadius();
@@ -2794,7 +2796,7 @@ public class GeometryBuilder
 
         for (int s = 0; s < slices; s++)
         {
-            double a = s * da;
+            double a = (s != slices - 1) ? s * da : 0;
             double cosA = Math.cos(a);
             double sinA = Math.sin(a);
 
@@ -2802,10 +2804,11 @@ public class GeometryBuilder
             {
                 double minorRadius = (innerMinorRadius + l * dMinor);
                 double majorRadius = (innerMajorRadius + l * dMajor);
-                double bCosA = minorRadius * cosA;
-                double aSinA = majorRadius * sinA;
-                double r = (minorRadius * majorRadius) / Math.sqrt(bCosA * bCosA + aSinA * aSinA);
-                LatLon ll = LatLon.greatCircleEndPosition(center, a + heading.radians, r / globeRadius);
+                double yLength = majorRadius * cosA;
+                double xLength = minorRadius * sinA;
+                double r = Math.sqrt(xLength * xLength + yLength * yLength);
+                double azimuth = (Math.PI / 2) - (Math.acos(xLength / r) * Math.signum(yLength) - heading.radians);
+                LatLon ll = LatLon.greatCircleEndPosition(center, azimuth, r / globeRadius);
                 this.append(terrain, ll, altitude, terrainConformant, refPoint, destBuffer);
             }
         }
