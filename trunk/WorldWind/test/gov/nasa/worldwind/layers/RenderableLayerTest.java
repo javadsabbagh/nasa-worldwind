@@ -9,7 +9,7 @@ import gov.nasa.worldwind.BasicModel;
 import gov.nasa.worldwind.render.*;
 import gov.nasa.worldwind.view.orbit.BasicOrbitView;
 
-import java.util.ArrayList;
+import java.util.*;
 
 /**
  * @author dcollins
@@ -52,6 +52,70 @@ public class RenderableLayerTest extends junit.framework.TestCase
         layer.addRenderables(renderables);
 
         // Test that the layer contains the renderables.
+        assertEquals("", renderables, layer.getRenderables());
+    }
+
+    public void testInsertRenderable()
+    {
+        Iterable<Renderable> source = createExampleIterable();
+
+        List<Renderable> renderables = new ArrayList<Renderable>();
+        RenderableLayer layer = new RenderableLayer();
+
+        for (Renderable renderable : source)
+        {
+            renderables.add(renderables.size(), renderable);
+            layer.addRenderable(layer.getNumRenderables(), renderable);
+        }
+
+        assertEquals("", renderables, layer.getRenderables());
+    }
+
+    public void testInsertRenderableAtBeginning()
+    {
+        Collection<Renderable> source = createExampleIterable();
+
+        List<Renderable> renderables = new ArrayList<Renderable>();
+        RenderableLayer layer = new RenderableLayer();
+        renderables.addAll(source);
+        layer.addRenderables(source);
+
+        Polyline inserted = new Polyline();
+        renderables.add(0, inserted);
+        layer.addRenderable(0, inserted);
+
+        assertEquals("", renderables, layer.getRenderables());
+    }
+
+    public void testInsertRenderableAfterFirst()
+    {
+        Collection<Renderable> source = createExampleIterable();
+
+        List<Renderable> renderables = new ArrayList<Renderable>();
+        RenderableLayer layer = new RenderableLayer();
+        renderables.addAll(source);
+        layer.addRenderables(source);
+
+        Polyline inserted = new Polyline();
+        renderables.add(1, inserted);
+        layer.addRenderable(1, inserted);
+
+        assertEquals("", renderables, layer.getRenderables());
+    }
+
+    public void testInsertRenderableAtEnd()
+    {
+        Collection<Renderable> source = createExampleIterable();
+
+        List<Renderable> renderables = new ArrayList<Renderable>();
+        RenderableLayer layer = new RenderableLayer();
+        renderables.addAll(source);
+        layer.addRenderables(source);
+
+        Polyline inserted = new Polyline();
+        renderables.add(renderables.size(), inserted);
+        layer.addRenderable(layer.getNumRenderables(), inserted);
+
         assertEquals("", renderables, layer.getRenderables());
     }
 
@@ -250,6 +314,24 @@ public class RenderableLayerTest extends junit.framework.TestCase
         }
     }
 
+    public void testInsertRenderableFail()
+    {
+        Iterable<Renderable> renderables = createExampleIterable();
+
+        RenderableLayer layer = new RenderableLayer();
+        layer.setRenderables(renderables);
+
+        try
+        {
+            // Expecting an IllegalStateException here.
+            layer.addRenderable(0, new Polyline());
+            fail("");
+        }
+        catch (IllegalStateException e)
+        {
+        }
+    }
+
     public void testRemoveRenderableFail()
     {
         Iterable<Renderable> renderables = createExampleIterable();
@@ -328,7 +410,7 @@ public class RenderableLayerTest extends junit.framework.TestCase
         }
     }
 
-    private static Iterable<Renderable> createExampleIterable()
+    private static Collection<Renderable> createExampleIterable()
     {
         //noinspection RedundantArrayCreation
         return java.util.Arrays.asList(new Renderable[] {
