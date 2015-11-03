@@ -1,0 +1,7 @@
+The NASA World Wind project has moved to GitHub!
+
+Java
+https://github.com/NASAWorldWind/WorldWindJava.git
+
+Web
+https://github.com/NASAWorldWind/WebWorldWind.git
